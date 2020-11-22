@@ -1,0 +1,39 @@
+[package]
+name          = "rosu-v2"
+version       = "0.1.0"
+authors       = ["MaxOhn <ohn.m@hotmail.de>"]
+edition       = "2018"
+description   = "An osu! API v2 wrapper"
+license       = "MIT"
+readme        = "Readme.md"
+keywords      = ["osu", "api", "wrapper"]
+repository    = "https://github.com/MaxOhn/TODO"
+documentation = "https://docs.rs/TODO/"
+
+[dependencies]
+bitflags     = "1.2"
+log          = "0.4"
+serde_json   = "1.0"
+
+[dependencies.bytes]
+version = "0.5"
+default-features = false
+
+[dependencies.chrono]
+version = "0.4"
+default-features = false
+features = ["serde"]
+
+[dependencies.reqwest]
+version          = "0.10"
+default-features = false
+features         = ["rustls-tls"]
+
+[dependencies.serde]
+version = "1.0"
+features = ["derive"]
+
+[dependencies.tokio]
+version = "0.2"
+default-features = false
+features = ["rt-core", "macros"]

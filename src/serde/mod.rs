@@ -1,11 +1,9 @@
-// mod serde_approval_status;
 // mod serde_bool;
 // mod serde_date_mod;
 // mod serde_f32;
 // mod serde_genre;
 // mod serde_grade;
 // mod serde_language;
-mod serde_mode;
 // mod serde_mods;
 // mod serde_scoring_type;
 // mod serde_team;

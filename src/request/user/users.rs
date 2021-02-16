@@ -1,21 +1,23 @@
 use crate::{
     model::UserCompact,
-    request::{Pending, Request},
+    request::{Pending, Request, UserId},
     routing::Route,
     Osu, OsuResult,
 };
 
 use reqwest::multipart::Form;
 
+// TODO: Combine with GetUser(?)
 /// Get multiple users by their ids.
 pub struct GetUsers<'a> {
     fut: Option<Pending<'a, Vec<UserCompact>>>,
     osu: &'a Osu,
-    user_ids: Option<Vec<u32>>,
+    user_ids: Option<Vec<UserId>>,
 }
 
 impl<'a> GetUsers<'a> {
-    pub(crate) fn new(osu: &'a Osu, user_ids: Vec<u32>) -> Self {
+    #[inline]
+    pub(crate) fn new(osu: &'a Osu, user_ids: Vec<UserId>) -> Self {
         Self {
             fut: None,
             osu,

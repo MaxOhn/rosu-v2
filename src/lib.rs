@@ -11,10 +11,3 @@ pub use error::{OsuError, OsuResult};
 
 #[macro_use]
 extern crate log;
-
-pub fn log_test() {
-    debug!("debug");
-    warn!("warn");
-    error!("error");
-    info!("info");
-}

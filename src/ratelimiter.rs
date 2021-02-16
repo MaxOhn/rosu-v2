@@ -1,5 +1,5 @@
 use std::time::{Duration, Instant};
-use tokio::{sync::Mutex, time::delay_for};
+use tokio::{sync::Mutex, time::sleep};
 
 /// Basic rate limiter that grants access for a certain amount of times within a time span.
 /// Implemented through token bucket algorithm.
@@ -31,7 +31,7 @@ impl Ratelimiter {
             *allowance = self.rate - 1.0;
         } else if *allowance < 1.0 {
             let ms_left = (1.0 - *allowance) / self.rate_per_ms; // s
-            delay_for(Duration::from_micros((1000.0 * ms_left).round() as u64)).await;
+            sleep(Duration::from_micros((1000.0 * ms_left).round() as u64)).await;
             *allowance = 0.0;
         } else {
             *allowance -= 1.0;

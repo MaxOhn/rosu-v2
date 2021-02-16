@@ -33,6 +33,7 @@ pub struct KudosuHistory {
 }
 
 impl PartialEq for KudosuHistory {
+    #[inline]
     fn eq(&self, other: &Self) -> bool {
         self.id == other.id
     }

@@ -1,5 +1,5 @@
 use crate::{
-    model::KudosuHistory,
+    model::Event,
     request::{Pending, Request, UserId},
     routing::Route,
     Osu, OsuResult,
@@ -7,16 +7,16 @@ use crate::{
 
 use reqwest::multipart::Form;
 
-/// Get a user's kudosu history by their user id.
-pub struct GetUserKudosu<'a> {
-    fut: Option<Pending<'a, Vec<KudosuHistory>>>,
+/// Get the recent events of a user by their id.
+pub struct GetRecentEvents<'a> {
+    fut: Option<Pending<'a, Vec<Event>>>,
     osu: &'a Osu,
     user_id: Option<UserId>,
     limit: Option<u32>,
     offset: Option<u32>,
 }
 
-impl<'a> GetUserKudosu<'a> {
+impl<'a> GetRecentEvents<'a> {
     #[inline]
     pub(crate) fn new(osu: &'a Osu, user_id: impl Into<UserId>) -> Self {
         Self {
@@ -55,7 +55,7 @@ impl<'a> GetUserKudosu<'a> {
 
         let req = Request::from((
             form,
-            Route::GetUserKudosu {
+            Route::GetRecentEvents {
                 user_id: self.user_id.take().unwrap(),
             },
         ));
@@ -66,4 +66,4 @@ impl<'a> GetUserKudosu<'a> {
     }
 }
 
-poll_req!(GetUserKudosu<'_>, Vec<KudosuHistory>);
+poll_req!(GetRecentEvents<'_>, Vec<Event>);

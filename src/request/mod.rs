@@ -19,9 +19,21 @@ macro_rules! poll_req {
     };
 }
 
-mod user;
+pub mod beatmap;
+pub mod comments;
+pub mod multiplayer;
+pub mod ranking;
+pub mod user;
+mod wiki;
 
-pub use user::*;
+pub use beatmap::{GetBeatmap, GetBeatmapScores, GetBeatmapUserScore};
+pub use comments::GetComments;
+pub use multiplayer::{GetScore, GetScores, GetUserHighScore};
+pub use ranking::{GetRankings, GetSpotlights};
+pub use user::{
+    GetRecentEvents, GetUser, GetUserBeatmapsets, GetUserKudosu, GetUserScores, GetUsers, UserId,
+};
+pub use wiki::GetWikiPage;
 
 use crate::{routing::Route, OsuResult};
 
@@ -36,15 +48,10 @@ type Pending<'a, T> = Pin<Box<dyn Future<Output = OsuResult<T>> + Send + 'a>>;
 
 #[derive(Debug)]
 pub(crate) struct Request {
-    /// The body of the request, if any.
     pub body: Option<Vec<u8>>,
-    /// The multipart form of the request, if any.
     pub form: Option<Form>,
-    /// The headers to set in the request, if any.
     pub headers: Option<HeaderMap<HeaderValue>>,
-    /// The method of the request.
     pub method: Method,
-    /// The URI path to request.
     pub path: Cow<'static, str>,
 }
 

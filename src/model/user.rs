@@ -9,6 +9,7 @@ use std::fmt;
 
 pub fn str_to_date<'de, D: Deserializer<'de>>(d: D) -> Result<Date<Utc>, D::Error> {
     let date: NaiveDate = Deserialize::deserialize(d)?;
+
     Ok(Date::from_utc(date, Utc))
 }
 
@@ -65,6 +66,13 @@ pub enum HistoryType {
     Note,
     Restriction,
     Silence,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct MedalCompact {
+    achieved_at: DateTime<Utc>,
+    #[serde(rename = "achievement_id")]
+    medal_id: u32,
 }
 
 #[derive(Debug, Deserialize)]
@@ -177,8 +185,8 @@ pub struct User {
     pub support_level: Option<u8>,
     pub unranked_beatmapset_count: Option<u32>,
     pub unread_pm_count: Option<u32>,
-    // #[serde(rename = "user_achievements")]
-    // pub medals: Option<Vec<MedalCompact>>, // TODO
+    #[serde(rename = "user_achievements")]
+    pub medals: Option<Vec<MedalCompact>>,
     // user_preferences: Option<>,
 }
 
@@ -293,7 +301,8 @@ pub struct UserStatistics {
     pub replays_watched: u32,
     pub total_hits: u64,
     pub total_score: u64,
-    // user: UserCompact,
+    #[serde(default)]
+    pub user: Option<Box<UserCompact>>,
 }
 
 pub fn rank_history_vec<'de, D: Deserializer<'de>>(d: D) -> Result<Option<Vec<u32>>, D::Error> {

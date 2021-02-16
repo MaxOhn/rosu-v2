@@ -1,6 +1,6 @@
 use crate::{
     model::{GameMode, User},
-    request::{Pending, Request},
+    request::{Pending, Request, UserId},
     routing::Route,
     Osu, OsuResult,
 };
@@ -9,20 +9,22 @@ use crate::{
 pub struct GetUser<'a> {
     fut: Option<Pending<'a, User>>,
     osu: &'a Osu,
-    user_id: u32,
+    user_id: Option<UserId>,
     mode: Option<GameMode>,
 }
 
 impl<'a> GetUser<'a> {
-    pub(crate) fn new(osu: &'a Osu, user_id: u32) -> Self {
+    #[inline]
+    pub(crate) fn new(osu: &'a Osu, user_id: impl Into<UserId>) -> Self {
         Self {
             fut: None,
             osu,
-            user_id,
+            user_id: Some(user_id.into()),
             mode: None,
         }
     }
 
+    #[inline]
     pub fn mode(mut self, mode: GameMode) -> Self {
         self.mode.replace(mode);
 
@@ -31,7 +33,7 @@ impl<'a> GetUser<'a> {
 
     fn start(&mut self) -> OsuResult<()> {
         let req = Request::from(Route::GetUser {
-            user_id: self.user_id,
+            user_id: self.user_id.take().unwrap(),
             mode: self.mode,
         });
 

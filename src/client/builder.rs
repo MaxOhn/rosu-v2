@@ -11,7 +11,7 @@ use tokio::{
         oneshot::{self, error::TryRecvError},
         RwLock,
     },
-    time::{delay_for, Duration},
+    time::{sleep, Duration},
 };
 
 /// Builder struct for an [`crate::Osu`] client.
@@ -29,6 +29,7 @@ pub struct OsuBuilder {
 
 impl OsuBuilder {
     /// Create a new [`crate::OsuBuilder`]
+    #[inline]
     pub fn new() -> Self {
         Self::default()
     }
@@ -46,20 +47,20 @@ impl OsuBuilder {
     ///   - client secret was not set
     ///   - API did not provide a token for the given client id and client secret
     pub async fn build(self) -> OsuResult<Osu> {
-        let client_id = self
-            .client_id
-            .ok_or(OsuError::Builder(BuilderError::ClientId))?;
+        let client_id = self.client_id.ok_or(OsuError::Builder {
+            source: BuilderError::ClientId,
+        })?;
 
-        let client_secret = self
-            .client_secret
-            .ok_or(OsuError::Builder(BuilderError::ClientSecret))?;
+        let client_secret = self.client_secret.ok_or(OsuError::Builder {
+            source: BuilderError::ClientSecret,
+        })?;
 
         let http = self
             .reqwest_client
             .unwrap_or_else(ReqwestClientBuilder::new)
             .timeout(self.timeout.unwrap_or_else(|| StdDuration::from_secs(10)))
             .build()
-            .map_err(OsuError::BuildingClient)?;
+            .map_err(|source| OsuError::BuildingClient { source })?;
 
         let ratelimiter = Ratelimiter::new(15, 1);
         let (tx, mut rx) = oneshot::channel();
@@ -78,7 +79,7 @@ impl OsuBuilder {
             .request_token()
             .await
             .map_err(Box::new)
-            .map_err(OsuError::UpdateToken)?;
+            .map_err(|source| OsuError::UpdateToken { source })?;
 
         let access_token = format!("Bearer {}", token.access_token);
         inner.token.write().await.replace(access_token);
@@ -89,7 +90,8 @@ impl OsuBuilder {
         let osu = Arc::clone(&inner);
 
         tokio::spawn(async move {
-            delay_for(Duration::from_secs(adjusted_expire)).await;
+            sleep(Duration::from_secs(adjusted_expire)).await;
+
             loop {
                 if matches!(rx.try_recv(), Ok(_) | Err(TryRecvError::Closed)) {
                     debug!("Exiting token update loop");
@@ -106,7 +108,7 @@ impl OsuBuilder {
                 tokio::spawn(async move {
                     tokio::select!(
                         _ = expire_rx => {}
-                        _ = delay_for(Duration::from_secs(actual_expire - adjusted_expire)) => {
+                        _ = sleep(Duration::from_secs(actual_expire - adjusted_expire)) => {
                             warn!("Acquiring new token took too long, remove current token");
                             osu_clone.token.write().await.take();
                         }
@@ -124,6 +126,7 @@ impl OsuBuilder {
                             adjusted_expire = adjust_token_expire(token.expires_in);
                             let access_token = format!("Bearer {}", token.access_token);
                             osu.token.write().await.replace(access_token);
+
                             false
                         }
                         Ok(token) => {
@@ -131,6 +134,7 @@ impl OsuBuilder {
                                 "Failed to acquire new token, {:?} != \"Bearer\"; retry in {}ms",
                                 token.token_type, backoff
                             );
+
                             true
                         }
                         Err(why) => {
@@ -138,16 +142,17 @@ impl OsuBuilder {
                                 "Failed to acquire new token: {}; retry in {}ms",
                                 why, backoff
                             );
+
                             true
                         }
                     }
                 } {
-                    delay_for(Duration::from_millis(backoff)).await;
+                    sleep(Duration::from_millis(backoff)).await;
                     backoff = (backoff * 2).min(60_000);
                 }
 
                 let _ = expire_tx.send(());
-                delay_for(Duration::from_secs(adjusted_expire)).await;
+                sleep(Duration::from_secs(adjusted_expire)).await;
             }
         });
 
@@ -157,6 +162,7 @@ impl OsuBuilder {
     /// Set the client id of the application.
     ///
     /// For more info, check out https://osu.ppy.sh/docs/index.html#client-credentials-grant
+    #[inline]
     pub fn client_id(mut self, client_id: u64) -> Self {
         self.client_id.replace(client_id);
 
@@ -166,6 +172,7 @@ impl OsuBuilder {
     /// Set the client secret of the application.
     ///
     /// For more info, check out https://osu.ppy.sh/docs/index.html#client-credentials-grant
+    #[inline]
     pub fn client_secret(mut self, client_secret: impl Into<String>) -> Self {
         self.client_secret.replace(client_secret.into());
 
@@ -178,6 +185,7 @@ impl OsuBuilder {
     /// those in this builder.
     ///
     /// The default client uses Rustls as its TLS backend.
+    #[inline]
     pub fn reqwest_client(mut self, client: ReqwestClientBuilder) -> Self {
         self.reqwest_client.replace(client);
 
@@ -185,6 +193,7 @@ impl OsuBuilder {
     }
 
     /// Set the timeout for HTTP requests, defaults to 10 seconds.
+    #[inline]
     pub fn timeout(mut self, duration: Duration) -> Self {
         self.timeout.replace(duration);
 
@@ -192,6 +201,7 @@ impl OsuBuilder {
     }
 }
 
+#[inline]
 fn adjust_token_expire(expires_in: u64) -> u64 {
     expires_in - (expires_in as f64 * 0.05) as u64
 }

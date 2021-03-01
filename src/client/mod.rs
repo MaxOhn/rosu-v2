@@ -120,8 +120,8 @@ impl Osu {
     ///
     /// **Won't currently work**, throwing 403s caused by the scope.
     #[inline]
-    pub fn users<I: Into<UserId>>(&self, user_ids: Vec<I>) -> GetUsers {
-        let user_ids = user_ids.into_iter().take(50).map(I::into).collect();
+    pub fn users<I: Into<UserId>>(&self, user_ids: impl Iterator<Item = I>) -> GetUsers {
+        let user_ids = user_ids.take(50).map(I::into).collect();
 
         GetUsers::new(self, user_ids)
     }

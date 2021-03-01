@@ -80,12 +80,12 @@ impl Route {
             ),
             Self::GetComments => (Method::GET, "comments".into()),
             Self::GetNews { news_id } => {
-                let uri = match news_id {
+                let path = match news_id {
                     Some(id) => format!("news/{}", id).into(),
                     None => "news/".into(),
                 };
 
-                (Method::GET, uri)
+                (Method::GET, path)
             }
             Self::GetRankings { mode, ranking_type } => (
                 Method::GET,
@@ -110,13 +110,13 @@ impl Route {
             Self::GetSeasonalBackgrounds => (Method::GET, "seasonal-backgrounds".into()),
             Self::GetSpotlights => (Method::GET, "spotlights".into()),
             Self::GetUser { user_id, mode } => {
-                let mut uri = format!("users/{}", user_id);
+                let mut path = format!("users/{}", user_id);
 
                 if let Some(mode) = mode {
-                    let _ = write!(uri, "/{}", mode);
+                    let _ = write!(path, "/{}", mode);
                 }
 
-                (Method::GET, uri.into())
+                (Method::GET, path.into())
             }
             Self::GetUserBeatmapsets { user_id, map_type } => (
                 Method::GET,
@@ -127,12 +127,12 @@ impl Route {
                 playlist,
                 user_id,
             } => {
-                let uri = format!(
+                let path = format!(
                     "rooms/{}/playlist/{}/scores/users/{}",
                     room, playlist, user_id
                 );
 
-                (Method::GET, uri.into())
+                (Method::GET, path.into())
             }
             Self::GetUserKudosu { user_id } => {
                 (Method::GET, format!("users/{}/kudosu", user_id).into())
@@ -146,12 +146,12 @@ impl Route {
             ),
             Self::GetUsers => (Method::GET, "users".into()),
             Self::GetWikiPage { page } => {
-                let uri = match page {
+                let path = match page {
                     Some(page) => format!("wiki/{}", page).into(),
                     None => "wiki".into(),
                 };
 
-                (Method::GET, uri)
+                (Method::GET, path)
             }
         }
     }

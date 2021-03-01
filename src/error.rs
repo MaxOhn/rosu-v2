@@ -43,7 +43,7 @@ impl fmt::Display for BuilderError {
 }
 
 #[derive(Debug)]
-/// Failed to parse [`GameMods`](crate::model::GameMods) either from `u32` or `&str`.
+/// Failed to parse [`crate::model::GameMods`] either from `u32` or `&str`.
 pub enum ModError {
     U32(u32),
     Str,
@@ -84,7 +84,7 @@ pub enum OsuError {
     },
     /// Failed to request because of missing parameter
     MissingParameter { param: ValueEnum }, // TODO: Remove
-    /// Failed to parse [`GameMods`](crate::model::GameMods) either from `u32` or `&str`
+    /// Failed to parse [`crate::model::GameMods`] either from `u32` or `&str`
     ModParsing { source: ModError },
     /// Attempted to make request without valid token
     NoToken,

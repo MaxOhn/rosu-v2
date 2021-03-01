@@ -87,7 +87,7 @@ bitflags! {
 
 #[allow(clippy::len_without_is_empty)]
 impl GameMods {
-    /// Method that checks whether [`GameMods`](crate::model::GameMods) contains one of osu!mania's key mods.
+    /// Method that checks whether [`crate::model::GameMods`] contains one of osu!mania's key mods.
     ///
     /// # Examples
     /// ```
@@ -122,7 +122,7 @@ impl GameMods {
     }
 
     /// Calculate the multiplier of the mods which will
-    /// influence a [`Score`](crate::model::Score)'s playscore
+    /// influence a [`crate::model::Score`]'s playscore
     ///
     /// # Example
     /// ```rust
@@ -165,7 +165,7 @@ impl GameMods {
             .product()
     }
 
-    /// Check if a [`Score`](crate::model::Score)'s playscore will be increased
+    /// Check if a [`crate::model::Score`]'s playscore will be increased
     ///
     /// # Example
     /// ```rust
@@ -180,7 +180,7 @@ impl GameMods {
         self.score_multiplier(mode) > 1.0
     }
 
-    /// Check if a [`Score`](crate::model::Score)'s playscore will be decreased
+    /// Check if a [`crate::model::Score`]'s playscore will be decreased
     ///
     /// # Example
     /// ```rust
@@ -195,7 +195,7 @@ impl GameMods {
         self.score_multiplier(mode) < 1.0
     }
 
-    /// Check if a [`Beatmap`](crate::model::Beatmap)'s star rating for the given [`GameMode`](crate::model::GameMode) will be influenced.
+    /// Check if a [`crate::model::Beatmap`]'s star rating for the given [`crate::model::GameMode`] will be influenced.
     ///
     /// # Example
     /// ```rust
@@ -257,7 +257,7 @@ impl GameMods {
 }
 
 impl fmt::Display for GameMods {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         for m in self.into_iter() {
             let abbrev = match m {
                 GameMods::NoMod => "NM",

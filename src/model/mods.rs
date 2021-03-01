@@ -3,6 +3,10 @@
 use crate::{error::ModError, model::GameMode, OsuError};
 
 use bitflags::bitflags;
+use serde::{
+    de::{Error, SeqAccess, Visitor},
+    Deserialize, Deserializer, Serialize, Serializer,
+};
 use std::{
     convert::{Into, TryFrom},
     fmt,
@@ -15,7 +19,7 @@ bitflags! {
     ///
     /// # Example
     /// ```
-    /// use rosu::model::GameMods;
+    /// use rosu_v2::model::GameMods;
     /// use std::str::FromStr;
     ///
     /// let nomod = GameMods::default();
@@ -91,7 +95,7 @@ impl GameMods {
     ///
     /// # Examples
     /// ```
-    /// use rosu::model::GameMods;
+    /// use rosu_v2::model::GameMods;
     ///
     /// let mods = GameMods::Hidden | GameMods::Key4;
     /// assert_eq!(mods.has_key_mod(), Some(GameMods::Key4));
@@ -126,7 +130,7 @@ impl GameMods {
     ///
     /// # Example
     /// ```rust
-    /// use rosu::model::{GameMods, GameMode};
+    /// use rosu_v2::model::{GameMods, GameMode};
     ///
     /// let ezhd = GameMods::from_bits(2 + 8).unwrap();
     /// assert_eq!(ezhd.score_multiplier(GameMode::STD), 0.53);
@@ -169,7 +173,7 @@ impl GameMods {
     ///
     /// # Example
     /// ```rust
-    /// use rosu::model::{GameMods, GameMode};
+    /// use rosu_v2::model::{GameMods, GameMode};
     ///
     /// let hrso = GameMods::HardRock | GameMods::SpunOut;
     /// assert!(!hrso.increases_score(GameMode::STD));
@@ -184,7 +188,7 @@ impl GameMods {
     ///
     /// # Example
     /// ```rust
-    /// use rosu::model::{GameMods, GameMode};
+    /// use rosu_v2::model::{GameMods, GameMode};
     ///
     /// let hrso = GameMods::HardRock | GameMods::SpunOut;
     /// assert!(hrso.decreases_score(GameMode::STD));
@@ -199,7 +203,7 @@ impl GameMods {
     ///
     /// # Example
     /// ```rust
-    /// use rosu::model::{GameMode, GameMods};
+    /// use rosu_v2::model::{GameMode, GameMods};
     ///
     /// let hdhr = GameMods::Hidden | GameMods::HardRock;
     /// assert!(hdhr.changes_stars(GameMode::STD));
@@ -222,7 +226,7 @@ impl GameMods {
     ///
     /// # Example
     /// ```
-    /// use rosu::model::GameMods;
+    /// use rosu_v2::model::GameMods;
     ///
     /// let mods = GameMods::from_bits(8 + 16 + 64 + 128).unwrap();
     /// let mut mod_iter = mods.iter();
@@ -241,7 +245,7 @@ impl GameMods {
     ///
     /// # Example
     /// ```
-    /// use rosu::model::GameMods;
+    /// use rosu_v2::model::GameMods;
     ///
     /// assert_eq!(GameMods::NoMod.len(), 0);
     /// let mods = GameMods::from_bits(8 + 16 + 64 + 128).unwrap();
@@ -442,6 +446,60 @@ impl IntoIterator for GameMods {
             mods: self,
             shift: 0,
         }
+    }
+}
+
+struct ModsVisitor;
+
+impl<'de> Visitor<'de> for ModsVisitor {
+    type Value = Option<GameMods>;
+
+    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        formatter.write_str("a u32, a stringified number, a sequence, or null")
+    }
+
+    fn visit_str<E: Error>(self, v: &str) -> Result<Self::Value, E> {
+        match u32::from_str(v) {
+            Ok(n) => Ok(GameMods::from_bits(n)),
+            Err(_) => GameMods::from_str(v).map(Some).map_err(Error::custom), // TODO: nicer error msg
+        }
+    }
+
+    fn visit_u64<E: Error>(self, v: u64) -> Result<Self::Value, E> {
+        Ok(GameMods::from_bits(v as u32))
+    }
+
+    fn visit_some<D: Deserializer<'de>>(self, d: D) -> Result<Self::Value, D::Error> {
+        d.deserialize_any(Self)
+    }
+
+    fn visit_none<E: Error>(self) -> Result<Self::Value, E> {
+        Ok(None)
+    }
+
+    fn visit_seq<A: SeqAccess<'de>>(self, mut seq: A) -> Result<Self::Value, A::Error> {
+        let mut mods = GameMods::default();
+
+        while let Some(next) = seq.next_element()? {
+            mods |= next;
+        }
+
+        Ok(Some(mods))
+    }
+}
+
+impl<'de> Deserialize<'de> for GameMods {
+    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        Ok(d.deserialize_any(ModsVisitor)?.unwrap_or_else(|| {
+            debug!("WARN: Serializing None to GameMods as NM");
+            GameMods::default()
+        }))
+    }
+}
+
+impl Serialize for GameMods {
+    fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        s.serialize_u32(self.bits())
     }
 }
 

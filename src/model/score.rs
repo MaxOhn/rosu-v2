@@ -1,56 +1,56 @@
-use crate::model::{Beatmap, Beatmapset, GameMode, User};
+use crate::model::{Beatmap, Beatmapset, GameMode, GameMods, UserCompact};
 
 use chrono::{DateTime, Utc};
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 pub struct BeatmapScores {
-    scores: Vec<Score>,
+    pub scores: Vec<Score>,
     #[serde(alias = "userScore")]
-    user_score: Option<BeatmapUserScore>,
+    pub user_score: Option<BeatmapUserScore>,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct BeatmapUserScore {
     #[serde(rename = "position")]
-    pos: usize,
-    score: Score,
+    pub pos: usize,
+    pub score: Score,
 }
 
 // TODO: Missing grade?
 #[derive(Debug, Deserialize)]
 pub struct Score {
-    accuracy: f32,
-    best_id: u32,
-    created_at: DateTime<Utc>,
-    max_combo: Option<u32>,
-    map: Option<Beatmap>,
-    mapset: Option<Beatmapset>,
+    pub accuracy: f32,
+    pub best_id: u32,
+    pub created_at: DateTime<Utc>,
+    pub max_combo: Option<u32>,
+    pub map: Option<Beatmap>,
+    pub mapset: Option<Beatmapset>,
     // #[serde(rename = "match")]
-    // osu_match: _, // TODO
-    mode: GameMode,
-    mode_int: u32,
-    mods: u32,
-    perfect: bool,
-    pp: Option<f32>,
-    rank_country: Option<u32>,
-    rank_global: Option<u32>,
-    replay: String,
-    score: u32,
+    // pub osu_match: _, // TODO
+    pub mode: GameMode,
+    pub mode_int: u32,
+    pub mods: GameMods,
+    pub perfect: bool,
+    pub pp: Option<f32>,
+    pub rank_country: Option<u32>,
+    pub rank_global: Option<u32>,
+    pub replay: bool,
+    pub score: u32,
     #[serde(rename = "id")]
-    score_id: u32,
-    statistics: ScoreStatistics,
-    user: Option<User>,
-    user_id: u32,
-    weight: Option<f32>,
+    pub score_id: u32,
+    pub statistics: ScoreStatistics,
+    pub user: Option<UserCompact>,
+    pub user_id: u32,
+    pub weight: Option<f32>,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct ScoreStatistics {
-    count_geki: u32,
-    count_300: u32,
-    count_katu: u32,
-    count_100: u32,
-    count_50: u32,
-    count_miss: u32,
+    pub count_geki: u32,
+    pub count_300: u32,
+    pub count_katu: u32,
+    pub count_100: u32,
+    pub count_50: u32,
+    pub count_miss: u32,
 }

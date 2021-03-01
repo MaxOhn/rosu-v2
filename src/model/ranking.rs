@@ -6,20 +6,20 @@ use serde::Deserialize;
 #[derive(Debug, Deserialize)]
 pub struct Rankings {
     // cursor: Cursor // TODO
-    mapsets: Option<Vec<Beatmapset>>,
-    ranking: Vec<UserStatistics>,
-    spotlight: Option<Spotlight>,
-    total: u32,
+    pub mapsets: Option<Vec<Beatmapset>>,
+    pub ranking: Vec<UserStatistics>,
+    pub spotlight: Option<Spotlight>,
+    pub total: u32,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct Spotlight {
-    end_date: DateTime<Utc>,
-    mode_specific: bool,
-    name: String,
-    participant_count: Option<u32>,
+    pub end_date: DateTime<Utc>,
+    pub mode_specific: bool,
+    pub name: String,
+    pub participant_count: Option<u32>,
     #[serde(rename = "id")]
-    spotlight_id: u32,
-    spotlight_type: Option<String>,
-    start_date: DateTime<Utc>,
+    pub spotlight_id: u32,
+    pub spotlight_type: Option<String>,
+    pub start_date: DateTime<Utc>,
 }

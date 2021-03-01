@@ -233,7 +233,7 @@ pub struct UserCompact {
     pub monthly_playcounts: Option<Vec<MonthlyCount>>,
     pub page: Option<UserPage>,
     pub previous_usernames: Option<Vec<String>>,
-    #[serde(deserialize_with = "rank_history_vec")]
+    #[serde(default, deserialize_with = "rank_history_vec")]
     pub rank_history: Option<Vec<u32>>,
     pub ranked_and_approved_beatmapset_count: Option<u32>,
     pub replays_watched_counts: Option<Vec<MonthlyCount>>,
@@ -274,17 +274,18 @@ pub struct UserPage {
     raw: String,
 }
 
+// TODO: Remove
 #[derive(Debug, Deserialize)]
 pub struct UserRank {
-    global: u32,
     country: u32,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct UserStatistics {
-    pub grade_counts: GradeCounts,
     #[serde(rename = "hit_accuracy")]
     pub accuracy: f32,
+    pub global_rank: u32,
+    pub grade_counts: GradeCounts,
     pub is_ranked: bool,
     pub level: UserLevel,
     #[serde(rename = "maximum_combo")]
@@ -294,7 +295,6 @@ pub struct UserStatistics {
     #[serde(rename = "play_time")]
     pub playtime: u32,
     pub pp: f32,
-    pub pp_rank: u32,
     pub rank: Option<UserRank>,
     pub ranked_score: u64,
     #[serde(rename = "replays_watched_by_others")]

@@ -3,33 +3,35 @@ use serde::Deserialize;
 
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
 pub enum KudosuAction {
+    #[serde(rename = "recalculate.reset")]
+    RecalculateReset,
     #[serde(rename = "vote.give")]
-    Give,
+    VoteGive,
     #[serde(rename = "vote.revoke")]
-    Revoke,
+    VoteRevoke,
     #[serde(rename = "vote.reset")]
-    Reset,
+    VoteReset,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 pub struct KudosuGiver {
-    url: String,
-    username: String,
+    pub url: String,
+    pub username: String,
 }
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct KudosuHistory {
-    id: u32,
+    pub id: u32,
     /// Either `give`, `reset`, or `revoke`.
-    action: KudosuAction,
-    amount: i32,
+    pub action: KudosuAction,
+    pub amount: i32,
     /// Object type which the exchange happened on (forum_post, etc).
-    model: String,
-    created_at: DateTime<Utc>,
+    pub model: String,
+    pub created_at: DateTime<Utc>,
     /// Simple detail of the user who started the exchange.
-    giver: Option<KudosuGiver>,
+    pub giver: Option<KudosuGiver>,
     /// Simple detail of the object for display.
-    post: KudosuPost,
+    pub post: KudosuPost,
 }
 
 impl PartialEq for KudosuHistory {
@@ -42,7 +44,7 @@ impl PartialEq for KudosuHistory {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 pub struct KudosuPost {
     /// Url of the object.
-    url: Option<String>,
+    pub url: Option<String>,
     /// Title of the object. It'll be "[deleted beatmap]" for deleted beatmaps.
-    title: String,
+    pub title: String,
 }

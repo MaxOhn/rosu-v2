@@ -34,13 +34,13 @@ impl Osu {
         GetBeatmap::new(self, map_id)
     }
 
-    /// TODO: Documentation
+    /// Get a [`crate::model::BeatmapScores`].
     #[inline]
     pub fn beatmap_scores(&self, map_id: u32) -> GetBeatmapScores {
         GetBeatmapScores::new(self, map_id)
     }
 
-    /// TODO: Documentation
+    /// Get a [`crate::model::BeatmapUserScore`].
     #[inline]
     pub fn beatmap_user_score(
         &self,
@@ -117,8 +117,8 @@ impl Osu {
     }
 
     /// Get a vec of [`crate::model::UserCompact`].
-    ///
-    /// **Won't currently work**, throwing 403s caused by the scope.
+    // ! Won't currently work, throwing 403s caused by the scope.
+    #[deprecated = "The API currently doesn't allow this endpoint for public use"]
     #[inline]
     pub fn users<I: Into<UserId>>(&self, user_ids: impl Iterator<Item = I>) -> GetUsers {
         let user_ids = user_ids.take(50).map(I::into).collect();
@@ -127,6 +127,7 @@ impl Osu {
     }
 
     /// Get a wiki article or image data
+    // ? Returns a [] response, unfinished endpoint?
     #[inline]
     pub fn wiki(&self) -> GetWikiPage {
         GetWikiPage::new(self)

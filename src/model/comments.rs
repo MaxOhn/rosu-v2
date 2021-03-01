@@ -6,38 +6,40 @@ use std::fmt;
 
 #[derive(Debug, Deserialize)]
 pub struct Comment {
-    comment_id: u32,
-    commentable_id: u32,
-    commentable_type: String,
-    created_at: DateTime<Utc>,
-    deleted_at: Option<DateTime<Utc>>,
-    edited_at: Option<DateTime<Utc>>,
-    edited_by_id: Option<u32>,
-    legacy_name: Option<String>,
-    message: Option<String>,
-    message_html: Option<String>,
-    parent_id: Option<u32>,
-    pinned: bool,
-    replies_count: u32,
-    updated_at: DateTime<Utc>,
-    user_id: u32,
-    votes_count: u32,
+    #[serde(rename = "id")]
+    pub comment_id: u32,
+    pub commentable_id: u32,
+    pub commentable_type: String,
+    pub created_at: DateTime<Utc>,
+    pub deleted_at: Option<DateTime<Utc>>,
+    pub edited_at: Option<DateTime<Utc>>,
+    pub edited_by_id: Option<u32>,
+    pub legacy_name: Option<String>,
+    pub message: Option<String>,
+    pub message_html: Option<String>,
+    pub parent_id: Option<u32>,
+    pub pinned: bool,
+    pub replies_count: u32,
+    pub updated_at: DateTime<Utc>,
+    pub user_id: u32,
+    pub votes_count: u32,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct CommentBundle {
-    commentable_meta: Vec<CommentableMeta>,
-    comments: Vec<Comment>,
-    has_more: bool,
-    has_more_id: Option<u32>,
-    include_comments: Vec<Comment>,
-    pinned_comments: Option<Vec<Comment>>,
-    sort: CommentSort,
-    top_level_count: Option<u32>,
-    total: Option<u32>,
-    user_follow: bool,
-    user_votes: Vec<u32>,
-    users: Vec<UserCompact>,
+    pub commentable_meta: Vec<CommentableMeta>,
+    pub comments: Vec<Comment>,
+    // TODO: cursor: _
+    pub has_more: bool,
+    pub has_more_id: Option<u32>,
+    pub included_comments: Vec<Comment>,
+    pub pinned_comments: Option<Vec<Comment>>,
+    pub sort: CommentSort,
+    pub top_level_count: Option<u32>,
+    pub total: Option<u32>,
+    pub user_follow: bool,
+    pub user_votes: Vec<u32>,
+    pub users: Vec<UserCompact>,
 }
 
 #[derive(Copy, Clone, Debug, Deserialize)]
@@ -61,9 +63,17 @@ impl fmt::Display for CommentSort {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct CommentableMeta {
-    id: u32,
-    title: String,
-    object_type: String,
-    url: String,
+#[serde(untagged)]
+pub enum CommentableMeta {
+    Full {
+        id: u32,
+        title: String,
+        #[serde(rename = "type")]
+        object_type: String,
+        url: String,
+        // TODO: owner_id, owner_title?
+    },
+    Title {
+        title: String,
+    },
 }

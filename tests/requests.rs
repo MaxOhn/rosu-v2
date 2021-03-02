@@ -252,7 +252,7 @@ async fn spotlights() {
 async fn user() {
     init().await;
 
-    match osu().user(badewanne3()).mode(GameMode::TKO).await {
+    match osu().user("freddie benson").mode(GameMode::TKO).await {
         Ok(user) => println!("Received user who was last active {:?}", user.last_visit),
         Err(why) => {
             unwind_error!(error, why, "Error while requesting user: {}");

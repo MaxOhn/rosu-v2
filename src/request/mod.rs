@@ -19,11 +19,11 @@ macro_rules! poll_req {
     };
 }
 
-pub mod beatmap;
-pub mod comments;
-pub mod multiplayer;
-pub mod ranking;
-pub mod user;
+mod beatmap;
+mod comments;
+mod multiplayer;
+mod ranking;
+mod user;
 mod wiki;
 
 pub use beatmap::{GetBeatmap, GetBeatmapScores, GetBeatmapUserScore};

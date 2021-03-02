@@ -18,29 +18,29 @@ use tokio::sync::{oneshot::Sender, RwLock};
 /// The main osu client.
 /// Cheap to clone.
 ///
-/// Must be constructed through [`crate::OsuBuilder`].
+/// Must be constructed through [`OsuBuilder`](crate::OsuBuilder).
 pub struct Osu(pub(crate) Arc<OsuRef>);
 
 impl Osu {
-    /// [`crate::Osu`] clients must be built through this method.
+    /// An [`Osu`](crate::Osu) client must be built through this method.
     #[inline]
     pub fn builder() -> OsuBuilder {
         OsuBuilder::default()
     }
 
-    /// Get a [`crate::model::Beatmap`].
+    /// Get a [`Beatmap`](crate::model::Beatmap).
     #[inline]
     pub fn beatmap(&self, map_id: u32) -> GetBeatmap {
         GetBeatmap::new(self, map_id)
     }
 
-    /// Get a [`crate::model::BeatmapScores`].
+    /// Get a [`BeatmapScores`](crate::model::BeatmapScores).
     #[inline]
     pub fn beatmap_scores(&self, map_id: u32) -> GetBeatmapScores {
         GetBeatmapScores::new(self, map_id)
     }
 
-    /// Get a [`crate::model::BeatmapUserScore`].
+    /// Get a [`BeatmapUserScore`](crate::model::BeatmapUserScore).
     #[inline]
     pub fn beatmap_user_score(
         &self,
@@ -92,7 +92,7 @@ impl Osu {
         GetSpotlights::new(self)
     }
 
-    /// Get a [`crate::model::User`].
+    /// Get a [`User`](crate::model::User).
     #[inline]
     pub fn user(&self, user_id: impl Into<UserId>) -> GetUser {
         GetUser::new(self, user_id)
@@ -116,7 +116,7 @@ impl Osu {
         GetUserScores::new(self, user_id)
     }
 
-    /// Get a vec of [`crate::model::UserCompact`].
+    /// Get a vec of [`UserCompact`](crate::model::UserCompact).
     // ! Won't currently work, throwing 403s caused by the scope.
     #[deprecated = "The API currently doesn't allow this endpoint for public use"]
     #[inline]
@@ -205,7 +205,8 @@ impl OsuRef {
         let body = String::from_utf8_lossy(bytes.as_ref()).into_owned();
 
         let source = match serde_json::from_str::<APIError>(body.as_ref()) {
-            Ok(error) => error,
+            Ok(APIError { error }) if error.is_empty() => None,
+            Ok(APIError { error }) => Some(error),
             Err(source) => return Err(OsuError::Parsing { body, source }),
         };
 
@@ -256,7 +257,8 @@ impl OsuRef {
         let body = String::from_utf8_lossy(bytes.as_ref()).into_owned();
 
         let source = match serde_json::from_str::<APIError>(body.as_ref()) {
-            Ok(error) => error,
+            Ok(APIError { error }) if error.is_empty() => None,
+            Ok(APIError { error }) => Some(error),
             Err(source) => return Err(OsuError::Parsing { body, source }),
         };
 

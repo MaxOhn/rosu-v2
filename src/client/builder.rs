@@ -1,6 +1,6 @@
 use super::{Osu, OsuRef};
 use crate::{
-    error::{BuilderError, OsuError, OsuResult},
+    error::{OsuError, OsuResult},
     ratelimiter::Ratelimiter,
 };
 
@@ -14,9 +14,9 @@ use tokio::{
     time::{sleep, Duration},
 };
 
-/// Builder struct for an [`crate::Osu`] client.
+/// Builder struct for an [`Osu`](crate::Osu) client.
 ///
-/// `client_id` as well as `client_secret` *must* be specified before building.
+/// `client_id` as well as `client_secret` **must** be specified before building.
 ///
 /// For more info, check out https://osu.ppy.sh/docs/index.html#client-credentials-grant
 #[derive(Default)]
@@ -28,13 +28,13 @@ pub struct OsuBuilder {
 }
 
 impl OsuBuilder {
-    /// Create a new [`crate::OsuBuilder`]
+    /// Create a new [`OsuBuilder`](crate::OsuBuilder)
     #[inline]
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Build an [`crate::Osu`] client.
+    /// Build an [`Osu`](crate::Osu) client.
     ///
     /// To build the client, the client id and secret are being used
     /// to acquire a token from the API which expires after a certain time.
@@ -47,13 +47,8 @@ impl OsuBuilder {
     ///   - client secret was not set
     ///   - API did not provide a token for the given client id and client secret
     pub async fn build(self) -> OsuResult<Osu> {
-        let client_id = self.client_id.ok_or(OsuError::Builder {
-            source: BuilderError::ClientId,
-        })?;
-
-        let client_secret = self.client_secret.ok_or(OsuError::Builder {
-            source: BuilderError::ClientSecret,
-        })?;
+        let client_id = self.client_id.ok_or(OsuError::BuilderMissingID)?;
+        let client_secret = self.client_secret.ok_or(OsuError::BuilderMissingSecret)?;
 
         let http = self
             .reqwest_client

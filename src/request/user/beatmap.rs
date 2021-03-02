@@ -1,5 +1,4 @@
 use crate::{
-    error::ValueEnum,
     model::{Beatmapset, RankStatus},
     request::{Pending, Request, UserId},
     routing::Route,
@@ -10,7 +9,14 @@ use reqwest::multipart::Form;
 
 /// Get the beatmapsets of a user by their id.
 ///
-/// [`crate::request::user::beatmap::RankStatus`] **must** be specified before awaiting.
+/// The map type **must** be specified before awaiting, either manually through
+/// [`map_type`](crate::request::GetUserBeatmapsets::map_type),
+/// or through any of the methods [`loved`](crate::request::GetUserBeatmapsets::loved),
+/// [`favourite`](crate::request::GetUserBeatmapsets::favourite),
+/// [`graveyard`](crate::request::GetUserBeatmapsets::graveyard),
+/// [`most_played`](crate::request::GetUserBeatmapsets::most_played),
+/// [`ranked_and_approved`](crate::request::GetUserBeatmapsets::ranked_and_approved),
+/// [`unranked`](crate::request::GetUserBeatmapsets::unranked).
 pub struct GetUserBeatmapsets<'a> {
     fut: Option<Pending<'a, Vec<Beatmapset>>>,
     osu: &'a Osu,
@@ -103,9 +109,9 @@ impl<'a> GetUserBeatmapsets<'a> {
     }
 
     fn start(&mut self) -> OsuResult<()> {
-        let map_type = self.map_type.ok_or(OsuError::MissingParameter {
-            param: ValueEnum::MapType,
-        })?;
+        let map_type = self
+            .map_type
+            .ok_or(OsuError::MissingParameter { param: "map type" })?;
 
         let mut form = Form::new();
 

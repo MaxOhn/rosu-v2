@@ -1,6 +1,6 @@
 #![allow(non_upper_case_globals)]
 
-use crate::{error::ModError, model::GameMode, OsuError};
+use crate::{model::GameMode, OsuError};
 
 use bitflags::bitflags;
 use serde::{
@@ -318,9 +318,7 @@ impl TryFrom<u32> for GameMods {
 
     #[inline]
     fn try_from(m: u32) -> Result<Self, Self::Error> {
-        GameMods::from_bits(m).ok_or(OsuError::ModParsing {
-            source: ModError::U32(m),
-        })
+        GameMods::from_bits(m).ok_or(OsuError::ModParsingU32(m))
     }
 }
 
@@ -363,11 +361,7 @@ impl FromStr for GameMods {
                 "8K" | "K8" => GameMods::Key8,
                 "9K" | "K9" => GameMods::Key9,
                 "NO" if upper == "NOMOD" => break,
-                _ => {
-                    return Err(OsuError::ModParsing {
-                        source: ModError::Str,
-                    })
-                }
+                _ => return Err(OsuError::ModParsingString),
             };
 
             res.insert(m);

@@ -1,5 +1,5 @@
 use crate::{
-    error::{OsuError, ValueEnum},
+    error::OsuError,
     model::{GameMode, Rankings},
     request::{Pending, Request},
     routing::Route,
@@ -8,10 +8,9 @@ use crate::{
 
 use reqwest::multipart::Form;
 
-// TODO: Test
 /// Get the recent events of a user by their id.
 ///
-/// [`crate::request::ranking::RankingType`] **must** be specified before awaiting.
+/// Any of the `type_` methods **must** be specified before awaiting.
 pub struct GetRankings<'a> {
     fut: Option<Pending<'a, Rankings>>,
     osu: &'a Osu,
@@ -119,7 +118,7 @@ impl<'a> GetRankings<'a> {
 
     fn start(&mut self) -> OsuResult<()> {
         let ranking_type = self.ranking_type.ok_or(OsuError::MissingParameter {
-            param: ValueEnum::RankingType,
+            param: "ranking type",
         })?;
 
         let mut form = Form::new();

@@ -52,13 +52,7 @@ impl fmt::Display for UserId {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Self::Id(id) => write!(f, "{}", id),
-            Self::Name(name) => {
-                if name.contains(' ') {
-                    f.write_str(&name.replace(' ', "+"))
-                } else {
-                    f.write_str(name)
-                }
-            }
+            Self::Name(name) => f.write_str(name),
         }
     }
 }

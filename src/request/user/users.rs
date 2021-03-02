@@ -7,7 +7,6 @@ use crate::{
 
 use reqwest::multipart::Form;
 
-// TODO: Combine with GetUser(?)
 /// Get multiple users by their ids.
 pub struct GetUsers<'a> {
     fut: Option<Pending<'a, Vec<UserCompact>>>,

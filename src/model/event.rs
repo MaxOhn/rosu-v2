@@ -5,23 +5,23 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 pub struct Event {
-    created_at: DateTime<Utc>,
+    pub created_at: DateTime<Utc>,
     #[serde(rename = "id")]
-    event_id: u32,
+    pub event_id: u32,
     #[serde(flatten)]
-    event_type: EventType,
+    pub event_type: EventType,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct EventBeatmap {
-    title: String,
-    url: String,
+    pub title: String,
+    pub url: String,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct EventBeatmapset {
-    title: String,
-    url: String,
+    pub title: String,
+    pub url: String,
 }
 
 #[derive(Debug, Deserialize)]

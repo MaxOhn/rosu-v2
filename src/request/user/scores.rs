@@ -1,5 +1,4 @@
 use crate::{
-    error::ValueEnum,
     model::{GameMode, Score},
     request::{Pending, Request, UserId},
     routing::Route,
@@ -10,7 +9,10 @@ use reqwest::multipart::Form;
 
 /// Get scores of a user by the user's id.
 ///
-/// [`crate::request::user::score::ScoreType`] **must** be specified before awaiting.
+/// Either of the following methods **must** be specified before awaiting:
+/// [`best`](crate::request::GetUserScores::best),
+/// [`firsts`](crate::request::GetUserScores::firsts),
+/// [`recent`](crate::request::GetUserScores::recent).
 pub struct GetUserScores<'a> {
     fut: Option<Pending<'a, Vec<Score>>>,
     osu: &'a Osu,
@@ -88,7 +90,7 @@ impl<'a> GetUserScores<'a> {
 
     fn start(&mut self) -> OsuResult<()> {
         let score_type = self.score_type.ok_or(OsuError::MissingParameter {
-            param: ValueEnum::ScoreType,
+            param: "score type",
         })?;
 
         let mut form = Form::new();

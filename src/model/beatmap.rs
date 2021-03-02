@@ -1,5 +1,5 @@
 use super::GameMode;
-use crate::error::{OsuError, ValueEnum};
+use crate::error::OsuError;
 
 use chrono::{DateTime, Utc};
 use serde::{
@@ -37,14 +37,13 @@ pub struct Beatmap {
     pub mode_int: u8,
     pub passcount: u32,
     pub playcount: u32,
-    pub ranked: i8, // TODO: Parse, =status?
     #[serde(rename = "hit_length")]
     pub seconds_drain: u32,
     #[serde(rename = "total_length")]
     pub seconds_total: u32,
     #[serde(rename = "difficulty_rating")]
     pub stars: f32,
-    pub status: String, // TODO: Parse
+    pub status: RankStatus,
     pub url: String,
     pub version: String,
 }
@@ -242,7 +241,7 @@ impl TryFrom<i8> for RankStatus {
             4 => Self::Loved,
             _ => {
                 return Err(OsuError::ParsingValue {
-                    value: ValueEnum::RankStatus,
+                    value: "RankStatus",
                 })
             }
         };

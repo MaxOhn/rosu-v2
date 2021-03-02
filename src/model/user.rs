@@ -270,8 +270,8 @@ pub struct UserLevel {
 
 #[derive(Debug, Deserialize)]
 pub struct UserPage {
-    html: String,
-    raw: String,
+    pub html: String,
+    pub raw: String,
 }
 
 #[derive(Debug, Deserialize)]

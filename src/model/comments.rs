@@ -42,7 +42,7 @@ pub struct CommentBundle {
     pub users: Vec<UserCompact>,
 }
 
-#[derive(Copy, Clone, Debug, Deserialize)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum CommentSort {
     New,

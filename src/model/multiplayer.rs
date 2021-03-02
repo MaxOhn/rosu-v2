@@ -27,6 +27,15 @@ pub struct MultiplayerScore {
     // pub user: u32, // TODO
 }
 
+impl PartialEq for MultiplayerScore {
+    #[inline]
+    fn eq(&self, other: &Self) -> bool {
+        self.score_id == other.score_id
+    }
+}
+
+impl Eq for MultiplayerScore {}
+
 // TODO: Implement Future for MultiplayerScores?
 #[derive(Clone, Debug, Deserialize)]
 pub struct MultiplayerScores {
@@ -61,7 +70,7 @@ impl IntoIterator for MultiplayerScores {
     }
 }
 
-#[derive(Copy, Clone, Debug, Deserialize)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum ScoresAround {
     Higher,

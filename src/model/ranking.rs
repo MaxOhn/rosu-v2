@@ -23,3 +23,14 @@ pub struct Spotlight {
     pub spotlight_type: Option<String>,
     pub start_date: DateTime<Utc>,
 }
+
+impl PartialEq for Spotlight {
+    #[inline]
+    fn eq(&self, other: &Self) -> bool {
+        self.spotlight_id == other.spotlight_id
+            && self.start_date == other.start_date
+            && self.end_date == other.end_date
+    }
+}
+
+impl Eq for Spotlight {}

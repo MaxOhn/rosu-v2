@@ -41,6 +41,8 @@ impl PartialEq for KudosuHistory {
     }
 }
 
+impl Eq for KudosuHistory {}
+
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 pub struct KudosuPost {
     /// Url of the object.

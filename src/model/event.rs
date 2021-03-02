@@ -98,9 +98,9 @@ pub enum EventType {
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct EventUser {
-    username: String,
-    url: String,
+    pub username: String,
+    pub url: String,
     /// Only for UsernameChange events
     #[serde(rename = "previousUsername")]
-    previous_username: Option<String>,
+    pub previous_username: Option<String>,
 }

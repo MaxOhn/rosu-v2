@@ -78,6 +78,15 @@ impl Score {
     }
 }
 
+impl PartialEq for Score {
+    #[inline]
+    fn eq(&self, other: &Self) -> bool {
+        self.score_id == other.score_id
+    }
+}
+
+impl Eq for Score {}
+
 #[derive(Clone, Debug, Deserialize)]
 pub struct ScoreStatistics {
     pub count_geki: u32,

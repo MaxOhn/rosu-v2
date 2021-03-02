@@ -48,7 +48,16 @@ pub struct Beatmap {
     pub version: String,
 }
 
-// TODO: Whats this
+impl PartialEq for Beatmap {
+    #[inline]
+    fn eq(&self, other: &Self) -> bool {
+        self.map_id == other.map_id && self.last_updated == other.last_updated
+    }
+}
+
+impl Eq for Beatmap {}
+
+// ? Whats this
 // #[derive(Clone, Debug)]
 // pub struct BeatmapCompact {
 //     pub checksum: Option<String>,
@@ -95,6 +104,15 @@ pub struct Beatmapset {
     pub user_id: u32,
     pub video: bool,
 }
+
+impl PartialEq for Beatmapset {
+    #[inline]
+    fn eq(&self, other: &Self) -> bool {
+        self.mapset_id == other.mapset_id && self.last_updated == other.last_updated
+    }
+}
+
+impl Eq for Beatmapset {}
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct BeatmapsetAvailability {
@@ -218,7 +236,7 @@ impl Mapset {
     impl_get!(video -> bool);
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub enum RankStatus {
     Graveyard = -2,
     WIP = -1,

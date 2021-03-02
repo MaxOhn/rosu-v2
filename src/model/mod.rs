@@ -1,6 +1,7 @@
 mod beatmap;
 mod comments;
 mod event;
+mod grade;
 mod kudosu;
 mod mode;
 mod mods;
@@ -13,6 +14,7 @@ mod wiki;
 pub use beatmap::{Beatmap, BeatmapCompact, Beatmapset, BeatmapsetCompact, FailTimes, RankStatus};
 pub use comments::{Comment, CommentBundle, CommentSort, CommentableMeta};
 pub use event::{Event, EventBeatmap, EventBeatmapset, EventType, EventUser};
+pub use grade::Grade;
 pub use kudosu::{KudosuAction, KudosuGiver, KudosuHistory, KudosuPost};
 pub use mode::GameMode;
 pub use mods::GameMods;

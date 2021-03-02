@@ -8,7 +8,7 @@ use std::{
 pub struct MultiplayerScore {
     accuracy: f32,
     // #[serde(rename = "rank")]
-    // pub grade: String, // TODO
+    // pub grade: Grade,
     #[serde(rename = "beatmap_id")]
     pub map_id: u32,
     pub max_combo: u32, // TODO: Option?

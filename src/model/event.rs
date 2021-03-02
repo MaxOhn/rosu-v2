@@ -1,4 +1,4 @@
-use super::GameMode;
+use super::{GameMode, Grade};
 
 use chrono::{DateTime, Utc};
 use serde::Deserialize;
@@ -65,7 +65,7 @@ pub enum EventType {
     /// When a user achieves a certain rank on a beatmap
     Rank {
         #[serde(rename = "scoreRank")]
-        grade: String, // TODO
+        grade: Grade,
         rank: u32,
         mode: GameMode,
         beatmap: EventBeatmap,

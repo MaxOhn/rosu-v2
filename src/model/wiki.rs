@@ -2,11 +2,11 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 pub struct WikiPage {
-    layout: String,
-    locale: String,
-    markdown: String,
-    path: String,
-    subtitle: Option<String>,
-    tags: Vec<String>,
-    title: String,
+    pub layout: String,
+    pub locale: String,
+    pub markdown: String,
+    pub path: String,
+    pub subtitle: Option<String>,
+    pub tags: Vec<String>,
+    pub title: String,
 }

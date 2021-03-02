@@ -22,6 +22,6 @@ pub use score::{BeatmapScores, BeatmapUserScore, Score, ScoreStatistics};
 pub use user::{
     AccountHistory, Badge, Country, GradeCounts, Group, HistoryType, MonthlyCount, Playstyle,
     ProfileBanner, ProfilePage, User, UserCompact, UserCover, UserKudosu, UserLevel, UserPage,
-    UserRank, UserStatistics,
+    UserStatistics,
 };
 pub use wiki::WikiPage;

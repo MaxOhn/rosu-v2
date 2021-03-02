@@ -63,7 +63,7 @@ pub struct BeatmapCompact {
 #[derive(Debug, Deserialize)]
 pub struct Beatmapset {
     pub artist: String,
-    pub artist_unicode: String,
+    pub artist_unicode: Option<String>,
     pub availability: BeatmapsetAvailability,
     pub beatmaps: Option<Vec<Beatmap>>,
     pub bpm: f32,
@@ -90,7 +90,7 @@ pub struct Beatmapset {
     pub submitted_date: Option<DateTime<Utc>>,
     pub tags: String,
     pub title: String,
-    pub title_unicode: String,
+    pub title_unicode: Option<String>,
     pub user_id: u32,
     pub video: bool,
 }
@@ -105,7 +105,7 @@ pub struct BeatmapsetAvailability {
 #[derive(Debug, Deserialize)]
 pub struct BeatmapsetCompact {
     pub artist: String,
-    pub artist_unicode: String,
+    pub artist_unicode: Option<String>,
     pub covers: Covers,
     pub creator: String,
     pub favourite_count: u32,
@@ -117,7 +117,7 @@ pub struct BeatmapsetCompact {
     pub source: String,
     pub status: RankStatus,
     pub title: String,
-    pub title_unicode: String,
+    pub title_unicode: Option<String>,
     pub user_id: u32,
     pub video: bool,
 }
@@ -187,8 +187,23 @@ macro_rules! impl_get {
 }
 
 impl Mapset {
+    #[inline]
+    pub fn artist_unicode(&self) -> Option<&str> {
+        match self {
+            Self::Full(set) => set.artist_unicode.as_deref(),
+            Self::Compact(set) => set.artist_unicode.as_deref(),
+        }
+    }
+
+    #[inline]
+    pub fn title_unicode(&self) -> Option<&str> {
+        match self {
+            Self::Full(set) => set.title_unicode.as_deref(),
+            Self::Compact(set) => set.title_unicode.as_deref(),
+        }
+    }
+
     impl_get!(artist -> &str);
-    impl_get!(artist_unicode -> &str);
     impl_get!(covers -> &Covers);
     impl_get!(creator -> &str);
     impl_get!(favourite_count -> u32);
@@ -198,7 +213,6 @@ impl Mapset {
     impl_get!(source -> &str);
     impl_get!(status -> RankStatus);
     impl_get!(title -> &str);
-    impl_get!(title_unicode -> &str);
     impl_get!(user_id -> u32);
     impl_get!(video -> bool);
 }

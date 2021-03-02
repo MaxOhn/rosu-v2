@@ -274,16 +274,11 @@ pub struct UserPage {
     raw: String,
 }
 
-// TODO: Remove
-#[derive(Debug, Deserialize)]
-pub struct UserRank {
-    country: u32,
-}
-
 #[derive(Debug, Deserialize)]
 pub struct UserStatistics {
     #[serde(rename = "hit_accuracy")]
     pub accuracy: f32,
+    pub country_rank: u32,
     pub global_rank: u32,
     pub grade_counts: GradeCounts,
     pub is_ranked: bool,
@@ -295,7 +290,6 @@ pub struct UserStatistics {
     #[serde(rename = "play_time")]
     pub playtime: u32,
     pub pp: f32,
-    pub rank: Option<UserRank>,
     pub ranked_score: u64,
     #[serde(rename = "replays_watched_by_others")]
     pub replays_watched: u32,

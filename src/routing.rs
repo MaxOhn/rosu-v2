@@ -62,6 +62,7 @@ pub(crate) enum Route {
     },
     GetUsers,
     GetWikiPage {
+        locale: String,
         page: Option<String>,
     },
 }
@@ -142,16 +143,17 @@ impl Route {
                 score_type,
             } => (
                 Method::GET,
-                format!("users/{}/scores{}", user_id, score_type).into(),
+                format!("users/{}/scores/{}", user_id, score_type).into(),
             ),
             Self::GetUsers => (Method::GET, "users".into()),
-            Self::GetWikiPage { page } => {
-                let path = match page {
-                    Some(page) => format!("wiki/{}", page).into(),
-                    None => "wiki".into(),
-                };
+            Self::GetWikiPage { locale, page } => {
+                let mut path = format!("wiki/{}/", locale);
 
-                (Method::GET, path)
+                if let Some(page) = page {
+                    path.push_str(&page);
+                }
+
+                (Method::GET, path.into())
             }
         }
     }

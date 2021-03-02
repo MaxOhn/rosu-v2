@@ -42,7 +42,7 @@ pub struct Score {
     pub statistics: ScoreStatistics,
     pub user: Option<UserCompact>,
     pub user_id: u32,
-    pub weight: Option<f32>,
+    pub weight: Option<ScoreWeight>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -53,4 +53,10 @@ pub struct ScoreStatistics {
     pub count_100: u32,
     pub count_50: u32,
     pub count_miss: u32,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ScoreWeight {
+    percentage: f32,
+    pp: f32,
 }

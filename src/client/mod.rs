@@ -127,10 +127,11 @@ impl Osu {
     }
 
     /// Get a wiki article or image data
-    // ? Returns a [] response, unfinished endpoint?
+    ///
+    /// `locale` adjusts the language, e.g. `en` for english, `de` for german, ...
     #[inline]
-    pub fn wiki(&self) -> GetWikiPage {
-        GetWikiPage::new(self)
+    pub fn wiki(&self, locale: impl Into<String>) -> GetWikiPage {
+        GetWikiPage::new(self, locale)
     }
 }
 

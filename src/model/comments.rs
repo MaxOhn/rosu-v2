@@ -4,7 +4,7 @@ use chrono::{DateTime, Utc};
 use serde::Deserialize;
 use std::fmt;
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct Comment {
     #[serde(rename = "id")]
     pub comment_id: u32,
@@ -25,7 +25,7 @@ pub struct Comment {
     pub votes_count: u32,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct CommentBundle {
     pub commentable_meta: Vec<CommentableMeta>,
     pub comments: Vec<Comment>,
@@ -62,7 +62,7 @@ impl fmt::Display for CommentSort {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 #[serde(untagged)]
 pub enum CommentableMeta {
     Full {

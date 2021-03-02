@@ -3,7 +3,7 @@ use crate::model::{Beatmapset, UserStatistics};
 use chrono::{DateTime, Utc};
 use serde::Deserialize;
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct Rankings {
     // cursor: Cursor // TODO
     pub mapsets: Option<Vec<Beatmapset>>,
@@ -12,7 +12,7 @@ pub struct Rankings {
     pub total: u32,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct Spotlight {
     pub end_date: DateTime<Utc>,
     pub mode_specific: bool,

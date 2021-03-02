@@ -3,26 +3,26 @@ use crate::model::{Beatmap, Beatmapset, GameMode, GameMods, Grade, UserCompact};
 use chrono::{DateTime, Utc};
 use serde::Deserialize;
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct BeatmapScores {
     pub scores: Vec<Score>,
     #[serde(alias = "userScore")]
     pub user_score: Option<BeatmapUserScore>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct BeatmapUserScore {
     #[serde(rename = "position")]
     pub pos: usize,
     pub score: Score,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct Score {
     pub accuracy: f32,
     pub best_id: u32,
     pub created_at: DateTime<Utc>,
-    pub max_combo: Option<u32>,
+    pub max_combo: u32,
     pub map: Option<Beatmap>,
     pub mapset: Option<Beatmapset>,
     // #[serde(rename = "match")]
@@ -78,7 +78,7 @@ impl Score {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct ScoreStatistics {
     pub count_geki: u32,
     pub count_300: u32,
@@ -135,7 +135,7 @@ impl ScoreStatistics {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Copy, Clone, Debug, Deserialize)]
 pub struct ScoreWeight {
     pub percentage: f32,
     pub pp: f32,

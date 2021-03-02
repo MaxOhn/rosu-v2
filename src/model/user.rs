@@ -13,7 +13,7 @@ pub fn str_to_date<'de, D: Deserializer<'de>>(d: D) -> Result<Date<Utc>, D::Erro
     Ok(Date::from_utc(date, Utc))
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct AccountHistory {
     pub id: u32,
     #[serde(rename = "type")]
@@ -23,7 +23,7 @@ pub struct AccountHistory {
     pub seconds: u32,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct Badge {
     pub awarded_at: DateTime<Utc>,
     pub description: String,
@@ -31,13 +31,13 @@ pub struct Badge {
     pub url: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct Country {
     code: String,
     name: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct GradeCounts {
     pub ss: i32,
     pub ssh: i32,
@@ -46,7 +46,7 @@ pub struct GradeCounts {
     pub a: i32,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct Group {
     pub id: u32,
     pub identifier: String,
@@ -60,7 +60,7 @@ pub struct Group {
     pub modes: Option<Vec<GameMode>>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Copy, Clone, Debug, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum HistoryType {
     Note,
@@ -68,28 +68,28 @@ pub enum HistoryType {
     Silence,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Copy, Clone, Debug, Deserialize)]
 pub struct MedalCompact {
     achieved_at: DateTime<Utc>,
     #[serde(rename = "achievement_id")]
     medal_id: u32,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Copy, Clone, Debug, Deserialize)]
 pub struct MonthlyCount {
     #[serde(deserialize_with = "str_to_date")]
     pub start_date: Date<Utc>,
     pub count: i32,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct ProfileBanner {
     pub id: u32,
     pub tounament_id: u32,
     pub image: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Copy, Clone, Debug, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Playstyle {
     Mouse,
@@ -98,7 +98,7 @@ pub enum Playstyle {
     Touch,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Copy, Clone, Debug, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ProfilePage {
     Beatmaps,
@@ -110,7 +110,7 @@ pub enum ProfilePage {
     TopRanks,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct User {
     pub avatar_url: String,
     pub cover_url: String,
@@ -190,7 +190,7 @@ pub struct User {
     // user_preferences: Option<>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct UserCompact {
     pub avatar_url: String,
     pub country_code: String,
@@ -249,32 +249,32 @@ pub struct UserCompact {
     // user_preferences: Option<>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct UserCover {
-    custom_url: Option<String>,
-    url: String,
-    id: Option<String>,
+    pub custom_url: Option<String>,
+    pub url: String,
+    pub id: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Copy, Clone, Debug, Deserialize)]
 pub struct UserKudosu {
     pub available: i32,
     pub total: i32,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Copy, Clone, Debug, Deserialize)]
 pub struct UserLevel {
     pub current: u32,
     pub progress: u32,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct UserPage {
     pub html: String,
     pub raw: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct UserStatistics {
     #[serde(rename = "hit_accuracy")]
     pub accuracy: f32,

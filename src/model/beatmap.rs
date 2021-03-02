@@ -8,7 +8,7 @@ use serde::{
 };
 use std::{convert::TryFrom, fmt};
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct Beatmap {
     pub bpm: f32,
     pub checksum: Option<String>,
@@ -48,18 +48,20 @@ pub struct Beatmap {
     pub version: String,
 }
 
-pub struct BeatmapCompact {
-    pub checksum: Option<String>,
-    pub fail_times: Option<FailTimes>,
-    pub map_id: u32,
-    pub mapset: Mapset,
-    pub max_combo: Option<u32>,
-    pub mode: GameMode,
-    pub stars: f32,
-    pub version: String,
-}
+// TODO: Whats this
+// #[derive(Clone, Debug)]
+// pub struct BeatmapCompact {
+//     pub checksum: Option<String>,
+//     pub fail_times: Option<FailTimes>,
+//     pub map_id: u32,
+//     pub mapset: Mapset,
+//     pub max_combo: Option<u32>,
+//     pub mode: GameMode,
+//     pub stars: f32,
+//     pub version: String,
+// }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct Beatmapset {
     pub artist: String,
     pub artist_unicode: Option<String>,
@@ -94,14 +96,14 @@ pub struct Beatmapset {
     pub video: bool,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct BeatmapsetAvailability {
     download_disabled: bool,
     more_information: Option<String>,
 }
 
 // TODO: Optional fields
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct BeatmapsetCompact {
     pub artist: String,
     pub artist_unicode: Option<String>,
@@ -121,19 +123,19 @@ pub struct BeatmapsetCompact {
     pub video: bool,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Copy, Clone, Debug, Deserialize)]
 pub struct BeatmapsetHype {
     current: u32,
     required: u32,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Copy, Clone, Debug, Deserialize)]
 pub struct BeatmapsetNominations {
     current: u32,
     required: u32,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct Covers {
     pub cover: String,
     #[serde(rename = "cover@2x")]
@@ -150,13 +152,13 @@ pub struct Covers {
     pub slim_cover_2x: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct FailTimes {
     pub exit: Option<Vec<u32>>, // TODO: Make this [u32; 100], serde currently only goes up to 32
     pub fail: Option<Vec<u32>>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 #[serde(untagged)]
 pub enum Mapset {
     Full(Beatmapset),

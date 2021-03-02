@@ -4,7 +4,7 @@ use std::{
     vec::IntoIter,
 };
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct MultiplayerScore {
     accuracy: f32,
     // #[serde(rename = "rank")]
@@ -28,7 +28,7 @@ pub struct MultiplayerScore {
 }
 
 // TODO: Implement Future for MultiplayerScores?
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct MultiplayerScores {
     cursor: ScoresCursor,
     // params: u32, // TODO
@@ -61,14 +61,14 @@ impl IntoIterator for MultiplayerScores {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Copy, Clone, Debug, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ScoresAround {
     Higher,
     Lower,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Copy, Clone, Debug, Deserialize)]
 pub struct ScoresCursor {
     score_id: u32,
     total_score: u32,

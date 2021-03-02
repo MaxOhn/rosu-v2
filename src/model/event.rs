@@ -3,7 +3,7 @@ use super::{GameMode, Grade};
 use chrono::{DateTime, Utc};
 use serde::Deserialize;
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct Event {
     pub created_at: DateTime<Utc>,
     #[serde(rename = "id")]
@@ -12,19 +12,19 @@ pub struct Event {
     pub event_type: EventType,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct EventBeatmap {
     pub title: String,
     pub url: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct EventBeatmapset {
     pub title: String,
     pub url: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase", tag = "type")]
 pub enum EventType {
     /// When a beatmap has been played for a certain amount of times
@@ -96,7 +96,7 @@ pub enum EventType {
     },
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct EventUser {
     username: String,
     url: String,

@@ -20,7 +20,8 @@ pub struct Spotlight {
     pub participant_count: Option<u32>,
     #[serde(rename = "id")]
     pub spotlight_id: u32,
-    pub spotlight_type: Option<String>,
+    #[serde(rename = "type")]
+    pub spotlight_type: String,
     pub start_date: DateTime<Utc>,
 }
 

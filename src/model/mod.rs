@@ -22,8 +22,8 @@ pub use multiplayer::{MultiplayerScore, MultiplayerScores, ScoresAround};
 pub use ranking::{Rankings, Spotlight};
 pub use score::{BeatmapScores, BeatmapUserScore, Score, ScoreStatistics};
 pub use user::{
-    AccountHistory, Badge, Country, GradeCounts, Group, HistoryType, MonthlyCount, Playstyle,
-    ProfileBanner, ProfilePage, User, UserCompact, UserCover, UserKudosu, UserLevel, UserPage,
-    UserStatistics,
+    AccountHistory, Badge, Country, GradeCounts, Group, HistoryType, Medal, MonthlyCount,
+    Playstyle, ProfileBanner, ProfilePage, User, UserCompact, UserCover, UserKudosu, UserLevel,
+    UserPage, UserStatistics,
 };
 pub use wiki::WikiPage;

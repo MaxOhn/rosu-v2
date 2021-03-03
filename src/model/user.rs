@@ -13,7 +13,7 @@ pub fn str_to_date<'de, D: Deserializer<'de>>(d: D) -> Result<Date<Utc>, D::Erro
     Ok(Date::from_utc(date, Utc))
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 pub struct AccountHistory {
     pub id: u32,
     #[serde(rename = "type")]
@@ -23,7 +23,7 @@ pub struct AccountHistory {
     pub seconds: u32,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 pub struct Badge {
     pub awarded_at: DateTime<Utc>,
     pub description: String,
@@ -31,13 +31,13 @@ pub struct Badge {
     pub url: String,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 pub struct Country {
     code: String,
     name: String,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 pub struct GradeCounts {
     pub ss: i32,
     pub ssh: i32,
@@ -46,7 +46,7 @@ pub struct GradeCounts {
     pub a: i32,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 pub struct Group {
     pub id: u32,
     pub identifier: String,
@@ -60,7 +60,7 @@ pub struct Group {
     pub modes: Option<Vec<GameMode>>,
 }
 
-#[derive(Copy, Clone, Debug, Deserialize)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum HistoryType {
     Note,
@@ -68,7 +68,30 @@ pub enum HistoryType {
     Silence,
 }
 
-#[derive(Copy, Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
+pub struct Medal {
+    pub description: String,
+    pub grouping: String,
+    pub icon_url: String,
+    pub instructions: String,
+    #[serde(rename = "id")]
+    pub medal_id: u32,
+    pub mode: Option<GameMode>,
+    pub name: String,
+    pub ordering: u32,
+    pub slug: String,
+}
+
+impl PartialEq for Medal {
+    #[inline]
+    fn eq(&self, other: &Self) -> bool {
+        self.medal_id == other.medal_id
+    }
+}
+
+impl Eq for Medal {}
+
+#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
 pub struct MedalCompact {
     achieved_at: DateTime<Utc>,
     #[serde(rename = "achievement_id")]
@@ -113,6 +136,7 @@ pub enum ProfilePage {
 #[derive(Clone, Debug, Deserialize)]
 pub struct User {
     pub avatar_url: String,
+    pub comments_count: usize,
     pub cover_url: String,
     pub country: Country,
     pub country_code: String,
@@ -123,6 +147,7 @@ pub struct User {
     pub interests: Option<String>,
     pub is_active: bool,
     pub is_bot: bool,
+    pub is_deleted: bool,
     pub is_online: bool,
     pub is_supporter: bool,
     pub join_date: DateTime<Utc>,
@@ -151,7 +176,7 @@ pub struct User {
     pub website: Option<String>,
 
     pub account_history: Option<Vec<AccountHistory>>,
-    // pub active_tournament_banner: Option<ProfileBanner>,
+    // pub active_tournament_banner: Option<ProfileBanner>, // TODO
     pub badges: Option<Vec<Badge>>,
     pub beatmap_playcounts_count: Option<u32>,
     // blocks: Option<>,
@@ -171,6 +196,7 @@ pub struct User {
     pub is_restricted: Option<bool>,
     pub is_silenced: Option<bool>,
     pub loved_beatmapset_count: Option<u32>,
+    pub mapping_follower_count: Option<u32>,
     pub monthly_playcounts: Option<Vec<MonthlyCount>>,
     pub page: Option<UserPage>,
     pub previous_usernames: Option<Vec<String>>,
@@ -197,6 +223,7 @@ pub struct UserCompact {
     pub default_group: String,
     pub is_active: bool,
     pub is_bot: bool,
+    pub is_deleted: bool,
     pub is_online: bool,
     pub is_supporter: bool,
     pub last_visit: Option<DateTime<Utc>>,
@@ -287,6 +314,7 @@ pub struct UserStatistics {
     pub max_combo: u32,
     #[serde(rename = "play_count")]
     pub playcount: u32,
+    /// Playtime in seconds
     #[serde(rename = "play_time")]
     pub playtime: u32,
     pub pp: f32,

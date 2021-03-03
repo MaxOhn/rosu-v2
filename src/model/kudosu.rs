@@ -25,6 +25,7 @@ pub struct KudosuHistory {
     /// Either `give`, `reset`, or `revoke`.
     pub action: KudosuAction,
     pub amount: i32,
+    // pub details: _; // TODO
     /// Object type which the exchange happened on (forum_post, etc).
     pub model: String,
     pub created_at: DateTime<Utc>,

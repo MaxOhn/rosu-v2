@@ -1,16 +1,22 @@
-use crate::model::{Beatmap, Beatmapset, GameMode, GameMods, Grade, UserCompact};
+use crate::model::{Beatmap, BeatmapsetCompact, GameMode, GameMods, Grade, UserCompact};
 
 use chrono::{DateTime, Utc};
-use serde::Deserialize;
+use serde::{de::Deserializer, Deserialize};
 
-#[derive(Clone, Debug, Deserialize)]
+pub fn inflate_acc<'de, D: Deserializer<'de>>(d: D) -> Result<f32, D::Error> {
+    let acc: f32 = Deserialize::deserialize(d)?;
+
+    Ok(100.0 * acc)
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 pub struct BeatmapScores {
     pub scores: Vec<Score>,
     #[serde(alias = "userScore")]
     pub user_score: Option<BeatmapUserScore>,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 pub struct BeatmapUserScore {
     #[serde(rename = "position")]
     pub pos: usize,
@@ -19,12 +25,17 @@ pub struct BeatmapUserScore {
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct Score {
+    #[serde(deserialize_with = "inflate_acc")]
     pub accuracy: f32,
-    pub best_id: u32,
+    pub best_id: Option<u32>,
     pub created_at: DateTime<Utc>,
+    #[serde(rename = "rank")]
+    pub grade: Grade,
     pub max_combo: u32,
+    #[serde(rename = "beatmap")]
     pub map: Option<Beatmap>,
-    pub mapset: Option<Beatmapset>,
+    #[serde(rename = "beatmapset")]
+    pub mapset: Option<BeatmapsetCompact>,
     // #[serde(rename = "match")]
     // pub osu_match: _, // TODO
     pub mode: GameMode,
@@ -36,7 +47,7 @@ pub struct Score {
     pub replay: bool,
     pub score: u32,
     #[serde(rename = "id")]
-    pub score_id: u32,
+    pub score_id: u64,
     pub statistics: ScoreStatistics,
     pub user: Option<UserCompact>,
     pub user_id: u32,
@@ -59,6 +70,7 @@ impl Score {
     }
 
     /// Calculate the grade of the score.
+    /// Should only be used in case the score was modified and the internal `grade` field is no longer correct.
     ///
     /// The accuracy is only required for non-`GameMode::STD` scores and is
     /// calculated internally if not provided.
@@ -87,7 +99,7 @@ impl PartialEq for Score {
 
 impl Eq for Score {}
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 pub struct ScoreStatistics {
     pub count_geki: u32,
     pub count_300: u32,
@@ -144,7 +156,7 @@ impl ScoreStatistics {
     }
 }
 
-#[derive(Copy, Clone, Debug, Deserialize)]
+#[derive(Copy, Clone, Debug, Deserialize, PartialEq)]
 pub struct ScoreWeight {
     pub percentage: f32,
     pub pp: f32,

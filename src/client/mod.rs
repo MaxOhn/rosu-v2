@@ -220,6 +220,9 @@ impl OsuRef {
     pub(crate) async fn request<T: DeserializeOwned>(&self, req: Request) -> OsuResult<T> {
         let bytes = self.request_bytes(req).await?;
 
+        let text = String::from_utf8_lossy(&bytes);
+        println!("{}", text);
+
         serde_json::from_slice(&bytes).map_err(|source| {
             let body = String::from_utf8_lossy(&bytes).into();
             OsuError::Parsing { body, source }
@@ -277,6 +280,8 @@ impl OsuRef {
             method,
             path,
         } = req;
+
+        println!("Path: {}", path);
 
         let url = format!("https://osu.ppy.sh/api/v2/{}", path);
         debug!("URL: {}", url);

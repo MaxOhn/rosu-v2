@@ -29,7 +29,7 @@ pub struct Comment {
 pub struct CommentBundle {
     pub commentable_meta: Vec<CommentableMeta>,
     pub comments: Vec<Comment>,
-    // TODO: cursor: _
+    pub(crate) cursor: CommentBundleCursor,
     pub has_more: bool,
     pub has_more_id: Option<u32>,
     pub included_comments: Vec<Comment>,
@@ -40,6 +40,12 @@ pub struct CommentBundle {
     pub user_follow: bool,
     pub user_votes: Vec<u32>,
     pub users: Vec<UserCompact>,
+}
+
+#[derive(Copy, Clone, Debug, Deserialize)]
+pub(crate) struct CommentBundleCursor {
+    pub(crate) created_at: DateTime<Utc>,
+    pub(crate) id: u32,
 }
 
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
@@ -67,11 +73,12 @@ impl fmt::Display for CommentSort {
 pub enum CommentableMeta {
     Full {
         id: u32,
-        title: String,
         #[serde(rename = "type")]
-        object_type: String,
+        kind: String,
+        owner_id: u32,
+        owner_title: String,
+        title: String,
         url: String,
-        // TODO: owner_id, owner_title?
     },
     Title {
         title: String,

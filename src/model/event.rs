@@ -1,4 +1,4 @@
-use super::{GameMode, Grade};
+use super::{GameMode, Grade, Medal};
 
 use chrono::{DateTime, Utc};
 use serde::Deserialize;
@@ -58,10 +58,7 @@ pub enum EventType {
     },
     /// When a user obtained a medal
     #[serde(rename = "achievement")]
-    Medal {
-        // medal: Medal, // TODO
-        user: EventUser,
-    },
+    Medal { medal: Medal, user: EventUser },
     /// When a user achieves a certain rank on a beatmap
     Rank {
         #[serde(rename = "scoreRank")]

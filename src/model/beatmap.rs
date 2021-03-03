@@ -10,20 +10,18 @@ use std::{convert::TryFrom, fmt};
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct Beatmap {
+    pub ar: f32,
     pub bpm: f32,
     pub checksum: Option<String>,
     pub convert: bool,
     pub count_circles: u32,
     pub count_sliders: u32,
     pub count_spinners: u32,
-    pub deleted_at: Option<DateTime<Utc>>,
-    pub ar: f32,
     pub cs: f32,
+    pub deleted_at: Option<DateTime<Utc>>,
+    pub fail_times: Option<FailTimes>,
     #[serde(rename = "drain")]
     pub hp: f32,
-    #[serde(rename = "accuracy")]
-    pub od: f32,
-    pub fail_times: Option<FailTimes>,
     pub is_scoreable: bool,
     pub last_updated: DateTime<Utc>,
     #[serde(rename = "id")]
@@ -34,7 +32,8 @@ pub struct Beatmap {
     pub mapset_id: u32,
     pub max_combo: Option<u32>,
     pub mode: GameMode,
-    pub mode_int: u8,
+    #[serde(rename = "accuracy")]
+    pub od: f32,
     pub passcount: u32,
     pub playcount: u32,
     #[serde(rename = "hit_length")]
@@ -44,6 +43,7 @@ pub struct Beatmap {
     #[serde(rename = "difficulty_rating")]
     pub stars: f32,
     pub status: RankStatus,
+    /// Full URL, i.e. `https://osu.ppy.sh/beatmaps/{map_id}`
     pub url: String,
     pub version: String,
 }
@@ -78,22 +78,28 @@ pub struct Beatmapset {
     pub beatmaps: Option<Vec<Beatmap>>,
     pub bpm: f32,
     pub can_be_hyped: bool,
-    pub covers: Covers,
+    pub covers: BeatmapsetCovers,
     pub creator: String,
+    #[serde(rename = "user_id")]
+    pub creator_id: u32,
     pub discussion_enabled: bool,
     pub discussion_locked: bool,
     pub favourite_count: u32,
     pub hype: Option<BeatmapsetHype>,
     pub is_scoreable: bool,
     pub last_updated: DateTime<Utc>,
+    /// Full URL, i.e. `https://osu.ppy.sh/community/forums/topics/{thread_id}`
     pub legacy_thread_url: Option<String>,
     #[serde(rename = "id")]
     pub mapset_id: u32,
     pub nominations_summary: BeatmapsetNominations,
+    pub nsfw: bool,
     #[serde(rename = "play_count")]
     pub playcount: u32,
+    /// Full URL, i.e. `b.ppy.sh/preview/{mapset_id}.mp3`
     pub preview_url: String,
-    pub ratings: Option<Vec<f32>>,
+    pub ratings: Option<Vec<u32>>,
+    pub ranked_date: Option<DateTime<Utc>>,
     pub source: String,
     pub status: RankStatus,
     pub storyboard: bool,
@@ -101,7 +107,6 @@ pub struct Beatmapset {
     pub tags: String,
     pub title: String,
     pub title_unicode: Option<String>,
-    pub user_id: u32,
     pub video: bool,
 }
 
@@ -120,41 +125,32 @@ pub struct BeatmapsetAvailability {
     more_information: Option<String>,
 }
 
-// TODO: Optional fields
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 pub struct BeatmapsetCompact {
     pub artist: String,
     pub artist_unicode: Option<String>,
-    pub covers: Covers,
+    pub covers: BeatmapsetCovers,
     pub creator: String,
+    #[serde(rename = "user_id")]
+    pub creator_id: u32,
     pub favourite_count: u32,
+    pub hype: Option<BeatmapsetHype>,
     #[serde(rename = "id")]
     pub mapset_id: u32,
+    pub nsfw: bool,
     #[serde(rename = "play_count")]
     pub playcount: u32,
+    /// Full URL, i.e. `b.ppy.sh/preview/{mapset_id}.mp3`
     pub preview_url: String,
     pub source: String,
     pub status: RankStatus,
     pub title: String,
     pub title_unicode: Option<String>,
-    pub user_id: u32,
     pub video: bool,
 }
 
-#[derive(Copy, Clone, Debug, Deserialize)]
-pub struct BeatmapsetHype {
-    current: u32,
-    required: u32,
-}
-
-#[derive(Copy, Clone, Debug, Deserialize)]
-pub struct BeatmapsetNominations {
-    current: u32,
-    required: u32,
-}
-
-#[derive(Clone, Debug, Deserialize)]
-pub struct Covers {
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+pub struct BeatmapsetCovers {
     pub cover: String,
     #[serde(rename = "cover@2x")]
     pub cover_2x: String,
@@ -170,13 +166,25 @@ pub struct Covers {
     pub slim_cover_2x: String,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
+pub struct BeatmapsetHype {
+    current: u32,
+    required: u32,
+}
+
+#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
+pub struct BeatmapsetNominations {
+    current: u32,
+    required: u32,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 pub struct FailTimes {
     pub exit: Option<Vec<u32>>, // TODO: Make this [u32; 100], serde currently only goes up to 32
     pub fail: Option<Vec<u32>>,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[serde(untagged)]
 pub enum Mapset {
     Full(Beatmapset),
@@ -223,7 +231,7 @@ impl Mapset {
     }
 
     impl_get!(artist -> &str);
-    impl_get!(covers -> &Covers);
+    impl_get!(covers -> &BeatmapsetCovers);
     impl_get!(creator -> &str);
     impl_get!(favourite_count -> u32);
     impl_get!(mapset_id -> u32);
@@ -232,7 +240,7 @@ impl Mapset {
     impl_get!(source -> &str);
     impl_get!(status -> RankStatus);
     impl_get!(title -> &str);
-    impl_get!(user_id -> u32);
+    impl_get!(creator_id -> u32);
     impl_get!(video -> bool);
 }
 

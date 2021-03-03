@@ -6,10 +6,11 @@ extern crate rosu_v2;
 
 use dotenv::dotenv;
 use once_cell::sync::OnceCell;
-use rosu_v2::Osu;
+use rosu_v2::{model::GameMode, Osu};
 use std::env;
 
-use rosu_v2::model::GameMode;
+#[allow(unused_imports)]
+use rosu_v2::model::GameMods;
 
 #[macro_use]
 extern crate log;
@@ -66,6 +67,18 @@ get_id!(sylas, 3906405);
 
 fn osu() -> &'static Osu {
     OSU.get().expect("OSU not initialized")
+}
+
+#[tokio::test]
+async fn custom() {
+    init().await;
+
+    let req_fut = osu().comments().commentable_id(1135494);
+
+    if let Err(why) = req_fut.await {
+        unwind_error!(error, why, "Error while requesting custom: {}");
+        panic!()
+    }
 }
 
 #[tokio::test]

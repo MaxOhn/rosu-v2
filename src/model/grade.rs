@@ -25,7 +25,7 @@ impl Grade {
     ///
     /// # Example
     /// ```
-    /// use rosu::model::Grade;
+    /// use rosu_v2::model::Grade;
     ///
     /// assert!(Grade::S.eq_letter(Grade::SH));
     /// assert!(!Grade::X.eq_letter(Grade::SH));

@@ -1,4 +1,8 @@
-use crate::model::{Beatmap, BeatmapsetCompact, GameMode, GameMods, Grade, UserCompact};
+use crate::{
+    model::{Beatmap, BeatmapsetCompact, GameMode, GameMods, Grade, UserCompact},
+    request::GetUser,
+    Osu,
+};
 
 use chrono::{DateTime, Utc};
 use serde::{de::Deserializer, Deserialize};
@@ -21,6 +25,13 @@ pub struct BeatmapUserScore {
     #[serde(rename = "position")]
     pub pos: usize,
     pub score: Score,
+}
+
+impl BeatmapUserScore {
+    #[inline]
+    pub fn get_user<'o>(&self, osu: &'o Osu) -> GetUser<'o> {
+        self.score.get_user(osu)
+    }
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -55,6 +66,11 @@ pub struct Score {
 }
 
 impl Score {
+    #[inline]
+    pub fn get_user<'o>(&self, osu: &'o Osu) -> GetUser<'o> {
+        osu.user(self.user_id)
+    }
+
     /// Count all hitobjects of the score i.e. for `GameMode::STD` the amount 300s, 100s, 50s, and misses.
     ///
     /// Note: Includes tiny droplet (misses) for `GameMode::CTB`

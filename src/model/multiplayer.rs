@@ -36,10 +36,9 @@ impl PartialEq for MultiplayerScore {
 
 impl Eq for MultiplayerScore {}
 
-// TODO: Implement Future for MultiplayerScores?
 #[derive(Clone, Debug, Deserialize)]
 pub struct MultiplayerScores {
-    cursor: ScoresCursor,
+    pub(crate) cursor: ScoresCursor,
     // params: u32, // TODO
     pub scores: Vec<MultiplayerScore>,
     pub total: Option<u32>,
@@ -77,7 +76,7 @@ pub enum ScoresAround {
     Lower,
 }
 
-#[derive(Copy, Clone, Debug, Deserialize)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
 pub struct ScoresCursor {
     score_id: u32,
     total_score: u32,

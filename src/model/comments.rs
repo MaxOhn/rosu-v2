@@ -1,4 +1,5 @@
 use super::UserCompact;
+use crate::{request::GetUser, Osu, OsuResult};
 
 use chrono::{DateTime, Utc};
 use serde::Deserialize;
@@ -25,11 +26,18 @@ pub struct Comment {
     pub votes_count: u32,
 }
 
+impl Comment {
+    #[inline]
+    pub fn get_user<'o>(&self, osu: &'o Osu) -> GetUser<'o> {
+        osu.user(self.user_id)
+    }
+}
+
 #[derive(Clone, Debug, Deserialize)]
 pub struct CommentBundle {
     pub commentable_meta: Vec<CommentableMeta>,
     pub comments: Vec<Comment>,
-    pub(crate) cursor: CommentBundleCursor,
+    pub(crate) cursor: Option<CommentBundleCursor>,
     pub has_more: bool,
     pub has_more_id: Option<u32>,
     pub included_comments: Vec<Comment>,
@@ -40,6 +48,17 @@ pub struct CommentBundle {
     pub user_follow: bool,
     pub user_votes: Vec<u32>,
     pub users: Vec<UserCompact>,
+}
+
+impl CommentBundle {
+    /// If `has_more` is true, the API can provide the next set of comments and this method will request them.
+    /// Otherwise, this method returns `None`.
+    #[inline]
+    pub async fn get_next(&self, osu: &Osu) -> Option<OsuResult<CommentBundle>> {
+        debug_assert!(self.has_more == self.cursor.is_some());
+
+        Some(osu.comments().cursor(self.cursor?).await)
+    }
 }
 
 #[derive(Copy, Clone, Debug, Deserialize)]

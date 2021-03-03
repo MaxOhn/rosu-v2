@@ -27,3 +27,5 @@ pub use user::{
     UserPage, UserStatistics,
 };
 pub use wiki::WikiPage;
+
+pub(crate) use comments::CommentBundleCursor;

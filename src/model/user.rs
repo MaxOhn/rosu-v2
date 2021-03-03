@@ -98,7 +98,7 @@ pub struct MedalCompact {
     medal_id: u32,
 }
 
-#[derive(Copy, Clone, Debug, Deserialize)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
 pub struct MonthlyCount {
     #[serde(deserialize_with = "str_to_date")]
     pub start_date: Date<Utc>,
@@ -108,11 +108,20 @@ pub struct MonthlyCount {
 #[derive(Clone, Debug, Deserialize)]
 pub struct ProfileBanner {
     pub id: u32,
-    pub tounament_id: u32,
+    pub tournament_id: u32,
     pub image: String,
 }
 
-#[derive(Copy, Clone, Debug, Deserialize)]
+impl PartialEq for ProfileBanner {
+    #[inline]
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id && self.tournament_id == other.tournament_id
+    }
+}
+
+impl Eq for ProfileBanner {}
+
+#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum Playstyle {
     Mouse,
@@ -121,7 +130,7 @@ pub enum Playstyle {
     Touch,
 }
 
-#[derive(Copy, Clone, Debug, Deserialize)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum ProfilePage {
     Beatmaps,
@@ -133,7 +142,7 @@ pub enum ProfilePage {
     TopRanks,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct User {
     pub avatar_url: String,
     pub comments_count: usize,
@@ -216,7 +225,7 @@ pub struct User {
     // user_preferences: Option<>,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct UserCompact {
     pub avatar_url: String,
     pub country_code: String,
@@ -276,36 +285,37 @@ pub struct UserCompact {
     // user_preferences: Option<>,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 pub struct UserCover {
     pub custom_url: Option<String>,
     pub url: String,
     pub id: Option<String>,
 }
 
-#[derive(Copy, Clone, Debug, Deserialize)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
 pub struct UserKudosu {
     pub available: i32,
     pub total: i32,
 }
 
-#[derive(Copy, Clone, Debug, Deserialize)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
 pub struct UserLevel {
     pub current: u32,
     pub progress: u32,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 pub struct UserPage {
     pub html: String,
     pub raw: String,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct UserStatistics {
     #[serde(rename = "hit_accuracy")]
     pub accuracy: f32,
-    pub country_rank: u32,
+    #[serde(default)]
+    pub country_rank: Option<u32>,
     pub global_rank: u32,
     pub grade_counts: GradeCounts,
     pub is_ranked: bool,

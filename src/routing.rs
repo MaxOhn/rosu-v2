@@ -1,4 +1,7 @@
-use crate::{model::GameMode, request::UserId};
+use crate::{
+    model::{CommentBundleCursor, GameMode},
+    request::UserId,
+};
 
 use reqwest::Method;
 use std::{borrow::Cow, fmt::Write};
@@ -17,7 +20,9 @@ pub(crate) enum Route {
         map_id: u32,
         user_id: UserId,
     },
-    GetComments,
+    GetComments {
+        cursor: Option<CommentBundleCursor>,
+    },
     #[allow(dead_code)]
     GetNews {
         news_id: Option<u32>,
@@ -79,7 +84,18 @@ impl Route {
                 Method::GET,
                 format!("beatmaps/{}/scores/users/{}", map_id, user_id).into(),
             ),
-            Self::GetComments => (Method::GET, "comments".into()),
+            Self::GetComments { cursor } => {
+                let path = match cursor {
+                    Some(cursor) => format!(
+                        "comments?cursor[id]={}&cursor[created_at]={}",
+                        cursor.id, cursor.created_at
+                    )
+                    .into(),
+                    None => "comments".into(),
+                };
+
+                (Method::GET, path)
+            }
             Self::GetNews { news_id } => {
                 let path = match news_id {
                     Some(id) => format!("news/{}", id).into(),

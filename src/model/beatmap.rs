@@ -1,5 +1,5 @@
 use super::GameMode;
-use crate::error::OsuError;
+use crate::{request::GetUser, Osu, OsuError};
 
 use chrono::{DateTime, Utc};
 use serde::{
@@ -116,6 +116,13 @@ pub struct Beatmapset {
     pub video: bool,
 }
 
+impl Beatmapset {
+    #[inline]
+    pub fn get_creator<'o>(&self, osu: &'o Osu) -> GetUser<'o> {
+        osu.user(self.creator_id)
+    }
+}
+
 impl PartialEq for Beatmapset {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
@@ -153,6 +160,13 @@ pub struct BeatmapsetCompact {
     pub title: String,
     pub title_unicode: Option<String>,
     pub video: bool,
+}
+
+impl BeatmapsetCompact {
+    #[inline]
+    pub fn get_creator<'o>(&self, osu: &'o Osu) -> GetUser<'o> {
+        osu.user(self.creator_id)
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
@@ -256,9 +270,15 @@ impl Mapset {
         }
     }
 
+    #[inline]
+    pub fn get_creator<'o>(&self, osu: &'o Osu) -> GetUser<'o> {
+        osu.user(self.creator_id())
+    }
+
     impl_get!(artist -> &str);
     impl_get!(covers -> &BeatmapsetCovers);
     impl_get!(creator -> &str);
+    impl_get!(creator_id -> u32);
     impl_get!(favourite_count -> u32);
     impl_get!(mapset_id -> u32);
     impl_get!(playcount -> u32);
@@ -266,7 +286,6 @@ impl Mapset {
     impl_get!(source -> &str);
     impl_get!(status -> RankStatus);
     impl_get!(title -> &str);
-    impl_get!(creator_id -> u32);
     impl_get!(video -> bool);
 }
 

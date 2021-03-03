@@ -70,6 +70,7 @@ fn osu() -> &'static Osu {
 }
 
 #[tokio::test]
+#[ignore = "specific testing"]
 async fn custom() {
     init().await;
 

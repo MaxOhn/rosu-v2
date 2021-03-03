@@ -1,4 +1,4 @@
-use super::{GameMode, Grade, Medal};
+use super::{GameMode, Grade, Medal, RankStatus};
 
 use chrono::{DateTime, Utc};
 use serde::Deserialize;
@@ -31,7 +31,7 @@ pub enum EventType {
     BeatmapPlaycount { beatmap: EventBeatmap, count: u32 },
     /// When a beatmapset changes state
     BeatmapsetApprove {
-        approval: String, // TODO
+        approval: RankStatus,
         beatmapset: EventBeatmapset,
         /// Beatmapset owner
         user: EventUser,

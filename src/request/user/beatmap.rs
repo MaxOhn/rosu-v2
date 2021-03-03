@@ -14,7 +14,6 @@ use reqwest::multipart::Form;
 /// or through any of the methods [`loved`](crate::request::GetUserBeatmapsets::loved),
 /// [`favourite`](crate::request::GetUserBeatmapsets::favourite),
 /// [`graveyard`](crate::request::GetUserBeatmapsets::graveyard),
-/// [`most_played`](crate::request::GetUserBeatmapsets::most_played),
 /// [`ranked_and_approved`](crate::request::GetUserBeatmapsets::ranked_and_approved),
 /// [`unranked`](crate::request::GetUserBeatmapsets::unranked).
 pub struct GetUserBeatmapsets<'a> {
@@ -83,13 +82,6 @@ impl<'a> GetUserBeatmapsets<'a> {
     #[inline]
     pub fn graveyard(mut self) -> Self {
         self.map_type.replace("graveyard");
-
-        self
-    }
-
-    #[inline]
-    pub fn most_played(mut self) -> Self {
-        self.map_type.replace("most_played");
 
         self
     }

@@ -1,6 +1,7 @@
 mod beatmap;
 mod events;
 mod kudosu;
+mod most_played;
 mod scores;
 mod user;
 mod users;
@@ -8,6 +9,7 @@ mod users;
 pub use beatmap::GetUserBeatmapsets;
 pub use events::GetRecentEvents;
 pub use kudosu::GetUserKudosu;
+pub use most_played::GetUserMostPlayed;
 pub use scores::GetUserScores;
 pub use user::GetUser;
 pub use users::GetUsers;

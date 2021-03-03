@@ -298,13 +298,35 @@ async fn user_beatmapsets() {
 async fn user_highscore() {
     init().await;
 
-    // match osu().user_highscore(room, playlist, badewanne3).await {
+    // match osu().user_highscore(room, playlist, user_id).await {
     //     Ok(score) => todo!(),
     //     Err(why) => {
     //         unwind_error!(error, why, "Error while requesting user highscore: {}");
     //         panic!()
     //     }
     // }
+}
+
+#[tokio::test]
+async fn user_most_played() {
+    init().await;
+
+    match osu()
+        .user_most_played(badewanne3())
+        .limit(5)
+        .offset(2)
+        .await
+    {
+        Ok(scores) => println!(
+            "Received {} scores, the first is map id {}",
+            scores.len(),
+            scores[0].map_id
+        ),
+        Err(why) => {
+            unwind_error!(error, why, "Error while requesting user most played: {}");
+            panic!()
+        }
+    }
 }
 
 #[tokio::test]

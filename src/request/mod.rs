@@ -31,7 +31,8 @@ pub use comments::GetComments;
 pub use multiplayer::{GetScore, GetScores, GetUserHighScore};
 pub use ranking::{GetRankings, GetSpotlights};
 pub use user::{
-    GetRecentEvents, GetUser, GetUserBeatmapsets, GetUserKudosu, GetUserScores, GetUsers, UserId,
+    GetRecentEvents, GetUser, GetUserBeatmapsets, GetUserKudosu, GetUserMostPlayed, GetUserScores,
+    GetUsers, UserId,
 };
 pub use wiki::GetWikiPage;
 

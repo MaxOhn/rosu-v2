@@ -110,6 +110,12 @@ impl Osu {
         GetUserHighScore::new(self, room, playlist, user_id)
     }
 
+    /// Get the beatmapsets of a user.
+    #[inline]
+    pub fn user_most_played(&self, user_id: impl Into<UserId>) -> GetUserMostPlayed {
+        GetUserMostPlayed::new(self, user_id)
+    }
+
     /// Get either top, global firsts, or recent scores of a user.
     #[inline]
     pub fn user_scores(&self, user_id: impl Into<UserId>) -> GetUserScores {
@@ -220,8 +226,8 @@ impl OsuRef {
     pub(crate) async fn request<T: DeserializeOwned>(&self, req: Request) -> OsuResult<T> {
         let bytes = self.request_bytes(req).await?;
 
-        let text = String::from_utf8_lossy(&bytes);
-        println!("{}", text);
+        // let text = String::from_utf8_lossy(&bytes);
+        // println!("{}", text);
 
         serde_json::from_slice(&bytes).map_err(|source| {
             let body = String::from_utf8_lossy(&bytes).into();
@@ -281,7 +287,7 @@ impl OsuRef {
             path,
         } = req;
 
-        println!("Path: {}", path);
+        // println!("Path: {}", path);
 
         let url = format!("https://osu.ppy.sh/api/v2/{}", path);
         debug!("URL: {}", url);

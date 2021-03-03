@@ -57,25 +57,29 @@ impl PartialEq for Beatmap {
 
 impl Eq for Beatmap {}
 
-// ? Whats this
-// #[derive(Clone, Debug)]
-// pub struct BeatmapCompact {
-//     pub checksum: Option<String>,
-//     pub fail_times: Option<FailTimes>,
-//     pub map_id: u32,
-//     pub mapset: Mapset,
-//     pub max_combo: Option<u32>,
-//     pub mode: GameMode,
-//     pub stars: f32,
-//     pub version: String,
-// }
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+pub struct BeatmapCompact {
+    pub checksum: Option<String>,
+    pub fail_times: Option<FailTimes>,
+    #[serde(rename = "id")]
+    pub map_id: u32,
+    #[serde(rename = "beatmapset", default)]
+    pub mapset: Option<Mapset>,
+    pub max_combo: Option<u32>,
+    pub mode: GameMode,
+    #[serde(rename = "total_length")]
+    pub seconds_total: u32,
+    #[serde(rename = "difficulty_rating")]
+    pub stars: f32,
+    pub status: RankStatus,
+    pub version: String,
+}
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct Beatmapset {
     pub artist: String,
     pub artist_unicode: Option<String>,
     pub availability: BeatmapsetAvailability,
-    pub beatmaps: Option<Vec<Beatmap>>,
     pub bpm: f32,
     pub can_be_hyped: bool,
     pub covers: BeatmapsetCovers,
@@ -90,6 +94,8 @@ pub struct Beatmapset {
     pub last_updated: DateTime<Utc>,
     /// Full URL, i.e. `https://osu.ppy.sh/community/forums/topics/{thread_id}`
     pub legacy_thread_url: Option<String>,
+    #[serde(rename = "beatmaps")]
+    pub maps: Option<Vec<Beatmap>>,
     #[serde(rename = "id")]
     pub mapset_id: u32,
     pub nominations_summary: BeatmapsetNominations,
@@ -190,6 +196,26 @@ pub enum Mapset {
     Full(Beatmapset),
     Compact(BeatmapsetCompact),
 }
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct MostPlayedMap {
+    pub count: usize,
+    #[serde(rename = "beatmap")]
+    pub map: BeatmapCompact,
+    #[serde(rename = "beatmap_id")]
+    pub map_id: u32,
+    #[serde(rename = "beatmapset")]
+    pub mapset: BeatmapsetCompact,
+}
+
+impl PartialEq for MostPlayedMap {
+    #[inline]
+    fn eq(&self, other: &Self) -> bool {
+        self.map_id == other.map_id
+    }
+}
+
+impl Eq for MostPlayedMap {}
 
 macro_rules! impl_get {
     ($func:ident -> $ret:ident) => {

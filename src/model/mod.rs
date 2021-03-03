@@ -11,7 +11,7 @@ mod score;
 mod user;
 mod wiki;
 
-pub use beatmap::{Beatmap, Beatmapset, BeatmapsetCompact, FailTimes, RankStatus};
+pub use beatmap::{Beatmap, Beatmapset, BeatmapsetCompact, FailTimes, MostPlayedMap, RankStatus};
 pub use comments::{Comment, CommentBundle, CommentSort, CommentableMeta};
 pub use event::{Event, EventBeatmap, EventBeatmapset, EventType, EventUser};
 pub use grade::Grade;

@@ -156,9 +156,9 @@ impl Eq for Beatmapset {}
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct BeatmapsetAvailability {
-    download_disabled: bool,
+    pub download_disabled: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    more_information: Option<String>,
+    pub more_information: Option<String>,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]

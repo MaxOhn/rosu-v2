@@ -2,7 +2,7 @@ use super::GameMode;
 
 use chrono::{Date, DateTime, NaiveDate, Utc};
 use serde::{
-    de::{Error, IgnoredAny, MapAccess, Visitor},
+    de::{Error, IgnoredAny, MapAccess, SeqAccess, Visitor},
     Deserialize, Deserializer, Serialize, Serializer,
 };
 use std::fmt;
@@ -37,8 +37,8 @@ pub struct Badge {
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Country {
-    code: String,
-    name: String,
+    pub code: String,
+    pub name: String,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -100,9 +100,9 @@ impl Eq for Medal {}
 
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct MedalCompact {
-    achieved_at: DateTime<Utc>,
+    pub achieved_at: DateTime<Utc>,
     #[serde(rename = "achievement_id")]
-    medal_id: u32,
+    pub medal_id: u32,
 }
 
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -443,7 +443,7 @@ pub struct UserStatistics {
 }
 
 pub fn rank_history_vec<'de, D: Deserializer<'de>>(d: D) -> Result<Option<Vec<u32>>, D::Error> {
-    d.deserialize_map(RankHistoryVisitor)
+    d.deserialize_any(RankHistoryVisitor)
 }
 
 struct RankHistoryVisitor;
@@ -453,6 +453,17 @@ impl<'de> Visitor<'de> for RankHistoryVisitor {
 
     fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "a map containing the field `data`, or a list of u32")
+    }
+
+    fn visit_seq<A: SeqAccess<'de>>(self, mut seq: A) -> Result<Self::Value, A::Error> {
+        let capacity = seq.size_hint().unwrap_or(0);
+        let mut rank_history_vec = Vec::with_capacity(capacity);
+
+        while let Some(next) = seq.next_element()? {
+            rank_history_vec.push(next);
+        }
+
+        Ok(Some(rank_history_vec))
     }
 
     fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {

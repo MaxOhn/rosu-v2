@@ -9,7 +9,7 @@ pub type OsuResult<T> = Result<T, OsuError>;
 #[derive(Debug, Deserialize)]
 /// The API response was of the form `{ "error": ... }`
 pub(crate) struct APIError {
-    pub(crate) error: String,
+    pub(crate) error: Option<String>,
 }
 
 #[derive(Debug)]

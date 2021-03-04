@@ -30,8 +30,8 @@ impl Osu {
 
     /// Get a [`Beatmap`](crate::model::Beatmap).
     #[inline]
-    pub fn beatmap(&self, map_id: u32) -> GetBeatmap {
-        GetBeatmap::new(self, map_id)
+    pub fn beatmap(&self) -> GetBeatmap {
+        GetBeatmap::new(self)
     }
 
     /// Get a [`BeatmapScores`](crate::model::BeatmapScores).
@@ -210,9 +210,8 @@ impl OsuRef {
 
         let body = String::from_utf8_lossy(bytes.as_ref()).into_owned();
 
-        let source = match serde_json::from_str::<APIError>(body.as_ref()) {
-            Ok(APIError { error }) if error.is_empty() => None,
-            Ok(APIError { error }) => Some(error),
+        let source = match serde_json::from_slice(&bytes) {
+            Ok(APIError { error }) => error.filter(|e| !e.is_empty()),
             Err(source) => return Err(OsuError::Parsing { body, source }),
         };
 
@@ -265,9 +264,8 @@ impl OsuRef {
 
         let body = String::from_utf8_lossy(bytes.as_ref()).into_owned();
 
-        let source = match serde_json::from_str::<APIError>(body.as_ref()) {
-            Ok(APIError { error }) if error.is_empty() => None,
-            Ok(APIError { error }) => Some(error),
+        let source = match serde_json::from_slice(&bytes) {
+            Ok(APIError { error }) => error.filter(|e| !e.is_empty()),
             Err(source) => return Err(OsuError::Parsing { body, source }),
         };
 
@@ -281,7 +279,7 @@ impl OsuRef {
     async fn raw(&self, req: Request) -> OsuResult<Response> {
         let Request {
             body,
-            form,
+            query,
             headers,
             method,
             path,
@@ -292,6 +290,10 @@ impl OsuRef {
         let url = format!("https://osu.ppy.sh/api/v2/{}", path);
         debug!("URL: {}", url);
         let mut builder = self.http.request(method.clone(), &url);
+
+        if !query.is_empty() {
+            builder = builder.query(&query);
+        }
 
         if let Some(token) = self.token.read().await.as_ref() {
             let value =
@@ -305,9 +307,7 @@ impl OsuRef {
             return Err(OsuError::NoToken);
         }
 
-        if let Some(form) = form {
-            builder = builder.multipart(form);
-        } else if let Some(bytes) = body {
+        if let Some(bytes) = body {
             let len = bytes.len();
             builder = builder.body(Body::from(bytes));
             builder = builder.header("content-length", len);

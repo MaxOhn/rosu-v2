@@ -1,11 +1,9 @@
 use crate::{
     model::UserCompact,
-    request::{Pending, Request, UserId},
+    request::{Pending, Query, Request, UserId},
     routing::Route,
     Osu, OsuResult,
 };
-
-use reqwest::multipart::Form;
 
 /// Get multiple users by their ids.
 pub struct GetUsers<'a> {
@@ -25,14 +23,18 @@ impl<'a> GetUsers<'a> {
     }
 
     fn start(&mut self) -> OsuResult<()> {
-        let mut form = Form::new();
+        let mut query = Query::new();
+
+        // * user_ids is capped to 50 elements in `Osu::users`
         let user_ids = self.user_ids.take().unwrap();
 
-        for user_id in user_ids.into_iter().take(50) {
-            form = form.text("ids[]", user_id.to_string());
-        }
+        let iter = user_ids
+            .into_iter()
+            .map(|user_id| ("id[]", user_id.to_string()));
 
-        let req = Request::from((form, Route::GetUsers));
+        query.extend(iter);
+
+        let req = Request::from((query, Route::GetUsers));
         self.fut.replace(Box::pin(self.osu.0.request(req)));
 
         Ok(())

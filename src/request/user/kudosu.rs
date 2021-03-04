@@ -1,11 +1,9 @@
 use crate::{
     model::KudosuHistory,
-    request::{Pending, Request, UserId},
+    request::{Pending, Query, Request, UserId},
     routing::Route,
     Osu, OsuResult,
 };
-
-use reqwest::multipart::Form;
 
 /// Get a user's kudosu history by their user id.
 pub struct GetUserKudosu<'a> {
@@ -43,18 +41,18 @@ impl<'a> GetUserKudosu<'a> {
     }
 
     fn start(&mut self) -> OsuResult<()> {
-        let mut form = Form::new();
+        let mut query = Query::new();
 
         if let Some(limit) = self.limit {
-            form = form.text("limit", limit.to_string());
+            query.push("limit", limit.to_string());
         }
 
         if let Some(offset) = self.offset {
-            form = form.text("offset", offset.to_string());
+            query.push("offset", offset.to_string());
         }
 
         let req = Request::from((
-            form,
+            query,
             Route::GetUserKudosu {
                 user_id: self.user_id.take().unwrap(),
             },

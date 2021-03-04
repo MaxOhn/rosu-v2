@@ -1,11 +1,9 @@
 use crate::{
     model::{BeatmapScores, GameMode, GameMods},
-    request::{Pending, Request},
+    request::{Pending, Query, Request},
     routing::Route,
     Osu, OsuResult,
 };
-
-use reqwest::multipart::Form;
 
 /// Get top scores of a beatmap by its id.
 pub struct GetBeatmapScores<'a> {
@@ -46,10 +44,10 @@ impl<'a> GetBeatmapScores<'a> {
     }
 
     fn start(&mut self) -> OsuResult<()> {
-        let mut form = Form::new();
+        let mut query = Query::new();
 
         if let Some(mode) = self.mode {
-            form = form.text("mode", mode.to_string());
+            query.push("mode", mode.to_string());
         }
 
         if let Some(_mods) = self.mods {
@@ -61,7 +59,7 @@ impl<'a> GetBeatmapScores<'a> {
         }
 
         let req = Request::from((
-            form,
+            query,
             Route::GetBeatmapScores {
                 map_id: self.map_id,
             },

@@ -1,13 +1,10 @@
 use crate::{
     model::{CommentBundle, CommentBundleCursor, CommentSort},
-    request::{Pending, Request},
+    request::{Pending, Query, Request},
     routing::Route,
     Osu, OsuResult,
 };
 
-use reqwest::multipart::Form;
-
-// TODO: Test
 /// Get a list of comments and their replies up to two levels deep
 pub struct GetComments<'a> {
     fut: Option<Pending<'a, CommentBundle>>,
@@ -83,26 +80,26 @@ impl<'a> GetComments<'a> {
     }
 
     fn start(&mut self) -> OsuResult<()> {
-        let mut form = Form::new();
+        let mut query = Query::new();
 
         if let Some(sort) = self.sort {
-            form = form.text("sort", sort.to_string());
+            query.push("sort", sort.to_string());
         }
 
         if let Some(parent) = self.parent_id {
-            form = form.text("parent_id", parent.to_string());
+            query.push("parent_id", parent.to_string());
         }
 
         if let Some(commentable) = self.commentable_id {
-            form = form.text("commentable_id", commentable.to_string());
+            query.push("commentable_id", commentable.to_string());
         }
 
         if let Some(commentable) = self.commentable_type.take() {
-            form = form.text("commentable_type", commentable);
+            query.push("commentable_type", commentable.to_string());
         }
 
         let req = Request::from((
-            form,
+            query,
             Route::GetComments {
                 cursor: self.cursor.take(),
             },

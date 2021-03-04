@@ -1,7 +1,3 @@
-//! Be sure the following env variables are set beforehand:
-//!     - RUST_TEST_THREADS=1
-//!     - RUST_LOG="rosu_v2=debug","error"
-
 extern crate rosu_v2;
 
 use dotenv::dotenv;
@@ -86,7 +82,7 @@ async fn custom() {
 async fn beatmap() {
     init().await;
 
-    match osu().beatmap(adesso_balla()).await {
+    match osu().beatmap().map_id(adesso_balla()).await {
         Ok(map) => println!(
             "Received {} - {}",
             map.mapset.as_ref().unwrap().artist(),

@@ -1,12 +1,10 @@
 use crate::{
     error::OsuError,
     model::{GameMode, Rankings},
-    request::{Pending, Request},
+    request::{Pending, Query, Request},
     routing::Route,
     Osu, OsuResult,
 };
-
-use reqwest::multipart::Form;
 
 /// Get the recent events of a user by their id.
 ///
@@ -121,26 +119,26 @@ impl<'a> GetRankings<'a> {
             param: "ranking type",
         })?;
 
-        let mut form = Form::new();
+        let mut query = Query::new();
 
         if let Some(country) = self.country.take() {
-            form = form.text("country", country);
+            query.push("country", country);
         }
 
         if let Some(variant) = self.variant {
-            form = form.text("variant", variant);
+            query.push("variant", variant);
         }
 
         if let Some(spotlight) = self.spotlight {
-            form = form.text("spotlight", spotlight.to_string());
+            query.push("spotlight", spotlight.to_string());
         }
 
         if let Some(filter) = self.filter {
-            form = form.text("filter", filter);
+            query.push("filter", filter);
         }
 
         let req = Request::from((
-            form,
+            query,
             Route::GetRankings {
                 mode: self.mode,
                 ranking_type,

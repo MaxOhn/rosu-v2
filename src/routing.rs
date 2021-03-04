@@ -10,9 +10,7 @@ use std::{borrow::Cow, fmt::Write};
 #[derive(Debug)]
 #[non_exhaustive]
 pub(crate) enum Route {
-    GetBeatmap {
-        map_id: u32,
-    },
+    GetBeatmap,
     GetBeatmapScores {
         map_id: u32,
     },
@@ -76,7 +74,7 @@ impl Route {
     /// Separate a route into its parts: the HTTP method and the URI path.
     pub(crate) fn into_parts(self) -> (Method, Cow<'static, str>) {
         match self {
-            Self::GetBeatmap { map_id } => (Method::GET, format!("beatmaps/{}", map_id).into()),
+            Self::GetBeatmap => (Method::GET, "beatmaps/lookup".into()),
             Self::GetBeatmapScores { map_id } => {
                 (Method::GET, format!("beatmaps/{}/scores", map_id).into())
             }

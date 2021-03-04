@@ -1,10 +1,8 @@
 use crate::{
-    request::{Pending, Request},
+    request::{Pending, Query, Request},
     routing::Route,
     Osu, OsuResult,
 };
-
-use reqwest::multipart::Form;
 
 /// TODO: Documentation
 pub struct GetScores<'a> {
@@ -45,20 +43,20 @@ impl<'a> GetScores<'a> {
     }
 
     fn start(&mut self) -> OsuResult<()> {
-        let mut form = Form::new();
+        let mut query = Query::new();
 
         if let Some(limit) = self.limit {
-            form = form.text("limit", limit.to_string());
+            query.push("limit", limit.to_string());
         }
 
         if let Some(sort) = self.sort {
-            form = form.text("sort", sort);
+            query.push("sort", sort);
         }
 
-        // TODO: Add cursor to form
+        // TODO: Cursor
 
         let req = Request::from((
-            form,
+            query,
             Route::GetScores {
                 room: self.room,
                 playlist: self.playlist,

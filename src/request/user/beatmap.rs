@@ -1,11 +1,9 @@
 use crate::{
     model::{Beatmapset, RankStatus},
-    request::{Pending, Request, UserId},
+    request::{Pending, Query, Request, UserId},
     routing::Route,
     Osu, OsuError, OsuResult,
 };
-
-use reqwest::multipart::Form;
 
 /// Get the beatmapsets of a user by their id.
 ///
@@ -105,18 +103,18 @@ impl<'a> GetUserBeatmapsets<'a> {
             .map_type
             .ok_or(OsuError::MissingParameter { param: "map type" })?;
 
-        let mut form = Form::new();
+        let mut query = Query::new();
 
         if let Some(limit) = self.limit {
-            form = form.text("limit", limit.to_string());
+            query.push("limit", limit.to_string());
         }
 
         if let Some(offset) = self.offset {
-            form = form.text("offset", offset.to_string());
+            query.push("offset", offset.to_string());
         }
 
         let req = Request::from((
-            form,
+            query,
             Route::GetUserBeatmapsets {
                 user_id: self.user_id.take().unwrap(),
                 map_type,

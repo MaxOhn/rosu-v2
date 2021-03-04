@@ -40,17 +40,67 @@ use crate::{routing::Route, OsuResult};
 
 use reqwest::{
     header::{HeaderMap, HeaderValue},
-    multipart::Form,
     Method,
 };
-use std::{borrow::Cow, future::Future, pin::Pin};
+use serde::ser::{Serialize, SerializeSeq, Serializer};
+use std::{borrow::Cow, future::Future, iter::Extend, pin::Pin, vec::IntoIter};
 
 type Pending<'a, T> = Pin<Box<dyn Future<Output = OsuResult<T>> + Send + 'a>>;
+
+#[derive(Debug, Default)]
+pub(crate) struct Query(Vec<(&'static str, Cow<'static, str>)>);
+
+impl Query {
+    #[inline]
+    fn new() -> Self {
+        Self::default()
+    }
+
+    #[inline]
+    fn push(&mut self, key: &'static str, value: impl Into<Cow<'static, str>>) {
+        self.0.push((key, value.into()));
+    }
+
+    #[inline]
+    pub(crate) fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+}
+
+impl IntoIterator for Query {
+    type Item = (&'static str, Cow<'static, str>);
+    type IntoIter = IntoIter<Self::Item>;
+
+    #[inline]
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+
+impl<T: Into<Cow<'static, str>>> Extend<(&'static str, T)> for Query {
+    #[inline]
+    fn extend<I: IntoIterator<Item = (&'static str, T)>>(&mut self, iter: I) {
+        self.0
+            .extend(iter.into_iter().map(|(key, val)| (key, val.into())));
+    }
+}
+
+impl Serialize for Query {
+    fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        let mut seq = s.serialize_seq(Some(self.0.len()))?;
+
+        for pair in &self.0 {
+            seq.serialize_element(pair)?;
+        }
+
+        seq.end()
+    }
+}
 
 #[derive(Debug)]
 pub(crate) struct Request {
     pub body: Option<Vec<u8>>,
-    pub form: Option<Form>,
+    pub query: Query,
     pub headers: Option<HeaderMap<HeaderValue>>,
     pub method: Method,
     pub path: Cow<'static, str>,
@@ -62,7 +112,7 @@ impl From<Route> for Request {
 
         Self {
             body: None,
-            form: None,
+            query: Query::new(),
             headers: None,
             method,
             path,
@@ -76,7 +126,7 @@ impl From<(Vec<u8>, Route)> for Request {
 
         Self {
             body: Some(body),
-            form: None,
+            query: Query::new(),
             headers: None,
             method,
             path,
@@ -84,13 +134,13 @@ impl From<(Vec<u8>, Route)> for Request {
     }
 }
 
-impl From<(Form, Route)> for Request {
-    fn from((form, route): (Form, Route)) -> Self {
+impl From<(Query, Route)> for Request {
+    fn from((query, route): (Query, Route)) -> Self {
         let (method, path) = route.into_parts();
 
         Self {
             body: None,
-            form: Some(form),
+            query,
             headers: None,
             method,
             path,
@@ -98,13 +148,13 @@ impl From<(Form, Route)> for Request {
     }
 }
 
-impl From<(Vec<u8>, Form, Route)> for Request {
-    fn from((body, form, route): (Vec<u8>, Form, Route)) -> Self {
+impl From<(Vec<u8>, Query, Route)> for Request {
+    fn from((body, query, route): (Vec<u8>, Query, Route)) -> Self {
         let (method, path) = route.into_parts();
 
         Self {
             body: Some(body),
-            form: Some(form),
+            query,
             headers: None,
             method,
             path,
@@ -118,7 +168,7 @@ impl From<(HeaderMap<HeaderValue>, Route)> for Request {
 
         Self {
             body: None,
-            form: None,
+            query: Query::new(),
             headers: Some(headers),
             method,
             path,
@@ -132,7 +182,7 @@ impl From<(Vec<u8>, HeaderMap<HeaderValue>, Route)> for Request {
 
         Self {
             body: Some(body),
-            form: None,
+            query: Query::new(),
             headers: Some(headers),
             method,
             path,

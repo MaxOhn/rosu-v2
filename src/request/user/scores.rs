@@ -1,11 +1,9 @@
 use crate::{
     model::{GameMode, Score},
-    request::{Pending, Request, UserId},
+    request::{Pending, Query, Request, UserId},
     routing::Route,
     Osu, OsuError, OsuResult,
 };
-
-use reqwest::multipart::Form;
 
 /// Get scores of a user by the user's id.
 ///
@@ -93,22 +91,22 @@ impl<'a> GetUserScores<'a> {
             param: "score type",
         })?;
 
-        let mut form = Form::new();
+        let mut query = Query::new();
 
         if let Some(limit) = self.limit {
-            form = form.text("limit", limit.to_string());
+            query.push("limit", limit.to_string());
         }
 
         if let Some(offset) = self.offset {
-            form = form.text("offset", offset.to_string());
+            query.push("offset", offset.to_string());
         }
 
         if let Some(mode) = self.mode {
-            form = form.text("mode", mode.to_string());
+            query.push("mode", mode.to_string());
         }
 
         let req = Request::from((
-            form,
+            query,
             Route::GetUserScores {
                 user_id: self.user_id.take().unwrap(),
                 score_type,

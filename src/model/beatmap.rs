@@ -4,21 +4,24 @@ use crate::{request::GetUser, Osu, OsuError};
 use chrono::{DateTime, Utc};
 use serde::{
     de::{Error, Unexpected, Visitor},
-    Deserialize, Deserializer,
+    Deserialize, Deserializer, Serialize, Serializer,
 };
 use std::{convert::TryFrom, fmt};
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Beatmap {
     pub ar: f32,
     pub bpm: f32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub checksum: Option<String>,
     pub convert: bool,
     pub count_circles: u32,
     pub count_sliders: u32,
     pub count_spinners: u32,
     pub cs: f32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub deleted_at: Option<DateTime<Utc>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub fail_times: Option<FailTimes>,
     #[serde(rename = "drain")]
     pub hp: f32,
@@ -26,10 +29,15 @@ pub struct Beatmap {
     pub last_updated: DateTime<Utc>,
     #[serde(rename = "id")]
     pub map_id: u32,
-    #[serde(rename = "beatmapset", default)]
+    #[serde(
+        default,
+        rename = "beatmapset",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub mapset: Option<Mapset>,
     #[serde(rename = "beatmapset_id")]
     pub mapset_id: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub max_combo: Option<u32>,
     pub mode: GameMode,
     #[serde(rename = "accuracy")]
@@ -57,14 +65,21 @@ impl PartialEq for Beatmap {
 
 impl Eq for Beatmap {}
 
-#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct BeatmapCompact {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub checksum: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub fail_times: Option<FailTimes>,
     #[serde(rename = "id")]
     pub map_id: u32,
-    #[serde(rename = "beatmapset", default)]
+    #[serde(
+        default,
+        rename = "beatmapset",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub mapset: Option<Mapset>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub max_combo: Option<u32>,
     pub mode: GameMode,
     #[serde(rename = "total_length")]
@@ -75,9 +90,10 @@ pub struct BeatmapCompact {
     pub version: String,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Beatmapset {
     pub artist: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub artist_unicode: Option<String>,
     pub availability: BeatmapsetAvailability,
     pub bpm: f32,
@@ -89,12 +105,14 @@ pub struct Beatmapset {
     pub discussion_enabled: bool,
     pub discussion_locked: bool,
     pub favourite_count: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub hype: Option<BeatmapsetHype>,
     pub is_scoreable: bool,
     pub last_updated: DateTime<Utc>,
     /// Full URL, i.e. `https://osu.ppy.sh/community/forums/topics/{thread_id}`
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub legacy_thread_url: Option<String>,
-    #[serde(rename = "beatmaps")]
+    #[serde(default, rename = "beatmaps", skip_serializing_if = "Option::is_none")]
     pub maps: Option<Vec<Beatmap>>,
     #[serde(rename = "id")]
     pub mapset_id: u32,
@@ -104,14 +122,18 @@ pub struct Beatmapset {
     pub playcount: u32,
     /// Full URL, i.e. `b.ppy.sh/preview/{mapset_id}.mp3`
     pub preview_url: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ratings: Option<Vec<u32>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ranked_date: Option<DateTime<Utc>>,
     pub source: String,
     pub status: RankStatus,
     pub storyboard: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub submitted_date: Option<DateTime<Utc>>,
     pub tags: String,
     pub title: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub title_unicode: Option<String>,
     pub video: bool,
 }
@@ -132,21 +154,24 @@ impl PartialEq for Beatmapset {
 
 impl Eq for Beatmapset {}
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct BeatmapsetAvailability {
     download_disabled: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     more_information: Option<String>,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct BeatmapsetCompact {
     pub artist: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub artist_unicode: Option<String>,
     pub covers: BeatmapsetCovers,
     pub creator: String,
     #[serde(rename = "user_id")]
     pub creator_id: u32,
     pub favourite_count: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub hype: Option<BeatmapsetHype>,
     #[serde(rename = "id")]
     pub mapset_id: u32,
@@ -158,6 +183,7 @@ pub struct BeatmapsetCompact {
     pub source: String,
     pub status: RankStatus,
     pub title: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub title_unicode: Option<String>,
     pub video: bool,
 }
@@ -169,7 +195,7 @@ impl BeatmapsetCompact {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct BeatmapsetCovers {
     pub cover: String,
     #[serde(rename = "cover@2x")]
@@ -186,32 +212,35 @@ pub struct BeatmapsetCovers {
     pub slim_cover_2x: String,
 }
 
-#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct BeatmapsetHype {
-    current: u32,
-    required: u32,
+    pub current: u32,
+    pub required: u32,
 }
 
-#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct BeatmapsetNominations {
-    current: u32,
-    required: u32,
+    pub current: u32,
+    pub required: u32,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+// TODO: Make these [u32; 100], serde currently only goes up to 32
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct FailTimes {
-    pub exit: Option<Vec<u32>>, // TODO: Make this [u32; 100], serde currently only goes up to 32
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub exit: Option<Vec<u32>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub fail: Option<Vec<u32>>,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum Mapset {
     Full(Beatmapset),
     Compact(BeatmapsetCompact),
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct MostPlayedMap {
     pub count: usize,
     #[serde(rename = "beatmap")]
@@ -374,5 +403,11 @@ impl<'de> Visitor<'de> for RankStatusVisitor {
 impl<'de> Deserialize<'de> for RankStatus {
     fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
         d.deserialize_any(RankStatusVisitor)
+    }
+}
+
+impl Serialize for RankStatus {
+    fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        s.serialize_i8(*self as i8)
     }
 }

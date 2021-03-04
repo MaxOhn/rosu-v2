@@ -2,12 +2,12 @@ use crate::OsuError;
 
 use serde::{
     de::{Error, Unexpected, Visitor},
-    Deserialize, Deserializer,
+    Deserialize, Deserializer, Serialize,
 };
 use std::{fmt, str::FromStr};
 
 /// Enum for a [`Score`](crate::model::Score)'s grade (sometimes called rank)
-#[derive(Copy, Clone, Hash, Debug, Eq, PartialEq, PartialOrd)]
+#[derive(Copy, Clone, Hash, Debug, Eq, PartialEq, PartialOrd, Serialize)]
 pub enum Grade {
     F,
     D,

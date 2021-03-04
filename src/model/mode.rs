@@ -1,6 +1,6 @@
 use serde::{
     de::{Error, Unexpected, Visitor},
-    Deserialize, Deserializer,
+    Deserialize, Deserializer, Serialize, Serializer,
 };
 use std::fmt;
 
@@ -75,5 +75,11 @@ impl<'de> Visitor<'de> for ModeVisitor {
 impl<'de> Deserialize<'de> for GameMode {
     fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
         d.deserialize_any(ModeVisitor)
+    }
+}
+
+impl Serialize for GameMode {
+    fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        s.serialize_u8(*self as u8)
     }
 }

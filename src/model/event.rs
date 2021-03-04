@@ -1,9 +1,9 @@
 use super::{GameMode, Grade, Medal, RankStatus};
 
 use chrono::{DateTime, Utc};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Event {
     pub created_at: DateTime<Utc>,
     #[serde(rename = "id")]
@@ -12,19 +12,19 @@ pub struct Event {
     pub event_type: EventType,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct EventBeatmap {
     pub title: String,
     pub url: String,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct EventBeatmapset {
     pub title: String,
     pub url: String,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", tag = "type")]
 pub enum EventType {
     /// When a beatmap has been played for a certain amount of times
@@ -93,11 +93,15 @@ pub enum EventType {
     },
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct EventUser {
     pub username: String,
     pub url: String,
     /// Only for UsernameChange events
-    #[serde(rename = "previousUsername")]
+    #[serde(
+        default,
+        rename = "previousUsername",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub previous_username: Option<String>,
 }

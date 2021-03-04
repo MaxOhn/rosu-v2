@@ -484,10 +484,7 @@ impl<'de> Visitor<'de> for ModsVisitor {
 
 impl<'de> Deserialize<'de> for GameMods {
     fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
-        Ok(d.deserialize_any(ModsVisitor)?.unwrap_or_else(|| {
-            debug!("WARN: Serializing None to GameMods as NM");
-            GameMods::default()
-        }))
+        Ok(d.deserialize_any(ModsVisitor)?.unwrap())
     }
 }
 

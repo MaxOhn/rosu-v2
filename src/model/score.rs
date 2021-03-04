@@ -5,7 +5,7 @@ use crate::{
 };
 
 use chrono::{DateTime, Utc};
-use serde::{de::Deserializer, Deserialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 pub fn inflate_acc<'de, D: Deserializer<'de>>(d: D) -> Result<f32, D::Error> {
     let acc: f32 = Deserialize::deserialize(d)?;
@@ -13,14 +13,19 @@ pub fn inflate_acc<'de, D: Deserializer<'de>>(d: D) -> Result<f32, D::Error> {
     Ok(100.0 * acc)
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+pub fn deflate_acc<S: Serializer>(f: &f32, s: S) -> Result<S::Ok, S::Error> {
+    s.serialize_f32(*f / 100.0)
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct BeatmapScores {
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub scores: Vec<Score>,
-    #[serde(alias = "userScore")]
+    #[serde(default, alias = "userScore", skip_serializing_if = "Option::is_none")]
     pub user_score: Option<BeatmapUserScore>,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct BeatmapUserScore {
     #[serde(rename = "position")]
     pub pos: usize,
@@ -34,34 +39,44 @@ impl BeatmapUserScore {
     }
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Score {
-    #[serde(deserialize_with = "inflate_acc")]
+    #[serde(deserialize_with = "inflate_acc", serialize_with = "deflate_acc")]
     pub accuracy: f32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub best_id: Option<u32>,
     pub created_at: DateTime<Utc>,
     #[serde(rename = "rank")]
     pub grade: Grade,
     pub max_combo: u32,
-    #[serde(rename = "beatmap")]
+    #[serde(default, rename = "beatmap", skip_serializing_if = "Option::is_none")]
     pub map: Option<Beatmap>,
-    #[serde(rename = "beatmapset")]
+    #[serde(
+        default,
+        rename = "beatmapset",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub mapset: Option<BeatmapsetCompact>,
     // #[serde(rename = "match")]
     // pub osu_match: _, // TODO
     pub mode: GameMode,
     pub mods: GameMods,
     pub perfect: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub pp: Option<f32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub rank_country: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub rank_global: Option<u32>,
     pub replay: bool,
     pub score: u32,
     #[serde(rename = "id")]
     pub score_id: u64,
     pub statistics: ScoreStatistics,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub user: Option<UserCompact>,
     pub user_id: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub weight: Option<ScoreWeight>,
 }
 
@@ -115,7 +130,7 @@ impl PartialEq for Score {
 
 impl Eq for Score {}
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct ScoreStatistics {
     pub count_geki: u32,
     pub count_300: u32,
@@ -172,7 +187,7 @@ impl ScoreStatistics {
     }
 }
 
-#[derive(Copy, Clone, Debug, Deserialize, PartialEq)]
+#[derive(Copy, Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct ScoreWeight {
     pub percentage: f32,
     pub pp: f32,

@@ -1,10 +1,10 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::{
     ops::{Deref, DerefMut},
     vec::IntoIter,
 };
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct MultiplayerScore {
     accuracy: f32,
     // #[serde(rename = "rank")]
@@ -16,8 +16,10 @@ pub struct MultiplayerScore {
     pub passed: bool,
     #[serde(rename = "playlist_item_id")]
     pub playlist_id: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub position: Option<u32>,
     pub room_id: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub scores_around: Option<ScoresAround>,
     #[serde(rename = "id")]
     pub score_id: u32,
@@ -36,12 +38,14 @@ impl PartialEq for MultiplayerScore {
 
 impl Eq for MultiplayerScore {}
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct MultiplayerScores {
     pub(crate) cursor: ScoresCursor,
     // params: u32, // TODO
     pub scores: Vec<MultiplayerScore>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub total: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub user_score: Option<MultiplayerScore>,
 }
 
@@ -69,14 +73,15 @@ impl IntoIterator for MultiplayerScores {
     }
 }
 
-#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
-#[serde(rename_all = "lowercase")]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub enum ScoresAround {
+    #[serde(rename = "higher")]
     Higher,
+    #[serde(rename = "lower")]
     Lower,
 }
 
-#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct ScoresCursor {
     score_id: u32,
     total_score: u32,

@@ -3,7 +3,7 @@ use super::GameMode;
 use chrono::{Date, DateTime, NaiveDate, Utc};
 use serde::{
     de::{Error, IgnoredAny, MapAccess, Visitor},
-    Deserialize, Deserializer,
+    Deserialize, Deserializer, Serialize, Serializer,
 };
 use std::fmt;
 
@@ -13,7 +13,11 @@ pub fn str_to_date<'de, D: Deserializer<'de>>(d: D) -> Result<Date<Utc>, D::Erro
     Ok(Date::from_utc(date, Utc))
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+pub fn date_to_str<S: Serializer>(date: &Date<Utc>, s: S) -> Result<S::Ok, S::Error> {
+    s.collect_str(&date.naive_utc())
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct AccountHistory {
     pub id: u32,
     #[serde(rename = "type")]
@@ -23,7 +27,7 @@ pub struct AccountHistory {
     pub seconds: u32,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Badge {
     pub awarded_at: DateTime<Utc>,
     pub description: String,
@@ -31,13 +35,13 @@ pub struct Badge {
     pub url: String,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Country {
     code: String,
     name: String,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct GradeCounts {
     pub ss: i32,
     pub ssh: i32,
@@ -46,7 +50,7 @@ pub struct GradeCounts {
     pub a: i32,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Group {
     pub id: u32,
     pub identifier: String,
@@ -56,19 +60,21 @@ pub struct Group {
     pub description: String,
     #[serde(rename = "colour")]
     pub color: String,
-    #[serde(rename = "playmodes")]
+    #[serde(default, rename = "playmodes", skip_serializing_if = "Option::is_none")]
     pub modes: Option<Vec<GameMode>>,
 }
 
-#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
-#[serde(rename_all = "lowercase")]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub enum HistoryType {
+    #[serde(rename = "note")]
     Note,
+    #[serde(rename = "restriction")]
     Restriction,
+    #[serde(rename = "silence")]
     Silence,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Medal {
     pub description: String,
     pub grouping: String,
@@ -76,6 +82,7 @@ pub struct Medal {
     pub instructions: String,
     #[serde(rename = "id")]
     pub medal_id: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub mode: Option<GameMode>,
     pub name: String,
     pub ordering: u32,
@@ -91,21 +98,21 @@ impl PartialEq for Medal {
 
 impl Eq for Medal {}
 
-#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct MedalCompact {
     achieved_at: DateTime<Utc>,
     #[serde(rename = "achievement_id")]
     medal_id: u32,
 }
 
-#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct MonthlyCount {
-    #[serde(deserialize_with = "str_to_date")]
+    #[serde(deserialize_with = "str_to_date", serialize_with = "date_to_str")]
     pub start_date: Date<Utc>,
     pub count: i32,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ProfileBanner {
     pub id: u32,
     pub tournament_id: u32,
@@ -121,16 +128,19 @@ impl PartialEq for ProfileBanner {
 
 impl Eq for ProfileBanner {}
 
-#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
-#[serde(rename_all = "lowercase")]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub enum Playstyle {
+    #[serde(rename = "mouse")]
     Mouse,
+    #[serde(rename = "keyboard")]
     Keyboard,
+    #[serde(rename = "tablet")]
     Tablet,
+    #[serde(rename = "touch")]
     Touch,
 }
 
-#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ProfilePage {
     Beatmaps,
@@ -142,7 +152,7 @@ pub enum ProfilePage {
     TopRanks,
 }
 
-#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct User {
     pub avatar_url: String,
     pub comments_count: usize,
@@ -151,8 +161,10 @@ pub struct User {
     pub country_code: String,
     pub cover: UserCover,
     pub default_group: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub discord: Option<String>,
     pub has_supported: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub interests: Option<String>,
     pub is_active: bool,
     pub is_bot: bool,
@@ -161,71 +173,122 @@ pub struct User {
     pub is_supporter: bool,
     pub join_date: DateTime<Utc>,
     pub kudosu: UserKudosu,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub last_visit: Option<DateTime<Utc>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub location: Option<String>,
     pub max_blocks: u32,
     pub max_friends: u32,
     #[serde(rename = "playmode")]
     pub mode: GameMode,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub occupation: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub playstyle: Option<Vec<Playstyle>>,
     pub pm_friends_only: bool,
     #[serde(rename = "post_count")]
     pub forum_post_count: u32,
-    #[serde(rename = "profile_colour")]
+    #[serde(
+        default,
+        rename = "profile_colour",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub profile_color: Option<String>,
     pub profile_order: Vec<ProfilePage>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub skype: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub title_url: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub twitter: Option<String>,
     #[serde(rename = "id")]
     pub user_id: u32,
     pub username: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub website: Option<String>,
 
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub account_history: Option<Vec<AccountHistory>>,
     // pub active_tournament_banner: Option<ProfileBanner>, // TODO
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub badges: Option<Vec<Badge>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub beatmap_playcounts_count: Option<u32>,
     // blocks: Option<>,
     // current_mode_rank: Option<>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub favourite_beatmapset_count: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub follower_count: Option<u32>,
     // friends: Option<>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub graveyard_beatmapset_count: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub groups: Option<Vec<Group>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub is_admin: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub is_bng: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub is_full_bn: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub is_gmt: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub is_limited_bn: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub is_moderator: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub is_nat: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub is_restricted: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub is_silenced: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub loved_beatmapset_count: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub mapping_follower_count: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub monthly_playcounts: Option<Vec<MonthlyCount>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub page: Option<UserPage>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub previous_usernames: Option<Vec<String>>,
-    #[serde(deserialize_with = "rank_history_vec")]
+    #[serde(
+        default,
+        deserialize_with = "rank_history_vec",
+        skip_serializing_if = "Option::is_none"
+    )] // TODO: Test serializing
     pub rank_history: Option<Vec<u32>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ranked_and_approved_beatmapset_count: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub replays_watched_counts: Option<Vec<MonthlyCount>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub scores_best_count: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub scores_first_count: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub scores_recent_count: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub statistics: Option<UserStatistics>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub support_level: Option<u8>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub unranked_beatmapset_count: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub unread_pm_count: Option<u32>,
-    #[serde(rename = "user_achievements")]
+    #[serde(
+        default,
+        rename = "user_achievements",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub medals: Option<Vec<MedalCompact>>,
     // user_preferences: Option<>,
 }
 
-#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct UserCompact {
     pub avatar_url: String,
     pub country_code: String,
@@ -235,86 +298,128 @@ pub struct UserCompact {
     pub is_deleted: bool,
     pub is_online: bool,
     pub is_supporter: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub last_visit: Option<DateTime<Utc>>,
     pub pm_friends_only: bool,
-    #[serde(rename = "profile_colour")]
+    #[serde(
+        default,
+        rename = "profile_colour",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub profile_color: Option<String>,
     #[serde(rename = "id")]
     pub user_id: u32,
     pub username: String,
 
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub account_history: Option<Vec<AccountHistory>>,
     // pub active_tournament_banner: Option<ProfileBanner>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub badges: Option<Vec<Badge>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub beatmap_playcounts_count: Option<u32>,
     // blocks: Option<>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub country: Option<Country>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub cover: Option<UserCover>,
     // current_mode_rank: Option<>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub favourite_beatmapset_count: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub follower_count: Option<u32>,
     // friends: Option<>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub graveyard_beatmapset_count: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub groups: Option<Vec<Group>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub is_admin: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub is_bng: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub is_full_bn: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub is_gmt: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub is_limited_bn: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub is_moderator: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub is_nat: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub is_restricted: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub is_silenced: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub loved_beatmapset_count: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub monthly_playcounts: Option<Vec<MonthlyCount>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub page: Option<UserPage>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub previous_usernames: Option<Vec<String>>,
-    #[serde(default, deserialize_with = "rank_history_vec")]
+    #[serde(
+        default,
+        deserialize_with = "rank_history_vec",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub rank_history: Option<Vec<u32>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ranked_and_approved_beatmapset_count: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub replays_watched_counts: Option<Vec<MonthlyCount>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub scores_best_count: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub scores_first_count: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub scores_recent_count: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub statistics: Option<UserStatistics>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub support_level: Option<u8>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub unranked_beatmapset_count: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub unread_pm_count: Option<u32>,
     // #[serde(rename = "user_achievements")]
     // pub medals: Option<Vec<MedalCompact>>, // TODO
     // user_preferences: Option<>,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct UserCover {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub custom_url: Option<String>,
     pub url: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
 }
 
-#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct UserKudosu {
     pub available: i32,
     pub total: i32,
 }
 
-#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct UserLevel {
     pub current: u32,
     pub progress: u32,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct UserPage {
     pub html: String,
     pub raw: String,
 }
 
-#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct UserStatistics {
     #[serde(rename = "hit_accuracy")]
     pub accuracy: f32,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub country_rank: Option<u32>,
     pub global_rank: u32,
     pub grade_counts: GradeCounts,
@@ -333,7 +438,7 @@ pub struct UserStatistics {
     pub replays_watched: u32,
     pub total_hits: u64,
     pub total_score: u64,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub user: Option<Box<UserCompact>>,
 }
 

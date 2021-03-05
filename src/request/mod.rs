@@ -7,12 +7,12 @@ macro_rules! poll_req {
                 mut self: ::std::pin::Pin<&mut Self>,
                 cx: &mut ::std::task::Context<'_>,
             ) -> ::std::task::Poll<Self::Output> {
-                loop {
-                    if let Some(fut) = self.as_mut().fut.as_mut() {
-                        return fut.as_mut().poll(cx);
-                    } else if let Err(why) = self.as_mut().start() {
-                        return ::std::task::Poll::Ready(Err(why));
-                    }
+                match self.fut {
+                    Some(ref mut fut) => fut.as_mut().poll(cx),
+                    None => match self.start() {
+                        Ok(_) => self.fut.as_mut().unwrap().as_mut().poll(cx),
+                        Err(why) => ::std::task::Poll::Ready(Err(why)),
+                    },
                 }
             }
         }

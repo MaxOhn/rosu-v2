@@ -98,12 +98,12 @@ impl<'a> GetComments<'a> {
             query.push("commentable_type", commentable.to_string());
         }
 
-        let req = Request::from((
-            query,
-            Route::GetComments {
-                cursor: self.cursor.take(),
-            },
-        ));
+        if let Some(cursor) = self.cursor.take() {
+            query.push("cursor[id]", cursor.id.to_string());
+            query.push("cursor[created_at]", cursor.created_at.to_string()); // TODO: Test
+        }
+
+        let req = Request::from((query, Route::GetComments));
 
         self.fut.replace(Box::pin(self.osu.0.request(req)));
 

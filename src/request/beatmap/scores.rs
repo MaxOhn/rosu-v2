@@ -13,7 +13,6 @@ pub struct GetBeatmapScores<'a> {
     score_type: Option<&'static str>,
     mode: Option<GameMode>,
     mods: Option<GameMods>,
-    // TODO: limit & offset?
 }
 
 impl<'a> GetBeatmapScores<'a> {

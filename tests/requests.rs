@@ -70,11 +70,14 @@ fn osu() -> &'static Osu {
 async fn custom() {
     init().await;
 
-    let req_fut = osu().comments().commentable_id(1135494);
+    let req_fut = osu().beatmap_scores(adesso_balla());
 
-    if let Err(why) = req_fut.await {
-        unwind_error!(error, why, "Error while requesting custom: {}");
-        panic!()
+    match req_fut.await {
+        Ok(scores) => println!("{} scores:\n{:#?}", scores.scores.len(), scores),
+        Err(why) => {
+            unwind_error!(error, why, "{}");
+            panic!();
+        }
     }
 }
 

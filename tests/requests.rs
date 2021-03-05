@@ -60,20 +60,21 @@ macro_rules! get_id {
 get_id!(adesso_balla, 171024);
 get_id!(badewanne3, 2211396);
 get_id!(sylas, 3906405);
+get_id!(de_vs_ca, 73827718);
 
 fn osu() -> &'static Osu {
     OSU.get().expect("OSU not initialized")
 }
 
 #[tokio::test]
-#[ignore = "specific testing"]
+// #[ignore = "specific testing"]
 async fn custom() {
     init().await;
 
-    let req_fut = osu().beatmap_scores(adesso_balla());
+    let req_fut = osu().osu_match(de_vs_ca());
 
     match req_fut.await {
-        Ok(scores) => println!("{} scores:\n{:#?}", scores.scores.len(), scores),
+        Ok(osu_match) => println!("{:#?}", osu_match),
         Err(why) => {
             unwind_error!(error, why, "{}");
             panic!();
@@ -174,6 +175,25 @@ async fn kudosu() {
             let sum: i32 = history.iter().map(|entry| entry.amount).sum();
 
             println!("Received {} entries amounting to {}", history.len(), sum);
+        }
+        Err(why) => {
+            unwind_error!(error, why, "Error while requesting kudosu: {}");
+            panic!()
+        }
+    }
+}
+
+#[tokio::test]
+async fn osu_match() {
+    init().await;
+
+    match osu().osu_match(de_vs_ca()).await {
+        Ok(osu_match) => {
+            println!(
+                "Received match, got {} events and {} users",
+                osu_match.events.len(),
+                osu_match.users.len()
+            );
         }
         Err(why) => {
             unwind_error!(error, why, "Error while requesting kudosu: {}");

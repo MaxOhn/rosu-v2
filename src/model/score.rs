@@ -1,21 +1,10 @@
-use crate::{
-    model::{Beatmap, BeatmapsetCompact, GameMode, GameMods, Grade, UserCompact},
-    request::GetUser,
-    Osu,
+use super::{
+    deflate_acc, inflate_acc, Beatmap, BeatmapsetCompact, GameMode, GameMods, Grade, UserCompact,
 };
+use crate::{request::GetUser, Osu};
 
 use chrono::{DateTime, Utc};
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
-
-pub fn inflate_acc<'de, D: Deserializer<'de>>(d: D) -> Result<f32, D::Error> {
-    let acc: f32 = Deserialize::deserialize(d)?;
-
-    Ok(100.0 * acc)
-}
-
-pub fn deflate_acc<S: Serializer>(f: &f32, s: S) -> Result<S::Ok, S::Error> {
-    s.serialize_f32(*f / 100.0)
-}
+use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct BeatmapScores {

@@ -35,7 +35,7 @@ impl Osu {
             .await
     }
 
-    /// Fine-tune building an [`Osu`](crate::Osu) client
+    /// Fine-tune building an [`Osu`](crate::Osu) client.
     #[inline]
     pub fn builder() -> OsuBuilder {
         OsuBuilder::default()
@@ -100,10 +100,16 @@ impl Osu {
         GetUserHighScore::new(self, room, playlist, user_id)
     }
 
-    /// Get [`News`](crate::model::News)
+    /// Get [`News`](crate::model::News).
     #[inline]
     pub fn news(&self) -> GetNews {
         GetNews::new(self)
+    }
+
+    /// Get an [`OsuMatch`](crate::model::OsuMatch).
+    #[inline]
+    pub fn osu_match(&self, match_id: u32) -> GetMatch {
+        GetMatch::new(self, match_id)
     }
 
     /// Get the current ranking for the specified type and mode.
@@ -118,7 +124,7 @@ impl Osu {
         GetRecentEvents::new(self, user_id)
     }
 
-    /// Get the list of spotlights
+    /// Get the list of spotlights.
     #[inline]
     pub fn spotlights(&self) -> GetSpotlights {
         GetSpotlights::new(self)
@@ -157,7 +163,7 @@ impl Osu {
         GetUsers::new(self, user_ids)
     }
 
-    /// Get a wiki article or image data
+    /// Get a wiki article or image data.
     ///
     /// `locale` adjusts the language, e.g. `en` for english, `de` for german, ...
     #[inline]

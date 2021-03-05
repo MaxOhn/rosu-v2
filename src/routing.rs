@@ -16,6 +16,9 @@ pub(crate) enum Route {
         user_id: UserId,
     },
     GetComments,
+    GetMatch {
+        match_id: u32,
+    },
     GetNews {
         news: Option<()>,
     },
@@ -77,6 +80,7 @@ impl Route {
                 format!("beatmaps/{}/scores/users/{}", map_id, user_id).into(),
             ),
             Self::GetComments => (Method::GET, "comments".into()),
+            Self::GetMatch { match_id } => (Method::GET, format!("matches/{}", match_id).into()),
             Self::GetNews { news } => {
                 let path = match news {
                     Some(_news) => unimplemented!(),

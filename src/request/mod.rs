@@ -38,10 +38,7 @@ pub use wiki::GetWikiPage;
 
 use crate::{routing::Route, OsuResult};
 
-use reqwest::{
-    header::{HeaderMap, HeaderValue},
-    Method,
-};
+use reqwest::Method;
 use serde::ser::{Serialize, SerializeSeq, Serializer};
 use std::{borrow::Cow, future::Future, iter::Extend, pin::Pin, vec::IntoIter};
 
@@ -99,9 +96,7 @@ impl Serialize for Query {
 
 #[derive(Debug)]
 pub(crate) struct Request {
-    pub body: Option<Vec<u8>>,
     pub query: Query,
-    pub headers: Option<HeaderMap<HeaderValue>>,
     pub method: Method,
     pub path: Cow<'static, str>,
 }
@@ -111,23 +106,7 @@ impl From<Route> for Request {
         let (method, path) = route.into_parts();
 
         Self {
-            body: None,
             query: Query::new(),
-            headers: None,
-            method,
-            path,
-        }
-    }
-}
-
-impl From<(Vec<u8>, Route)> for Request {
-    fn from((body, route): (Vec<u8>, Route)) -> Self {
-        let (method, path) = route.into_parts();
-
-        Self {
-            body: Some(body),
-            query: Query::new(),
-            headers: None,
             method,
             path,
         }
@@ -139,51 +118,7 @@ impl From<(Query, Route)> for Request {
         let (method, path) = route.into_parts();
 
         Self {
-            body: None,
             query,
-            headers: None,
-            method,
-            path,
-        }
-    }
-}
-
-impl From<(Vec<u8>, Query, Route)> for Request {
-    fn from((body, query, route): (Vec<u8>, Query, Route)) -> Self {
-        let (method, path) = route.into_parts();
-
-        Self {
-            body: Some(body),
-            query,
-            headers: None,
-            method,
-            path,
-        }
-    }
-}
-
-impl From<(HeaderMap<HeaderValue>, Route)> for Request {
-    fn from((headers, route): (HeaderMap<HeaderValue>, Route)) -> Self {
-        let (method, path) = route.into_parts();
-
-        Self {
-            body: None,
-            query: Query::new(),
-            headers: Some(headers),
-            method,
-            path,
-        }
-    }
-}
-
-impl From<(Vec<u8>, HeaderMap<HeaderValue>, Route)> for Request {
-    fn from((body, headers, route): (Vec<u8>, HeaderMap<HeaderValue>, Route)) -> Self {
-        let (method, path) = route.into_parts();
-
-        Self {
-            body: Some(body),
-            query: Query::new(),
-            headers: Some(headers),
             method,
             path,
         }

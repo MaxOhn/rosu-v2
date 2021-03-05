@@ -10,7 +10,7 @@ use crate::{
 };
 
 use bytes::Bytes;
-use reqwest::{header::HeaderValue, multipart::Form, Body, Client, Method, Response, StatusCode};
+use reqwest::{header::HeaderValue, multipart::Form, Client, Method, Response, StatusCode};
 use serde::{de::DeserializeOwned, Deserialize};
 use std::{ops::Drop, sync::Arc};
 use tokio::sync::{oneshot::Sender, RwLock};
@@ -278,9 +278,7 @@ impl OsuRef {
 
     async fn raw(&self, req: Request) -> OsuResult<Response> {
         let Request {
-            body,
             query,
-            headers,
             method,
             path,
         } = req;
@@ -307,22 +305,12 @@ impl OsuRef {
             return Err(OsuError::NoToken);
         }
 
-        if let Some(bytes) = body {
-            let len = bytes.len();
-            builder = builder.body(Body::from(bytes));
-            builder = builder.header("content-length", len);
-            let content_type = HeaderValue::from_static("application/json");
-            builder = builder.header("Content-Type", content_type);
-        } else if matches!(method, Method::PUT | Method::POST | Method::PATCH) {
+        if matches!(method, Method::PUT | Method::POST | Method::PATCH) {
             builder = builder.header("content-length", 0);
         }
 
         let user_agent = HeaderValue::from_static(USER_AGENT);
         builder = builder.header("User-Agent", user_agent);
-
-        if let Some(headers) = headers {
-            builder = builder.headers(headers);
-        }
 
         self.ratelimiter.await_access().await;
 

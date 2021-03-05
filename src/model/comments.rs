@@ -55,7 +55,7 @@ pub struct CommentBundle {
     pub comments: Vec<Comment>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub(crate) cursor: Option<CommentBundleCursor>,
-    pub has_more: bool,
+    pub(crate) has_more: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub has_more_id: Option<u32>,
     pub included_comments: Vec<Comment>,
@@ -72,7 +72,12 @@ pub struct CommentBundle {
 }
 
 impl CommentBundle {
-    /// If `has_more` is true, the API can provide the next set of comments and this method will request them.
+    #[inline]
+    pub fn has_more(&self) -> bool {
+        self.has_more
+    }
+
+    /// If `has_more()` is true, the API can provide the next set of comments and this method will request them.
     /// Otherwise, this method returns `None`.
     #[inline]
     pub async fn get_next(&self, osu: &Osu) -> Option<OsuResult<CommentBundle>> {

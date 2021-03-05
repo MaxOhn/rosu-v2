@@ -225,6 +225,19 @@ async fn multiplayer_user_highscore() {
 }
 
 #[tokio::test]
+async fn news() {
+    init().await;
+
+    match osu().news().await {
+        Ok(news) => println!("Received news, got {} posts", news.posts.len()),
+        Err(why) => {
+            unwind_error!(error, why, "Error while requesting news: {}");
+            panic!()
+        }
+    }
+}
+
+#[tokio::test]
 async fn rankings() {
     init().await;
 

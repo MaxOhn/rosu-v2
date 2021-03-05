@@ -100,6 +100,12 @@ impl Osu {
         GetUserHighScore::new(self, room, playlist, user_id)
     }
 
+    /// Get [`News`](crate::model::News)
+    #[inline]
+    pub fn news(&self) -> GetNews {
+        GetNews::new(self)
+    }
+
     /// Get the current ranking for the specified type and mode.
     #[inline]
     pub fn rankings(&self, mode: GameMode) -> GetRankings {

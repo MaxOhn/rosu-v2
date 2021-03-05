@@ -16,9 +16,8 @@ pub(crate) enum Route {
         user_id: UserId,
     },
     GetComments,
-    #[allow(dead_code)]
     GetNews {
-        news_id: Option<u32>,
+        news: Option<()>,
     },
     GetRankings {
         mode: GameMode,
@@ -78,10 +77,10 @@ impl Route {
                 format!("beatmaps/{}/scores/users/{}", map_id, user_id).into(),
             ),
             Self::GetComments => (Method::GET, "comments".into()),
-            Self::GetNews { news_id } => {
-                let path = match news_id {
-                    Some(id) => format!("news/{}", id).into(),
-                    None => "news/".into(),
+            Self::GetNews { news } => {
+                let path = match news {
+                    Some(_news) => unimplemented!(),
+                    None => "news".into(),
                 };
 
                 (Method::GET, path)

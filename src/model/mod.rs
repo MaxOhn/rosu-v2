@@ -6,6 +6,7 @@ mod kudosu;
 mod mode;
 mod mods;
 mod multiplayer;
+mod news;
 mod ranking;
 mod score;
 mod user;
@@ -22,6 +23,7 @@ pub use kudosu::{KudosuAction, KudosuGiver, KudosuHistory, KudosuPost};
 pub use mode::GameMode;
 pub use mods::GameMods;
 pub use multiplayer::{MultiplayerScore, MultiplayerScores, ScoresAround};
+pub use news::{News, NewsPost, NewsSearch, NewsSidebar};
 pub use ranking::{Rankings, Spotlight};
 pub use score::{BeatmapScores, BeatmapUserScore, Score, ScoreStatistics, ScoreWeight};
 pub use user::{
@@ -32,3 +34,4 @@ pub use user::{
 pub use wiki::WikiPage;
 
 pub(crate) use comments::CommentBundleCursor;
+pub(crate) use news::NewsCursor;

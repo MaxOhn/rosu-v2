@@ -19,10 +19,23 @@ use tokio::sync::{oneshot::Sender, RwLock};
 /// Cheap to clone.
 ///
 /// Must be constructed through [`OsuBuilder`](crate::OsuBuilder).
-pub struct Osu(pub(crate) Arc<OsuRef>);
+pub struct Osu {
+    pub(crate) inner: Arc<OsuRef>,
+}
 
 impl Osu {
-    /// An [`Osu`](crate::Osu) client must be built through this method.
+    /// Create a new default [`Osu`](crate::Osu) client.
+    ///
+    /// Errors if the API did not provide a token for the given client id and client secret.
+    pub async fn new(client_id: u64, client_secret: impl Into<String>) -> OsuResult<Self> {
+        Self::builder()
+            .client_id(client_id)
+            .client_secret(client_secret)
+            .build()
+            .await
+    }
+
+    /// Fine-tune building an [`Osu`](crate::Osu) client
     #[inline]
     pub fn builder() -> OsuBuilder {
         OsuBuilder::default()
@@ -56,16 +69,35 @@ impl Osu {
         GetComments::new(self)
     }
 
-    /// Get the recent activity of a user.
-    #[inline]
-    pub fn recent_events(&self, user_id: impl Into<UserId>) -> GetRecentEvents {
-        GetRecentEvents::new(self, user_id)
-    }
-
     /// Get the kudosu history of a user.
     #[inline]
     pub fn kudosu(&self, user_id: impl Into<UserId>) -> GetUserKudosu {
         GetUserKudosu::new(self, user_id)
+    }
+
+    /// TODO: Documentation
+    #[deprecated = "The API currently doesn't allow this endpoint for public use"]
+    #[inline]
+    pub fn multiplayer_score(&self, room: u32, playlist: u32, score_id: u32) -> GetScore {
+        GetScore::new(self, room, playlist, score_id)
+    }
+
+    /// TODO: Documentation
+    #[inline]
+    pub fn multiplayer_scores(&self, room: u32, playlist: u32) -> GetScores {
+        GetScores::new(self, room, playlist)
+    }
+
+    /// TODO: Documentation
+    #[deprecated = "The API currently doesn't allow this endpoint for public use"]
+    #[inline]
+    pub fn multiplayer_user_highscore(
+        &self,
+        room: u32,
+        playlist: u32,
+        user_id: u32,
+    ) -> GetUserHighScore {
+        GetUserHighScore::new(self, room, playlist, user_id)
     }
 
     /// Get the current ranking for the specified type and mode.
@@ -74,16 +106,10 @@ impl Osu {
         GetRankings::new(self, mode)
     }
 
-    /// TODO: Documentation
+    /// Get the recent activity of a user.
     #[inline]
-    pub fn score(&self, room: u32, playlist: u32, score_id: u32) -> GetScore {
-        GetScore::new(self, room, playlist, score_id)
-    }
-
-    /// TODO: Documentation
-    #[inline]
-    pub fn scores(&self, room: u32, playlist: u32) -> GetScores {
-        GetScores::new(self, room, playlist)
+    pub fn recent_events(&self, user_id: impl Into<UserId>) -> GetRecentEvents {
+        GetRecentEvents::new(self, user_id)
     }
 
     /// Get the list of spotlights
@@ -104,12 +130,6 @@ impl Osu {
         GetUserBeatmapsets::new(self, user_id)
     }
 
-    /// TODO: Documentation
-    #[inline]
-    pub fn user_highscore(&self, room: u32, playlist: u32, user_id: u32) -> GetUserHighScore {
-        GetUserHighScore::new(self, room, playlist, user_id)
-    }
-
     /// Get the beatmapsets of a user.
     #[inline]
     pub fn user_most_played(&self, user_id: impl Into<UserId>) -> GetUserMostPlayed {
@@ -123,7 +143,6 @@ impl Osu {
     }
 
     /// Get a vec of [`UserCompact`](crate::model::UserCompact).
-    // ! Won't currently work, throwing 403s caused by the scope.
     #[deprecated = "The API currently doesn't allow this endpoint for public use"]
     #[inline]
     pub fn users<I: Into<UserId>>(&self, user_ids: impl Iterator<Item = I>) -> GetUsers {

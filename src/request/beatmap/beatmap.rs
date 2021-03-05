@@ -64,7 +64,7 @@ impl<'a> GetBeatmap<'a> {
 
         let req = Request::from((query, Route::GetBeatmap));
 
-        self.fut.replace(Box::pin(self.osu.0.request(req)));
+        self.fut.replace(Box::pin(self.osu.inner.request(req)));
 
         Ok(())
     }

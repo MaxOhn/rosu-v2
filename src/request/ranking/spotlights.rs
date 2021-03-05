@@ -22,7 +22,7 @@ impl<'a> GetSpotlights<'a> {
 
     fn start(&mut self) -> OsuResult<()> {
         let req = Request::from(Route::GetSpotlights);
-        self.fut.replace(Box::pin(self.osu.0.request(req)));
+        self.fut.replace(Box::pin(self.osu.inner.request(req)));
 
         Ok(())
     }

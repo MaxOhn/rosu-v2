@@ -32,7 +32,7 @@ impl<'a> GetUserHighScore<'a> {
             user_id: self.user_id,
         });
 
-        self.fut.replace(Box::pin(self.osu.0.request(req)));
+        self.fut.replace(Box::pin(self.osu.inner.request(req)));
 
         Ok(())
     }

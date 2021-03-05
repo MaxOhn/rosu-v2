@@ -145,7 +145,7 @@ impl<'a> GetRankings<'a> {
             },
         ));
 
-        self.fut.replace(Box::pin(self.osu.0.request(req)));
+        self.fut.replace(Box::pin(self.osu.inner.request(req)));
 
         Ok(())
     }

@@ -90,6 +90,7 @@ impl OsuBuilder {
             loop {
                 if matches!(rx.try_recv(), Ok(_) | Err(TryRecvError::Closed)) {
                     debug!("Exiting token update loop");
+
                     return;
                 }
 
@@ -151,7 +152,7 @@ impl OsuBuilder {
             }
         });
 
-        Ok(Osu(inner))
+        Ok(Osu { inner })
     }
 
     /// Set the client id of the application.

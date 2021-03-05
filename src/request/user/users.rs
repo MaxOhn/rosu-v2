@@ -35,7 +35,7 @@ impl<'a> GetUsers<'a> {
         query.extend(iter);
 
         let req = Request::from((query, Route::GetUsers));
-        self.fut.replace(Box::pin(self.osu.0.request(req)));
+        self.fut.replace(Box::pin(self.osu.inner.request(req)));
 
         Ok(())
     }

@@ -37,7 +37,7 @@ impl<'a> GetWikiPage<'a> {
             page: self.page.take(),
         });
 
-        self.fut.replace(Box::pin(self.osu.0.request(req)));
+        self.fut.replace(Box::pin(self.osu.inner.request(req)));
 
         Ok(())
     }

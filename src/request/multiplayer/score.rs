@@ -32,7 +32,7 @@ impl<'a> GetScore<'a> {
             score_id: self.score_id,
         });
 
-        self.fut.replace(Box::pin(self.osu.0.request(req)));
+        self.fut.replace(Box::pin(self.osu.inner.request(req)));
 
         Ok(())
     }

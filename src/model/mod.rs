@@ -23,8 +23,7 @@ pub use event::{Event, EventBeatmap, EventBeatmapset, EventType, EventUser};
 pub use grade::Grade;
 pub use kudosu::{KudosuAction, KudosuGiver, KudosuHistory, KudosuPost};
 pub use matches::{
-    MatchEvent, MatchGame, MatchInfo, MatchList, MatchScore, MatchScoreInfo, OsuMatch, ScoringType,
-    Team, TeamType,
+    MatchEvent, MatchGame, MatchInfo, MatchList, MatchScore, OsuMatch, ScoringType, Team, TeamType,
 };
 pub use mode::GameMode;
 pub use mods::GameMods;

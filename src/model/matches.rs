@@ -1,42 +1,53 @@
-use super::{
-    deflate_acc, inflate_acc, BeatmapCompact, GameMode, GameMods, ScoreStatistics, UserCompact,
-};
+use super::{BeatmapCompact, GameMode, GameMods, ScoreStatistics, UserCompact};
 
 use chrono::{DateTime, Utc};
 use serde::{
     de::{Deserializer, Error, IgnoredAny, MapAccess, Unexpected, Visitor},
-    ser::{SerializeMap, Serializer},
+    ser::{SerializeStruct, Serializer},
     Deserialize, Serialize,
 };
 use std::{fmt, marker::PhantomData};
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(tag = "type")]
 pub enum MatchEvent {
+    #[serde(rename(serialize = "match-created"))]
     Create {
+        #[serde(rename(serialize = "id"))]
         event_id: u64,
         timestamp: DateTime<Utc>,
         user_id: u32,
     },
+    #[serde(rename(serialize = "match-disbanded"))]
     Disbanded {
+        #[serde(rename(serialize = "id"))]
         event_id: u64,
         timestamp: DateTime<Utc>,
     },
+    #[serde(rename(serialize = "other"))]
     Game {
+        #[serde(rename(serialize = "id"))]
         event_id: u64,
         game: MatchGame,
         timestamp: DateTime<Utc>,
     },
+    #[serde(rename(serialize = "host-changed"))]
     HostChanged {
+        #[serde(rename(serialize = "id"))]
         event_id: u64,
         timestamp: DateTime<Utc>,
         user_id: u32,
     },
+    #[serde(rename(serialize = "player-joined"))]
     Joined {
+        #[serde(rename(serialize = "id"))]
         event_id: u64,
         timestamp: DateTime<Utc>,
         user_id: u32,
     },
+    #[serde(rename(serialize = "player-left"))]
     Left {
+        #[serde(rename(serialize = "id"))]
         event_id: u64,
         timestamp: DateTime<Utc>,
         user_id: u32,
@@ -95,7 +106,7 @@ impl<'de> Visitor<'de> for MatchEventTypeVisitor {
     fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            r#"0, 1, 2, 3, 4, 5, "match-created", "player-joined", "player-left", "match-disbanded", "host-changed", or "other""#
+            r#""match-created", "player-joined", "player-left", "match-disbanded", "host-changed", or "other""#
         )
     }
 
@@ -117,30 +128,11 @@ impl<'de> Visitor<'de> for MatchEventTypeVisitor {
 
         Ok(event)
     }
-
-    fn visit_u64<E: Error>(self, v: u64) -> Result<Self::Value, E> {
-        let event = match v {
-            0 => MatchEventType::Create,
-            1 => MatchEventType::Disbanded,
-            2 => MatchEventType::Game,
-            3 => MatchEventType::HostChanged,
-            4 => MatchEventType::Joined,
-            5 => MatchEventType::Left,
-            _ => {
-                return Err(E::invalid_value(
-                    Unexpected::Unsigned(v),
-                    &"0, 1, 2, 3, 4, or 5",
-                ))
-            }
-        };
-
-        Ok(event)
-    }
 }
 
 impl<'de> Deserialize<'de> for MatchEventType {
     fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
-        d.deserialize_any(MatchEventTypeVisitor)
+        d.deserialize_str(MatchEventTypeVisitor)
     }
 }
 
@@ -156,7 +148,7 @@ impl<'de> Visitor<'de> for MatchEventVisitor {
     type Value = MatchEvent;
 
     fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", stringify!($($n),*))
+        write!(f, "MatchEvent enum")
     }
 
     fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
@@ -174,12 +166,12 @@ impl<'de> Visitor<'de> for MatchEventVisitor {
                 "timestamp" => {
                     timestamp.replace(map.next_value()?);
                 }
-                "user_id" => {
-                    user_id = map.next_value()?;
-                }
                 "detail" => {
                     let detail: Detail = map.next_value()?;
                     kind.replace(detail.kind);
+                }
+                "user_id" => {
+                    user_id = map.next_value()?;
                 }
                 "type" => {
                     kind.replace(map.next_value()?);
@@ -198,51 +190,31 @@ impl<'de> Visitor<'de> for MatchEventVisitor {
         let kind = kind.ok_or_else(|| Error::missing_field("detail or type"))?;
 
         let event = match kind {
-            MatchEventType::Joined => {
-                let user_id = user_id.ok_or_else(|| Error::missing_field("user_id"))?;
-
-                MatchEvent::Joined {
-                    event_id,
-                    timestamp,
-                    user_id,
-                }
-            }
-            MatchEventType::Left => {
-                let user_id = user_id.ok_or_else(|| Error::missing_field("user_id"))?;
-
-                MatchEvent::Left {
-                    event_id,
-                    timestamp,
-                    user_id,
-                }
-            }
-            MatchEventType::Game => {
-                let game = game.ok_or_else(|| Error::missing_field("game"))?;
-
-                MatchEvent::Game {
-                    event_id,
-                    game,
-                    timestamp,
-                }
-            }
-            MatchEventType::HostChanged => {
-                let user_id = user_id.ok_or_else(|| Error::missing_field("user_id"))?;
-
-                MatchEvent::HostChanged {
-                    event_id,
-                    timestamp,
-                    user_id,
-                }
-            }
-            MatchEventType::Create => {
-                let user_id = user_id.ok_or_else(|| Error::missing_field("user_id"))?;
-
-                MatchEvent::Create {
-                    event_id,
-                    timestamp,
-                    user_id,
-                }
-            }
+            MatchEventType::Joined => MatchEvent::Joined {
+                event_id,
+                timestamp,
+                user_id: user_id.ok_or_else(|| Error::missing_field("user_id"))?,
+            },
+            MatchEventType::Left => MatchEvent::Left {
+                event_id,
+                timestamp,
+                user_id: user_id.ok_or_else(|| Error::missing_field("user_id"))?,
+            },
+            MatchEventType::Game => MatchEvent::Game {
+                event_id,
+                game: game.ok_or_else(|| Error::missing_field("game"))?,
+                timestamp,
+            },
+            MatchEventType::HostChanged => MatchEvent::HostChanged {
+                event_id,
+                timestamp,
+                user_id: user_id.ok_or_else(|| Error::missing_field("user_id"))?,
+            },
+            MatchEventType::Create => MatchEvent::Create {
+                event_id,
+                timestamp,
+                user_id: user_id.ok_or_else(|| Error::missing_field("user_id"))?,
+            },
             MatchEventType::Disbanded => MatchEvent::Disbanded {
                 event_id,
                 timestamp,
@@ -259,56 +231,19 @@ impl<'de> Deserialize<'de> for MatchEvent {
     }
 }
 
-impl Serialize for MatchEvent {
-    fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
-        let mut map = s.serialize_map(Some(3))?;
-
-        map.serialize_entry("id", &self.event_id())?;
-        map.serialize_entry("timestamp", &self.timestamp())?;
-
-        match self {
-            Self::Create { user_id, .. } => {
-                map.serialize_entry("type", &0)?;
-                map.serialize_entry("user_id", user_id)?;
-            }
-            Self::Disbanded { .. } => {
-                map.serialize_entry("type", &1)?;
-            }
-            Self::Game { game, .. } => {
-                map.serialize_entry("type", &2)?;
-                map.serialize_entry("game", game)?;
-            }
-            Self::HostChanged { user_id, .. } => {
-                map.serialize_entry("type", &3)?;
-                map.serialize_entry("user_id", user_id)?;
-            }
-            Self::Joined { user_id, .. } => {
-                map.serialize_entry("type", &4)?;
-                map.serialize_entry("user_id", user_id)?;
-            }
-            Self::Left { user_id, .. } => {
-                map.serialize_entry("type", &5)?;
-                map.serialize_entry("user_id", user_id)?;
-            }
-        }
-
-        map.end()
-    }
-}
-
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct MatchGame {
     #[serde(rename = "id")]
-    game_id: u64,
-    start_time: DateTime<Utc>,
-    end_time: Option<DateTime<Utc>>,
-    mode: GameMode,
-    scoring_type: ScoringType,
-    team_type: TeamType,
-    mods: GameMods,
+    pub game_id: u64,
+    pub start_time: DateTime<Utc>,
+    pub end_time: Option<DateTime<Utc>>,
+    pub mode: GameMode,
+    pub scoring_type: ScoringType,
+    pub team_type: TeamType,
+    pub mods: GameMods,
     #[serde(rename = "beatmap")]
-    map: BeatmapCompact,
-    scores: Vec<MatchScore>,
+    pub map: BeatmapCompact,
+    pub scores: Vec<MatchScore>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -357,27 +292,144 @@ pub struct MatchListParams {
     sort: String,
 }
 
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct MatchScore {
-    user_id: u32,
-    #[serde(deserialize_with = "inflate_acc", serialize_with = "deflate_acc")]
-    accuracy: f32,
-    mods: GameMods,
-    score: u32,
-    max_combo: u32,
-    #[serde(deserialize_with = "to_bool")]
-    perfect: bool,
-    statistics: ScoreStatistics,
-    #[serde(rename = "match")]
-    match_meta: MatchScoreInfo,
+    pub accuracy: f32,
+    pub max_combo: u32,
+    pub mods: GameMods,
+    pub pass: bool,
+    pub perfect: bool,
+    pub score: u32,
+    pub slot: u8,
+    pub statistics: ScoreStatistics,
+    pub team: Team,
+    pub user_id: u32,
 }
 
-#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub struct MatchScoreInfo {
-    slot: u32,
-    team: Team,
+struct MatchScoreVisitor;
+
+impl<'de> Visitor<'de> for MatchScoreVisitor {
+    type Value = MatchScore;
+
+    fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "MatchScore struct")
+    }
+
+    fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
+        let mut user_id = None;
+        let mut accuracy = None;
+        let mut mods = None;
+        let mut score = None;
+        let mut max_combo = None;
+        let mut perfect = None;
+        let mut statistics = None;
+        let mut info = None;
+
+        while let Some(key) = map.next_key()? {
+            match key {
+                "accuracy" => {
+                    accuracy.replace(map.next_value::<f32>()? * 100.0);
+                }
+                "match" => {
+                    info.replace(map.next_value()?);
+                }
+                "max_combo" => {
+                    max_combo.replace(map.next_value()?);
+                }
+                "mods" => {
+                    mods.replace(map.next_value()?);
+                }
+                "perfect" => {
+                    perfect.replace(map.next_value::<Bool>()?.0);
+                }
+                "score" => {
+                    score.replace(map.next_value()?);
+                }
+                "statistics" => {
+                    statistics.replace(map.next_value()?);
+                }
+                "user_id" => {
+                    user_id.replace(map.next_value()?);
+                }
+                _ => {
+                    let _: IgnoredAny = map.next_value()?;
+                }
+            }
+        }
+
+        let accuracy = accuracy.ok_or_else(|| Error::missing_field("accuracy"))?;
+        let info: MatchScoreInfo = info.ok_or_else(|| Error::missing_field("match"))?;
+        let max_combo = max_combo.ok_or_else(|| Error::missing_field("max_combo"))?;
+        let mods = mods.ok_or_else(|| Error::missing_field("mods"))?;
+        let perfect = perfect.ok_or_else(|| Error::missing_field("perfect"))?;
+        let score = score.ok_or_else(|| Error::missing_field("score"))?;
+        let statistics = statistics.ok_or_else(|| Error::missing_field("statistics"))?;
+        let user_id = user_id.ok_or_else(|| Error::missing_field("user_id"))?;
+
+        Ok(MatchScore {
+            accuracy,
+            max_combo,
+            mods,
+            pass: info.pass,
+            perfect,
+            score,
+            slot: info.slot,
+            statistics,
+            team: info.team,
+            user_id,
+        })
+    }
+}
+
+impl<'de> Deserialize<'de> for MatchScore {
+    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        d.deserialize_struct(
+            "MatchScore",
+            &[
+                "accuracy",
+                "match",
+                "max_combo",
+                "mods",
+                "perfect",
+                "score",
+                "statistics",
+                "user_id",
+            ],
+            MatchScoreVisitor,
+        )
+    }
+}
+
+impl Serialize for MatchScore {
+    fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        let mut score = s.serialize_struct("MatchScore", 8)?;
+
+        score.serialize_field("accuracy", &(self.accuracy / 100.0))?;
+        score.serialize_field::<MatchScoreInfo>(
+            "match",
+            &MatchScoreInfo {
+                slot: self.slot,
+                team: self.team,
+                pass: self.pass,
+            },
+        )?;
+        score.serialize_field("max_combo", &self.max_combo)?;
+        score.serialize_field("mods", &self.mods)?;
+        score.serialize_field("perfect", &self.perfect)?;
+        score.serialize_field("score", &self.score)?;
+        score.serialize_field("statistics", &self.statistics)?;
+        score.serialize_field("user_id", &self.user_id)?;
+
+        score.end()
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct MatchScoreInfo {
+    pub slot: u8,
+    pub team: Team,
     #[serde(deserialize_with = "to_bool")]
-    pass: bool,
+    pub pass: bool,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -459,6 +511,7 @@ impl<T> MyVisitor<T> {
     }
 }
 
+// TODO: Test all values
 def_enum!(ScoringType {
     Score = 0 ("score"),
     Accuracy = 1 ("accuracy"),
@@ -479,10 +532,11 @@ def_enum!(TeamType {
     TagTeamVS = 3 ("tagteamvs"),
 });
 
+struct Bool(bool);
 struct BoolVisitor;
 
 impl<'de> Visitor<'de> for BoolVisitor {
-    type Value = bool;
+    type Value = Bool;
 
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         formatter.write_str(
@@ -492,45 +546,49 @@ impl<'de> Visitor<'de> for BoolVisitor {
 
     fn visit_u64<E: Error>(self, v: u64) -> Result<Self::Value, E> {
         match v {
-            0 => Ok(false),
-            1 => Ok(true),
+            0 => Ok(Bool(false)),
+            1 => Ok(Bool(true)),
             _ => Err(Error::invalid_value(Unexpected::Unsigned(v), &"0 or 1")),
         }
     }
 
     fn visit_str<E: Error>(self, v: &str) -> Result<Self::Value, E> {
         if let Ok(b) = v.parse() {
-            return Ok(b);
+            return Ok(Bool(b));
         }
 
-        v.parse()
+        v.parse::<u64>()
             .map(|n| match n {
                 0 => Ok(false),
                 1 => Ok(true),
-                _ => Err(Error::invalid_value(
-                    Unexpected::Unsigned(n as u64),
-                    &"0 or 1",
-                )),
+                _ => Err(Error::invalid_value(Unexpected::Unsigned(n), &"0 or 1")),
             })
             .map_err(|_| {
                 Error::invalid_value(Unexpected::Str(v), &r#""true", "false", "0", or "1""#)
             })?
+            .map(Bool)
     }
 
     fn visit_char<E: Error>(self, v: char) -> Result<Self::Value, E> {
         match v {
-            '0' => Ok(false),
-            '1' => Ok(true),
+            '0' => Ok(Bool(false)),
+            '1' => Ok(Bool(true)),
             _ => Err(Error::invalid_value(Unexpected::Char(v), &"'0' or '1'")),
         }
     }
 
     #[inline]
     fn visit_bool<E: Error>(self, v: bool) -> Result<Self::Value, E> {
-        Ok(v)
+        Ok(Bool(v))
     }
 }
 
 pub(crate) fn to_bool<'de, D: Deserializer<'de>>(d: D) -> Result<bool, D::Error> {
-    Ok(d.deserialize_any(BoolVisitor)?)
+    Ok(d.deserialize_any(BoolVisitor)?.0)
+}
+
+impl<'de> Deserialize<'de> for Bool {
+    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        d.deserialize_any(BoolVisitor)
+    }
 }

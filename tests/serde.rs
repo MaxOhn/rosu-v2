@@ -109,6 +109,21 @@ fn get_map() -> Beatmap {
     }
 }
 
+fn get_map_compact() -> BeatmapCompact {
+    BeatmapCompact {
+        checksum: Some("ABC123".to_owned()),
+        fail_times: None,
+        map_id: 123456,
+        mapset: Some(Mapset::Compact(get_mapset_compact())),
+        max_combo: Some(1000),
+        mode: GameMode::CTB,
+        seconds_total: 120,
+        stars: 5.5,
+        status: RankStatus::Loved,
+        version: "HIAAAA".to_owned(),
+    }
+}
+
 fn get_mapset_compact() -> BeatmapsetCompact {
     BeatmapsetCompact {
         artist: "artist".to_owned(),
@@ -130,6 +145,84 @@ fn get_mapset_compact() -> BeatmapsetCompact {
         title: "title".to_owned(),
         title_unicode: None,
         video: true,
+    }
+}
+
+fn get_match() -> OsuMatch {
+    OsuMatch {
+        current_game_id: None,
+        events: vec![
+            MatchEvent::Create {
+                event_id: 0,
+                timestamp: get_date(),
+                user_id: 0,
+            },
+            MatchEvent::Joined {
+                event_id: 1,
+                timestamp: get_date(),
+                user_id: 1,
+            },
+            MatchEvent::Left {
+                event_id: 2,
+                timestamp: get_date(),
+                user_id: 1,
+            },
+            MatchEvent::HostChanged {
+                event_id: 3,
+                timestamp: get_date(),
+                user_id: 0,
+            },
+            MatchEvent::Game {
+                event_id: 4,
+                timestamp: get_date(),
+                game: MatchGame {
+                    game_id: 0,
+                    start_time: get_date(),
+                    end_time: None,
+                    mode: GameMode::STD,
+                    scoring_type: ScoringType::Score,
+                    team_type: TeamType::HeadToHead,
+                    mods: GameMods::Hidden | GameMods::HardRock,
+                    map: get_map_compact(),
+                    scores: vec![get_match_score()],
+                },
+            },
+            MatchEvent::Disbanded {
+                event_id: 5,
+                timestamp: get_date(),
+            },
+        ],
+        first_event_id: 0,
+        info: MatchInfo {
+            end_time: None,
+            match_id: 0,
+            name: "A: B vs C".to_owned(),
+            start_time: get_date(),
+        },
+        latest_event_id: 1,
+        users: vec![get_user_compact()],
+    }
+}
+
+fn get_match_score() -> MatchScore {
+    MatchScore {
+        user_id: 123456,
+        accuracy: 99.5,
+        mods: GameMods::ScoreV2 | GameMods::Relax,
+        score: 12_345_678,
+        max_combo: 1000,
+        perfect: false,
+        statistics: ScoreStatistics {
+            count_geki: 0,
+            count_300: 1,
+            count_katu: 2,
+            count_100: 3,
+            count_50: 4,
+            count_miss: 5,
+        },
+        slot: 0,
+        team: Team::Red,
+        pass: true,
     }
 }
 
@@ -405,4 +498,9 @@ fn serde_score() {
 #[test]
 fn serde_user() {
     ser_de(get_user());
+}
+
+#[test]
+fn serde_match() {
+    ser_de(get_match());
 }

@@ -237,6 +237,7 @@ pub struct MatchGame {
     #[serde(rename = "id")]
     pub game_id: u64,
     pub start_time: DateTime<Utc>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub end_time: Option<DateTime<Utc>>,
     pub mode: GameMode,
     pub scoring_type: ScoringType,
@@ -268,6 +269,7 @@ impl Eq for MatchInfo {}
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct MatchList {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub(crate) cursor: Option<MatchListCursor>,
     pub matches: Vec<MatchInfo>,
     pub params: MatchListParams,
@@ -441,6 +443,7 @@ struct MatchScoreInfo {
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct OsuMatch {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub current_game_id: Option<()>,
     pub events: Vec<MatchEvent>,
     pub first_event_id: u64,

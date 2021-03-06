@@ -1,6 +1,6 @@
 use crate::{
     error::OsuError,
-    model::{GameMode, Rankings},
+    model::{GameMode, Rankings, RankingsCursor},
     request::{Pending, Query, Request},
     routing::Route,
     Osu, OsuResult,
@@ -18,7 +18,7 @@ pub struct GetRankings<'a> {
     country: Option<String>,
     variant: Option<&'static str>,
     spotlight: Option<u32>,
-    // TODO: Cursor
+    cursor: Option<RankingsCursor>,
 }
 
 impl<'a> GetRankings<'a> {
@@ -33,6 +33,7 @@ impl<'a> GetRankings<'a> {
             country: None,
             variant: None,
             spotlight: None,
+            cursor: None,
         }
     }
 
@@ -114,6 +115,13 @@ impl<'a> GetRankings<'a> {
         self
     }
 
+    #[inline]
+    pub fn cursor(mut self, cursor: RankingsCursor) -> Self {
+        self.cursor.replace(cursor);
+
+        self
+    }
+
     fn start(&mut self) -> OsuResult<()> {
         let ranking_type = self.ranking_type.ok_or(OsuError::MissingParameter {
             param: "ranking type",
@@ -135,6 +143,10 @@ impl<'a> GetRankings<'a> {
 
         if let Some(filter) = self.filter {
             query.push("filter", filter);
+        }
+
+        if let Some(cursor) = self.cursor {
+            query.push("cursor[page]", cursor.page.to_string());
         }
 
         let req = Request::from((

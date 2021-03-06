@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct News {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub(crate) cursor: Option<NewsCursor>,
     #[serde(rename = "news_posts")]
     pub posts: Vec<NewsPost>,
@@ -60,6 +61,7 @@ impl Eq for NewsPost {}
 
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct NewsSearch {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub(crate) cursor: Option<NewsCursor>,
     pub limit: u32,
 }

@@ -1,11 +1,12 @@
-use crate::model::{Beatmapset, UserStatistics};
+use super::{Beatmapset, UserStatistics};
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct Rankings {
-    pub(crate) cursor: RankingsCursor,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cursor: Option<RankingsCursor>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub mapsets: Option<Vec<Beatmapset>>,
     pub ranking: Vec<UserStatistics>,
@@ -14,9 +15,23 @@ pub struct Rankings {
     pub total: u32,
 }
 
+impl Rankings {
+    /// Checks whether the cursor field is `Some` which in turn
+    /// can be used to retrieve the next set of rankings.
+    ///
+    /// The next set can then be retrieved by providing this
+    /// [`RankingsCursor`](crate::model::RankingsCursor) to
+    /// [`GetRankings::cursor`](crate::request::GetRankings::cursor).
+    /// Be sure all other parameters stay the same.
+    #[inline]
+    pub fn has_more(&self) -> bool {
+        self.cursor.is_some()
+    }
+}
+
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub(crate) struct RankingsCursor {
-    page: u32,
+pub struct RankingsCursor {
+    pub page: u32,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]

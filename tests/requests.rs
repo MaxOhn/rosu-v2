@@ -71,10 +71,20 @@ fn osu() -> &'static Osu {
 async fn custom() {
     init().await;
 
-    let req_fut = osu().osu_match(de_vs_ca());
+    let req_fut = osu().osu_matches();
 
     match req_fut.await {
-        Ok(osu_match) => println!("{:#?}", osu_match),
+        Ok(osu_matches) => {
+            println!("First:\n{:#?}", osu_matches);
+
+            match osu_matches.get_next(osu()).await.unwrap() {
+                Ok(osu_matches) => println!("Second:\n{:#?}", osu_matches),
+                Err(why) => {
+                    unwind_error!(error, why, "Second: {}");
+                    panic!()
+                }
+            }
+        }
         Err(why) => {
             unwind_error!(error, why, "{}");
             panic!();
@@ -196,7 +206,20 @@ async fn osu_match() {
             );
         }
         Err(why) => {
-            unwind_error!(error, why, "Error while requesting kudosu: {}");
+            unwind_error!(error, why, "Error while requesting match: {}");
+            panic!()
+        }
+    }
+}
+
+#[tokio::test]
+async fn osu_matches() {
+    init().await;
+
+    match osu().osu_matches().await {
+        Ok(osu_matches) => println!("Received {} matches", osu_matches.matches.len()),
+        Err(why) => {
+            unwind_error!(error, why, "Error while requesting matches: {}");
             panic!()
         }
     }

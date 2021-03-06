@@ -112,6 +112,13 @@ impl Osu {
         GetMatch::new(self, match_id)
     }
 
+    /// Get a [`MatchList`](crate::model::OsuMatch) containing all
+    /// currently open multiplayer lobbies.
+    #[inline]
+    pub fn osu_matches(&self) -> GetMatches {
+        GetMatches::new(self)
+    }
+
     /// Get the current ranking for the specified type and mode.
     #[inline]
     pub fn rankings(&self, mode: GameMode) -> GetRankings {

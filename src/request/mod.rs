@@ -30,7 +30,7 @@ mod wiki;
 
 pub use beatmap::{GetBeatmap, GetBeatmapScores, GetBeatmapUserScore};
 pub use comments::GetComments;
-pub use matches::GetMatch;
+pub use matches::{GetMatch, GetMatches};
 pub use multiplayer::{GetScore, GetScores, GetUserHighScore};
 pub use news::GetNews;
 pub use ranking::{GetRankings, GetSpotlights};

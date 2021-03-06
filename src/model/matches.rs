@@ -1,4 +1,5 @@
 use super::{BeatmapCompact, GameMode, GameMods, ScoreStatistics, UserCompact};
+use crate::{Osu, OsuResult};
 
 use chrono::{DateTime, Utc};
 use serde::{
@@ -278,7 +279,12 @@ impl MatchList {
         self.cursor.is_some()
     }
 
-    // TODO: Use cursor
+    /// If `has_more()` is true, the API can provide the next set of matches and this method will request them.
+    /// Otherwise, this method returns `None`.
+    #[inline]
+    pub async fn get_next(&self, osu: &Osu) -> Option<OsuResult<MatchList>> {
+        Some(osu.osu_matches().cursor(self.cursor?).await)
+    }
 }
 
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -286,6 +292,7 @@ pub(crate) struct MatchListCursor {
     pub(crate) match_id: u32,
 }
 
+// TODO
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct MatchListParams {
     limit: u32,

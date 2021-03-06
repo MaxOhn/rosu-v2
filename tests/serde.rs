@@ -6,8 +6,11 @@ use serde::{de::DeserializeOwned, Serialize};
 use std::fmt::Debug;
 
 fn ser_de<T: DeserializeOwned + Serialize + PartialEq + Debug>(val: T) {
-    let serialized = serde_json::to_string(&val).expect("failed to serialize");
-    let deserialized: T = serde_json::from_str(&serialized).expect("failed to deserialize");
+    let serialized =
+        serde_json::to_string(&val).unwrap_or_else(|e| panic!("Failed to serialize: {}", e));
+
+    let deserialized: T = serde_json::from_str(&serialized)
+        .unwrap_or_else(|e| panic!("Failed to deserialize: {}", e));
 
     assert_eq!(val, deserialized);
 }

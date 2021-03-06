@@ -42,8 +42,8 @@ impl<'a> GetNews<'a> {
         let mut query = Query::new();
 
         if let Some(cursor) = self.cursor {
-            query.push("published_at", cursor.published_at.to_string());
-            query.push("id", cursor.id.to_string());
+            query.push("cursor[published_at]", cursor.published_at.to_string());
+            query.push("cursor[id]", cursor.id.to_string());
         }
 
         let req = Request::from((query, Route::GetNews { news: self.news }));

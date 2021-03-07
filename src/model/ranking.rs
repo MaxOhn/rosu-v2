@@ -1,4 +1,4 @@
-use super::{Beatmapset, UserStatistics};
+use super::{beatmap::Beatmapset, user::UserStatistics};
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -20,7 +20,7 @@ impl Rankings {
     /// can be used to retrieve the next set of rankings.
     ///
     /// The next set can then be retrieved by providing this
-    /// [`RankingsCursor`](crate::model::RankingsCursor) to
+    /// [`RankingsCursor`](crate::model::ranking::RankingsCursor) to
     /// [`GetRankings::cursor`](crate::request::GetRankings::cursor).
     /// Be sure all other parameters stay the same.
     #[inline]

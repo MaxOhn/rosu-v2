@@ -1,11 +1,11 @@
 use crate::{
-    model::{ForumPosts, ForumPostsCursor},
+    model::forum::{ForumPosts, ForumPostsCursor},
     request::{Pending, Query, Request},
     routing::Route,
     Osu, OsuResult,
 };
 
-/// Get a [`ForumPosts`](crate::model::ForumPosts) struct for a forum topic
+/// Get a [`ForumPosts`](crate::model::forum::ForumPosts) struct for a forum topic
 pub struct GetForumPosts<'a> {
     fut: Option<Pending<'a, ForumPosts>>,
     osu: &'a Osu,
@@ -42,7 +42,7 @@ impl<'a> GetForumPosts<'a> {
 
     /// Sort by ascending post ids. This is the default.
     #[inline]
-    pub fn sort_asc(mut self) -> Self {
+    pub fn sort_ascending(mut self) -> Self {
         self.sort.replace("id_asc");
 
         self
@@ -50,7 +50,7 @@ impl<'a> GetForumPosts<'a> {
 
     /// Sort by descending post ids
     #[inline]
-    pub fn sort_desc(mut self) -> Self {
+    pub fn sort_descending(mut self) -> Self {
         self.sort.replace("id_desc");
 
         self

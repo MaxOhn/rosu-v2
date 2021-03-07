@@ -1,10 +1,10 @@
-use super::{GameMode, Grade, Medal, RankStatus};
+use super::{beatmap::RankStatus, user::Medal, GameMode, Grade};
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct Event {
+pub struct RecentEvent {
     pub created_at: DateTime<Utc>,
     #[serde(rename = "id")]
     pub event_id: u32,

@@ -1,4 +1,4 @@
-use super::UserCompact;
+use super::user::UserCompact;
 use crate::{request::GetUser, Osu, OsuResult};
 
 use chrono::{DateTime, Utc};

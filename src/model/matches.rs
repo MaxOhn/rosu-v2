@@ -1,4 +1,6 @@
-use super::{BeatmapCompact, GameMode, GameMods, ScoreStatistics, UserCompact};
+use super::{
+    beatmap::BeatmapCompact, score::ScoreStatistics, user::UserCompact, GameMode, GameMods,
+};
 use crate::{Osu, OsuResult};
 
 use chrono::{DateTime, Utc};
@@ -297,8 +299,8 @@ pub(crate) struct MatchListCursor {
 // TODO
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct MatchListParams {
-    limit: u32,
-    sort: String,
+    pub limit: u32,
+    pub sort: String,
 }
 
 #[derive(Clone, Debug, PartialEq)]

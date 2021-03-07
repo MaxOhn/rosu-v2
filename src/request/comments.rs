@@ -1,5 +1,5 @@
 use crate::{
-    model::{CommentBundle, CommentBundleCursor, CommentSort},
+    model::comments::{CommentBundle, CommentBundleCursor, CommentSort},
     request::{Pending, Query, Request},
     routing::Route,
     Osu, OsuResult,

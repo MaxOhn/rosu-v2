@@ -1,11 +1,11 @@
 use crate::{
-    model::{MatchList, MatchListCursor, OsuMatch},
+    model::matches::{MatchList, MatchListCursor, OsuMatch},
     request::{Pending, Query, Request},
     routing::Route,
     Osu, OsuResult,
 };
 
-/// Get an [`OsuMatch`](crate::model::OsuMatch) by its id
+/// Get an [`OsuMatch`](crate::model::matches::OsuMatch) by its id
 pub struct GetMatch<'a> {
     fut: Option<Pending<'a, OsuMatch>>,
     osu: &'a Osu,
@@ -35,7 +35,7 @@ impl<'a> GetMatch<'a> {
 
 poll_req!(GetMatch<'_>, OsuMatch);
 
-/// Get a [`MatchList`](crate::model::MatchList) containing all
+/// Get a [`MatchList`](crate::model::matches::MatchList) containing all
 /// currently open multiplayer lobbies.
 pub struct GetMatches<'a> {
     fut: Option<Pending<'a, MatchList>>,

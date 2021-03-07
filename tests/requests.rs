@@ -174,7 +174,7 @@ async fn comments() {
 async fn forum_posts() {
     init().await;
 
-    match osu().forum_posts(1265690).sort_desc().limit(10).await {
+    match osu().forum_posts(1265690).sort_descending().limit(10).await {
         Ok(posts) => println!("Received {} posts", posts.posts.len(),),
         Err(why) => {
             unwind_error!(error, why, "Error while requesting forum posts: {}");

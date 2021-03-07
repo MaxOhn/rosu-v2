@@ -1,7 +1,7 @@
 extern crate rosu_v2;
 
 use chrono::{DateTime, TimeZone, Utc};
-use rosu_v2::model::*;
+use rosu_v2::prelude::*;
 use serde::{de::DeserializeOwned, Serialize};
 use std::fmt::Debug;
 

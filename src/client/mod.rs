@@ -36,19 +36,19 @@ impl Osu {
         OsuBuilder::default()
     }
 
-    /// Get a [`Beatmap`](crate::model::Beatmap).
+    /// Get a [`Beatmap`](crate::model::beatmap::Beatmap).
     #[inline]
     pub fn beatmap(&self) -> GetBeatmap {
         GetBeatmap::new(self)
     }
 
-    /// Get a [`BeatmapScores`](crate::model::BeatmapScores).
+    /// Get a [`BeatmapScores`](crate::model::score::BeatmapScores).
     #[inline]
     pub fn beatmap_scores(&self, map_id: u32) -> GetBeatmapScores {
         GetBeatmapScores::new(self, map_id)
     }
 
-    /// Get a [`BeatmapUserScore`](crate::model::BeatmapUserScore).
+    /// Get a [`BeatmapUserScore`](crate::model::score::BeatmapUserScore).
     #[inline]
     pub fn beatmap_user_score(
         &self,
@@ -58,25 +58,28 @@ impl Osu {
         GetBeatmapUserScore::new(self, map_id, user_id)
     }
 
-    /// Get a [`BeatmapsetEvents`](crate::model::BeatmapsetEvents) struct containing the most recent mapset events.
+    /// Get a [`BeatmapsetEvents`](crate::model::beatmap::BeatmapsetEvents)
+    /// struct containing the most recent mapset events.
     #[inline]
     pub fn beatmapset_events(&self) -> GetBeatmapsetEvents {
         GetBeatmapsetEvents::new(self)
     }
 
-    /// Get a list of comments and their replies up to two levels deep.
+    /// Get a list of comments and their replies up to two levels deep
+    /// in form of a [`CommentBundle`](crate::model::comments::CommentBundle) .
     #[inline]
     pub fn comments(&self) -> GetComments {
         GetComments::new(self)
     }
 
-    /// Get a [`ForumPosts`](crate::model::ForumPosts) struct for a forum topic
+    /// Get a [`ForumPosts`](crate::model::forum::ForumPosts) struct for a forum topic
     #[inline]
     pub fn forum_posts(&self, topic_id: u64) -> GetForumPosts {
         GetForumPosts::new(self, topic_id)
     }
 
-    /// Get the kudosu history of a user.
+    /// Get the kudosu history of a user in form of a vec of
+    /// [`KudosuHistory`](crate::model::kudosu::KudosuHistory).
     #[inline]
     pub fn kudosu(&self, user_id: impl Into<UserId>) -> GetUserKudosu {
         GetUserKudosu::new(self, user_id)
@@ -107,68 +110,71 @@ impl Osu {
         GetUserHighScore::new(self, room, playlist, user_id)
     }
 
-    /// Get [`News`](crate::model::News).
+    /// Get [`News`](crate::model::news::News).
     #[inline]
     pub fn news(&self) -> GetNews {
         GetNews::new(self)
     }
 
-    /// Get an [`OsuMatch`](crate::model::OsuMatch).
+    /// Get an [`OsuMatch`](crate::model::matches::OsuMatch).
     #[inline]
     pub fn osu_match(&self, match_id: u32) -> GetMatch {
         GetMatch::new(self, match_id)
     }
 
-    /// Get a [`MatchList`](crate::model::OsuMatch) containing all
+    /// Get a [`MatchList`](crate::model::matches::OsuMatch) containing all
     /// currently open multiplayer lobbies.
     #[inline]
     pub fn osu_matches(&self) -> GetMatches {
         GetMatches::new(self)
     }
 
-    /// Get the current ranking for the specified type and mode.
+    /// Get the current ranking for the specified type and mode
+    /// in form of a [`Rankings`](crate::model::ranking::Rankings) struct.
     #[inline]
     pub fn rankings(&self, mode: GameMode) -> GetRankings {
         GetRankings::new(self, mode)
     }
 
-    /// Get the recent activity of a user.
+    /// Get the recent activity of a user in form of a vec of
+    /// [`RecentEvent`](crate::model::recent_event::RecentEvent)s.
     #[inline]
     pub fn recent_events(&self, user_id: impl Into<UserId>) -> GetRecentEvents {
         GetRecentEvents::new(self, user_id)
     }
 
-    /// Get the list of spotlights.
+    /// Get the vec of [`Spotlight`](crate::model::ranking::Spotlight).
     #[inline]
     pub fn spotlights(&self) -> GetSpotlights {
         GetSpotlights::new(self)
     }
 
-    /// Get a [`User`](crate::model::User).
+    /// Get a [`User`](crate::model::user::User).
     #[inline]
     pub fn user(&self, user_id: impl Into<UserId>) -> GetUser {
         GetUser::new(self, user_id)
     }
 
-    /// Get the beatmapsets of a user.
+    /// Get a vec of [`Beatmapset`](crate::model::beatmap::Beatmapset)s a user made.
     #[inline]
     pub fn user_beatmapsets(&self, user_id: impl Into<UserId>) -> GetUserBeatmapsets {
         GetUserBeatmapsets::new(self, user_id)
     }
 
-    /// Get the beatmapsets of a user.
+    /// Get a vec of a user's [`MostPlayedMap`](crate::model::beatmap::MostPlayedMap)s.
     #[inline]
     pub fn user_most_played(&self, user_id: impl Into<UserId>) -> GetUserMostPlayed {
         GetUserMostPlayed::new(self, user_id)
     }
 
-    /// Get either top, global firsts, or recent scores of a user.
+    /// Get either top, global firsts, or recent scores of a user,
+    /// i.e. a vec of [`Score`](crate::model::score::Score).
     #[inline]
     pub fn user_scores(&self, user_id: impl Into<UserId>) -> GetUserScores {
         GetUserScores::new(self, user_id)
     }
 
-    /// Get a vec of [`UserCompact`](crate::model::UserCompact).
+    /// Get a vec of [`UserCompact`](crate::model::user::UserCompact).
     #[deprecated = "The API currently doesn't allow this endpoint for public use"]
     #[inline]
     pub fn users<I: Into<UserId>>(&self, user_ids: impl Iterator<Item = I>) -> GetUsers {
@@ -177,7 +183,7 @@ impl Osu {
         GetUsers::new(self, user_ids)
     }
 
-    /// Get a wiki article or image data.
+    /// Get a [`WikiPage`](crate::model::wiki::WikiPage) or image data.
     ///
     /// `locale` adjusts the language, e.g. `en` for english, `de` for german, ...
     #[inline]

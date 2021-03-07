@@ -1,4 +1,4 @@
-use super::{GameMode, UserCompact};
+use super::{user::UserCompact, GameMode};
 use crate::{request::GetUser, Osu};
 
 use chrono::{DateTime, Utc};

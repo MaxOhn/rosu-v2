@@ -154,53 +154,25 @@ macro_rules! def_enum {
     }
 }
 
-mod beatmap;
-mod comments;
-mod event;
-mod forum;
+pub mod beatmap;
+pub mod comments;
+pub mod forum;
 mod grade;
-mod kudosu;
-mod matches;
+pub mod kudosu;
+pub mod matches;
 mod mode;
 mod mods;
-mod multiplayer;
-mod news;
-mod ranking;
-mod score;
-mod user;
-mod wiki;
+pub mod multiplayer;
+pub mod news;
+pub mod ranking;
+pub mod recent_event;
+pub mod score;
+pub mod user;
+pub mod wiki;
 
-pub use beatmap::{
-    Beatmap, BeatmapCompact, Beatmapset, BeatmapsetAvailability, BeatmapsetCommentEdit,
-    BeatmapsetCommentId, BeatmapsetCommentKudosuGain, BeatmapsetCommentNominate, BeatmapsetCompact,
-    BeatmapsetCovers, BeatmapsetDiscussion, BeatmapsetEvent, BeatmapsetEvents, BeatmapsetHype,
-    BeatmapsetNominations, BeatmapsetPost, BeatmapsetReviewsConfig, BeatmapsetVote, FailTimes,
-    Genre, Language, Mapset, MostPlayedMap, RankStatus,
-};
-pub use comments::{Comment, CommentBundle, CommentSort, CommentableMeta};
-pub use event::{Event, EventBeatmap, EventBeatmapset, EventType, EventUser};
-pub use forum::{ForumPost, ForumPosts, ForumPostsCursor, ForumPostsSearch, ForumTopic};
 pub use grade::Grade;
-pub use kudosu::{KudosuAction, KudosuGiver, KudosuHistory, KudosuPost};
-pub use matches::{
-    MatchEvent, MatchGame, MatchInfo, MatchList, MatchScore, OsuMatch, ScoringType, Team, TeamType,
-};
 pub use mode::GameMode;
-pub use mods::{GameMods, GameModsIter};
-pub use multiplayer::{MultiplayerScore, MultiplayerScores, ScoresAround};
-pub use news::{News, NewsPost, NewsSearch, NewsSidebar};
-pub use ranking::{Rankings, RankingsCursor, Spotlight};
-pub use score::{BeatmapScores, BeatmapUserScore, Score, ScoreStatistics, ScoreWeight};
-pub use user::{
-    AccountHistory, Badge, Country, GradeCounts, Group, HistoryType, Medal, MedalCompact,
-    MonthlyCount, Playstyle, ProfileBanner, ProfilePage, User, UserCompact, UserCover, UserKudosu,
-    UserLevel, UserPage, UserStatistics,
-};
-pub use wiki::WikiPage;
-
-pub(crate) use comments::CommentBundleCursor;
-pub(crate) use matches::MatchListCursor;
-pub(crate) use news::NewsCursor;
+pub use mods::GameMods;
 
 use serde::{Deserialize, Deserializer, Serializer};
 use std::marker::PhantomData;

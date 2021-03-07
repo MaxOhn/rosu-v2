@@ -1,5 +1,8 @@
 use super::{
-    deflate_acc, inflate_acc, Beatmap, BeatmapsetCompact, GameMode, GameMods, Grade, UserCompact,
+    beatmap::{Beatmap, BeatmapsetCompact},
+    deflate_acc, inflate_acc,
+    user::UserCompact,
+    GameMode, GameMods, Grade,
 };
 use crate::{request::GetUser, Osu};
 

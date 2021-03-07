@@ -129,7 +129,7 @@ impl GameMods {
     }
 
     /// Calculate the multiplier of the mods which will
-    /// influence a [`Score`](crate::model::Score)'s playscore
+    /// influence a [`Score`](crate::model::score::Score)'s playscore
     ///
     /// # Example
     /// ```rust
@@ -172,7 +172,7 @@ impl GameMods {
             .product()
     }
 
-    /// Check if a [`Score`](crate::model::Score)'s playscore will be increased
+    /// Check if a [`Score`](crate::model::score::Score)'s playscore will be increased
     ///
     /// # Example
     /// ```rust
@@ -187,7 +187,7 @@ impl GameMods {
         self.score_multiplier(mode) > 1.0
     }
 
-    /// Check if a [`Score`](crate::model::Score)'s playscore will be decreased
+    /// Check if a [`Score`](crate::model::score::Score)'s playscore will be decreased
     ///
     /// # Example
     /// ```rust
@@ -202,7 +202,7 @@ impl GameMods {
         self.score_multiplier(mode) < 1.0
     }
 
-    /// Check if a [`Beatmap`](crate::model::Beatmap)'s star rating for the given [`GameMode`](crate::model::GameMode) will be influenced.
+    /// Check if a [`Beatmap`](crate::model::beatmap::Beatmap)'s star rating for the given [`GameMode`](crate::model::GameMode) will be influenced.
     ///
     /// # Example
     /// ```rust

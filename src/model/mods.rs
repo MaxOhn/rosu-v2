@@ -1,6 +1,9 @@
 #![allow(non_upper_case_globals)]
 
-use crate::{model::GameMode, OsuError};
+use crate::{
+    error::{OsuError, ParsingError},
+    model::GameMode,
+};
 
 use bitflags::bitflags;
 use serde::{
@@ -318,7 +321,7 @@ impl TryFrom<u32> for GameMods {
 
     #[inline]
     fn try_from(m: u32) -> Result<Self, Self::Error> {
-        GameMods::from_bits(m).ok_or(OsuError::ModParsingU32(m))
+        GameMods::from_bits(m).ok_or_else(|| ParsingError::ModsU32(m).into())
     }
 }
 
@@ -361,7 +364,7 @@ impl FromStr for GameMods {
                 "8K" | "K8" => GameMods::Key8,
                 "9K" | "K9" => GameMods::Key9,
                 "NO" if upper == "NOMOD" => break,
-                _ => return Err(OsuError::ModParsingString),
+                _ => return Err(ParsingError::ModsStr(s.to_owned()).into()),
             };
 
             res.insert(m);
@@ -520,7 +523,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_mods_try_from_str() {
+    fn mods_try_from_str() {
         assert_eq!(GameMods::from_str("NM").unwrap(), GameMods::NoMod);
         assert_eq!(GameMods::from_str("HD").unwrap(), GameMods::Hidden);
         let mods = GameMods::from_bits(24).unwrap();
@@ -529,7 +532,7 @@ mod tests {
     }
 
     #[test]
-    fn test_mods_iter() {
+    fn mods_iter() {
         let mut iter = GameMods::default().iter();
         assert_eq!(iter.next().unwrap(), GameMods::NoMod);
         assert_eq!(iter.next(), None);

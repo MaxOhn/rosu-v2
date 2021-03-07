@@ -15,6 +15,7 @@ pub(crate) enum Route {
         map_id: u32,
         user_id: UserId,
     },
+    GetBeatmapsetEvents,
     GetComments,
     GetMatch {
         match_id: Option<u32>,
@@ -79,6 +80,7 @@ impl Route {
                 Method::GET,
                 format!("beatmaps/{}/scores/users/{}", map_id, user_id).into(),
             ),
+            Self::GetBeatmapsetEvents => (Method::GET, "beatmapsets/events".into()),
             Self::GetComments => (Method::GET, "comments".into()),
             Self::GetMatch { match_id } => {
                 let path = match match_id {

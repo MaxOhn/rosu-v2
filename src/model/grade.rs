@@ -1,4 +1,4 @@
-use crate::OsuError;
+use crate::error::{OsuError, ParsingError};
 
 use serde::{
     de::{Error, Unexpected, Visitor},
@@ -54,7 +54,7 @@ impl FromStr for Grade {
             "C" => Self::C,
             "D" => Self::D,
             "F" => Self::F,
-            _ => return Err(OsuError::ParsingValue { value: "Grade" }),
+            _ => return Err(ParsingError::Grade(grade.to_owned()).into()),
         };
 
         Ok(grade)

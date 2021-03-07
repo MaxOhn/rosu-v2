@@ -71,20 +71,10 @@ fn osu() -> &'static Osu {
 async fn custom() {
     init().await;
 
-    let req_fut = osu().osu_matches();
+    let req_fut = osu().beatmapset_events();
 
     match req_fut.await {
-        Ok(osu_matches) => {
-            println!("First:\n{:#?}", osu_matches);
-
-            match osu_matches.get_next(osu()).await.unwrap() {
-                Ok(osu_matches) => println!("Second:\n{:#?}", osu_matches),
-                Err(why) => {
-                    unwind_error!(error, why, "Second: {}");
-                    panic!()
-                }
-            }
-        }
+        Ok(_events) => {}
         Err(why) => {
             unwind_error!(error, why, "{}");
             panic!();
@@ -141,6 +131,23 @@ async fn beatmap_user_score() {
                 why,
                 "Error while requesting beatmap user scores: {}"
             );
+            panic!()
+        }
+    }
+}
+
+#[tokio::test]
+async fn beatmapset_events() {
+    init().await;
+
+    match osu().beatmapset_events().await {
+        Ok(events) => println!(
+            "Received {} events, {} users",
+            events.events.len(),
+            events.users.len(),
+        ),
+        Err(why) => {
+            unwind_error!(println, why, "Error while requesting beatmapset events: {}");
             panic!()
         }
     }

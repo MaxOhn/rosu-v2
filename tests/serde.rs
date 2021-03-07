@@ -48,11 +48,13 @@ fn get_mapset() -> Beatmapset {
         discussion_enabled: true,
         discussion_locked: false,
         favourite_count: 1_111_111,
+        genre: Some(Genre::Electronic),
         hype: Some(BeatmapsetHype {
             current: 1,
             required: 2,
         }),
         is_scoreable: true,
+        language: Some(Language::Spanish),
         last_updated: get_date(),
         legacy_thread_url: None,
         maps: Some(vec![]),
@@ -135,10 +137,12 @@ fn get_mapset_compact() -> BeatmapsetCompact {
         creator: "god".to_owned(),
         creator_id: 2,
         favourite_count: 1_234_567,
+        genre: Some(Genre::Rock),
         hype: Some(BeatmapsetHype {
             current: 1,
             required: 2,
         }),
+        language: Some(Language::German),
         mapset_id: 12345,
         nsfw: false,
         playcount: 56_789,
@@ -148,6 +152,149 @@ fn get_mapset_compact() -> BeatmapsetCompact {
         title: "title".to_owned(),
         title_unicode: None,
         video: true,
+    }
+}
+
+fn get_mapset_discussion() -> BeatmapsetDiscussion {
+    BeatmapsetDiscussion {
+        discussion_id: 0,
+        mapset_id: 1,
+        map_id: Some(2),
+        user_id: 3,
+        deleted_by_id: Some(4),
+        message_type: "suggestion".to_owned(),
+        parent_id: Some(5),
+        timestamp: Some(6),
+        resolved: false,
+        can_be_resolved: true,
+        can_grant_kudosu: false,
+        created_at: get_date(),
+        updated_at: Some(get_date()),
+        deleted_at: Some(get_date()),
+        last_post_at: get_date(),
+        kudosu_denied: true,
+        starting_post: BeatmapsetPost {
+            post_id: 7,
+            discussion_id: 0,
+            user_id: 8,
+            last_editor_id: Some(9),
+            deleted_by_id: Some(10),
+            system: false,
+            message: "cool story bro".to_owned(),
+            created_at: get_date(),
+            updated_at: Some(get_date()),
+            deleted_at: Some(get_date()),
+        },
+    }
+}
+
+fn get_mapset_events() -> BeatmapsetEvents {
+    BeatmapsetEvents {
+        events: vec![
+            BeatmapsetEvent::GenreEdit {
+                event_id: 0,
+                comment: BeatmapsetCommentEdit {
+                    comment_id: BeatmapsetCommentId {
+                        discussion_id: Some(0),
+                        discussion_post_id: Some(1),
+                    },
+                    old: Genre::HipHop,
+                    new: Genre::Unspecified,
+                },
+                created_at: get_date(),
+                user_id: 123456,
+                mapset: get_mapset_compact(),
+            },
+            BeatmapsetEvent::IssueReopen {
+                event_id: 1,
+                comment: BeatmapsetCommentId {
+                    discussion_id: Some(2),
+                    discussion_post_id: None,
+                },
+                created_at: get_date(),
+                user_id: 123456,
+                mapset: get_mapset_compact(),
+                discussion: get_mapset_discussion(),
+            },
+            BeatmapsetEvent::IssueResolve {
+                event_id: 2,
+                comment: BeatmapsetCommentId {
+                    discussion_id: None,
+                    discussion_post_id: Some(3),
+                },
+                created_at: get_date(),
+                user_id: 123456,
+                mapset: get_mapset_compact(),
+                discussion: get_mapset_discussion(),
+            },
+            BeatmapsetEvent::KudosuGain {
+                event_id: 3,
+                comment: BeatmapsetCommentKudosuGain {
+                    comment_id: BeatmapsetCommentId {
+                        discussion_id: None,
+                        discussion_post_id: None,
+                    },
+                    new_vote: BeatmapsetVote {
+                        user_id: 111_111,
+                        score: 42,
+                    },
+                    votes: vec![BeatmapsetVote {
+                        user_id: 222_222,
+                        score: 420,
+                    }],
+                },
+                created_at: get_date(),
+                user_id: 123456,
+                mapset: get_mapset_compact(),
+                discussion: get_mapset_discussion(),
+            },
+            BeatmapsetEvent::LanguageEdit {
+                event_id: 4,
+                comment: BeatmapsetCommentEdit {
+                    comment_id: BeatmapsetCommentId {
+                        discussion_id: None,
+                        discussion_post_id: None,
+                    },
+                    old: Language::Any,
+                    new: Language::Polish,
+                },
+                created_at: get_date(),
+                user_id: 123456,
+                mapset: get_mapset_compact(),
+            },
+            BeatmapsetEvent::Nominate {
+                event_id: 5,
+                comment: BeatmapsetCommentNominate {
+                    modes: vec![GameMode::STD, GameMode::TKO, GameMode::CTB, GameMode::MNA],
+                },
+                created_at: get_date(),
+                user_id: 123456,
+                mapset: get_mapset_compact(),
+            },
+            BeatmapsetEvent::NsfwToggle {
+                event_id: 6,
+                comment: BeatmapsetCommentEdit {
+                    comment_id: BeatmapsetCommentId {
+                        discussion_id: None,
+                        discussion_post_id: None,
+                    },
+                    old: true,
+                    new: false,
+                },
+                created_at: get_date(),
+                user_id: 123456,
+                mapset: get_mapset_compact(),
+            },
+            BeatmapsetEvent::Qualify {
+                event_id: 7,
+                comment: None,
+                created_at: get_date(),
+                mapset: get_mapset_compact(),
+                user_id: None,
+            },
+        ],
+        reviews_config: BeatmapsetReviewsConfig { max_blocks: 100 },
+        users: vec![get_user_compact()],
     }
 }
 
@@ -491,6 +638,11 @@ fn get_user_stats() -> UserStatistics {
 #[test]
 fn serde_beatmap() {
     ser_de(get_map());
+}
+
+#[test]
+fn serde_beatmapset_events() {
+    ser_de(get_mapset_events());
 }
 
 #[test]

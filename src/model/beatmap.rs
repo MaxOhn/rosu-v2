@@ -1,12 +1,12 @@
-use super::GameMode;
-use crate::{request::GetUser, Osu, OsuError};
+use super::{GameMode, UserCompact};
+use crate::{request::GetUser, Osu};
 
 use chrono::{DateTime, Utc};
 use serde::{
     de::{Error, Unexpected, Visitor},
     Deserialize, Deserializer, Serialize, Serializer,
 };
-use std::{convert::TryFrom, fmt};
+use std::fmt;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Beatmap {
@@ -106,8 +106,12 @@ pub struct Beatmapset {
     pub discussion_locked: bool,
     pub favourite_count: u32,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub genre: Option<Genre>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub hype: Option<BeatmapsetHype>,
     pub is_scoreable: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub language: Option<Language>,
     pub last_updated: DateTime<Utc>,
     /// Full URL, i.e. `https://osu.ppy.sh/community/forums/topics/{thread_id}`
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -162,6 +166,46 @@ pub struct BeatmapsetAvailability {
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+pub struct BeatmapsetCommentEdit<T>
+where
+    T: Clone + fmt::Debug + Eq + PartialEq + Serialize,
+{
+    #[serde(flatten)]
+    pub comment_id: BeatmapsetCommentId,
+    pub old: T,
+    pub new: T,
+}
+
+#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+pub struct BeatmapsetCommentId {
+    #[serde(
+        default,
+        rename = "beatmap_discussion_id",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub discussion_id: Option<u64>,
+    #[serde(
+        default,
+        rename = "beatmap_discussion_post_id",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub discussion_post_id: Option<u64>,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+pub struct BeatmapsetCommentKudosuGain {
+    #[serde(flatten)]
+    pub comment_id: BeatmapsetCommentId,
+    pub new_vote: BeatmapsetVote,
+    pub votes: Vec<BeatmapsetVote>,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+pub struct BeatmapsetCommentNominate {
+    pub modes: Vec<GameMode>,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct BeatmapsetCompact {
     pub artist: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -172,7 +216,11 @@ pub struct BeatmapsetCompact {
     pub creator_id: u32,
     pub favourite_count: u32,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub genre: Option<Genre>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub hype: Option<BeatmapsetHype>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub language: Option<Language>,
     #[serde(rename = "id")]
     pub mapset_id: u32,
     pub nsfw: bool,
@@ -212,6 +260,136 @@ pub struct BeatmapsetCovers {
     pub slim_cover_2x: String,
 }
 
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct BeatmapsetDiscussion {
+    #[serde(rename = "id")]
+    pub discussion_id: u64,
+    #[serde(rename = "beatmapset_id")]
+    pub mapset_id: u32,
+    #[serde(
+        default,
+        rename = "beatmap_id",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub map_id: Option<u32>,
+    pub user_id: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub deleted_by_id: Option<u32>,
+    pub message_type: String, // TODO
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub parent_id: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub timestamp: Option<u64>,
+    pub resolved: bool,
+    pub can_be_resolved: bool,
+    pub can_grant_kudosu: bool,
+    pub created_at: DateTime<Utc>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub updated_at: Option<DateTime<Utc>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub deleted_at: Option<DateTime<Utc>>,
+    pub last_post_at: DateTime<Utc>,
+    pub kudosu_denied: bool,
+    pub starting_post: BeatmapsetPost,
+}
+
+impl PartialEq for BeatmapsetDiscussion {
+    #[inline]
+    fn eq(&self, other: &Self) -> bool {
+        self.discussion_id == other.discussion_id && self.updated_at == other.updated_at
+    }
+}
+
+impl Eq for BeatmapsetDiscussion {}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case", tag = "type")]
+pub enum BeatmapsetEvent {
+    GenreEdit {
+        #[serde(rename = "id")]
+        event_id: u64,
+        comment: BeatmapsetCommentEdit<Genre>,
+        created_at: DateTime<Utc>,
+        user_id: u32,
+        #[serde(rename = "beatmapset")]
+        mapset: BeatmapsetCompact,
+    },
+    IssueReopen {
+        #[serde(rename = "id")]
+        event_id: u64,
+        comment: BeatmapsetCommentId,
+        created_at: DateTime<Utc>,
+        user_id: u32,
+        #[serde(rename = "beatmapset")]
+        mapset: BeatmapsetCompact,
+        discussion: BeatmapsetDiscussion,
+    },
+    IssueResolve {
+        #[serde(rename = "id")]
+        event_id: u64,
+        comment: BeatmapsetCommentId,
+        created_at: DateTime<Utc>,
+        user_id: u32,
+        #[serde(rename = "beatmapset")]
+        mapset: BeatmapsetCompact,
+        discussion: BeatmapsetDiscussion,
+    },
+    KudosuGain {
+        #[serde(rename = "id")]
+        event_id: u64,
+        comment: BeatmapsetCommentKudosuGain,
+        created_at: DateTime<Utc>,
+        user_id: u32,
+        #[serde(rename = "beatmapset")]
+        mapset: BeatmapsetCompact,
+        discussion: BeatmapsetDiscussion,
+    },
+    LanguageEdit {
+        #[serde(rename = "id")]
+        event_id: u64,
+        comment: BeatmapsetCommentEdit<Language>,
+        created_at: DateTime<Utc>,
+        user_id: u32,
+        #[serde(rename = "beatmapset")]
+        mapset: BeatmapsetCompact,
+    },
+    Nominate {
+        #[serde(rename = "id")]
+        event_id: u64,
+        comment: BeatmapsetCommentNominate,
+        created_at: DateTime<Utc>,
+        user_id: u32,
+        #[serde(rename = "beatmapset")]
+        mapset: BeatmapsetCompact,
+    },
+    NsfwToggle {
+        #[serde(rename = "id")]
+        event_id: u64,
+        comment: BeatmapsetCommentEdit<bool>,
+        created_at: DateTime<Utc>,
+        user_id: u32,
+        #[serde(rename = "beatmapset")]
+        mapset: BeatmapsetCompact,
+    },
+    Qualify {
+        #[serde(rename = "id")]
+        event_id: u64,
+        comment: Option<()>, // TODO
+        created_at: DateTime<Utc>,
+        #[serde(rename = "beatmapset")]
+        mapset: BeatmapsetCompact,
+        user_id: Option<u32>,
+    },
+}
+
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+pub struct BeatmapsetEvents {
+    pub events: Vec<BeatmapsetEvent>,
+    #[serde(rename = "reviewsConfig")]
+    pub reviews_config: BeatmapsetReviewsConfig,
+    pub users: Vec<UserCompact>,
+}
+
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct BeatmapsetHype {
     pub current: u32,
@@ -222,6 +400,37 @@ pub struct BeatmapsetHype {
 pub struct BeatmapsetNominations {
     pub current: u32,
     pub required: u32,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+pub struct BeatmapsetPost {
+    #[serde(rename = "id")]
+    pub post_id: u64,
+    #[serde(rename = "beatmap_discussion_id")]
+    pub discussion_id: u64,
+    pub user_id: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub last_editor_id: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub deleted_by_id: Option<u32>,
+    pub system: bool,
+    pub message: String,
+    pub created_at: DateTime<Utc>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub updated_at: Option<DateTime<Utc>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub deleted_at: Option<DateTime<Utc>>,
+}
+
+#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+pub struct BeatmapsetReviewsConfig {
+    pub max_blocks: u32,
+}
+
+#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+pub struct BeatmapsetVote {
+    pub user_id: u32,
+    pub score: u32,
 }
 
 // TODO: Make these [u32; 100], serde currently only goes up to 32
@@ -318,96 +527,47 @@ impl Mapset {
     impl_get!(video -> bool);
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
-pub enum RankStatus {
-    Graveyard = -2,
-    WIP = -1,
-    Pending = 0,
-    Ranked = 1,
-    Approved = 2,
-    Qualified = 3,
-    Loved = 4,
-}
+def_enum!(i8 RankStatus {
+    Graveyard = -2 ("graveyard"),
+    WIP = -1 ("wip"),
+    Pending = 0 ("pending"),
+    Ranked = 1 ("ranked"),
+    Approved = 2 ("approved"),
+    Qualified = 3 ("qualified"),
+    Loved = 4 ("loved"),
+});
 
-impl TryFrom<i8> for RankStatus {
-    type Error = OsuError;
+def_enum!(u8 Genre {
+    Any = 0 ("Any"),
+    Unspecified = 1 ("Unspecified"),
+    VideoGame = 2 ("Video Game"),
+    Anime = 3 ("Anime"),
+    Rock = 4 ("Rock"),
+    Pop = 5 ("Pop"),
+    Other = 6 ("Other"),
+    Novelty = 7 ("Novelty"),
+    HipHop = 9 ("Hip Hop"),
+    Electronic = 10 ("Electronic"),
+    Metal = 11 ("Metal"),
+    Classical = 12 ("Classical"),
+    Folk = 13 ("Folk"),
+    Jazz = 14 ("Jazz"),
+});
 
-    fn try_from(value: i8) -> Result<Self, Self::Error> {
-        let status = match value {
-            -2 => Self::Graveyard,
-            -1 => Self::WIP,
-            0 => Self::Pending,
-            1 => Self::Ranked,
-            2 => Self::Approved,
-            3 => Self::Qualified,
-            4 => Self::Loved,
-            _ => {
-                return Err(OsuError::ParsingValue {
-                    value: "RankStatus",
-                })
-            }
-        };
-
-        Ok(status)
-    }
-}
-
-struct RankStatusVisitor;
-
-impl<'de> Visitor<'de> for RankStatusVisitor {
-    type Value = RankStatus;
-
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str("an i8 or a string")
-    }
-
-    fn visit_str<E: Error>(self, v: &str) -> Result<Self::Value, E> {
-        let status = match v {
-            "4" | "loved" => RankStatus::Loved,
-            "3" | "qualified" => RankStatus::Qualified,
-            "2" | "approved" => RankStatus::Approved,
-            "1" | "ranked" => RankStatus::Ranked,
-            "0" | "pending" => RankStatus::Pending,
-            "-1" | "wip" => RankStatus::WIP,
-            "-2" | "graveyard" => RankStatus::Graveyard,
-            _ => {
-                return Err(Error::invalid_value(
-                    Unexpected::Str(v),
-                    &r#"
-            "4", "loved",
-            "3", qualified",
-            "2", "approved",
-            "1", "ranked",
-            "0", "pending",
-            "-1", "wip",
-            "-2", or "graveyard"
-            "#,
-                ))
-            }
-        };
-
-        Ok(status)
-    }
-
-    fn visit_i64<E: Error>(self, v: i64) -> Result<Self::Value, E> {
-        RankStatus::try_from(v as i8)
-            .map_err(|_| Error::invalid_value(Unexpected::Signed(v), &"value between -2 and 4"))
-    }
-
-    fn visit_u64<E: Error>(self, v: u64) -> Result<Self::Value, E> {
-        RankStatus::try_from(v as i8)
-            .map_err(|_| Error::invalid_value(Unexpected::Unsigned(v), &"value between -2 and 4"))
-    }
-}
-
-impl<'de> Deserialize<'de> for RankStatus {
-    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
-        d.deserialize_any(RankStatusVisitor)
-    }
-}
-
-impl Serialize for RankStatus {
-    fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
-        s.serialize_i8(*self as i8)
-    }
-}
+def_enum!(u8 Language {
+    Any = 0,
+    Other = 1,
+    English = 2,
+    Japanese = 3,
+    Chinese = 4,
+    Instrumental = 5,
+    Korean = 6,
+    French = 7,
+    German = 8,
+    Swedish = 9,
+    Spanish = 10,
+    Italian = 11,
+    Russian = 12,
+    Polish = 13,
+    Unspecified = 14,
+});

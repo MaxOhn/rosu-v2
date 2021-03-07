@@ -7,7 +7,7 @@ use serde::{
     ser::{SerializeStruct, Serializer},
     Deserialize, Serialize,
 };
-use std::{fmt, marker::PhantomData};
+use std::fmt;
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
@@ -462,80 +462,21 @@ impl PartialEq for OsuMatch {
 
 impl Eq for OsuMatch {}
 
-macro_rules! def_enum {
-    ($type:tt { $($variant:ident = $n:literal ($alt:literal),)* }) => {
-        #[derive(Copy, Clone, Debug, Eq, PartialEq)]
-        pub enum $type {
-            $($variant = $n,)*
-        }
-
-        impl<'de> Visitor<'de> for MyVisitor<$type> {
-            type Value = $type;
-
-            fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
-                write!(f, "{}", concat!($(stringify!($n), ",\"", $alt, "\""),*))
-            }
-
-            fn visit_u64<E: Error>(self, v: u64) -> Result<Self::Value, E> {
-                match v {
-                    $($n => Ok(<$type>::$variant),)*
-                    _ => {
-                        Err(Error::invalid_value(Unexpected::Unsigned(v), &stringify!($($n),*)))
-                    },
-                }
-            }
-
-            fn visit_str<E: Error>(self, s: &str) -> Result<Self::Value, E> {
-                match s {
-                    $($alt => Ok(<$type>::$variant),)*
-                    _ => {
-                        Err(Error::invalid_value(Unexpected::Str(s), &stringify!($($alt),*)))
-                    },
-                }
-            }
-        }
-
-        impl<'de> Deserialize<'de> for $type {
-            fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
-                d.deserialize_any(MyVisitor::<$type>::new())
-            }
-        }
-
-        impl Serialize for $type {
-            fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
-                s.serialize_u8(*self as u8)
-            }
-        }
-    }
-}
-
-struct MyVisitor<T> {
-    phantom: PhantomData<T>,
-}
-
-impl<T> MyVisitor<T> {
-    fn new() -> Self {
-        Self {
-            phantom: PhantomData,
-        }
-    }
-}
-
 // TODO: Test all values
-def_enum!(ScoringType {
+def_enum!(u8 ScoringType {
     Score = 0 ("score"),
     Accuracy = 1 ("accuracy"),
     Combo = 2 ("combo"),
     ScoreV2 = 3 ("scorev2"),
 });
 
-def_enum!(Team {
+def_enum!(u8 Team {
     None = 0 ("none"),
     Blue = 1 ("blue"),
     Red = 2 ("red"),
 });
 
-def_enum!(TeamType {
+def_enum!(u8 TeamType {
     HeadToHead = 0 ("head-to-head"),
     TagCoop = 1 ("tagcoop"),
     TeamVS = 2 ("team-vs"),

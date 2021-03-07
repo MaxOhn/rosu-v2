@@ -3,7 +3,7 @@ mod builder;
 pub use builder::OsuBuilder;
 
 use crate::{
-    error::{APIError, OsuError, OsuResult},
+    error::{OsuError, OsuResult},
     model::GameMode,
     ratelimiter::Ratelimiter,
     request::*,
@@ -61,6 +61,12 @@ impl Osu {
         user_id: impl Into<UserId>,
     ) -> GetBeatmapUserScore {
         GetBeatmapUserScore::new(self, map_id, user_id)
+    }
+
+    /// Get a [`BeatmapsetEvents`] struct containing the most recent mapset events.
+    #[inline]
+    pub fn beatmapset_events(&self) -> GetBeatmapsetEvents {
+        GetBeatmapsetEvents::new(self)
     }
 
     /// Get a list of comments and their replies up to two levels deep.
@@ -249,7 +255,7 @@ impl OsuRef {
         let body = String::from_utf8_lossy(bytes.as_ref()).into_owned();
 
         let source = match serde_json::from_slice(&bytes) {
-            Ok(APIError { error }) => error.filter(|e| !e.is_empty()),
+            Ok(source) => source,
             Err(source) => return Err(OsuError::Parsing { body, source }),
         };
 
@@ -303,7 +309,7 @@ impl OsuRef {
         let body = String::from_utf8_lossy(bytes.as_ref()).into_owned();
 
         let source = match serde_json::from_slice(&bytes) {
-            Ok(APIError { error }) => error.filter(|e| !e.is_empty()),
+            Ok(source) => source,
             Err(source) => return Err(OsuError::Parsing { body, source }),
         };
 

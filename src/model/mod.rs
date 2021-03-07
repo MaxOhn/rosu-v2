@@ -13,8 +13,14 @@ macro_rules! def_enum {
         }
     };
 
-    // Implementing TryFrom<u8> and Serialize
+    // Implementing From<$type> for u8, TryFrom<u8>, and Serialize
     (@SIGN u8 $type:tt { $($variant:ident = $n:literal,)* }) => {
+        impl From<$type> for u8 {
+            fn from(v: $type) -> Self {
+                v as u8
+            }
+        }
+
         impl std::convert::TryFrom<u8> for $type {
             type Error = crate::error::OsuError;
 
@@ -33,8 +39,14 @@ macro_rules! def_enum {
         }
     };
 
-    // Implementing TryFrom<i8> and Serialize
+    // Implementing From<$type> for i8, TryFrom<i8>, and Serialize
     (@SIGN i8 $type:tt { $($variant:ident = $n:literal,)* }) => {
+        impl From<$type> for i8 {
+            fn from(v: $type) -> Self {
+                v as i8
+            }
+        }
+
         impl std::convert::TryFrom<i8> for $type {
             type Error = crate::error::OsuError;
 

@@ -308,10 +308,10 @@ impl fmt::Display for GameMods {
     }
 }
 
-impl Into<u32> for GameMods {
+impl From<GameMods> for u32 {
     #[inline]
-    fn into(self) -> u32 {
-        self.bits
+    fn from(mods: GameMods) -> Self {
+        mods.bits
     }
 }
 
@@ -329,7 +329,7 @@ impl FromStr for GameMods {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut res = GameMods::default();
-        let upper = s.to_uppercase();
+        let upper = util::to_uppercase(s);
 
         for m in util::cut(&upper, 2) {
             let m = match m {
@@ -419,12 +419,12 @@ impl Iterator for GameModsIter {
 
     #[inline]
     fn count(self) -> usize {
-        self.mods.len()
+        self.mods.len() + (self.mods.is_empty() && self.shift == 0) as usize
     }
 
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let len = self.mods.len();
+        let len = self.mods.len() + (self.mods.is_empty() && self.shift == 0) as usize;
 
         (len, Some(len))
     }
@@ -470,7 +470,7 @@ impl<'de> Visitor<'de> for ModsVisitor {
         GameMods::from_bits(v as u32).ok_or_else(|| {
             Error::invalid_value(
                 Unexpected::Unsigned(v),
-                &"a valid u32 representing GameMods",
+                &"a valid u32 representing a mod combination",
             )
         })
     }
@@ -499,6 +499,8 @@ impl Serialize for GameMods {
 }
 
 mod util {
+    use std::borrow::Cow;
+
     /// Provide an iterator over substrings of the given length on the given source string
     pub(crate) fn cut(mut source: &str, n: usize) -> impl Iterator<Item = &str> {
         std::iter::from_fn(move || {
@@ -516,6 +518,19 @@ mod util {
                 Some(sub_str)
             }
         })
+    }
+
+    /// Put a `&str` into ASCII uppercase. Doesn't allocate if it already is uppercase.
+    pub(crate) fn to_uppercase(s: &str) -> Cow<str> {
+        match s.as_bytes().iter().position(u8::is_ascii_lowercase) {
+            Some(pos) => {
+                let mut output = s.to_owned();
+                unsafe { output.get_unchecked_mut(pos..) }.make_ascii_uppercase();
+
+                Cow::Owned(output)
+            }
+            None => Cow::Borrowed(s),
+        }
     }
 }
 

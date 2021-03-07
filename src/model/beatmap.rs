@@ -463,7 +463,7 @@ pub struct MostPlayedMap {
 impl PartialEq for MostPlayedMap {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
-        self.map_id == other.map_id
+        self.map_id == other.map_id && self.count == other.count
     }
 }
 

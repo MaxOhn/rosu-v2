@@ -19,6 +19,42 @@ fn get_date() -> DateTime<Utc> {
     Utc.timestamp(1_500_000_000, 0)
 }
 
+fn get_forum_posts() -> ForumPosts {
+    ForumPosts {
+        cursor: Some(ForumPostsCursor { post_id: 0 }),
+        posts: vec![ForumPost {
+            created_at: get_date(),
+            deleted_at: Some(get_date()),
+            edited_at: Some(get_date()),
+            edited_by_id: Some(123),
+            forum_id: 1234,
+            html: "big boi html".to_owned(),
+            post_id: 12345,
+            raw: "raaaaaaw html".to_owned(),
+            topic_id: 1234567,
+            user_id: 12345678,
+        }],
+        search: ForumPostsSearch {
+            limit: 42,
+            sort: "id_desc".to_owned(),
+        },
+        topic: ForumTopic {
+            created_at: get_date(),
+            deleted_at: Some(get_date()),
+            first_post_id: 10,
+            forum_id: 20,
+            is_locked: false,
+            kind: "some type".to_owned(),
+            last_post_id: 30,
+            post_count: 40,
+            title: "epic topic".to_owned(),
+            topic_id: 50,
+            updated_at: Some(get_date()),
+            user_id: 60,
+        },
+    }
+}
+
 fn get_mapset_covers() -> BeatmapsetCovers {
     BeatmapsetCovers {
         cover: String::new(),
@@ -646,6 +682,16 @@ fn serde_beatmapset_events() {
 }
 
 #[test]
+fn serde_forum_posts() {
+    ser_de(get_forum_posts());
+}
+
+#[test]
+fn serde_match() {
+    ser_de(get_match());
+}
+
+#[test]
 fn serde_score() {
     ser_de(get_score());
 }
@@ -653,9 +699,4 @@ fn serde_score() {
 #[test]
 fn serde_user() {
     ser_de(get_user());
-}
-
-#[test]
-fn serde_match() {
-    ser_de(get_match());
 }

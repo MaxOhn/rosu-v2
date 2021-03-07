@@ -70,6 +70,12 @@ impl Osu {
         GetComments::new(self)
     }
 
+    /// Get a [`ForumPosts`](crate::model::ForumPosts) struct for a forum topic
+    #[inline]
+    pub fn forum_posts(&self, topic_id: u64) -> GetForumPosts {
+        GetForumPosts::new(self, topic_id)
+    }
+
     /// Get the kudosu history of a user.
     #[inline]
     pub fn kudosu(&self, user_id: impl Into<UserId>) -> GetUserKudosu {

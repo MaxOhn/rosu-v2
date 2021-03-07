@@ -21,6 +21,7 @@ macro_rules! poll_req {
 
 mod beatmap;
 mod comments;
+mod forum;
 mod matches;
 mod multiplayer;
 mod news;
@@ -30,6 +31,7 @@ mod wiki;
 
 pub use beatmap::{GetBeatmap, GetBeatmapScores, GetBeatmapUserScore, GetBeatmapsetEvents};
 pub use comments::GetComments;
+pub use forum::GetForumPosts;
 pub use matches::{GetMatch, GetMatches};
 pub use multiplayer::{GetScore, GetScores, GetUserHighScore};
 pub use news::GetNews;

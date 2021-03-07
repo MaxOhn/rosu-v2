@@ -17,6 +17,9 @@ pub(crate) enum Route {
     },
     GetBeatmapsetEvents,
     GetComments,
+    GetForumPosts {
+        topic_id: u64,
+    },
     GetMatch {
         match_id: Option<u32>,
     },
@@ -82,6 +85,9 @@ impl Route {
             ),
             Self::GetBeatmapsetEvents => (Method::GET, "beatmapsets/events".into()),
             Self::GetComments => (Method::GET, "comments".into()),
+            Self::GetForumPosts { topic_id } => {
+                (Method::GET, format!("forums/topics/{}", topic_id).into())
+            }
             Self::GetMatch { match_id } => {
                 let path = match match_id {
                     Some(id) => format!("matches/{}", id).into(),

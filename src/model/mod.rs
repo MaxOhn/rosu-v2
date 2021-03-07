@@ -137,7 +137,7 @@ macro_rules! def_enum {
             type Value = $type;
 
             fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
-                 write!(f, "{}", concat!($(stringify!($n), ",\"", $alt, "\""),*))
+                 write!(f, "{}", concat!(stringify!($($n),*),", ",stringify!($($alt),*)))
             }
 
             fn visit_str<E: Error>(self, s: &str) -> Result<Self::Value, E> {
@@ -157,6 +157,7 @@ macro_rules! def_enum {
 mod beatmap;
 mod comments;
 mod event;
+mod forum;
 mod grade;
 mod kudosu;
 mod matches;
@@ -178,6 +179,7 @@ pub use beatmap::{
 };
 pub use comments::{Comment, CommentBundle, CommentSort, CommentableMeta};
 pub use event::{Event, EventBeatmap, EventBeatmapset, EventType, EventUser};
+pub use forum::{ForumPost, ForumPosts, ForumPostsCursor, ForumPostsSearch, ForumTopic};
 pub use grade::Grade;
 pub use kudosu::{KudosuAction, KudosuGiver, KudosuHistory, KudosuPost};
 pub use matches::{

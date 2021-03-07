@@ -95,7 +95,7 @@ impl<'a> GetComments<'a> {
         }
 
         if let Some(commentable) = self.commentable_type.take() {
-            query.push("commentable_type", commentable.to_string());
+            query.push("commentable_type", commentable);
         }
 
         if let Some(cursor) = self.cursor.take() {

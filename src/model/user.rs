@@ -7,13 +7,13 @@ use serde::{
 };
 use std::fmt;
 
-pub fn str_to_date<'de, D: Deserializer<'de>>(d: D) -> Result<Date<Utc>, D::Error> {
+fn str_to_date<'de, D: Deserializer<'de>>(d: D) -> Result<Date<Utc>, D::Error> {
     let date: NaiveDate = Deserialize::deserialize(d)?;
 
     Ok(Date::from_utc(date, Utc))
 }
 
-pub fn date_to_str<S: Serializer>(date: &Date<Utc>, s: S) -> Result<S::Ok, S::Error> {
+fn date_to_str<S: Serializer>(date: &Date<Utc>, s: S) -> Result<S::Ok, S::Error> {
     s.collect_str(&date.naive_utc())
 }
 
@@ -442,7 +442,7 @@ pub struct UserStatistics {
     pub user: Option<Box<UserCompact>>,
 }
 
-pub fn rank_history_vec<'de, D: Deserializer<'de>>(d: D) -> Result<Option<Vec<u32>>, D::Error> {
+fn rank_history_vec<'de, D: Deserializer<'de>>(d: D) -> Result<Option<Vec<u32>>, D::Error> {
     d.deserialize_any(RankHistoryVisitor)
 }
 

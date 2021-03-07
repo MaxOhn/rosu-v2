@@ -31,7 +31,7 @@ pub enum MatchEvent {
     Game {
         #[serde(rename(serialize = "id"))]
         event_id: u64,
-        game: MatchGame,
+        game: Box<MatchGame>,
         timestamp: DateTime<Utc>,
     },
     #[serde(rename(serialize = "host-changed"))]

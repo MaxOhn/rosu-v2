@@ -361,7 +361,7 @@ fn get_match() -> OsuMatch {
             MatchEvent::Game {
                 event_id: 4,
                 timestamp: get_date(),
-                game: MatchGame {
+                game: Box::new(MatchGame {
                     game_id: 0,
                     start_time: get_date(),
                     end_time: None,
@@ -371,7 +371,7 @@ fn get_match() -> OsuMatch {
                     mods: GameMods::Hidden | GameMods::HardRock,
                     map: get_map_compact(),
                     scores: vec![get_match_score()],
-                },
+                }),
             },
             MatchEvent::Disbanded {
                 event_id: 5,

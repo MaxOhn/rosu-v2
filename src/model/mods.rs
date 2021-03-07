@@ -257,8 +257,8 @@ impl GameMods {
     #[inline]
     pub fn len(self) -> usize {
         self.bits().count_ones() as usize
-            - (self.contains(GameMods::NightCore) as usize)
-            - (self.contains(GameMods::Perfect) as usize)
+            - self.contains(GameMods::NightCore) as usize
+            - self.contains(GameMods::Perfect) as usize
     }
 }
 
@@ -453,9 +453,9 @@ impl<'de> Visitor<'de> for ModsVisitor {
     }
 
     fn visit_str<E: Error>(self, v: &str) -> Result<Self::Value, E> {
-        let mods = match v.parse() {
-            Ok(n) => GameMods::from_bits(n),
-            Err(_) => GameMods::from_str(v).ok(),
+        let mods = match util::parse_u32(v) {
+            Some(n) => GameMods::from_bits(n),
+            None => GameMods::from_str(v).ok(),
         };
 
         mods.ok_or_else(|| {
@@ -467,12 +467,17 @@ impl<'de> Visitor<'de> for ModsVisitor {
     }
 
     fn visit_u64<E: Error>(self, v: u64) -> Result<Self::Value, E> {
-        GameMods::from_bits(v as u32).ok_or_else(|| {
-            Error::invalid_value(
-                Unexpected::Unsigned(v),
-                &"a valid u32 representing a mod combination",
-            )
-        })
+        use std::convert::TryInto;
+
+        v.try_into()
+            .ok()
+            .and_then(GameMods::from_bits)
+            .ok_or_else(|| {
+                Error::invalid_value(
+                    Unexpected::Unsigned(v),
+                    &"a valid u32 representing a mod combination",
+                )
+            })
     }
 
     fn visit_seq<A: SeqAccess<'de>>(self, mut seq: A) -> Result<Self::Value, A::Error> {
@@ -488,13 +493,13 @@ impl<'de> Visitor<'de> for ModsVisitor {
 
 impl<'de> Deserialize<'de> for GameMods {
     fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
-        Ok(d.deserialize_any(ModsVisitor)?)
+        d.deserialize_any(ModsVisitor)
     }
 }
 
 impl Serialize for GameMods {
     fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
-        s.serialize_u32(self.bits())
+        s.serialize_u32(self.bits)
     }
 }
 
@@ -532,6 +537,22 @@ mod util {
             None => Cow::Borrowed(s),
         }
     }
+
+    /// Slight simplification of u32's FromStr implementation
+    pub(crate) fn parse_u32(src: &str) -> Option<u32> {
+        if src.is_empty() {
+            return None;
+        }
+
+        let mut result: u32 = 0;
+
+        for c in src.chars() {
+            let digit = c.to_digit(10)?;
+            result = result.checked_mul(10)?.checked_add(digit)?;
+        }
+
+        Some(result)
+    }
 }
 
 #[cfg(test)]
@@ -540,21 +561,54 @@ mod tests {
 
     #[test]
     fn mods_try_from_str() {
-        assert_eq!(GameMods::from_str("NM").unwrap(), GameMods::NoMod);
-        assert_eq!(GameMods::from_str("HD").unwrap(), GameMods::Hidden);
+        assert_eq!(GameMods::from_str("Nm").unwrap(), GameMods::NoMod);
+        assert_eq!(GameMods::from_str("hD").unwrap(), GameMods::Hidden);
+
         let mods = GameMods::from_bits(24).unwrap();
-        assert_eq!(GameMods::from_str("HRHD").unwrap(), mods);
+        assert_eq!(GameMods::from_str("HRhD").unwrap(), mods);
         assert!(GameMods::from_str("HHDR").is_err());
     }
 
     #[test]
     fn mods_iter() {
         let mut iter = GameMods::default().iter();
-        assert_eq!(iter.next().unwrap(), GameMods::NoMod);
+        assert_eq!(iter.next(), Some(GameMods::NoMod));
         assert_eq!(iter.next(), None);
+
         let mut iter = GameMods::from_bits(24).unwrap().iter();
-        assert_eq!(iter.next().unwrap(), GameMods::Hidden);
-        assert_eq!(iter.next().unwrap(), GameMods::HardRock);
+        assert_eq!(iter.next(), Some(GameMods::Hidden));
+        assert_eq!(iter.next(), Some(GameMods::HardRock));
         assert_eq!(iter.next(), None);
+    }
+
+    #[test]
+    fn cut() {
+        let mut iter = util::cut("hDHrdTv2n", 2);
+
+        assert_eq!(iter.next(), Some("hD"));
+        assert_eq!(iter.next(), Some("Hr"));
+        assert_eq!(iter.next(), Some("dT"));
+        assert_eq!(iter.next(), Some("v2"));
+        assert_eq!(iter.next(), Some("n"));
+        assert_eq!(iter.next(), None);
+    }
+
+    #[test]
+    fn to_uppercase() {
+        let upper = util::to_uppercase("MANAmE JeF");
+        assert_eq!(upper.as_ref(), "MANAME JEF");
+
+        let upper = util::to_uppercase("mAn4me jäf");
+        assert_eq!(upper.as_ref(), "MAN4ME JäF");
+    }
+
+    #[test]
+    fn parse_u32() {
+        assert_eq!(util::parse_u32(""), None);
+        assert_eq!(util::parse_u32("123"), Some(123));
+        assert_eq!(util::parse_u32("+123"), None);
+        assert_eq!(util::parse_u32("123a"), None);
+        assert_eq!(util::parse_u32("5123456789"), None);
+        assert_eq!(util::parse_u32("00123"), Some(123));
     }
 }

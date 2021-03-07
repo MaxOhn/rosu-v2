@@ -1,8 +1,5 @@
 use super::{Osu, OsuRef};
-use crate::{
-    error::{OsuError, OsuResult},
-    ratelimiter::Ratelimiter,
-};
+use crate::{error::OsuError, ratelimiter::Ratelimiter, OsuResult};
 
 use reqwest::ClientBuilder as ReqwestClientBuilder;
 use std::{sync::Arc, time::Duration as StdDuration};

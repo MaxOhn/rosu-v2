@@ -1,8 +1,9 @@
 use crate::{
+    error::OsuError,
     model::{Beatmapset, RankStatus},
     request::{Pending, Query, Request, UserId},
     routing::Route,
-    Osu, OsuError, OsuResult,
+    Osu, OsuResult,
 };
 
 /// Get the beatmapsets of a user by their id.

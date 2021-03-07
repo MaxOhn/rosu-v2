@@ -7,7 +7,7 @@ use crate::{
 
 use bitflags::bitflags;
 use serde::{
-    de::{Error, SeqAccess, Visitor},
+    de::{Error, SeqAccess, Unexpected, Visitor},
     Deserialize, Deserializer, Serialize, Serializer,
 };
 use std::{
@@ -94,7 +94,7 @@ bitflags! {
 
 #[allow(clippy::len_without_is_empty)]
 impl GameMods {
-    /// Method that checks whether [`crate::model::GameMods`] contains one of osu!mania's key mods.
+    /// Method that checks whether the [`GameMods`](crate::model::GameMods) contain one of osu!mania's key mods.
     ///
     /// # Examples
     /// ```
@@ -129,7 +129,7 @@ impl GameMods {
     }
 
     /// Calculate the multiplier of the mods which will
-    /// influence a [`crate::model::Score`]'s playscore
+    /// influence a [`Score`](crate::model::Score)'s playscore
     ///
     /// # Example
     /// ```rust
@@ -172,7 +172,7 @@ impl GameMods {
             .product()
     }
 
-    /// Check if a [`crate::model::Score`]'s playscore will be increased
+    /// Check if a [`Score`](crate::model::Score)'s playscore will be increased
     ///
     /// # Example
     /// ```rust
@@ -187,7 +187,7 @@ impl GameMods {
         self.score_multiplier(mode) > 1.0
     }
 
-    /// Check if a [`crate::model::Score`]'s playscore will be decreased
+    /// Check if a [`Score`](crate::model::Score)'s playscore will be decreased
     ///
     /// # Example
     /// ```rust
@@ -202,7 +202,7 @@ impl GameMods {
         self.score_multiplier(mode) < 1.0
     }
 
-    /// Check if a [`crate::model::Beatmap`]'s star rating for the given [`crate::model::GameMode`] will be influenced.
+    /// Check if a [`Beatmap`](crate::model::Beatmap)'s star rating for the given [`GameMode`](crate::model::GameMode) will be influenced.
     ///
     /// # Example
     /// ```rust
@@ -240,7 +240,7 @@ impl GameMods {
     /// assert_eq!(mod_iter.next(), None);
     /// ```
     #[inline]
-    pub fn iter(self) -> IntoIter {
+    pub fn iter(self) -> GameModsIter {
         self.into_iter()
     }
 
@@ -256,10 +256,9 @@ impl GameMods {
     /// ```
     #[inline]
     pub fn len(self) -> usize {
-        !self.is_empty() as usize
-            * (self.bits().count_ones() as usize
-                - (self.contains(GameMods::NightCore) as usize)
-                - (self.contains(GameMods::Perfect) as usize))
+        self.bits().count_ones() as usize
+            - (self.contains(GameMods::NightCore) as usize)
+            - (self.contains(GameMods::Perfect) as usize)
     }
 }
 
@@ -374,24 +373,16 @@ impl FromStr for GameMods {
     }
 }
 
-pub struct IntoIter {
+pub struct GameModsIter {
     mods: GameMods,
     shift: usize,
 }
 
-impl Iterator for IntoIter {
+impl Iterator for GameModsIter {
     type Item = GameMods;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.mods.is_empty() {
-            if self.shift == 0 {
-                self.shift = 32;
-
-                Some(GameMods::NoMod)
-            } else {
-                None
-            }
-        } else {
+        if !self.mods.is_empty() {
             loop {
                 if self.shift == 32 {
                     return None;
@@ -417,6 +408,12 @@ impl Iterator for IntoIter {
                     return Some(mods);
                 }
             }
+        } else if self.shift == 0 {
+            self.shift = 32;
+
+            Some(GameMods::NoMod)
+        } else {
+            None
         }
     }
 
@@ -435,11 +432,11 @@ impl Iterator for IntoIter {
 
 impl IntoIterator for GameMods {
     type Item = GameMods;
-    type IntoIter = IntoIter;
+    type IntoIter = GameModsIter;
 
     #[inline]
-    fn into_iter(self) -> IntoIter {
-        IntoIter {
+    fn into_iter(self) -> GameModsIter {
+        GameModsIter {
             mods: self,
             shift: 0,
         }
@@ -449,29 +446,33 @@ impl IntoIterator for GameMods {
 struct ModsVisitor;
 
 impl<'de> Visitor<'de> for ModsVisitor {
-    type Value = Option<GameMods>;
+    type Value = GameMods;
 
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str("a u32, a stringified number, a sequence, or null")
+        formatter.write_str("a u32, a stringified number, or a sequence")
     }
 
     fn visit_str<E: Error>(self, v: &str) -> Result<Self::Value, E> {
-        match u32::from_str(v) {
-            Ok(n) => Ok(GameMods::from_bits(n)),
-            Err(_) => GameMods::from_str(v).map(Some).map_err(Error::custom), // TODO: nicer error msg
-        }
+        let mods = match v.parse() {
+            Ok(n) => GameMods::from_bits(n),
+            Err(_) => GameMods::from_str(v).ok(),
+        };
+
+        mods.ok_or_else(|| {
+            Error::invalid_value(
+                Unexpected::Str(v),
+                &"a stringified u32 representing GameMods or a combination of mod abbriviations",
+            )
+        })
     }
 
     fn visit_u64<E: Error>(self, v: u64) -> Result<Self::Value, E> {
-        Ok(GameMods::from_bits(v as u32))
-    }
-
-    fn visit_some<D: Deserializer<'de>>(self, d: D) -> Result<Self::Value, D::Error> {
-        d.deserialize_any(Self)
-    }
-
-    fn visit_none<E: Error>(self) -> Result<Self::Value, E> {
-        Ok(None)
+        GameMods::from_bits(v as u32).ok_or_else(|| {
+            Error::invalid_value(
+                Unexpected::Unsigned(v),
+                &"a valid u32 representing GameMods",
+            )
+        })
     }
 
     fn visit_seq<A: SeqAccess<'de>>(self, mut seq: A) -> Result<Self::Value, A::Error> {
@@ -481,13 +482,13 @@ impl<'de> Visitor<'de> for ModsVisitor {
             mods |= next;
         }
 
-        Ok(Some(mods))
+        Ok(mods)
     }
 }
 
 impl<'de> Deserialize<'de> for GameMods {
     fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
-        Ok(d.deserialize_any(ModsVisitor)?.unwrap())
+        Ok(d.deserialize_any(ModsVisitor)?)
     }
 }
 

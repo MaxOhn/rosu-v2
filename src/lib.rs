@@ -9,3 +9,6 @@ pub use client::{Osu, OsuBuilder};
 
 #[macro_use]
 extern crate log;
+
+/// `Result<_, OsuError>`
+pub type OsuResult<T> = Result<T, error::OsuError>;

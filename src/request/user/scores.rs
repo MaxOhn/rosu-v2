@@ -1,8 +1,9 @@
 use crate::{
+    error::OsuError,
     model::{GameMode, Score},
     request::{Pending, Query, Request, UserId},
     routing::Route,
-    Osu, OsuError, OsuResult,
+    Osu, OsuResult,
 };
 
 /// Get scores of a user by the user's id.

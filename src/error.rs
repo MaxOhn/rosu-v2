@@ -3,9 +3,6 @@ use serde::Deserialize;
 use serde_json::Error as SerdeError;
 use std::{error::Error as StdError, fmt};
 
-/// `Result<_, OsuError>`
-pub type OsuResult<T> = Result<T, OsuError>;
-
 #[derive(Debug, Deserialize)]
 /// The API response was of the form `{ "error": ... }`
 pub struct APIError {

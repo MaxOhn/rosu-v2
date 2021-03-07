@@ -2,12 +2,7 @@ mod builder;
 
 pub use builder::OsuBuilder;
 
-use crate::{
-    error::{OsuError, OsuResult},
-    model::GameMode,
-    ratelimiter::Ratelimiter,
-    request::*,
-};
+use crate::{error::OsuError, model::GameMode, ratelimiter::Ratelimiter, request::*, OsuResult};
 
 use bytes::Bytes;
 use reqwest::{header::HeaderValue, multipart::Form, Client, Method, Response, StatusCode};
@@ -63,7 +58,7 @@ impl Osu {
         GetBeatmapUserScore::new(self, map_id, user_id)
     }
 
-    /// Get a [`BeatmapsetEvents`] struct containing the most recent mapset events.
+    /// Get a [`BeatmapsetEvents`](crate::model::BeatmapsetEvents) struct containing the most recent mapset events.
     #[inline]
     pub fn beatmapset_events(&self) -> GetBeatmapsetEvents {
         GetBeatmapsetEvents::new(self)

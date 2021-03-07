@@ -16,7 +16,7 @@ macro_rules! def_enum {
     // Implementing TryFrom<u8> and Serialize
     (@SIGN u8 $type:tt { $($variant:ident = $n:literal,)* }) => {
         impl std::convert::TryFrom<u8> for $type {
-            type Error = crate::OsuError;
+            type Error = crate::error::OsuError;
 
             fn try_from(value: u8) -> Result<Self, Self::Error> {
                 match value {
@@ -36,7 +36,7 @@ macro_rules! def_enum {
     // Implementing TryFrom<i8> and Serialize
     (@SIGN i8 $type:tt { $($variant:ident = $n:literal,)* }) => {
         impl std::convert::TryFrom<i8> for $type {
-            type Error = crate::OsuError;
+            type Error = crate::error::OsuError;
 
             fn try_from(value: i8) -> Result<Self, Self::Error> {
                 match value {
@@ -172,7 +172,7 @@ pub use matches::{
     MatchEvent, MatchGame, MatchInfo, MatchList, MatchScore, OsuMatch, ScoringType, Team, TeamType,
 };
 pub use mode::GameMode;
-pub use mods::GameMods;
+pub use mods::{GameMods, GameModsIter};
 pub use multiplayer::{MultiplayerScore, MultiplayerScores, ScoresAround};
 pub use news::{News, NewsPost, NewsSearch, NewsSidebar};
 pub use ranking::{Rankings, RankingsCursor, Spotlight};

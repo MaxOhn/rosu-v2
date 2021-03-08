@@ -530,6 +530,8 @@ mod util {
         match s.as_bytes().iter().position(u8::is_ascii_lowercase) {
             Some(pos) => {
                 let mut output = s.to_owned();
+
+                // SAFETY: Index is certain to be contained
                 unsafe { output.get_unchecked_mut(pos..) }.make_ascii_uppercase();
 
                 Cow::Owned(output)

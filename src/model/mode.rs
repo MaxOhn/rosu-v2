@@ -49,8 +49,7 @@ impl<'de> Visitor<'de> for ModeVisitor {
             _ => {
                 return Err(Error::invalid_value(
                     Unexpected::Str(v),
-                    &r#""0", "osu", "osu!", "1", "taiko", "tko", "2",
-                    "ctb", "fruits", "3", "mania", or "mna""#,
+                    &r#""0", "osu", "osu!", "1", "taiko", "tko", "2", "ctb", "fruits", "3", "mania", or "mna""#,
                 ))
             }
         };

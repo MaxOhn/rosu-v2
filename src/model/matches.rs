@@ -123,9 +123,16 @@ impl<'de> Visitor<'de> for MatchEventTypeVisitor {
             "match-created" => MatchEventType::Create,
             "match-disbanded" => MatchEventType::Disbanded,
             _ => {
-                return Err(E::invalid_value(
-                    Unexpected::Str(s),
-                    &"match-created, player-joined, player-left, match-disbanded, host-changed, or other",
+                return Err(E::unknown_variant(
+                    s,
+                    &[
+                        "match-created",
+                        "player-joined",
+                        "player-left",
+                        "match-disbanded",
+                        "host-changed",
+                        "other",
+                    ],
                 ))
             }
         };
@@ -500,12 +507,12 @@ impl OsuMatch {
     ///
     /// The games are drained from the match's events meaning the
     /// `events` field will be empty after this method is called.
-    pub fn collect_games(&mut self) -> Vec<Box<MatchGame>> {
+    pub fn collect_games(&mut self) -> Vec<MatchGame> {
         let mut games = Vec::new();
 
         for event in self.events.drain(..) {
             if let MatchEvent::Game { game, .. } = event {
-                games.push(game);
+                games.push(*game);
             }
         }
 

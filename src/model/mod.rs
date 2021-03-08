@@ -119,7 +119,7 @@ macro_rules! def_enum {
                 match s {
                     $(stringify!($variant) => Ok(<$type>::$variant),)*
                     _ => {
-                        Err(Error::invalid_value(Unexpected::Str(s), &stringify!($($variant),*)))
+                        Err(Error::unknown_variant(s, &[stringify!($($variant),*)]))
                     },
                 }
             }
@@ -144,7 +144,7 @@ macro_rules! def_enum {
                 match s {
                     $($alt => Ok(<$type>::$variant),)*
                     _ => {
-                        Err(Error::invalid_value(Unexpected::Str(s), &stringify!($($alt),*)))
+                        Err(Error::unknown_variant(s, &[stringify!($($alt),*)]))
                     },
                 }
             }

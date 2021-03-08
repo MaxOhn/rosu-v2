@@ -336,7 +336,8 @@ fn get_mapset_events() -> BeatmapsetEvents {
 
 fn get_match() -> OsuMatch {
     OsuMatch {
-        current_game_id: None,
+        current_game_id: Some(3),
+        end_time: Some(get_date()),
         events: vec![
             MatchEvent::Create {
                 event_id: 0,
@@ -364,7 +365,7 @@ fn get_match() -> OsuMatch {
                 game: Box::new(MatchGame {
                     game_id: 0,
                     start_time: get_date(),
-                    end_time: None,
+                    end_time: Some(get_date()),
                     mode: GameMode::STD,
                     scoring_type: ScoringType::Score,
                     team_type: TeamType::HeadToHead,
@@ -379,13 +380,10 @@ fn get_match() -> OsuMatch {
             },
         ],
         first_event_id: 0,
-        info: MatchInfo {
-            end_time: None,
-            match_id: 0,
-            name: "A: B vs C".to_owned(),
-            start_time: get_date(),
-        },
         latest_event_id: 1,
+        match_id: 0,
+        name: "A: B vs C".to_owned(),
+        start_time: get_date(),
         users: vec![get_user_compact()],
     }
 }

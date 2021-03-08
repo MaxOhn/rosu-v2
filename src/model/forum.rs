@@ -83,15 +83,9 @@ impl<'de> Visitor<'de> for ForumPostVisitor {
                 "created_at" => {
                     created_at.replace(map.next_value()?);
                 }
-                "deleted_at" => {
-                    deleted_at = map.next_value()?;
-                }
-                "edited_at" => {
-                    edited_at = map.next_value()?;
-                }
-                "edited_by_id" => {
-                    edited_by_id = map.next_value()?;
-                }
+                "deleted_at" => deleted_at = map.next_value()?,
+                "edited_at" => edited_at = map.next_value()?,
+                "edited_by_id" => edited_by_id = map.next_value()?,
                 "forum_id" => {
                     forum_id.replace(map.next_value()?);
                 }

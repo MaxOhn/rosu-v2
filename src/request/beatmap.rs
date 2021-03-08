@@ -9,7 +9,7 @@ use crate::{
     Osu, OsuResult,
 };
 
-/// Get a beatmap by its id.
+/// Get a [`Beatmap`](crate::model::beatmap::Beatmap).
 pub struct GetBeatmap<'a> {
     fut: Option<Pending<'a, Beatmap>>,
     osu: &'a Osu,

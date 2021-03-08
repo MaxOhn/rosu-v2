@@ -2,7 +2,7 @@ use crate::{
     model::wiki::WikiPage,
     request::{Pending, Request},
     routing::Route,
-    Osu, OsuResult,
+    Osu,
 };
 
 /// Get the wiki article or image data
@@ -31,16 +31,14 @@ impl<'a> GetWikiPage<'a> {
         self
     }
 
-    fn start(&mut self) -> OsuResult<()> {
+    fn start(&mut self) {
         let req = Request::from(Route::GetWikiPage {
             locale: self.locale.take().unwrap(),
             page: self.page.take(),
         });
 
         self.fut.replace(Box::pin(self.osu.inner.request(req)));
-
-        Ok(())
     }
 }
 
-poll_req!(GetWikiPage<'_>, WikiPage);
+poll_req!(GetWikiPage<'_> => WikiPage);

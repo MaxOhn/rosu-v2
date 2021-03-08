@@ -2,7 +2,7 @@ use crate::{
     model::news::{News, NewsCursor},
     request::{Pending, Query, Request},
     routing::Route,
-    Osu, OsuResult,
+    Osu,
 };
 
 /// Get the wiki article or image data
@@ -38,7 +38,7 @@ impl<'a> GetNews<'a> {
         self
     }
 
-    fn start(&mut self) -> OsuResult<()> {
+    fn start(&mut self) {
         let mut query = Query::new();
 
         if let Some(cursor) = self.cursor {
@@ -49,9 +49,7 @@ impl<'a> GetNews<'a> {
         let req = Request::from((query, Route::GetNews { news: self.news }));
 
         self.fut.replace(Box::pin(self.osu.inner.request(req)));
-
-        Ok(())
     }
 }
 
-poll_req!(GetNews<'_>, News);
+poll_req!(GetNews<'_> => News);

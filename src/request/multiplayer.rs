@@ -1,7 +1,7 @@
 use crate::{
     request::{Pending, Query, Request},
     routing::Route,
-    Osu, OsuResult,
+    Osu,
 };
 
 /// TODO: Documentation
@@ -25,7 +25,7 @@ impl<'a> GetUserHighScore<'a> {
         }
     }
 
-    fn start(&mut self) -> OsuResult<()> {
+    fn start(&mut self) {
         let req = Request::from(Route::GetUserHighScore {
             room: self.room,
             playlist: self.playlist,
@@ -33,12 +33,10 @@ impl<'a> GetUserHighScore<'a> {
         });
 
         self.fut.replace(Box::pin(self.osu.inner.request(req)));
-
-        Ok(())
     }
 }
 
-poll_req!(GetUserHighScore<'_>, u32); // TODO
+poll_req!(GetUserHighScore<'_> => u32); // TODO
 
 /// TODO: Documentation
 pub struct GetScore<'a> {
@@ -61,7 +59,7 @@ impl<'a> GetScore<'a> {
         }
     }
 
-    fn start(&mut self) -> OsuResult<()> {
+    fn start(&mut self) {
         let req = Request::from(Route::GetScore {
             room: self.room,
             playlist: self.playlist,
@@ -69,12 +67,10 @@ impl<'a> GetScore<'a> {
         });
 
         self.fut.replace(Box::pin(self.osu.inner.request(req)));
-
-        Ok(())
     }
 }
 
-poll_req!(GetScore<'_>, u32); // TODO
+poll_req!(GetScore<'_> => u32); // TODO
 
 /// TODO: Documentation
 pub struct GetScores<'a> {
@@ -115,7 +111,7 @@ impl<'a> GetScores<'a> {
         self
     }
 
-    fn start(&mut self) -> OsuResult<()> {
+    fn start(&mut self) {
         let mut query = Query::new();
 
         if let Some(limit) = self.limit {
@@ -139,9 +135,7 @@ impl<'a> GetScores<'a> {
         ));
 
         self.fut.replace(Box::pin(self.osu.inner.request(req)));
-
-        Ok(())
     }
 }
 
-poll_req!(GetScores<'_>, u32); // TODO
+poll_req!(GetScores<'_> => u32); // TODO

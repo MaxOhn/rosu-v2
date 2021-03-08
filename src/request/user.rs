@@ -180,7 +180,7 @@ impl<'a> GetUserBeatmapsets<'a> {
     }
 }
 
-poll_req!(GetUserBeatmapsets<'_>, Vec<Beatmapset>);
+poll_req!(GetUserBeatmapsets<'_> => OsuResult<Vec<Beatmapset>>);
 
 /// Get the recent events of a user by their id.
 pub struct GetRecentEvents<'a> {
@@ -217,7 +217,7 @@ impl<'a> GetRecentEvents<'a> {
         self
     }
 
-    fn start(&mut self) -> OsuResult<()> {
+    fn start(&mut self) {
         let mut query = Query::new();
 
         if let Some(limit) = self.limit {
@@ -236,12 +236,10 @@ impl<'a> GetRecentEvents<'a> {
         ));
 
         self.fut.replace(Box::pin(self.osu.inner.request(req)));
-
-        Ok(())
     }
 }
 
-poll_req!(GetRecentEvents<'_>, Vec<RecentEvent>);
+poll_req!(GetRecentEvents<'_> => Vec<RecentEvent>);
 
 /// Get a user's kudosu history by their user id.
 pub struct GetUserKudosu<'a> {
@@ -278,7 +276,7 @@ impl<'a> GetUserKudosu<'a> {
         self
     }
 
-    fn start(&mut self) -> OsuResult<()> {
+    fn start(&mut self) {
         let mut query = Query::new();
 
         if let Some(limit) = self.limit {
@@ -297,12 +295,10 @@ impl<'a> GetUserKudosu<'a> {
         ));
 
         self.fut.replace(Box::pin(self.osu.inner.request(req)));
-
-        Ok(())
     }
 }
 
-poll_req!(GetUserKudosu<'_>, Vec<KudosuHistory>);
+poll_req!(GetUserKudosu<'_> => Vec<KudosuHistory>);
 
 /// Get the most played beatmaps of a user by their id.
 pub struct GetUserMostPlayed<'a> {
@@ -339,7 +335,7 @@ impl<'a> GetUserMostPlayed<'a> {
         self
     }
 
-    fn start(&mut self) -> OsuResult<()> {
+    fn start(&mut self) {
         let mut query = Query::new();
 
         if let Some(limit) = self.limit {
@@ -359,12 +355,10 @@ impl<'a> GetUserMostPlayed<'a> {
         ));
 
         self.fut.replace(Box::pin(self.osu.inner.request(req)));
-
-        Ok(())
     }
 }
 
-poll_req!(GetUserMostPlayed<'_>, Vec<MostPlayedMap>);
+poll_req!(GetUserMostPlayed<'_> => Vec<MostPlayedMap>);
 
 /// Get scores of a user by the user's id.
 ///
@@ -480,7 +474,7 @@ impl<'a> GetUserScores<'a> {
     }
 }
 
-poll_req!(GetUserScores<'_>, Vec<Score>);
+poll_req!(GetUserScores<'_> => OsuResult<Vec<Score>>);
 
 /// Get a user by their id.
 pub struct GetUser<'a> {
@@ -508,19 +502,17 @@ impl<'a> GetUser<'a> {
         self
     }
 
-    fn start(&mut self) -> OsuResult<()> {
+    fn start(&mut self) {
         let req = Request::from(Route::GetUser {
             user_id: self.user_id.take().unwrap(),
             mode: self.mode,
         });
 
         self.fut.replace(Box::pin(self.osu.inner.request(req)));
-
-        Ok(())
     }
 }
 
-poll_req!(GetUser<'_>, User);
+poll_req!(GetUser<'_> => User);
 
 /// Get multiple users by their ids.
 pub struct GetUsers<'a> {
@@ -539,7 +531,7 @@ impl<'a> GetUsers<'a> {
         }
     }
 
-    fn start(&mut self) -> OsuResult<()> {
+    fn start(&mut self) {
         let mut query = Query::new();
 
         // * user_ids is capped to 50 elements in `Osu::users`
@@ -553,9 +545,7 @@ impl<'a> GetUsers<'a> {
 
         let req = Request::from((query, Route::GetUsers));
         self.fut.replace(Box::pin(self.osu.inner.request(req)));
-
-        Ok(())
     }
 }
 
-poll_req!(GetUsers<'_>, Vec<UserCompact>);
+poll_req!(GetUsers<'_> => Vec<UserCompact>);

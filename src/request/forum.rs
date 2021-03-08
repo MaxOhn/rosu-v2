@@ -2,7 +2,7 @@ use crate::{
     model::forum::{ForumPosts, ForumPostsCursor},
     request::{Pending, Query, Request},
     routing::Route,
-    Osu, OsuResult,
+    Osu,
 };
 
 /// Get a [`ForumPosts`](crate::model::forum::ForumPosts) struct for a forum topic
@@ -81,7 +81,7 @@ impl<'a> GetForumPosts<'a> {
         self
     }
 
-    fn start(&mut self) -> OsuResult<()> {
+    fn start(&mut self) {
         let mut query = Query::new();
 
         if let Some(sort) = self.sort {
@@ -112,9 +112,7 @@ impl<'a> GetForumPosts<'a> {
         ));
 
         self.fut.replace(Box::pin(self.osu.inner.request(req)));
-
-        Ok(())
     }
 }
 
-poll_req!(GetForumPosts<'_>, ForumPosts);
+poll_req!(GetForumPosts<'_> => ForumPosts);

@@ -6,7 +6,7 @@ use crate::{
     },
     request::{Pending, Query, Request, UserId},
     routing::Route,
-    Osu, OsuResult,
+    Osu,
 };
 
 /// Get a [`Beatmap`](crate::model::beatmap::Beatmap).
@@ -51,7 +51,7 @@ impl<'a> GetBeatmap<'a> {
         self
     }
 
-    fn start(&mut self) -> OsuResult<()> {
+    fn start(&mut self) {
         let mut query = Query::new();
 
         if let Some(checksum) = self.checksum.take() {
@@ -69,12 +69,10 @@ impl<'a> GetBeatmap<'a> {
         let req = Request::from((query, Route::GetBeatmap));
 
         self.fut.replace(Box::pin(self.osu.inner.request(req)));
-
-        Ok(())
     }
 }
 
-poll_req!(GetBeatmap<'_>, Beatmap);
+poll_req!(GetBeatmap<'_> => Beatmap);
 
 /// Get a [`BeatmapsetEvents`] struct.
 pub struct GetBeatmapsetEvents<'a> {
@@ -88,16 +86,14 @@ impl<'a> GetBeatmapsetEvents<'a> {
         Self { fut: None, osu }
     }
 
-    fn start(&mut self) -> OsuResult<()> {
+    fn start(&mut self) {
         let req = Request::from(Route::GetBeatmapsetEvents);
 
         self.fut.replace(Box::pin(self.osu.inner.request(req)));
-
-        Ok(())
     }
 }
 
-poll_req!(GetBeatmapsetEvents<'_>, BeatmapsetEvents);
+poll_req!(GetBeatmapsetEvents<'_> => BeatmapsetEvents);
 
 /// Get top scores of a beatmap by its id.
 pub struct GetBeatmapScores<'a> {
@@ -136,7 +132,7 @@ impl<'a> GetBeatmapScores<'a> {
         self
     }
 
-    fn start(&mut self) -> OsuResult<()> {
+    fn start(&mut self) {
         let mut query = Query::new();
 
         if let Some(mode) = self.mode {
@@ -159,12 +155,10 @@ impl<'a> GetBeatmapScores<'a> {
         ));
 
         self.fut.replace(Box::pin(self.osu.inner.request(req)));
-
-        Ok(())
     }
 }
 
-poll_req!(GetBeatmapScores<'_>, BeatmapScores);
+poll_req!(GetBeatmapScores<'_> => BeatmapScores);
 
 /// Get scores of a user on a beatmap by the user's and the map's id.
 pub struct GetBeatmapUserScore<'a> {
@@ -204,7 +198,7 @@ impl<'a> GetBeatmapUserScore<'a> {
         self
     }
 
-    fn start(&mut self) -> OsuResult<()> {
+    fn start(&mut self) {
         let mut query = Query::new();
 
         if let Some(mode) = self.mode {
@@ -224,9 +218,7 @@ impl<'a> GetBeatmapUserScore<'a> {
         ));
 
         self.fut.replace(Box::pin(self.osu.inner.request(req)));
-
-        Ok(())
     }
 }
 
-poll_req!(GetBeatmapUserScore<'_>, BeatmapUserScore);
+poll_req!(GetBeatmapUserScore<'_> => BeatmapUserScore);

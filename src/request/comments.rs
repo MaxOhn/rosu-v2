@@ -2,7 +2,7 @@ use crate::{
     model::comments::{CommentBundle, CommentBundleCursor, CommentSort},
     request::{Pending, Query, Request},
     routing::Route,
-    Osu, OsuResult,
+    Osu,
 };
 
 /// Get a list of comments and their replies up to two levels deep
@@ -79,7 +79,7 @@ impl<'a> GetComments<'a> {
         self
     }
 
-    fn start(&mut self) -> OsuResult<()> {
+    fn start(&mut self) {
         let mut query = Query::new();
 
         if let Some(sort) = self.sort {
@@ -106,9 +106,7 @@ impl<'a> GetComments<'a> {
         let req = Request::from((query, Route::GetComments));
 
         self.fut.replace(Box::pin(self.osu.inner.request(req)));
-
-        Ok(())
     }
 }
 
-poll_req!(GetComments<'_>, CommentBundle);
+poll_req!(GetComments<'_> => CommentBundle);

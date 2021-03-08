@@ -168,7 +168,7 @@ impl<'a> GetRankings<'a> {
     }
 }
 
-poll_req!(GetRankings<'_>, Rankings);
+poll_req!(GetRankings<'_> => OsuResult<Rankings>);
 
 // TODO: Test
 /// Get the list of spotlights

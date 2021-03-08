@@ -2,7 +2,7 @@ use crate::{
     model::matches::{MatchList, MatchListCursor, OsuMatch},
     request::{Pending, Query, Request},
     routing::Route,
-    Osu, OsuResult,
+    Osu,
 };
 
 /// Get an [`OsuMatch`](crate::model::matches::OsuMatch) by its id
@@ -22,18 +22,16 @@ impl<'a> GetMatch<'a> {
         }
     }
 
-    fn start(&mut self) -> OsuResult<()> {
+    fn start(&mut self) {
         let req = Request::from(Route::GetMatch {
             match_id: Some(self.match_id),
         });
 
         self.fut.replace(Box::pin(self.osu.inner.request(req)));
-
-        Ok(())
     }
 }
 
-poll_req!(GetMatch<'_>, OsuMatch);
+poll_req!(GetMatch<'_> => OsuMatch);
 
 /// Get a [`MatchList`](crate::model::matches::MatchList) containing all
 /// currently open multiplayer lobbies.
@@ -60,7 +58,7 @@ impl<'a> GetMatches<'a> {
         self
     }
 
-    fn start(&mut self) -> OsuResult<()> {
+    fn start(&mut self) {
         let mut query = Query::new();
 
         if let Some(cursor) = self.cursor.take() {
@@ -70,9 +68,7 @@ impl<'a> GetMatches<'a> {
         let req = Request::from((query, Route::GetMatch { match_id: None }));
 
         self.fut.replace(Box::pin(self.osu.inner.request(req)));
-
-        Ok(())
     }
 }
 
-poll_req!(GetMatches<'_>, MatchList);
+poll_req!(GetMatches<'_> => MatchList);

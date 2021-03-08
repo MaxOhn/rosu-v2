@@ -59,7 +59,7 @@ pub struct Group {
     pub short_name: String,
     pub description: String,
     #[serde(rename = "colour")]
-    pub color: String,
+    pub color: Option<String>,
     #[serde(default, rename = "playmodes", skip_serializing_if = "Option::is_none")]
     pub modes: Option<Vec<GameMode>>,
 }

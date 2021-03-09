@@ -81,7 +81,7 @@ impl Osu {
     /// Get the kudosu history of a user in form of a vec of
     /// [`KudosuHistory`](crate::model::kudosu::KudosuHistory).
     #[inline]
-    pub fn kudosu(&self, user_id: impl Into<UserId>) -> GetUserKudosu {
+    pub fn kudosu(&self, user_id: u32) -> GetUserKudosu {
         GetUserKudosu::new(self, user_id)
     }
 
@@ -139,7 +139,7 @@ impl Osu {
     /// Get the recent activity of a user in form of a vec of
     /// [`RecentEvent`](crate::model::recent_event::RecentEvent)s.
     #[inline]
-    pub fn recent_events(&self, user_id: impl Into<UserId>) -> GetRecentEvents {
+    pub fn recent_events(&self, user_id: u32) -> GetRecentEvents {
         GetRecentEvents::new(self, user_id)
     }
 
@@ -157,20 +157,20 @@ impl Osu {
 
     /// Get a vec of [`Beatmapset`](crate::model::beatmap::Beatmapset)s a user made.
     #[inline]
-    pub fn user_beatmapsets(&self, user_id: impl Into<UserId>) -> GetUserBeatmapsets {
+    pub fn user_beatmapsets(&self, user_id: u32) -> GetUserBeatmapsets {
         GetUserBeatmapsets::new(self, user_id)
     }
 
     /// Get a vec of a user's [`MostPlayedMap`](crate::model::beatmap::MostPlayedMap)s.
     #[inline]
-    pub fn user_most_played(&self, user_id: impl Into<UserId>) -> GetUserMostPlayed {
+    pub fn user_most_played(&self, user_id: u32) -> GetUserMostPlayed {
         GetUserMostPlayed::new(self, user_id)
     }
 
     /// Get either top, global firsts, or recent scores of a user,
     /// i.e. a vec of [`Score`](crate::model::score::Score).
     #[inline]
-    pub fn user_scores(&self, user_id: impl Into<UserId>) -> GetUserScores {
+    pub fn user_scores(&self, user_id: u32) -> GetUserScores {
         GetUserScores::new(self, user_id)
     }
 

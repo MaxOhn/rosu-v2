@@ -70,7 +70,7 @@ impl fmt::Display for UserId {
 pub struct GetUserBeatmapsets<'a> {
     fut: Option<Pending<'a, Vec<Beatmapset>>>,
     osu: &'a Osu,
-    user_id: Option<UserId>,
+    user_id: u32,
     map_type: Option<&'static str>,
     limit: Option<u32>,
     offset: Option<u32>,
@@ -78,11 +78,11 @@ pub struct GetUserBeatmapsets<'a> {
 
 impl<'a> GetUserBeatmapsets<'a> {
     #[inline]
-    pub(crate) fn new(osu: &'a Osu, user_id: impl Into<UserId>) -> Self {
+    pub(crate) fn new(osu: &'a Osu, user_id: u32) -> Self {
         Self {
             fut: None,
             osu,
-            user_id: Some(user_id.into()),
+            user_id,
             map_type: None,
             limit: None,
             offset: None,
@@ -169,7 +169,7 @@ impl<'a> GetUserBeatmapsets<'a> {
         let req = Request::from((
             query,
             Route::GetUserBeatmapsets {
-                user_id: self.user_id.take().unwrap(),
+                user_id: self.user_id,
                 map_type,
             },
         ));
@@ -186,18 +186,18 @@ poll_req!(GetUserBeatmapsets<'_> => OsuResult<Vec<Beatmapset>>);
 pub struct GetRecentEvents<'a> {
     fut: Option<Pending<'a, Vec<RecentEvent>>>,
     osu: &'a Osu,
-    user_id: Option<UserId>,
+    user_id: u32,
     limit: Option<u32>,
     offset: Option<u32>,
 }
 
 impl<'a> GetRecentEvents<'a> {
     #[inline]
-    pub(crate) fn new(osu: &'a Osu, user_id: impl Into<UserId>) -> Self {
+    pub(crate) fn new(osu: &'a Osu, user_id: u32) -> Self {
         Self {
             fut: None,
             osu,
-            user_id: Some(user_id.into()),
+            user_id,
             limit: None,
             offset: None,
         }
@@ -231,7 +231,7 @@ impl<'a> GetRecentEvents<'a> {
         let req = Request::from((
             query,
             Route::GetRecentEvents {
-                user_id: self.user_id.take().unwrap(),
+                user_id: self.user_id,
             },
         ));
 
@@ -245,18 +245,18 @@ poll_req!(GetRecentEvents<'_> => Vec<RecentEvent>);
 pub struct GetUserKudosu<'a> {
     fut: Option<Pending<'a, Vec<KudosuHistory>>>,
     osu: &'a Osu,
-    user_id: Option<UserId>,
+    user_id: u32,
     limit: Option<u32>,
     offset: Option<u32>,
 }
 
 impl<'a> GetUserKudosu<'a> {
     #[inline]
-    pub(crate) fn new(osu: &'a Osu, user_id: impl Into<UserId>) -> Self {
+    pub(crate) fn new(osu: &'a Osu, user_id: u32) -> Self {
         Self {
             fut: None,
             osu,
-            user_id: Some(user_id.into()),
+            user_id,
             limit: None,
             offset: None,
         }
@@ -290,7 +290,7 @@ impl<'a> GetUserKudosu<'a> {
         let req = Request::from((
             query,
             Route::GetUserKudosu {
-                user_id: self.user_id.take().unwrap(),
+                user_id: self.user_id,
             },
         ));
 
@@ -304,18 +304,18 @@ poll_req!(GetUserKudosu<'_> => Vec<KudosuHistory>);
 pub struct GetUserMostPlayed<'a> {
     fut: Option<Pending<'a, Vec<MostPlayedMap>>>,
     osu: &'a Osu,
-    user_id: Option<UserId>,
+    user_id: u32,
     limit: Option<u32>,
     offset: Option<u32>,
 }
 
 impl<'a> GetUserMostPlayed<'a> {
     #[inline]
-    pub(crate) fn new(osu: &'a Osu, user_id: impl Into<UserId>) -> Self {
+    pub(crate) fn new(osu: &'a Osu, user_id: u32) -> Self {
         Self {
             fut: None,
             osu,
-            user_id: Some(user_id.into()),
+            user_id,
             limit: None,
             offset: None,
         }
@@ -349,7 +349,7 @@ impl<'a> GetUserMostPlayed<'a> {
         let req = Request::from((
             query,
             Route::GetUserBeatmapsets {
-                user_id: self.user_id.take().unwrap(),
+                user_id: self.user_id,
                 map_type: "most_played",
             },
         ));
@@ -369,7 +369,7 @@ poll_req!(GetUserMostPlayed<'_> => Vec<MostPlayedMap>);
 pub struct GetUserScores<'a> {
     fut: Option<Pending<'a, Vec<Score>>>,
     osu: &'a Osu,
-    user_id: Option<UserId>,
+    user_id: u32,
     score_type: Option<&'static str>,
     limit: Option<u32>,
     offset: Option<u32>,
@@ -379,11 +379,11 @@ pub struct GetUserScores<'a> {
 
 impl<'a> GetUserScores<'a> {
     #[inline]
-    pub(crate) fn new(osu: &'a Osu, user_id: impl Into<UserId>) -> Self {
+    pub(crate) fn new(osu: &'a Osu, user_id: u32) -> Self {
         Self {
             fut: None,
             osu,
-            user_id: Some(user_id.into()),
+            user_id,
             score_type: None,
             limit: None,
             offset: None,
@@ -463,7 +463,7 @@ impl<'a> GetUserScores<'a> {
         let req = Request::from((
             query,
             Route::GetUserScores {
-                user_id: self.user_id.take().unwrap(),
+                user_id: self.user_id,
                 score_type,
             },
         ));

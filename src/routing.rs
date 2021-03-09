@@ -31,7 +31,7 @@ pub(crate) enum Route {
         ranking_type: &'static str,
     },
     GetRecentEvents {
-        user_id: UserId,
+        user_id: u32,
     },
     GetScore {
         room: u32,
@@ -49,7 +49,7 @@ pub(crate) enum Route {
         mode: Option<GameMode>,
     },
     GetUserBeatmapsets {
-        user_id: UserId,
+        user_id: u32,
         map_type: &'static str,
     },
     GetUserHighScore {
@@ -58,10 +58,10 @@ pub(crate) enum Route {
         user_id: u32,
     },
     GetUserKudosu {
-        user_id: UserId,
+        user_id: u32,
     },
     GetUserScores {
-        user_id: UserId,
+        user_id: u32,
         score_type: &'static str,
     },
     GetUsers,

@@ -183,11 +183,9 @@ impl<'a> GetSpotlights<'a> {
         Self { fut: None, osu }
     }
 
-    fn start(&mut self) -> OsuResult<()> {
+    fn start(&mut self) {
         let req = Request::from(Route::GetSpotlights);
         self.fut.replace(Box::pin(self.osu.inner.request(req)));
-
-        Ok(())
     }
 }
 
@@ -209,9 +207,9 @@ impl std::future::Future for GetSpotlights<'_> {
                     .as_mut()
                     .poll(cx)
                     .map_ok(|spotlights| spotlights.spotlights);
-            } else if let Err(why) = self.as_mut().start() {
-                return std::task::Poll::Ready(Err(why));
             }
+
+            self.as_mut().start();
         }
     }
 }

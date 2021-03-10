@@ -435,7 +435,7 @@ async fn users() {
     init().await;
 
     #[allow(deprecated)]
-    match osu().users([badewanne3(), sylas()].iter().copied()).await {
+    match osu().users(&[badewanne3(), sylas()]).await {
         Ok(users) => println!("Received {} users", users.len()),
         Err(why) => {
             unwind_error!(error, why, "Error while requesting users: {}");

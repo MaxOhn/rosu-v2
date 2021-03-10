@@ -13,7 +13,7 @@ pub(crate) enum Route {
     },
     GetBeatmapUserScore {
         map_id: u32,
-        user_id: UserId,
+        user_id: u32,
     },
     GetBeatmapsetEvents,
     GetComments,

@@ -50,11 +50,7 @@ impl Osu {
 
     /// Get a [`BeatmapUserScore`](crate::model::score::BeatmapUserScore).
     #[inline]
-    pub fn beatmap_user_score(
-        &self,
-        map_id: u32,
-        user_id: impl Into<UserId>,
-    ) -> GetBeatmapUserScore {
+    pub fn beatmap_user_score(&self, map_id: u32, user_id: u32) -> GetBeatmapUserScore {
         GetBeatmapUserScore::new(self, map_id, user_id)
     }
 
@@ -177,9 +173,7 @@ impl Osu {
     /// Get a vec of [`UserCompact`](crate::model::user::UserCompact).
     #[deprecated = "The API currently doesn't allow this endpoint for public use"]
     #[inline]
-    pub fn users<I: Into<UserId>>(&self, user_ids: impl Iterator<Item = I>) -> GetUsers {
-        let user_ids = user_ids.take(50).map(I::into).collect();
-
+    pub fn users(&self, user_ids: &[u32]) -> GetUsers {
         GetUsers::new(self, user_ids)
     }
 

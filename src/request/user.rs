@@ -518,31 +518,30 @@ poll_req!(GetUser<'_> => User);
 pub struct GetUsers<'a> {
     fut: Option<Pending<'a, Vec<UserCompact>>>,
     osu: &'a Osu,
-    user_ids: Option<Vec<UserId>>,
+    query: Option<Query>,
 }
 
 impl<'a> GetUsers<'a> {
     #[inline]
-    pub(crate) fn new(osu: &'a Osu, user_ids: Vec<UserId>) -> Self {
-        Self {
-            fut: None,
-            osu,
-            user_ids: Some(user_ids),
-        }
-    }
-
-    fn start(&mut self) {
+    pub(crate) fn new(osu: &'a Osu, user_ids: &[u32]) -> Self {
         let mut query = Query::new();
 
-        // * user_ids is capped to 50 elements in `Osu::users`
-        let user_ids = self.user_ids.take().unwrap();
-
         let iter = user_ids
-            .into_iter()
+            .iter()
+            .take(50)
             .map(|user_id| ("id[]", user_id.to_string()));
 
         query.extend(iter);
 
+        Self {
+            fut: None,
+            osu,
+            query: Some(query),
+        }
+    }
+
+    fn start(&mut self) {
+        let query = self.query.take().unwrap();
         let req = Request::from((query, Route::GetUsers));
         self.fut.replace(Box::pin(self.osu.inner.request(req)));
     }

@@ -4,7 +4,7 @@ use crate::{
         score::{BeatmapScores, BeatmapUserScore},
         GameMode, GameMods,
     },
-    request::{Pending, Query, Request, UserId},
+    request::{Pending, Query, Request},
     routing::Route,
     Osu,
 };
@@ -165,7 +165,7 @@ pub struct GetBeatmapUserScore<'a> {
     fut: Option<Pending<'a, BeatmapUserScore>>,
     osu: &'a Osu,
     map_id: u32,
-    user_id: Option<UserId>,
+    user_id: u32,
     mode: Option<GameMode>,
     mods: Option<GameMods>,
     // TODO: limit & offset?
@@ -173,12 +173,12 @@ pub struct GetBeatmapUserScore<'a> {
 
 impl<'a> GetBeatmapUserScore<'a> {
     #[inline]
-    pub(crate) fn new(osu: &'a Osu, map_id: u32, user_id: impl Into<UserId>) -> Self {
+    pub(crate) fn new(osu: &'a Osu, map_id: u32, user_id: u32) -> Self {
         Self {
             fut: None,
             osu,
             map_id,
-            user_id: Some(user_id.into()),
+            user_id,
             mode: None,
             mods: None,
         }
@@ -213,7 +213,7 @@ impl<'a> GetBeatmapUserScore<'a> {
             query,
             Route::GetBeatmapUserScore {
                 map_id: self.map_id,
-                user_id: self.user_id.take().unwrap(),
+                user_id: self.user_id,
             },
         ));
 

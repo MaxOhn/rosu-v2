@@ -275,9 +275,10 @@ impl MatchGame {
     /// Get the user id of the user that performed the best this game.
     pub fn mvp_user_id(&self) -> Option<u32> {
         match self.scoring_type {
-            ScoringType::Accuracy => mvp_fold!(self => accuracy),
-            ScoringType::Combo => mvp_fold!(self => max_combo),
             ScoringType::Score | ScoringType::ScoreV2 => mvp_fold!(self => score),
+            ScoringType::Accuracy => mvp_fold!(self => accuracy),
+            // ! BUG: Winning condition is the combo at the end, not max combo
+            ScoringType::Combo => mvp_fold!(self => max_combo),
         }
     }
 }
@@ -289,7 +290,7 @@ pub struct MatchGameIter<'m> {
 
 impl<'m> MatchGameIter<'m> {
     #[inline]
-    pub fn new(iter: Iter<'m, MatchEvent>) -> Self {
+    fn new(iter: Iter<'m, MatchEvent>) -> Self {
         Self { iter }
     }
 }
@@ -517,6 +518,20 @@ impl OsuMatch {
         }
 
         games
+    }
+
+    /// Get the [`OsuMatch`] containing only data __after__ the currently last event.
+    ///
+    /// If the currently last event is an in-progress game, then it will be included
+    /// in the next [`OsuMatch`]. In all other cases, only new events will be contained.
+    ///
+    /// Convenient to display a "live" update of the match, e.g. the way an mp link
+    /// pulls the next result every 10 seconds.
+    pub async fn get_next(&self, osu: &Osu) -> OsuResult<OsuMatch> {
+        let sub = matches!(self.events.last(), Some(MatchEvent::Game { game, .. }) if game.end_time.is_none());
+        let last_id = self.latest_event_id - sub as u64;
+
+        osu.osu_match(self.match_id).after(last_id).limit(100).await
     }
 }
 

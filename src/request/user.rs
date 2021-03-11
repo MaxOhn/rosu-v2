@@ -18,6 +18,10 @@ use std::fmt;
 #[cfg(feature = "cache")]
 use futures::future::TryFutureExt;
 
+/// Either a user id as u32 or a username as String.
+///
+/// Since usernames will be stored as `String`, if possible,
+/// make use of `From<String>` instead of `From<&String>`.
 #[derive(Debug)]
 pub enum UserId {
     Id(u32),

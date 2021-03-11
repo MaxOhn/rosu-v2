@@ -259,7 +259,7 @@ pub struct User {
         default,
         deserialize_with = "rank_history_vec",
         skip_serializing_if = "Option::is_none"
-    )] // TODO: Test serializing
+    )]
     pub rank_history: Option<Vec<u32>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ranked_and_approved_beatmapset_count: Option<u32>,
@@ -353,6 +353,8 @@ pub struct UserCompact {
     pub is_silenced: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub loved_beatmapset_count: Option<u32>,
+    #[serde(rename = "user_achievements")]
+    pub medals: Option<Vec<MedalCompact>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub monthly_playcounts: Option<Vec<MonthlyCount>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -383,8 +385,6 @@ pub struct UserCompact {
     pub unranked_beatmapset_count: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub unread_pm_count: Option<u32>,
-    // #[serde(rename = "user_achievements")]
-    // pub medals: Option<Vec<MedalCompact>>, // TODO
     // user_preferences: Option<>,
 }
 

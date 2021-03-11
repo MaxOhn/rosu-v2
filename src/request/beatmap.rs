@@ -166,7 +166,6 @@ impl<'a> GetBeatmapScores<'a> {
 
 poll_req!(GetBeatmapScores<'_> => BeatmapScores);
 
-// TODO: limit & offset?
 /// Get scores of a user on a beatmap by the user's and the map's id.
 pub struct GetBeatmapUserScore<'a> {
     fut: Option<Pending<'a, BeatmapUserScore>>,

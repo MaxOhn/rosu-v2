@@ -621,6 +621,10 @@ fn get_user_compact() -> UserCompact {
         is_restricted: Some(false),
         is_silenced: Some(false),
         loved_beatmapset_count: Some(34),
+        medals: Some(vec![MedalCompact {
+            achieved_at: get_date(),
+            medal_id: 1,
+        }]),
         monthly_playcounts: Some(vec![MonthlyCount {
             start_date: Utc.ymd(2017, 01, 01),
             count: 42,

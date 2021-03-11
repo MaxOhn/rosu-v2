@@ -110,14 +110,19 @@ impl Osu {
     /// TODO: Documentation
     #[deprecated = "The API currently doesn't allow this endpoint for public use"]
     #[inline]
-    pub fn multiplayer_score(&self, room: u32, playlist: u32, score_id: u32) -> GetScore {
-        GetScore::new(self, room, playlist, score_id)
+    pub fn multiplayer_score(
+        &self,
+        room: u32,
+        playlist: u32,
+        score_id: u32,
+    ) -> GetMultiplayerScore {
+        GetMultiplayerScore::new(self, room, playlist, score_id)
     }
 
     /// TODO: Documentation
     #[inline]
-    pub fn multiplayer_scores(&self, room: u32, playlist: u32) -> GetScores {
-        GetScores::new(self, room, playlist)
+    pub fn multiplayer_scores(&self, room: u32, playlist: u32) -> GetMultiplayerScores {
+        GetMultiplayerScores::new(self, room, playlist)
     }
 
     /// TODO: Documentation
@@ -128,8 +133,8 @@ impl Osu {
         room: u32,
         playlist: u32,
         user_id: u32,
-    ) -> GetUserHighScore {
-        GetUserHighScore::new(self, room, playlist, user_id)
+    ) -> GetMultiplayerUserHighScore {
+        GetMultiplayerUserHighScore::new(self, room, playlist, user_id)
     }
 
     /// Get [`News`](crate::model::news::News).

@@ -23,6 +23,20 @@ pub(crate) enum Route {
     GetMatch {
         match_id: Option<u32>,
     },
+    GetMultiplayerScore {
+        room: u32,
+        playlist: u32,
+        score_id: u32,
+    },
+    GetMultiplayerScores {
+        room: u32,
+        playlist: u32,
+    },
+    GetMultiplayerUserHighScore {
+        room: u32,
+        playlist: u32,
+        user_id: u32,
+    },
     GetNews {
         news: Option<()>,
     },
@@ -33,15 +47,6 @@ pub(crate) enum Route {
     GetRecentEvents {
         user_id: u32,
     },
-    GetScore {
-        room: u32,
-        playlist: u32,
-        score_id: u32,
-    },
-    GetScores {
-        room: u32,
-        playlist: u32,
-    },
     GetSeasonalBackgrounds,
     GetSpotlights,
     GetUser {
@@ -51,11 +56,6 @@ pub(crate) enum Route {
     GetUserBeatmapsets {
         user_id: u32,
         map_type: &'static str,
-    },
-    GetUserHighScore {
-        room: u32,
-        playlist: u32,
-        user_id: u32,
     },
     GetUserKudosu {
         user_id: u32,
@@ -96,6 +96,30 @@ impl Route {
 
                 (Method::GET, path)
             }
+            Self::GetMultiplayerScore {
+                room,
+                playlist,
+                score_id,
+            } => (
+                Method::GET,
+                format!("rooms/{}/playlist/{}/scores/{}", room, playlist, score_id).into(),
+            ),
+            Self::GetMultiplayerScores { room, playlist } => (
+                Method::GET,
+                format!("rooms/{}/playlist/{}/scores", room, playlist).into(),
+            ),
+            Self::GetMultiplayerUserHighScore {
+                room,
+                playlist,
+                user_id,
+            } => {
+                let path = format!(
+                    "rooms/{}/playlist/{}/scores/users/{}",
+                    room, playlist, user_id
+                );
+
+                (Method::GET, path.into())
+            }
             Self::GetNews { news } => {
                 let path = match news {
                     Some(_news) => unimplemented!(),
@@ -112,18 +136,6 @@ impl Route {
                 Method::GET,
                 format!("users/{}/recent_activity", user_id).into(),
             ),
-            Self::GetScore {
-                room,
-                playlist,
-                score_id,
-            } => (
-                Method::GET,
-                format!("rooms/{}/playlist/{}/scores/{}", room, playlist, score_id).into(),
-            ),
-            Self::GetScores { room, playlist } => (
-                Method::GET,
-                format!("rooms/{}/playlist/{}/scores", room, playlist).into(),
-            ),
             Self::GetSeasonalBackgrounds => (Method::GET, "seasonal-backgrounds".into()),
             Self::GetSpotlights => (Method::GET, "spotlights".into()),
             Self::GetUser { user_id, mode } => {
@@ -139,18 +151,6 @@ impl Route {
                 Method::GET,
                 format!("users/{}/beatmapsets/{}", user_id, map_type).into(),
             ),
-            Self::GetUserHighScore {
-                room,
-                playlist,
-                user_id,
-            } => {
-                let path = format!(
-                    "rooms/{}/playlist/{}/scores/users/{}",
-                    room, playlist, user_id
-                );
-
-                (Method::GET, path.into())
-            }
             Self::GetUserKudosu { user_id } => {
                 (Method::GET, format!("users/{}/kudosu", user_id).into())
             }

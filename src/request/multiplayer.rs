@@ -5,41 +5,7 @@ use crate::{
 };
 
 /// TODO: Documentation
-pub struct GetUserHighScore<'a> {
-    fut: Option<Pending<'a, u32>>, // TODO
-    osu: &'a Osu,
-    room: u32,
-    playlist: u32,
-    user_id: u32,
-}
-
-impl<'a> GetUserHighScore<'a> {
-    #[inline]
-    pub(crate) fn new(osu: &'a Osu, room: u32, playlist: u32, user_id: u32) -> Self {
-        Self {
-            fut: None,
-            osu,
-            room,
-            playlist,
-            user_id,
-        }
-    }
-
-    fn start(&mut self) {
-        let req = Request::from(Route::GetUserHighScore {
-            room: self.room,
-            playlist: self.playlist,
-            user_id: self.user_id,
-        });
-
-        self.fut.replace(Box::pin(self.osu.inner.request(req)));
-    }
-}
-
-poll_req!(GetUserHighScore<'_> => u32); // TODO
-
-/// TODO: Documentation
-pub struct GetScore<'a> {
+pub struct GetMultiplayerScore<'a> {
     fut: Option<Pending<'a, u32>>, // TODO
     osu: &'a Osu,
     room: u32,
@@ -47,7 +13,7 @@ pub struct GetScore<'a> {
     score_id: u32,
 }
 
-impl<'a> GetScore<'a> {
+impl<'a> GetMultiplayerScore<'a> {
     #[inline]
     pub(crate) fn new(osu: &'a Osu, room: u32, playlist: u32, score_id: u32) -> Self {
         Self {
@@ -60,7 +26,7 @@ impl<'a> GetScore<'a> {
     }
 
     fn start(&mut self) {
-        let req = Request::from(Route::GetScore {
+        let req = Request::from(Route::GetMultiplayerScore {
             room: self.room,
             playlist: self.playlist,
             score_id: self.score_id,
@@ -70,10 +36,10 @@ impl<'a> GetScore<'a> {
     }
 }
 
-poll_req!(GetScore<'_> => u32); // TODO
+poll_req!(GetMultiplayerScore<'_> => u32); // TODO
 
 /// TODO: Documentation
-pub struct GetScores<'a> {
+pub struct GetMultiplayerScores<'a> {
     fut: Option<Pending<'a, u32>>, // TODO
     osu: &'a Osu,
     room: u32,
@@ -83,7 +49,7 @@ pub struct GetScores<'a> {
     cursor: Option<()>, // TODO
 }
 
-impl<'a> GetScores<'a> {
+impl<'a> GetMultiplayerScores<'a> {
     #[inline]
     pub(crate) fn new(osu: &'a Osu, room: u32, playlist: u32) -> Self {
         Self {
@@ -128,7 +94,7 @@ impl<'a> GetScores<'a> {
 
         let req = Request::from((
             query,
-            Route::GetScores {
+            Route::GetMultiplayerScores {
                 room: self.room,
                 playlist: self.playlist,
             },
@@ -138,4 +104,38 @@ impl<'a> GetScores<'a> {
     }
 }
 
-poll_req!(GetScores<'_> => u32); // TODO
+poll_req!(GetMultiplayerScores<'_> => u32); // TODO
+
+/// TODO: Documentation
+pub struct GetMultiplayerUserHighScore<'a> {
+    fut: Option<Pending<'a, u32>>, // TODO
+    osu: &'a Osu,
+    room: u32,
+    playlist: u32,
+    user_id: u32,
+}
+
+impl<'a> GetMultiplayerUserHighScore<'a> {
+    #[inline]
+    pub(crate) fn new(osu: &'a Osu, room: u32, playlist: u32, user_id: u32) -> Self {
+        Self {
+            fut: None,
+            osu,
+            room,
+            playlist,
+            user_id,
+        }
+    }
+
+    fn start(&mut self) {
+        let req = Request::from(Route::GetMultiplayerUserHighScore {
+            room: self.room,
+            playlist: self.playlist,
+            user_id: self.user_id,
+        });
+
+        self.fut.replace(Box::pin(self.osu.inner.request(req)));
+    }
+}
+
+poll_req!(GetMultiplayerUserHighScore<'_> => u32); // TODO

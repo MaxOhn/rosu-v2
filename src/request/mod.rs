@@ -55,7 +55,7 @@ pub use beatmap::{GetBeatmap, GetBeatmapScores, GetBeatmapUserScore, GetBeatmaps
 pub use comments::GetComments;
 pub use forum::GetForumPosts;
 pub use matches::{GetMatch, GetMatches};
-pub use multiplayer::{GetScore, GetScores, GetUserHighScore};
+pub use multiplayer::{GetMultiplayerScore, GetMultiplayerScores, GetMultiplayerUserHighScore};
 pub use news::GetNews;
 pub use ranking::{GetRankings, GetSpotlights};
 pub use user::{

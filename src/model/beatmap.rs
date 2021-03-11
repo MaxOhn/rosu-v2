@@ -3,7 +3,7 @@ use crate::{request::GetUser, Osu};
 
 use chrono::{DateTime, Utc};
 use serde::{
-    de::{Deserializer, Error, IgnoredAny, MapAccess, Visitor},
+    de::{Deserializer, Error, IgnoredAny, MapAccess, SeqAccess, Visitor},
     Deserialize, Serialize,
 };
 use std::fmt;
@@ -448,14 +448,67 @@ pub struct BeatmapsetVote {
     pub score: u32,
 }
 
-// TODO: Allocate with capacity
-// TODO: Make these [u32; 100], serde currently only goes up to 32
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct FailTimes {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(
+        default,
+        deserialize_with = "use_vec_option_visitor",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub exit: Option<Vec<u32>>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(
+        default,
+        deserialize_with = "use_vec_option_visitor",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub fail: Option<Vec<u32>>,
+}
+
+fn use_vec_option_visitor<'de, D: Deserializer<'de>>(d: D) -> Result<Option<Vec<u32>>, D::Error> {
+    d.deserialize_option(VecOptionVisitor)
+}
+
+struct VecOptionVisitor;
+
+impl<'de> Visitor<'de> for VecOptionVisitor {
+    type Value = Option<Vec<u32>>;
+
+    fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "null or a sequence of u32")
+    }
+
+    fn visit_some<D: Deserializer<'de>>(self, d: D) -> Result<Self::Value, D::Error> {
+        d.deserialize_seq(HundredU32Visitor::new()).map(Some)
+    }
+
+    fn visit_none<E>(self) -> Result<Self::Value, E> {
+        Ok(None)
+    }
+}
+
+struct HundredU32Visitor(Vec<u32>);
+
+impl HundredU32Visitor {
+    #[inline]
+    fn new() -> Self {
+        Self(Vec::with_capacity(100))
+    }
+}
+
+impl<'de> Visitor<'de> for HundredU32Visitor {
+    type Value = Vec<u32>;
+
+    fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "a sequence of u32")
+    }
+
+    fn visit_seq<A: SeqAccess<'de>>(mut self, mut seq: A) -> Result<Self::Value, A::Error> {
+        while let Some(n) = seq.next_element()? {
+            self.0.push(n);
+        }
+
+        Ok(self.0)
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]

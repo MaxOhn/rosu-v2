@@ -9,6 +9,12 @@ use crate::{
     Osu,
 };
 
+#[cfg(feature = "cache")]
+use super::UserId;
+
+#[cfg(feature = "cache")]
+use futures::future::TryFutureExt;
+
 /// Get a [`Beatmap`](crate::model::beatmap::Beatmap).
 pub struct GetBeatmap<'a> {
     fut: Option<Pending<'a, Beatmap>>,
@@ -160,18 +166,24 @@ impl<'a> GetBeatmapScores<'a> {
 
 poll_req!(GetBeatmapScores<'_> => BeatmapScores);
 
+// TODO: limit & offset?
 /// Get scores of a user on a beatmap by the user's and the map's id.
 pub struct GetBeatmapUserScore<'a> {
     fut: Option<Pending<'a, BeatmapUserScore>>,
     osu: &'a Osu,
     map_id: u32,
-    user_id: u32,
     mode: Option<GameMode>,
     mods: Option<GameMods>,
-    // TODO: limit & offset?
+
+    #[cfg(not(feature = "cache"))]
+    user_id: u32,
+
+    #[cfg(feature = "cache")]
+    user_id: Option<UserId>,
 }
 
 impl<'a> GetBeatmapUserScore<'a> {
+    #[cfg(not(feature = "cache"))]
     #[inline]
     pub(crate) fn new(osu: &'a Osu, map_id: u32, user_id: u32) -> Self {
         Self {
@@ -179,6 +191,19 @@ impl<'a> GetBeatmapUserScore<'a> {
             osu,
             map_id,
             user_id,
+            mode: None,
+            mods: None,
+        }
+    }
+
+    #[cfg(feature = "cache")]
+    #[inline]
+    pub(crate) fn new(osu: &'a Osu, map_id: u32, user_id: UserId) -> Self {
+        Self {
+            fut: None,
+            osu,
+            map_id,
+            user_id: Some(user_id),
             mode: None,
             mods: None,
         }
@@ -209,15 +234,34 @@ impl<'a> GetBeatmapUserScore<'a> {
             // TODO
         }
 
-        let req = Request::from((
-            query,
-            Route::GetBeatmapUserScore {
-                map_id: self.map_id,
-                user_id: self.user_id,
-            },
-        ));
+        #[cfg(not(feature = "cache"))]
+        {
+            let req = Request::from((
+                query,
+                Route::GetBeatmapUserScore {
+                    user_id: self.user_id,
+                    map_id: self.map_id,
+                },
+            ));
 
-        self.fut.replace(Box::pin(self.osu.inner.request(req)));
+            self.fut.replace(Box::pin(self.osu.inner.request(req)));
+        }
+
+        #[cfg(feature = "cache")]
+        {
+            let map_id = self.map_id;
+            let osu = &self.osu.inner;
+
+            let fut = self
+                .osu
+                .cache_user(self.user_id.take().unwrap())
+                .map_ok(move |user_id| {
+                    Request::from((query, Route::GetBeatmapUserScore { user_id, map_id }))
+                })
+                .and_then(move |req| osu.request(req));
+
+            self.fut.replace(Box::pin(fut));
+        }
     }
 }
 

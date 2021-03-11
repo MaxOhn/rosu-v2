@@ -70,7 +70,7 @@ use reqwest::Method;
 use serde::ser::{Serialize, SerializeSeq, Serializer};
 use std::{borrow::Cow, future::Future, iter::Extend, pin::Pin, vec::IntoIter};
 
-type Pending<'a, T> = Pin<Box<dyn Future<Output = OsuResult<T>> + Send + 'a>>;
+type Pending<'a, T> = Pin<Box<dyn Future<Output = OsuResult<T>> + 'a>>;
 
 #[derive(Debug, Default)]
 pub(crate) struct Query(Vec<(&'static str, Cow<'static, str>)>);

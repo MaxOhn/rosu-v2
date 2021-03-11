@@ -10,12 +10,17 @@ use serde::{de::DeserializeOwned, Deserialize};
 use std::{ops::Drop, sync::Arc};
 use tokio::sync::{oneshot::Sender, RwLock};
 
+#[cfg(feature = "cache")]
+use dashmap::DashMap;
+
 /// The main osu client.
 /// Cheap to clone.
 ///
 /// Must be constructed through [`OsuBuilder`](crate::OsuBuilder).
 pub struct Osu {
     pub(crate) inner: Arc<OsuRef>,
+    #[cfg(feature = "cache")]
+    pub(crate) cache: DashMap<String, u32>,
 }
 
 impl Osu {
@@ -49,9 +54,21 @@ impl Osu {
     }
 
     /// Get a [`BeatmapUserScore`](crate::model::score::BeatmapUserScore).
+    #[cfg(not(feature = "cache"))]
     #[inline]
     pub fn beatmap_user_score(&self, map_id: u32, user_id: u32) -> GetBeatmapUserScore {
         GetBeatmapUserScore::new(self, map_id, user_id)
+    }
+
+    /// Get a [`BeatmapUserScore`](crate::model::score::BeatmapUserScore).
+    #[cfg(feature = "cache")]
+    #[inline]
+    pub fn beatmap_user_score(
+        &self,
+        map_id: u32,
+        user_id: impl Into<UserId>,
+    ) -> GetBeatmapUserScore {
+        GetBeatmapUserScore::new(self, map_id, user_id.into())
     }
 
     /// Get a [`BeatmapsetEvents`](crate::model::beatmap::BeatmapsetEvents)
@@ -76,9 +93,18 @@ impl Osu {
 
     /// Get the kudosu history of a user in form of a vec of
     /// [`KudosuHistory`](crate::model::kudosu::KudosuHistory).
+    #[cfg(not(feature = "cache"))]
     #[inline]
     pub fn kudosu(&self, user_id: u32) -> GetUserKudosu {
         GetUserKudosu::new(self, user_id)
+    }
+
+    /// Get the kudosu history of a user in form of a vec of
+    /// [`KudosuHistory`](crate::model::kudosu::KudosuHistory).
+    #[cfg(feature = "cache")]
+    #[inline]
+    pub fn kudosu(&self, user_id: impl Into<UserId>) -> GetUserKudosu {
+        GetUserKudosu::new(self, user_id.into())
     }
 
     /// TODO: Documentation
@@ -134,9 +160,18 @@ impl Osu {
 
     /// Get the recent activity of a user in form of a vec of
     /// [`RecentEvent`](crate::model::recent_event::RecentEvent)s.
+    #[cfg(not(feature = "cache"))]
     #[inline]
     pub fn recent_events(&self, user_id: u32) -> GetRecentEvents {
         GetRecentEvents::new(self, user_id)
+    }
+
+    /// Get the recent activity of a user in form of a vec of
+    /// [`RecentEvent`](crate::model::recent_event::RecentEvent)s.
+    #[cfg(feature = "cache")]
+    #[inline]
+    pub fn recent_events(&self, user_id: impl Into<UserId>) -> GetRecentEvents {
+        GetRecentEvents::new(self, user_id.into())
     }
 
     /// Get the vec of [`Spotlight`](crate::model::ranking::Spotlight).
@@ -152,22 +187,47 @@ impl Osu {
     }
 
     /// Get a vec of [`Beatmapset`](crate::model::beatmap::Beatmapset)s a user made.
+    #[cfg(not(feature = "cache"))]
     #[inline]
     pub fn user_beatmapsets(&self, user_id: u32) -> GetUserBeatmapsets {
         GetUserBeatmapsets::new(self, user_id)
     }
 
+    /// Get a vec of [`Beatmapset`](crate::model::beatmap::Beatmapset)s a user made.
+    #[cfg(feature = "cache")]
+    #[inline]
+    pub fn user_beatmapsets(&self, user_id: impl Into<UserId>) -> GetUserBeatmapsets {
+        GetUserBeatmapsets::new(self, user_id.into())
+    }
+
     /// Get a vec of a user's [`MostPlayedMap`](crate::model::beatmap::MostPlayedMap)s.
+    #[cfg(not(feature = "cache"))]
     #[inline]
     pub fn user_most_played(&self, user_id: u32) -> GetUserMostPlayed {
         GetUserMostPlayed::new(self, user_id)
     }
 
+    /// Get a vec of a user's [`MostPlayedMap`](crate::model::beatmap::MostPlayedMap)s.
+    #[cfg(feature = "cache")]
+    #[inline]
+    pub fn user_most_played(&self, user_id: impl Into<UserId>) -> GetUserMostPlayed {
+        GetUserMostPlayed::new(self, user_id.into())
+    }
+
     /// Get either top, global firsts, or recent scores of a user,
     /// i.e. a vec of [`Score`](crate::model::score::Score).
+    #[cfg(not(feature = "cache"))]
     #[inline]
     pub fn user_scores(&self, user_id: u32) -> GetUserScores {
         GetUserScores::new(self, user_id)
+    }
+
+    /// Get either top, global firsts, or recent scores of a user,
+    /// i.e. a vec of [`Score`](crate::model::score::Score).
+    #[cfg(feature = "cache")]
+    #[inline]
+    pub fn user_scores(&self, user_id: impl Into<UserId>) -> GetUserScores {
+        GetUserScores::new(self, user_id.into())
     }
 
     /// Get a vec of [`UserCompact`](crate::model::user::UserCompact).
@@ -183,6 +243,27 @@ impl Osu {
     #[inline]
     pub fn wiki(&self, locale: impl Into<String>) -> GetWikiPage {
         GetWikiPage::new(self, locale)
+    }
+
+    #[cfg(feature = "cache")]
+    pub(crate) async fn cache_user(&self, user_id: UserId) -> OsuResult<u32> {
+        match user_id {
+            UserId::Id(id) => Ok(id),
+            UserId::Name(mut name) => {
+                name.make_ascii_lowercase();
+
+                if let Some(id) = self.cache.get(&name) {
+                    debug!("Found user `{}` in cache", name);
+
+                    return Ok(*id.value());
+                }
+
+                let user = self.user(UserId::Name(name.clone())).await?;
+                self.cache.insert(name, user.user_id);
+
+                Ok(user.user_id)
+            }
+        }
     }
 }
 

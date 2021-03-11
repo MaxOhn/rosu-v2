@@ -10,6 +10,10 @@ keywords      = ["osu", "api", "wrapper"]
 repository    = "https://github.com/MaxOhn/rosu-v2"
 documentation = "https://docs.rs/rosu-v2/"
 
+[features]
+default = ["cache"]
+cache = ["dashmap", "futures"]
+
 [dependencies.bitflags]
 version = "1.2"
 
@@ -21,6 +25,16 @@ default-features = false
 version = "0.4"
 default-features = false
 features = ["serde"]
+
+[dependencies.dashmap]
+version = "4.0"
+default-features = false
+optional = true
+
+[dependencies.futures]
+version = "0.3"
+default-features = false
+optional = true
 
 [dependencies.log]
 version = "0.4"
@@ -40,7 +54,6 @@ version = "1.0"
 [dependencies.tokio]
 version = "1.2"
 default-features = false
-features = ["rt", "macros"]
 
 [dev-dependencies.dotenv]
 version = "0.15"
@@ -50,3 +63,8 @@ version = "0.8"
 
 [dev-dependencies.once_cell]
 version = "1.7"
+
+[dev-dependencies.tokio]
+version = "1.2"
+default-features = false
+features = ["rt", "macros"]

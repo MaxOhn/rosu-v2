@@ -11,6 +11,9 @@ use tokio::{
     time::{sleep, Duration},
 };
 
+#[cfg(feature = "cache")]
+use dashmap::DashMap;
+
 /// Builder struct for an [`Osu`](crate::Osu) client.
 ///
 /// `client_id` as well as `client_secret` **must** be specified before building.
@@ -149,7 +152,12 @@ impl OsuBuilder {
             }
         });
 
-        Ok(Osu { inner })
+        Ok(Osu {
+            inner,
+
+            #[cfg(feature = "cache")]
+            cache: DashMap::new(),
+        })
     }
 
     /// Set the client id of the application.

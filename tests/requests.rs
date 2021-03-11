@@ -116,11 +116,12 @@ async fn beatmap_scores() {
     }
 }
 
+#[cfg(feature = "cache")]
 #[tokio::test]
 async fn beatmap_user_score() {
     init().await;
 
-    match osu().beatmap_user_score(adesso_balla(), badewanne3()).await {
+    match osu().beatmap_user_score(adesso_balla(), "baDeWanNe3").await {
         Ok(score) => println!(
             "Received score, pos={} | mods={}",
             score.pos, score.score.mods,
@@ -183,11 +184,12 @@ async fn forum_posts() {
     }
 }
 
+#[cfg(feature = "cache")]
 #[tokio::test]
 async fn recent_events() {
     init().await;
 
-    match osu().recent_events(badewanne3()).limit(10).offset(2).await {
+    match osu().recent_events("badewanne3").limit(10).offset(2).await {
         Ok(events) => println!("Received {} events", events.len()),
         Err(why) => {
             unwind_error!(error, why, "Error while requesting recent events: {}");
@@ -208,38 +210,6 @@ async fn kudosu() {
         }
         Err(why) => {
             unwind_error!(error, why, "Error while requesting kudosu: {}");
-            panic!()
-        }
-    }
-}
-
-#[tokio::test]
-async fn osu_match() {
-    init().await;
-
-    match osu().osu_match(de_vs_ca()).await {
-        Ok(osu_match) => {
-            println!(
-                "Received match, got {} events and {} users",
-                osu_match.events.len(),
-                osu_match.users.len()
-            );
-        }
-        Err(why) => {
-            unwind_error!(error, why, "Error while requesting match: {}");
-            panic!()
-        }
-    }
-}
-
-#[tokio::test]
-async fn osu_matches() {
-    init().await;
-
-    match osu().osu_matches().await {
-        Ok(osu_matches) => println!("Received {} matches", osu_matches.matches.len()),
-        Err(why) => {
-            unwind_error!(error, why, "Error while requesting matches: {}");
             panic!()
         }
     }
@@ -295,6 +265,38 @@ async fn news() {
         Ok(news) => println!("Received news, got {} posts", news.posts.len()),
         Err(why) => {
             unwind_error!(error, why, "Error while requesting news: {}");
+            panic!()
+        }
+    }
+}
+
+#[tokio::test]
+async fn osu_match() {
+    init().await;
+
+    match osu().osu_match(de_vs_ca()).await {
+        Ok(osu_match) => {
+            println!(
+                "Received match, got {} events and {} users",
+                osu_match.events.len(),
+                osu_match.users.len()
+            );
+        }
+        Err(why) => {
+            unwind_error!(error, why, "Error while requesting match: {}");
+            panic!()
+        }
+    }
+}
+
+#[tokio::test]
+async fn osu_matches() {
+    init().await;
+
+    match osu().osu_matches().await {
+        Ok(osu_matches) => println!("Received {} matches", osu_matches.matches.len()),
+        Err(why) => {
+            unwind_error!(error, why, "Error while requesting matches: {}");
             panic!()
         }
     }
@@ -405,12 +407,13 @@ async fn user_most_played() {
     }
 }
 
+#[cfg(feature = "cache")]
 #[tokio::test]
 async fn user_scores() {
     init().await;
 
     match osu()
-        .user_scores(badewanne3())
+        .user_scores("Badewanne3")
         .mode(GameMode::CTB)
         .limit(10)
         .offset(1)
@@ -418,7 +421,7 @@ async fn user_scores() {
         .await
     {
         Ok(scores) => {
-            let pp = scores[1].pp.expect("got fewer than two scores");
+            let pp = scores[1].pp.expect("Got fewer than two scores");
 
             println!("Received {} scores, the second has {}pp", scores.len(), pp);
         }

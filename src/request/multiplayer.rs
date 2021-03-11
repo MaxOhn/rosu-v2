@@ -25,14 +25,14 @@ impl<'a> GetMultiplayerScore<'a> {
         }
     }
 
-    fn start(&mut self) {
+    fn start(&mut self) -> Pending<'a, u32> {
         let req = Request::from(Route::GetMultiplayerScore {
             room: self.room,
             playlist: self.playlist,
             score_id: self.score_id,
         });
 
-        self.fut.replace(Box::pin(self.osu.inner.request(req)));
+        Box::pin(self.osu.inner.request(req))
     }
 }
 
@@ -77,7 +77,7 @@ impl<'a> GetMultiplayerScores<'a> {
         self
     }
 
-    fn start(&mut self) {
+    fn start(&mut self) -> Pending<'a, u32> {
         let mut query = Query::new();
 
         if let Some(limit) = self.limit {
@@ -100,7 +100,7 @@ impl<'a> GetMultiplayerScores<'a> {
             },
         ));
 
-        self.fut.replace(Box::pin(self.osu.inner.request(req)));
+        Box::pin(self.osu.inner.request(req))
     }
 }
 
@@ -127,14 +127,14 @@ impl<'a> GetMultiplayerUserHighScore<'a> {
         }
     }
 
-    fn start(&mut self) {
+    fn start(&mut self) -> Pending<'a, u32> {
         let req = Request::from(Route::GetMultiplayerUserHighScore {
             room: self.room,
             playlist: self.playlist,
             user_id: self.user_id,
         });
 
-        self.fut.replace(Box::pin(self.osu.inner.request(req)));
+        Box::pin(self.osu.inner.request(req))
     }
 }
 

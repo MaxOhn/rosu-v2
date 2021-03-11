@@ -31,13 +31,13 @@ impl<'a> GetWikiPage<'a> {
         self
     }
 
-    fn start(&mut self) {
+    fn start(&mut self) -> Pending<'a, WikiPage> {
         let req = Request::from(Route::GetWikiPage {
             locale: self.locale.take().unwrap(),
             page: self.page.take(),
         });
 
-        self.fut.replace(Box::pin(self.osu.inner.request(req)));
+        Box::pin(self.osu.inner.request(req))
     }
 }
 

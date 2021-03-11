@@ -81,7 +81,7 @@ impl<'a> GetForumPosts<'a> {
         self
     }
 
-    fn start(&mut self) {
+    fn start(&mut self) -> Pending<'a, ForumPosts> {
         let mut query = Query::new();
 
         if let Some(sort) = self.sort {
@@ -111,7 +111,7 @@ impl<'a> GetForumPosts<'a> {
             },
         ));
 
-        self.fut.replace(Box::pin(self.osu.inner.request(req)));
+        Box::pin(self.osu.inner.request(req))
     }
 }
 

@@ -127,7 +127,7 @@ impl<'a> GetRankings<'a> {
         self
     }
 
-    fn start(&mut self) -> OsuResult<()> {
+    fn start(&mut self) -> OsuResult<Pending<'a, Rankings>> {
         let ranking_type = self.ranking_type.ok_or(OsuError::MissingParameter {
             param: "ranking type",
         })?;
@@ -162,9 +162,7 @@ impl<'a> GetRankings<'a> {
             },
         ));
 
-        self.fut.replace(Box::pin(self.osu.inner.request(req)));
-
-        Ok(())
+        Ok(Box::pin(self.osu.inner.request(req)))
     }
 }
 

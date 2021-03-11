@@ -38,7 +38,7 @@ impl<'a> GetNews<'a> {
         self
     }
 
-    fn start(&mut self) {
+    fn start(&mut self) -> Pending<'a, News> {
         let mut query = Query::new();
 
         if let Some(cursor) = self.cursor {
@@ -48,7 +48,7 @@ impl<'a> GetNews<'a> {
 
         let req = Request::from((query, Route::GetNews { news: self.news }));
 
-        self.fut.replace(Box::pin(self.osu.inner.request(req)));
+        Box::pin(self.osu.inner.request(req))
     }
 }
 

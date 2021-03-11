@@ -57,7 +57,7 @@ impl<'a> GetBeatmap<'a> {
         self
     }
 
-    fn start(&mut self) {
+    fn start(&mut self) -> Pending<'a, Beatmap> {
         let mut query = Query::new();
 
         if let Some(checksum) = self.checksum.take() {
@@ -74,7 +74,7 @@ impl<'a> GetBeatmap<'a> {
 
         let req = Request::from((query, Route::GetBeatmap));
 
-        self.fut.replace(Box::pin(self.osu.inner.request(req)));
+        Box::pin(self.osu.inner.request(req))
     }
 }
 
@@ -117,7 +117,7 @@ impl<'a> GetBeatmapScores<'a> {
         self
     }
 
-    fn start(&mut self) {
+    fn start(&mut self) -> Pending<'a, BeatmapScores> {
         let mut query = Query::new();
 
         if let Some(mode) = self.mode {
@@ -139,7 +139,7 @@ impl<'a> GetBeatmapScores<'a> {
             },
         ));
 
-        self.fut.replace(Box::pin(self.osu.inner.request(req)));
+        Box::pin(self.osu.inner.request(req))
     }
 }
 
@@ -201,7 +201,7 @@ impl<'a> GetBeatmapUserScore<'a> {
         self
     }
 
-    fn start(&mut self) {
+    fn start(&mut self) -> Pending<'a, BeatmapUserScore> {
         let mut query = Query::new();
 
         if let Some(mode) = self.mode {
@@ -222,7 +222,7 @@ impl<'a> GetBeatmapUserScore<'a> {
                 },
             ));
 
-            self.fut.replace(Box::pin(self.osu.inner.request(req)));
+            Box::pin(self.osu.inner.request(req))
         }
 
         #[cfg(feature = "cache")]
@@ -238,7 +238,7 @@ impl<'a> GetBeatmapUserScore<'a> {
                 })
                 .and_then(move |req| osu.request(req));
 
-            self.fut.replace(Box::pin(fut));
+            Box::pin(fut)
         }
     }
 }
@@ -262,12 +262,12 @@ impl<'a> GetBeatmapset<'a> {
         }
     }
 
-    fn start(&mut self) {
+    fn start(&mut self) -> Pending<'a, Beatmapset> {
         let req = Request::from(Route::GetBeatmapset {
             mapset_id: self.mapset_id,
         });
 
-        self.fut.replace(Box::pin(self.osu.inner.request(req)));
+        Box::pin(self.osu.inner.request(req))
     }
 }
 
@@ -285,10 +285,10 @@ impl<'a> GetBeatmapsetEvents<'a> {
         Self { fut: None, osu }
     }
 
-    fn start(&mut self) {
+    fn start(&mut self) -> Pending<'a, BeatmapsetEvents> {
         let req = Request::from(Route::GetBeatmapsetEvents);
 
-        self.fut.replace(Box::pin(self.osu.inner.request(req)));
+        Box::pin(self.osu.inner.request(req))
     }
 }
 

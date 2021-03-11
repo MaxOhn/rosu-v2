@@ -177,7 +177,7 @@ impl<'a> GetUserBeatmapsets<'a> {
         self
     }
 
-    fn start(&mut self) -> OsuResult<()> {
+    fn start(&mut self) -> OsuResult<Pending<'a, Vec<Beatmapset>>> {
         let map_type = self
             .map_type
             .ok_or(OsuError::MissingParameter { param: "map type" })?;
@@ -196,7 +196,8 @@ impl<'a> GetUserBeatmapsets<'a> {
         {
             let user_id = self.user_id;
             let req = Request::from((query, Route::GetUserBeatmapsets { user_id, map_type }));
-            self.fut.replace(Box::pin(self.osu.inner.request(req)));
+
+            Ok(Box::pin(self.osu.inner.request(req)))
         }
 
         #[cfg(feature = "cache")]
@@ -211,10 +212,8 @@ impl<'a> GetUserBeatmapsets<'a> {
                 })
                 .and_then(move |req| osu.request(req));
 
-            self.fut.replace(Box::pin(fut));
+            Ok(Box::pin(fut))
         }
-
-        Ok(())
     }
 }
 
@@ -273,7 +272,7 @@ impl<'a> GetRecentEvents<'a> {
         self
     }
 
-    fn start(&mut self) {
+    fn start(&mut self) -> Pending<'a, Vec<RecentEvent>> {
         let mut query = Query::new();
 
         if let Some(limit) = self.limit {
@@ -288,7 +287,8 @@ impl<'a> GetRecentEvents<'a> {
         {
             let user_id = self.user_id;
             let req = Request::from((query, Route::GetRecentEvents { user_id }));
-            self.fut.replace(Box::pin(self.osu.inner.request(req)));
+
+            Box::pin(self.osu.inner.request(req))
         }
 
         #[cfg(feature = "cache")]
@@ -301,7 +301,7 @@ impl<'a> GetRecentEvents<'a> {
                 .map_ok(move |user_id| Request::from((query, Route::GetRecentEvents { user_id })))
                 .and_then(move |req| osu.request(req));
 
-            self.fut.replace(Box::pin(fut));
+            Box::pin(fut)
         }
     }
 }
@@ -361,7 +361,7 @@ impl<'a> GetUserKudosu<'a> {
         self
     }
 
-    fn start(&mut self) {
+    fn start(&mut self) -> Pending<'a, Vec<KudosuHistory>> {
         let mut query = Query::new();
 
         if let Some(limit) = self.limit {
@@ -376,7 +376,8 @@ impl<'a> GetUserKudosu<'a> {
         {
             let user_id = self.user_id;
             let req = Request::from((query, Route::GetUserKudosu { user_id }));
-            self.fut.replace(Box::pin(self.osu.inner.request(req)));
+
+            Box::pin(self.osu.inner.request(req))
         }
 
         #[cfg(feature = "cache")]
@@ -389,7 +390,7 @@ impl<'a> GetUserKudosu<'a> {
                 .map_ok(move |user_id| Request::from((query, Route::GetUserKudosu { user_id })))
                 .and_then(move |req| osu.request(req));
 
-            self.fut.replace(Box::pin(fut));
+            Box::pin(fut)
         }
     }
 }
@@ -449,7 +450,7 @@ impl<'a> GetUserMostPlayed<'a> {
         self
     }
 
-    fn start(&mut self) {
+    fn start(&mut self) -> Pending<'a, Vec<MostPlayedMap>> {
         let mut query = Query::new();
 
         if let Some(limit) = self.limit {
@@ -470,7 +471,7 @@ impl<'a> GetUserMostPlayed<'a> {
                 },
             ));
 
-            self.fut.replace(Box::pin(self.osu.inner.request(req)));
+            Box::pin(self.osu.inner.request(req))
         }
 
         #[cfg(feature = "cache")]
@@ -491,7 +492,7 @@ impl<'a> GetUserMostPlayed<'a> {
                 })
                 .and_then(move |req| osu.request(req));
 
-            self.fut.replace(Box::pin(fut));
+            Box::pin(fut)
         }
     }
 }
@@ -600,7 +601,7 @@ impl<'a> GetUserScores<'a> {
         self
     }
 
-    fn start(&mut self) -> OsuResult<()> {
+    fn start(&mut self) -> OsuResult<Pending<'a, Vec<Score>>> {
         let score_type = self.score_type.ok_or(OsuError::MissingParameter {
             param: "score type",
         })?;
@@ -629,7 +630,7 @@ impl<'a> GetUserScores<'a> {
                 },
             ));
 
-            self.fut.replace(Box::pin(self.osu.inner.request(req)));
+            Ok(Box::pin(self.osu.inner.request(req)))
         }
 
         #[cfg(feature = "cache")]
@@ -650,10 +651,8 @@ impl<'a> GetUserScores<'a> {
                 })
                 .and_then(move |req| osu.request(req));
 
-            self.fut.replace(Box::pin(fut));
+            Ok(Box::pin(fut))
         }
-
-        Ok(())
     }
 }
 
@@ -685,13 +684,13 @@ impl<'a> GetUser<'a> {
         self
     }
 
-    fn start(&mut self) {
+    fn start(&mut self) -> Pending<'a, User> {
         let req = Request::from(Route::GetUser {
             user_id: self.user_id.take().unwrap(),
             mode: self.mode,
         });
 
-        self.fut.replace(Box::pin(self.osu.inner.request(req)));
+        Box::pin(self.osu.inner.request(req))
     }
 }
 
@@ -723,10 +722,11 @@ impl<'a> GetUsers<'a> {
         }
     }
 
-    fn start(&mut self) {
+    fn start(&mut self) -> Pending<'a, Vec<UserCompact>> {
         let query = self.query.take().unwrap();
         let req = Request::from((query, Route::GetUsers));
-        self.fut.replace(Box::pin(self.osu.inner.request(req)));
+
+        Box::pin(self.osu.inner.request(req))
     }
 }
 

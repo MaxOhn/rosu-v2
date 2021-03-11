@@ -11,7 +11,7 @@ macro_rules! poll_req {
                 match self.fut {
                     Some(ref mut fut) => fut.as_mut().poll(cx),
                     None => match self.start() {
-                        Ok(_) => self.fut.as_mut().unwrap().as_mut().poll(cx),
+                        Ok(fut) => self.fut.get_or_insert(fut).as_mut().poll(cx),
                         Err(why) => ::std::task::Poll::Ready(Err(why)),
                     },
                 }
@@ -31,9 +31,9 @@ macro_rules! poll_req {
                 match self.fut {
                     Some(ref mut fut) => fut.as_mut().poll(cx),
                     None => {
-                        self.start();
+                        let fut = self.start();
 
-                        self.fut.as_mut().unwrap().as_mut().poll(cx)
+                        self.fut.get_or_insert(fut).as_mut().poll(cx)
                     }
                 }
             }

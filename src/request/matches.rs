@@ -44,7 +44,7 @@ impl<'a> GetMatch<'a> {
         self
     }
 
-    fn start(&mut self) {
+    fn start(&mut self) -> Pending<'a, OsuMatch> {
         let mut query = Query::new();
 
         if let Some(after) = self.after {
@@ -62,7 +62,7 @@ impl<'a> GetMatch<'a> {
             },
         ));
 
-        self.fut.replace(Box::pin(self.osu.inner.request(req)));
+        Box::pin(self.osu.inner.request(req))
     }
 }
 
@@ -93,7 +93,7 @@ impl<'a> GetMatches<'a> {
         self
     }
 
-    fn start(&mut self) {
+    fn start(&mut self) -> Pending<'a, MatchList> {
         let mut query = Query::new();
 
         if let Some(cursor) = self.cursor.take() {
@@ -102,7 +102,7 @@ impl<'a> GetMatches<'a> {
 
         let req = Request::from((query, Route::GetMatch { match_id: None }));
 
-        self.fut.replace(Box::pin(self.osu.inner.request(req)));
+        Box::pin(self.osu.inner.request(req))
     }
 }
 

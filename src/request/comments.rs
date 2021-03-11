@@ -79,7 +79,7 @@ impl<'a> GetComments<'a> {
         self
     }
 
-    fn start(&mut self) {
+    fn start(&mut self) -> Pending<'a, CommentBundle> {
         let mut query = Query::new();
 
         if let Some(sort) = self.sort {
@@ -105,7 +105,7 @@ impl<'a> GetComments<'a> {
 
         let req = Request::from((query, Route::GetComments));
 
-        self.fut.replace(Box::pin(self.osu.inner.request(req)));
+        Box::pin(self.osu.inner.request(req))
     }
 }
 

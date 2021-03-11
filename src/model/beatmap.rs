@@ -166,10 +166,7 @@ pub struct BeatmapsetAvailability {
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub struct BeatmapsetCommentEdit<T>
-where
-    T: Clone + fmt::Debug + Eq + PartialEq + Serialize,
-{
+pub struct BeatmapsetCommentEdit<T> {
     #[serde(flatten)]
     pub comment_id: BeatmapsetCommentId,
     pub old: T,
@@ -371,14 +368,19 @@ pub enum BeatmapsetEvent {
         #[serde(rename = "beatmapset")]
         mapset: BeatmapsetCompact,
     },
-    Qualify {
+    Rank {
         #[serde(rename = "id")]
         event_id: u64,
-        comment: Option<()>, // TODO
         created_at: DateTime<Utc>,
         #[serde(rename = "beatmapset")]
         mapset: BeatmapsetCompact,
-        user_id: Option<u32>,
+    },
+    Qualify {
+        #[serde(rename = "id")]
+        event_id: u64,
+        created_at: DateTime<Utc>,
+        #[serde(rename = "beatmapset")]
+        mapset: BeatmapsetCompact,
     },
 }
 

@@ -321,12 +321,15 @@ fn get_mapset_events() -> BeatmapsetEvents {
                 user_id: 123456,
                 mapset: get_mapset_compact(),
             },
-            BeatmapsetEvent::Qualify {
+            BeatmapsetEvent::Rank {
                 event_id: 7,
-                comment: None,
                 created_at: get_date(),
                 mapset: get_mapset_compact(),
-                user_id: Some(1),
+            },
+            BeatmapsetEvent::Qualify {
+                event_id: 8,
+                created_at: get_date(),
+                mapset: get_mapset_compact(),
             },
         ],
         reviews_config: BeatmapsetReviewsConfig { max_blocks: 100 },

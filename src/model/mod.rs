@@ -6,8 +6,8 @@ macro_rules! def_enum {
             $($variant = $n,)*
         }
 
-        impl<'de> Deserialize<'de> for $type {
-            fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        impl<'de> serde::Deserialize<'de> for $type {
+            fn deserialize<D: serde::Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
                 d.deserialize_any(super::EnumVisitor::<$type>::new())
             }
         }
@@ -32,8 +32,8 @@ macro_rules! def_enum {
             }
         }
 
-        impl Serialize for $type {
-            fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        impl serde::Serialize for $type {
+            fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
                 s.serialize_u8(*self as u8)
             }
         }
@@ -58,8 +58,8 @@ macro_rules! def_enum {
             }
         }
 
-        impl Serialize for $type {
-            fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        impl serde::Serialize for $type {
+            fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
                 s.serialize_i8(*self as i8)
             }
         }
@@ -71,35 +71,55 @@ macro_rules! def_enum {
     };
 
     // Provide visit_u64 for visitor
-    (@VISIT u8 $type:tt { $($variant:ident = $n:literal,)* }) => {
-        fn visit_u64<E: Error>(self, v: u64) -> Result<Self::Value, E> {
+    (@VISIT_DIGIT u8 $type:tt { $($variant:ident = $n:literal,)* }) => {
+        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<Self::Value, E> {
             match v {
                 $($n => Ok(<$type>::$variant),)*
                 _ => {
-                    Err(Error::invalid_value(Unexpected::Unsigned(v), &stringify!($($n),*)))
+                    Err(serde::de::Error::invalid_value(serde::de::Unexpected::Unsigned(v), &stringify!($($n),*)))
                 },
             }
         }
     };
 
     // Provide visit_i64 and visit_u64 for visitor
-    (@VISIT i8 $type:tt { $($variant:ident = $n:literal,)* }) => {
-        fn visit_i64<E: Error>(self, v: i64) -> Result<Self::Value, E> {
+    (@VISIT_DIGIT i8 $type:tt { $($variant:ident = $n:literal,)* }) => {
+        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<Self::Value, E> {
             match v {
                 $($n => Ok(<$type>::$variant),)*
                 _ => {
-                    Err(Error::invalid_value(Unexpected::Signed(v), &stringify!($($n),*)))
+                    Err(serde::de::Error::invalid_value(serde::de::Unexpected::Signed(v), &stringify!($($n),*)))
                 },
             }
         }
 
-        fn visit_u64<E: Error>(self, v: u64) -> Result<Self::Value, E> {
+        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<Self::Value, E> {
             match v as i64 {
                 $($n => Ok(<$type>::$variant),)*
                 _ => {
-                    Err(Error::invalid_value(Unexpected::Unsigned(v), &stringify!($($n),*)))
+                    Err(serde::de::Error::invalid_value(serde::de::Unexpected::Unsigned(v), &stringify!($($n),*)))
                 },
             }
+        }
+    };
+
+    // Provide visit_map for visitor
+    (@VISIT_MAP $type:tt { $($variant:ident = $n:literal,)* }) => {
+        fn visit_map<A: serde::de::MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
+            let mut result = None;
+
+            while let Some(key) = map.next_key::<&str>()? {
+                match key {
+                    "id" | "name" => {
+                        result.replace(map.next_value()?);
+                    }
+                    _ => {
+                        let _: serde::de::IgnoredAny = map.next_value()?;
+                    }
+                }
+            }
+
+            result.ok_or_else(|| serde::de::Error::missing_field("id or name"))
         }
     };
 
@@ -108,23 +128,24 @@ macro_rules! def_enum {
         def_enum!(@BASE $type { $($variant = $n,)* });
         def_enum!(@SIGN $sign $type { $($variant = $n,)* });
 
-        impl<'de> Visitor<'de> for super::EnumVisitor<$type> {
+        impl<'de> serde::de::Visitor<'de> for super::EnumVisitor<$type> {
             type Value = $type;
 
-            fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
                 write!(f, "{}", concat!(stringify!($($n),*),$(", \"",stringify!($variant),"\"",)*))
             }
 
-            fn visit_str<E: Error>(self, s: &str) -> Result<Self::Value, E> {
+            fn visit_str<E: serde::de::Error>(self, s: &str) -> Result<Self::Value, E> {
                 match s {
                     $(stringify!($variant) => Ok(<$type>::$variant),)*
                     _ => {
-                        Err(Error::unknown_variant(s, &[stringify!($($variant),*)]))
+                        Err(serde::de::Error::unknown_variant(s, &[stringify!($($variant),*)]))
                     },
                 }
             }
 
-            def_enum!(@VISIT $sign $type { $($variant = $n,)* });
+            def_enum!(@VISIT_DIGIT $sign $type { $($variant = $n,)* });
+            def_enum!(@VISIT_MAP $type { $($variant = $n,)* });
         }
     };
 
@@ -133,23 +154,24 @@ macro_rules! def_enum {
         def_enum!(@BASE $type { $($variant = $n,)* });
         def_enum!(@SIGN $sign $type { $($variant = $n,)* });
 
-        impl<'de> Visitor<'de> for super::EnumVisitor<$type> {
+        impl<'de> serde::de::Visitor<'de> for super::EnumVisitor<$type> {
             type Value = $type;
 
-            fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
                  write!(f, "{}", concat!(stringify!($($n),*),", ",stringify!($($alt),*)))
             }
 
-            fn visit_str<E: Error>(self, s: &str) -> Result<Self::Value, E> {
+            fn visit_str<E: serde::de::Error>(self, s: &str) -> Result<Self::Value, E> {
                 match s {
                     $($alt => Ok(<$type>::$variant),)*
                     _ => {
-                        Err(Error::unknown_variant(s, &[stringify!($($alt),*)]))
+                        Err(serde::de::Error::unknown_variant(s, &[stringify!($($alt),*)]))
                     },
                 }
             }
 
-            def_enum!(@VISIT $sign $type { $($variant = $n,)* });
+            def_enum!(@VISIT_DIGIT $sign $type { $($variant = $n,)* });
+            def_enum!(@VISIT_MAP $type { $($variant = $n,)* });
         }
     }
 }

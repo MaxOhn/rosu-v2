@@ -71,6 +71,12 @@ impl Osu {
         GetBeatmapUserScore::new(self, map_id, user_id.into())
     }
 
+    /// Get a [`Beatmapset`](crate::model::beatmap::Beatmapset).
+    #[inline]
+    pub fn beatmapset(&self, mapset_id: u32) -> GetBeatmapset {
+        GetBeatmapset::new(self, mapset_id)
+    }
+
     /// Get a [`BeatmapsetEvents`](crate::model::beatmap::BeatmapsetEvents)
     /// struct containing the most recent mapset events.
     #[inline]

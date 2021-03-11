@@ -1,6 +1,6 @@
 use crate::{
     model::{
-        beatmap::{Beatmap, BeatmapsetEvents},
+        beatmap::{Beatmap, Beatmapset, BeatmapsetEvents},
         score::{BeatmapScores, BeatmapUserScore},
         GameMode, GameMods,
     },
@@ -79,27 +79,6 @@ impl<'a> GetBeatmap<'a> {
 }
 
 poll_req!(GetBeatmap<'_> => Beatmap);
-
-/// Get a [`BeatmapsetEvents`] struct.
-pub struct GetBeatmapsetEvents<'a> {
-    fut: Option<Pending<'a, BeatmapsetEvents>>,
-    osu: &'a Osu,
-}
-
-impl<'a> GetBeatmapsetEvents<'a> {
-    #[inline]
-    pub(crate) fn new(osu: &'a Osu) -> Self {
-        Self { fut: None, osu }
-    }
-
-    fn start(&mut self) {
-        let req = Request::from(Route::GetBeatmapsetEvents);
-
-        self.fut.replace(Box::pin(self.osu.inner.request(req)));
-    }
-}
-
-poll_req!(GetBeatmapsetEvents<'_> => BeatmapsetEvents);
 
 /// Get top scores of a beatmap by its id.
 pub struct GetBeatmapScores<'a> {
@@ -265,3 +244,52 @@ impl<'a> GetBeatmapUserScore<'a> {
 }
 
 poll_req!(GetBeatmapUserScore<'_> => BeatmapUserScore);
+
+/// Get a [`BeatmapsetEvents`] struct.
+pub struct GetBeatmapset<'a> {
+    fut: Option<Pending<'a, Beatmapset>>,
+    osu: &'a Osu,
+    mapset_id: u32,
+}
+
+impl<'a> GetBeatmapset<'a> {
+    #[inline]
+    pub(crate) fn new(osu: &'a Osu, mapset_id: u32) -> Self {
+        Self {
+            fut: None,
+            osu,
+            mapset_id,
+        }
+    }
+
+    fn start(&mut self) {
+        let req = Request::from(Route::GetBeatmapset {
+            mapset_id: self.mapset_id,
+        });
+
+        self.fut.replace(Box::pin(self.osu.inner.request(req)));
+    }
+}
+
+poll_req!(GetBeatmapset<'_> => Beatmapset);
+
+/// Get a [`BeatmapsetEvents`] struct.
+pub struct GetBeatmapsetEvents<'a> {
+    fut: Option<Pending<'a, BeatmapsetEvents>>,
+    osu: &'a Osu,
+}
+
+impl<'a> GetBeatmapsetEvents<'a> {
+    #[inline]
+    pub(crate) fn new(osu: &'a Osu) -> Self {
+        Self { fut: None, osu }
+    }
+
+    fn start(&mut self) {
+        let req = Request::from(Route::GetBeatmapsetEvents);
+
+        self.fut.replace(Box::pin(self.osu.inner.request(req)));
+    }
+}
+
+poll_req!(GetBeatmapsetEvents<'_> => BeatmapsetEvents);

@@ -57,9 +57,19 @@ macro_rules! get_id {
     };
 }
 
+// Map id
 get_id!(adesso_balla, 171024);
+
+// Mapset id
+get_id!(hikoui_gumo, 357161);
+
+// Player id
 get_id!(badewanne3, 2211396);
+
+// Player id
 get_id!(sylas, 3906405);
+
+// Match id
 get_id!(de_vs_ca, 73827718);
 
 fn osu() -> &'static Osu {
@@ -132,6 +142,19 @@ async fn beatmap_user_score() {
                 why,
                 "Error while requesting beatmap user scores: {}"
             );
+            panic!()
+        }
+    }
+}
+
+#[tokio::test]
+async fn beatmapset() {
+    init().await;
+
+    match osu().beatmapset(hikoui_gumo()).await {
+        Ok(mapset) => println!("Received mapset with {} maps", mapset.maps.unwrap().len()),
+        Err(why) => {
+            unwind_error!(println, why, "Error while requesting beatmapset: {}");
             panic!()
         }
     }

@@ -51,7 +51,9 @@ mod ranking;
 mod user;
 mod wiki;
 
-pub use beatmap::{GetBeatmap, GetBeatmapScores, GetBeatmapUserScore, GetBeatmapsetEvents};
+pub use beatmap::{
+    GetBeatmap, GetBeatmapScores, GetBeatmapUserScore, GetBeatmapset, GetBeatmapsetEvents,
+};
 pub use comments::GetComments;
 pub use forum::GetForumPosts;
 pub use matches::{GetMatch, GetMatches};

@@ -3,8 +3,8 @@ use crate::{request::GetUser, Osu};
 
 use chrono::{DateTime, Utc};
 use serde::{
-    de::{Error, Unexpected, Visitor},
-    Deserialize, Deserializer, Serialize, Serializer,
+    de::{Deserializer, Error, IgnoredAny, MapAccess, Visitor},
+    Deserialize, Serialize,
 };
 use std::fmt;
 
@@ -98,10 +98,21 @@ pub struct Beatmapset {
     pub availability: BeatmapsetAvailability,
     pub bpm: f32,
     pub can_be_hyped: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub converts: Option<Vec<Beatmap>>,
     pub covers: BeatmapsetCovers,
-    pub creator: String,
+    #[serde(default, rename = "user", skip_serializing_if = "Option::is_none")]
+    pub creator: Option<UserCompact>,
+    #[serde(rename = "creator")]
+    pub creator_name: String,
     #[serde(rename = "user_id")]
     pub creator_id: u32,
+    #[serde(
+        default,
+        deserialize_with = "flatten_description",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub description: Option<String>,
     pub discussion_enabled: bool,
     pub discussion_locked: bool,
     pub favourite_count: u32,
@@ -130,6 +141,8 @@ pub struct Beatmapset {
     pub ratings: Option<Vec<u32>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ranked_date: Option<DateTime<Utc>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub recent_favourites: Option<Vec<UserCompact>>,
     pub source: String,
     pub status: RankStatus,
     pub storyboard: bool,
@@ -435,6 +448,7 @@ pub struct BeatmapsetVote {
     pub score: u32,
 }
 
+// TODO: Allocate with capacity
 // TODO: Make these [u32; 100], serde currently only goes up to 32
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct FailTimes {
@@ -503,6 +517,14 @@ impl Mapset {
     }
 
     #[inline]
+    pub fn creator(&self) -> &str {
+        match self {
+            Self::Full(set) => &set.creator_name,
+            Self::Compact(set) => &set.creator,
+        }
+    }
+
+    #[inline]
     pub fn title_unicode(&self) -> Option<&str> {
         match self {
             Self::Full(set) => set.title_unicode.as_deref(),
@@ -517,7 +539,6 @@ impl Mapset {
 
     impl_get!(artist -> &str);
     impl_get!(covers -> &BeatmapsetCovers);
-    impl_get!(creator -> &str);
     impl_get!(creator_id -> u32);
     impl_get!(favourite_count -> u32);
     impl_get!(mapset_id -> u32);
@@ -573,3 +594,52 @@ def_enum!(u8 Language {
     Polish = 13,
     Unspecified = 14,
 });
+
+struct DescriptionVisitor;
+
+impl<'de> Visitor<'de> for DescriptionVisitor {
+    type Value = Option<String>;
+
+    fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "a string or a map containing a 'description' field")
+    }
+
+    fn visit_str<E: Error>(self, v: &str) -> Result<Self::Value, E> {
+        Ok(Some(v.to_owned()))
+    }
+
+    fn visit_string<E: Error>(self, v: String) -> Result<Self::Value, E> {
+        Ok(Some(v))
+    }
+
+    fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
+        let mut description = None;
+
+        while let Some(key) = map.next_key()? {
+            match key {
+                "description" => {
+                    description.replace(map.next_value()?);
+                }
+                _ => {
+                    let _: IgnoredAny = map.next_value()?;
+                }
+            }
+        }
+
+        description
+            .ok_or_else(|| Error::missing_field("description"))
+            .map(Some)
+    }
+
+    fn visit_some<D: Deserializer<'de>>(self, d: D) -> Result<Self::Value, D::Error> {
+        d.deserialize_any(self)
+    }
+
+    fn visit_none<E: Error>(self) -> Result<Self::Value, E> {
+        Ok(None)
+    }
+}
+
+fn flatten_description<'de, D: Deserializer<'de>>(d: D) -> Result<Option<String>, D::Error> {
+    d.deserialize_option(DescriptionVisitor)
+}

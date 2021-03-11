@@ -7,7 +7,6 @@ use crate::{Osu, OsuResult};
 use chrono::{DateTime, Utc};
 use serde::{
     de::{Deserializer, Error, IgnoredAny, MapAccess, Unexpected, Visitor},
-    ser::Serializer,
     Deserialize, Serialize,
 };
 use std::{fmt, slice::Iter};

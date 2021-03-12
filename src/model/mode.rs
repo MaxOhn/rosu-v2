@@ -13,6 +13,18 @@ pub enum GameMode {
     MNA = 3,
 }
 
+impl From<u8> for GameMode {
+    fn from(mode: u8) -> Self {
+        match mode {
+            0 => GameMode::STD,
+            1 => GameMode::TKO,
+            2 => GameMode::CTB,
+            3 => GameMode::MNA,
+            _ => GameMode::STD,
+        }
+    }
+}
+
 impl Default for GameMode {
     #[inline]
     fn default() -> Self {

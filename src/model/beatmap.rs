@@ -56,6 +56,13 @@ pub struct Beatmap {
     pub version: String,
 }
 
+impl Beatmap {
+    #[inline]
+    pub fn count_objects(&self) -> u32 {
+        self.count_circles + self.count_sliders + self.count_spinners
+    }
+}
+
 impl PartialEq for Beatmap {
     #[inline]
     fn eq(&self, other: &Self) -> bool {

@@ -6,6 +6,7 @@ use crate::{
 };
 
 /// Get a [`ForumPosts`](crate::model::forum::ForumPosts) struct for a forum topic
+#[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetForumPosts<'a> {
     fut: Option<Pending<'a, ForumPosts>>,
     osu: &'a Osu,

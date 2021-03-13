@@ -74,6 +74,7 @@ impl fmt::Display for UserId {
 /// [`graveyard`](crate::request::GetUserBeatmapsets::graveyard),
 /// [`ranked_and_approved`](crate::request::GetUserBeatmapsets::ranked_and_approved),
 /// [`unranked`](crate::request::GetUserBeatmapsets::unranked).
+#[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetUserBeatmapsets<'a> {
     fut: Option<Pending<'a, Vec<Beatmapset>>>,
     osu: &'a Osu,
@@ -220,6 +221,7 @@ impl<'a> GetUserBeatmapsets<'a> {
 poll_req!(GetUserBeatmapsets<'_> => OsuResult<Vec<Beatmapset>>);
 
 /// Get the recent events of a user by their id.
+#[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetRecentEvents<'a> {
     fut: Option<Pending<'a, Vec<RecentEvent>>>,
     osu: &'a Osu,
@@ -309,6 +311,7 @@ impl<'a> GetRecentEvents<'a> {
 poll_req!(GetRecentEvents<'_> => Vec<RecentEvent>);
 
 /// Get a user's kudosu history by their user id.
+#[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetUserKudosu<'a> {
     fut: Option<Pending<'a, Vec<KudosuHistory>>>,
     osu: &'a Osu,
@@ -398,6 +401,7 @@ impl<'a> GetUserKudosu<'a> {
 poll_req!(GetUserKudosu<'_> => Vec<KudosuHistory>);
 
 /// Get the most played beatmaps of a user by their id.
+#[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetUserMostPlayed<'a> {
     fut: Option<Pending<'a, Vec<MostPlayedMap>>>,
     osu: &'a Osu,
@@ -505,6 +509,7 @@ poll_req!(GetUserMostPlayed<'_> => Vec<MostPlayedMap>);
 /// [`best`](crate::request::GetUserScores::best),
 /// [`firsts`](crate::request::GetUserScores::firsts),
 /// [`recent`](crate::request::GetUserScores::recent).
+#[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetUserScores<'a> {
     fut: Option<Pending<'a, Vec<Score>>>,
     osu: &'a Osu,
@@ -659,6 +664,7 @@ impl<'a> GetUserScores<'a> {
 poll_req!(GetUserScores<'_> => OsuResult<Vec<Score>>);
 
 /// Get a user by their id.
+#[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetUser<'a> {
     fut: Option<Pending<'a, User>>,
     osu: &'a Osu,
@@ -697,6 +703,7 @@ impl<'a> GetUser<'a> {
 poll_req!(GetUser<'_> => User);
 
 /// Get multiple users by their ids.
+#[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetUsers<'a> {
     fut: Option<Pending<'a, Vec<UserCompact>>>,
     osu: &'a Osu,

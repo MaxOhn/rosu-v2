@@ -5,6 +5,7 @@ use crate::{
 };
 
 /// TODO: Documentation
+#[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetMultiplayerScore<'a> {
     fut: Option<Pending<'a, u32>>, // TODO
     osu: &'a Osu,
@@ -39,6 +40,7 @@ impl<'a> GetMultiplayerScore<'a> {
 poll_req!(GetMultiplayerScore<'_> => u32); // TODO
 
 /// TODO: Documentation
+#[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetMultiplayerScores<'a> {
     fut: Option<Pending<'a, u32>>, // TODO
     osu: &'a Osu,
@@ -107,6 +109,7 @@ impl<'a> GetMultiplayerScores<'a> {
 poll_req!(GetMultiplayerScores<'_> => u32); // TODO
 
 /// TODO: Documentation
+#[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetMultiplayerUserHighScore<'a> {
     fut: Option<Pending<'a, u32>>, // TODO
     osu: &'a Osu,

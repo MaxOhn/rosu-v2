@@ -16,6 +16,7 @@ use super::UserId;
 use futures::future::TryFutureExt;
 
 /// Get a [`Beatmap`](crate::model::beatmap::Beatmap).
+#[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetBeatmap<'a> {
     fut: Option<Pending<'a, Beatmap>>,
     osu: &'a Osu,
@@ -81,6 +82,7 @@ impl<'a> GetBeatmap<'a> {
 poll_req!(GetBeatmap<'_> => Beatmap);
 
 /// Get top scores of a beatmap by its id.
+#[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetBeatmapScores<'a> {
     fut: Option<Pending<'a, BeatmapScores>>,
     osu: &'a Osu,
@@ -146,6 +148,7 @@ impl<'a> GetBeatmapScores<'a> {
 poll_req!(GetBeatmapScores<'_> => BeatmapScores);
 
 /// Get scores of a user on a beatmap by the user's and the map's id.
+#[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetBeatmapUserScore<'a> {
     fut: Option<Pending<'a, BeatmapUserScore>>,
     osu: &'a Osu,
@@ -246,6 +249,7 @@ impl<'a> GetBeatmapUserScore<'a> {
 poll_req!(GetBeatmapUserScore<'_> => BeatmapUserScore);
 
 /// Get a [`BeatmapsetEvents`] struct.
+#[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetBeatmapset<'a> {
     fut: Option<Pending<'a, Beatmapset>>,
     osu: &'a Osu,
@@ -274,6 +278,7 @@ impl<'a> GetBeatmapset<'a> {
 poll_req!(GetBeatmapset<'_> => Beatmapset);
 
 /// Get a [`BeatmapsetEvents`] struct.
+#[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetBeatmapsetEvents<'a> {
     fut: Option<Pending<'a, BeatmapsetEvents>>,
     osu: &'a Osu,

@@ -14,6 +14,7 @@ use serde::Deserialize;
 /// Get the recent events of a user by their id.
 ///
 /// Any of the `type_` methods **must** be specified before awaiting.
+#[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetRankings<'a> {
     fut: Option<Pending<'a, Rankings>>,
     osu: &'a Osu,
@@ -169,6 +170,7 @@ impl<'a> GetRankings<'a> {
 poll_req!(GetRankings<'_> => OsuResult<Rankings>);
 
 /// Get the list of spotlights
+#[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetSpotlights<'a> {
     fut: Option<Pending<'a, Spotlights>>,
     osu: &'a Osu,
@@ -187,6 +189,7 @@ impl<'a> GetSpotlights<'a> {
 }
 
 #[derive(Deserialize)]
+#[must_use = "futures do nothing unless you `.await` or poll them"]
 struct Spotlights {
     spotlights: Vec<Spotlight>,
 }

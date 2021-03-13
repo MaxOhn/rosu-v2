@@ -6,6 +6,7 @@ use crate::{
 };
 
 /// Get an [`OsuMatch`](crate::model::matches::OsuMatch) by its id
+#[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetMatch<'a> {
     fut: Option<Pending<'a, OsuMatch>>,
     osu: &'a Osu,
@@ -70,6 +71,7 @@ poll_req!(GetMatch<'_> => OsuMatch);
 
 /// Get a [`MatchList`](crate::model::matches::MatchList) containing all
 /// currently open multiplayer lobbies.
+#[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetMatches<'a> {
     fut: Option<Pending<'a, MatchList>>,
     osu: &'a Osu,

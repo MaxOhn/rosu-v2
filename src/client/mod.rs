@@ -385,6 +385,7 @@ impl OsuRef {
 
         match status {
             StatusCode::OK => return Ok(resp),
+            StatusCode::NOT_FOUND => return Err(OsuError::NotFound),
             StatusCode::SERVICE_UNAVAILABLE => {
                 let body = resp.text().await.ok();
 

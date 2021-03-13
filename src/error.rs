@@ -38,6 +38,8 @@ pub enum OsuError {
     },
     /// Failed to request because of missing parameter
     MissingParameter { param: &'static str },
+    /// The API returned a 404
+    NotFound,
     /// Attempted to make request without valid token
     NoToken,
     /// Failed to deserialize response
@@ -67,6 +69,7 @@ impl StdError for OsuError {
             Self::ChunkingResponse { source } => Some(source),
             Self::CreatingHeader { source, .. } => Some(source),
             Self::MissingParameter { .. } => None,
+            Self::NotFound => None,
             Self::NoToken => None,
             Self::Parsing { source, .. } => Some(source),
             Self::ParsingValue { source } => Some(source),
@@ -94,6 +97,9 @@ impl fmt::Display for OsuError {
             }
             Self::MissingParameter { param } => {
                 write!(f, "Missing parameter for request: {}", param)
+            }
+            Self::NotFound => {
+                f.write_str("The API returned a 404 implying an incorrect name, id, etc")
             }
             Self::NoToken => f.write_str(
                 "The previous API token expired and the client \

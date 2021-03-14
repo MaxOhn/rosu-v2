@@ -9,16 +9,14 @@ use crate::{request::GetUser, Osu};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub struct BeatmapScores {
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub scores: Vec<Score>,
-    #[serde(default, alias = "userScore", skip_serializing_if = "Option::is_none")]
-    pub user_score: Option<BeatmapUserScore>,
+#[derive(Debug, Deserialize)]
+pub(crate) struct BeatmapScores {
+    pub(crate) scores: Vec<Score>,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct BeatmapUserScore {
+    /// Position of the score in the map's global leaderboard
     #[serde(rename = "position")]
     pub pos: usize,
     pub score: Score,
@@ -35,8 +33,6 @@ impl BeatmapUserScore {
 pub struct Score {
     #[serde(deserialize_with = "inflate_acc", serialize_with = "deflate_acc")]
     pub accuracy: f32,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub best_id: Option<u32>,
     pub created_at: DateTime<Utc>,
     #[serde(rename = "rank")]
     pub grade: Grade,
@@ -49,8 +45,6 @@ pub struct Score {
         skip_serializing_if = "Option::is_none"
     )]
     pub mapset: Option<BeatmapsetCompact>,
-    // #[serde(rename = "match")]
-    // pub osu_match: _, // TODO
     pub mode: GameMode,
     pub mods: GameMods,
     pub perfect: bool,
@@ -181,7 +175,9 @@ impl ScoreStatistics {
 
 #[derive(Copy, Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct ScoreWeight {
+    /// Percentage of the score's pp that will be added to the user's total pp
     pub percentage: f32,
+    /// PP **after** taking the percentage of the score's raw pp
     pub pp: f32,
 }
 

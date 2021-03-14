@@ -138,7 +138,7 @@ fn get_map() -> Beatmap {
         is_scoreable: true,
         last_updated: get_date(),
         map_id: 123456,
-        mapset: Some(Mapset::Full(get_mapset())),
+        mapset: Some(get_mapset()),
         mapset_id: 12345,
         max_combo: Some(1750),
         mode: GameMode::STD,
@@ -159,7 +159,7 @@ fn get_map_compact() -> BeatmapCompact {
         checksum: Some("ABC123".to_owned()),
         fail_times: None,
         map_id: 123456,
-        mapset: Some(Mapset::Compact(get_mapset_compact())),
+        mapset: Some(get_mapset_compact()),
         max_combo: Some(1000),
         mode: GameMode::CTB,
         seconds_total: 120,
@@ -174,7 +174,7 @@ fn get_mapset_compact() -> BeatmapsetCompact {
         artist: "artist".to_owned(),
         artist_unicode: Some("äöü".to_owned()),
         covers: get_mapset_covers(),
-        creator: "god".to_owned(),
+        creator_name: "god".to_owned(),
         creator_id: 2,
         favourite_count: 1_234_567,
         genre: Some(Genre::Rock),
@@ -231,6 +231,17 @@ fn get_mapset_discussion() -> BeatmapsetDiscussion {
 fn get_mapset_events() -> BeatmapsetEvents {
     BeatmapsetEvents {
         events: vec![
+            BeatmapsetEvent::Disqualify {
+                event_id: 10,
+                comment: BeatmapsetCommentId {
+                    discussion_id: None,
+                    discussion_post_id: None,
+                },
+                created_at: get_date(),
+                mapset: get_mapset_compact(),
+                user_id: 123456,
+                discussion: get_mapset_discussion(),
+            },
             BeatmapsetEvent::GenreEdit {
                 event_id: 0,
                 comment: BeatmapsetCommentEdit {
@@ -420,7 +431,6 @@ fn get_match_score() -> MatchScore {
 fn get_score() -> Score {
     Score {
         accuracy: 98.76,
-        best_id: Some(3),
         created_at: get_date(),
         grade: Grade::A,
         max_combo: 1234,
@@ -557,7 +567,6 @@ fn get_user() -> User {
         statistics: Some(get_user_stats()),
         support_level: Some(3),
         unranked_beatmapset_count: Some(13),
-        unread_pm_count: Some(0),
         medals: Some(vec![MedalCompact {
             achieved_at: get_date(),
             medal_id: 1,
@@ -650,7 +659,6 @@ fn get_user_compact() -> UserCompact {
         statistics: Some(get_user_stats()),
         support_level: Some(1),
         unranked_beatmapset_count: Some(34),
-        unread_pm_count: Some(34),
     }
 }
 

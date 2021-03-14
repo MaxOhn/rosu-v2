@@ -99,8 +99,8 @@ async fn beatmap() {
     match osu().beatmap().map_id(adesso_balla()).await {
         Ok(map) => println!(
             "Received {} - {}",
-            map.mapset.as_ref().unwrap().artist(),
-            map.mapset.as_ref().unwrap().title(),
+            map.mapset.as_ref().unwrap().artist,
+            map.mapset.as_ref().unwrap().title,
         ),
         Err(why) => {
             unwind_error!(error, why, "Error while requesting beatmap: {}");
@@ -114,11 +114,7 @@ async fn beatmap_scores() {
     init().await;
 
     match osu().beatmap_scores(adesso_balla()).await {
-        Ok(scores) => println!(
-            "Received {} scores | user score: {}",
-            scores.scores.len(),
-            scores.user_score.is_some(),
-        ),
+        Ok(scores) => println!("Received {} scores", scores.len(),),
         Err(why) => {
             unwind_error!(error, why, "Error while requesting beatmap scores: {}");
             panic!()

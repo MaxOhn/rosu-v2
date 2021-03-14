@@ -20,7 +20,7 @@ use dashmap::DashMap;
 pub struct Osu {
     pub(crate) inner: Arc<OsuRef>,
     #[cfg(feature = "cache")]
-    pub(crate) cache: DashMap<String, u32>,
+    pub(crate) cache: Arc<DashMap<String, u32>>,
 }
 
 impl Osu {
@@ -42,18 +42,34 @@ impl Osu {
     }
 
     /// Get a [`Beatmap`](crate::model::beatmap::Beatmap).
+    ///
+    /// Filled options will be: `deleted_at` (if deleted), `fail_times`,
+    /// `mapset` and `max_combo` (if available for mode).
+    ///
+    /// The contained [`Beatmapset`](crate::model::beatmap::Beatmapset) will
+    /// have these options filled: `legacy_thread_url`, `ratings`,
+    /// `ranked_date` (if not unranked) and `submitted_date` (if submitted).
     #[inline]
     pub fn beatmap(&self) -> GetBeatmap {
         GetBeatmap::new(self)
     }
 
-    /// Get a [`BeatmapScores`](crate::model::score::BeatmapScores).
+    /// Get a vec of [`Score`](crate::model::score::Score).
+    ///
+    /// The contained scores will have the following options filled:
+    /// `map`, `pp` (if ranked or approved), and `user`.
+    ///
+    /// The scores' contained [`UserCompact`](crate::model::user::UserCompact)
+    /// will have the `country` and `cover` options filled.
     #[inline]
     pub fn beatmap_scores(&self, map_id: u32) -> GetBeatmapScores {
         GetBeatmapScores::new(self, map_id)
     }
 
     /// Get a [`BeatmapUserScore`](crate::model::score::BeatmapUserScore).
+    ///
+    /// The contained [`Score`](crate::model::score::Score) will have the
+    /// `map` and `user` options filled.
     #[cfg(not(feature = "cache"))]
     #[inline]
     pub fn beatmap_user_score(&self, map_id: u32, user_id: u32) -> GetBeatmapUserScore {
@@ -61,6 +77,9 @@ impl Osu {
     }
 
     /// Get a [`BeatmapUserScore`](crate::model::score::BeatmapUserScore).
+    ///
+    /// The contained [`Score`](crate::model::score::Score) will have the
+    /// `map` and `user` options filled.
     #[cfg(feature = "cache")]
     #[inline]
     pub fn beatmap_user_score(
@@ -72,6 +91,15 @@ impl Osu {
     }
 
     /// Get a [`Beatmapset`](crate::model::beatmap::Beatmapset).
+    ///
+    /// Filled options will be: `artist_unicode`, `converts`, `description`,
+    /// `genre`, `language`, `legacy_thread_url`, `maps`, `ratings`,
+    /// `ranked_date` (if not unranked), `recent_favourites`,
+    /// `submitted_date` (if submitted), and `title_unicode`.
+    ///
+    /// The contained [`Beatmap`](crate::model::beatmap::Beatmap)s
+    /// will contain `Some` in `fail_times`, `max_combo`
+    /// (if available for mode), and `deleted_at` (if deleted).
     #[inline]
     pub fn beatmapset(&self, mapset_id: u32) -> GetBeatmapset {
         GetBeatmapset::new(self, mapset_id)
@@ -192,12 +220,25 @@ impl Osu {
     }
 
     /// Get a [`User`](crate::model::user::User).
+    ///
+    /// The following options will be filled if the user specified them:
+    /// `discord`, `interests`, `location`, `occupation`, `playstyle`,
+    /// `profile_color`, `skype`, `title`, `title_url`, `website`
+    ///
+    /// The only `is_*` options that will be filled are `is_active`, `is_bot`,
+    /// `is_deleted`, `is_online`, and `is_supporter`, the others won't be.
+    ///
+    /// All other options will be filled.
     #[inline]
     pub fn user(&self, user_id: impl Into<UserId>) -> GetUser {
         GetUser::new(self, user_id)
     }
 
     /// Get a vec of [`Beatmapset`](crate::model::beatmap::Beatmapset)s a user made.
+    ///
+    /// Filled options will be: `artist_unicode`, `legacy_thread_url`, `maps`, `title_unicode`.
+    ///
+    /// All options of the contained [`Beatmap`](crate::model::beatmap::Beatmap)s will be `None`.
     #[cfg(not(feature = "cache"))]
     #[inline]
     pub fn user_beatmapsets(&self, user_id: u32) -> GetUserBeatmapsets {
@@ -205,6 +246,10 @@ impl Osu {
     }
 
     /// Get a vec of [`Beatmapset`](crate::model::beatmap::Beatmapset)s a user made.
+    ///
+    /// Filled options will be: `artist_unicode`, `legacy_thread_url`, `maps`, `title_unicode`.
+    ///
+    /// All options of the contained [`Beatmap`](crate::model::beatmap::Beatmap)s will be `None`.
     #[cfg(feature = "cache")]
     #[inline]
     pub fn user_beatmapsets(&self, user_id: impl Into<UserId>) -> GetUserBeatmapsets {
@@ -212,6 +257,9 @@ impl Osu {
     }
 
     /// Get a vec of a user's [`MostPlayedMap`](crate::model::beatmap::MostPlayedMap)s.
+    ///
+    /// All options of the contained [`BeatmapCompact`](crate::model::beatmap::BeatmapCompact) and
+    /// [`BeatmapsetCompact`](crate::model::beatmap::BeatmapsetCompact) will be `None`.
     #[cfg(not(feature = "cache"))]
     #[inline]
     pub fn user_most_played(&self, user_id: u32) -> GetUserMostPlayed {
@@ -219,6 +267,9 @@ impl Osu {
     }
 
     /// Get a vec of a user's [`MostPlayedMap`](crate::model::beatmap::MostPlayedMap)s.
+    ///
+    /// All options of the contained [`BeatmapCompact`](crate::model::beatmap::BeatmapCompact) and
+    /// [`BeatmapsetCompact`](crate::model::beatmap::BeatmapsetCompact) will be `None`.
     #[cfg(feature = "cache")]
     #[inline]
     pub fn user_most_played(&self, user_id: impl Into<UserId>) -> GetUserMostPlayed {
@@ -227,6 +278,17 @@ impl Osu {
 
     /// Get either top, global firsts, or recent scores of a user,
     /// i.e. a vec of [`Score`](crate::model::score::Score).
+    ///
+    /// The resulting scores will have these options filled: `map`, `mapset`, `pp`, `user`
+    ///
+    /// Additionally, the `best` score type will provide the `weight` option.
+    ///
+    /// All options of the contained [`Beatmap`](crate::model::beatmap::Beatmap),
+    /// [`BeatmapsetCompact`](crate::model::beatmap::Beatmapset), and
+    /// [`UserCompact`](crate::model::user::UserCompact) will be `None`.
+    ///
+    /// Note: `pp` will only be `Some` for the `firsts` score type if the map
+    /// is not loved.
     #[cfg(not(feature = "cache"))]
     #[inline]
     pub fn user_scores(&self, user_id: u32) -> GetUserScores {
@@ -235,6 +297,17 @@ impl Osu {
 
     /// Get either top, global firsts, or recent scores of a user,
     /// i.e. a vec of [`Score`](crate::model::score::Score).
+    ///
+    /// The resulting scores will have these options filled: `map`, `mapset`, `pp`, `user`
+    ///
+    /// Additionally, the `best` score type will provide the `weight` option.
+    ///
+    /// All options of the contained [`Beatmap`](crate::model::beatmap::Beatmap),
+    /// [`BeatmapsetCompact`](crate::model::beatmap::Beatmapset), and
+    /// [`UserCompact`](crate::model::user::UserCompact) will be `None`.
+    ///
+    /// Note: `pp` will only be `Some` for the `firsts` score type if the map
+    /// is not loved.
     #[cfg(feature = "cache")]
     #[inline]
     pub fn user_scores(&self, user_id: impl Into<UserId>) -> GetUserScores {

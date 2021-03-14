@@ -34,7 +34,7 @@ pub struct Beatmap {
         rename = "beatmapset",
         skip_serializing_if = "Option::is_none"
     )]
-    pub mapset: Option<Mapset>,
+    pub mapset: Option<Beatmapset>,
     #[serde(rename = "beatmapset_id")]
     pub mapset_id: u32,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -85,7 +85,7 @@ pub struct BeatmapCompact {
         rename = "beatmapset",
         skip_serializing_if = "Option::is_none"
     )]
-    pub mapset: Option<Mapset>,
+    pub mapset: Option<BeatmapsetCompact>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub max_combo: Option<u32>,
     pub mode: GameMode,
@@ -105,6 +105,7 @@ pub struct Beatmapset {
     pub availability: BeatmapsetAvailability,
     pub bpm: f32,
     pub can_be_hyped: bool,
+    /// Each difficulty's converted map for each mode
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub converts: Option<Vec<Beatmap>>,
     pub covers: BeatmapsetCovers,
@@ -228,7 +229,8 @@ pub struct BeatmapsetCompact {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub artist_unicode: Option<String>,
     pub covers: BeatmapsetCovers,
-    pub creator: String,
+    #[serde(rename = "creator")]
+    pub creator_name: String,
     #[serde(rename = "user_id")]
     pub creator_id: u32,
     pub favourite_count: u32,
@@ -260,19 +262,28 @@ impl BeatmapsetCompact {
     }
 }
 
+/// URLs to various sizes of (parts of) the background picture
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct BeatmapsetCovers {
+    /// Lengthy part of the background
     pub cover: String,
+    /// Same as `cover` but larger
     #[serde(rename = "cover@2x")]
     pub cover_2x: String,
+    /// Same as `cover` but much smaller
     pub card: String,
+    /// Same as `card` but larger
     #[serde(rename = "card@2x")]
     pub card_2x: String,
+    /// Tiny preview of full the
     pub list: String,
+    /// Small preview of full the background background
     #[serde(rename = "list@2x")]
     pub list_2x: String,
+    /// Same as `cover` but much larger
     #[serde(rename = "slimcover")]
     pub slim_cover: String,
+    /// Same as `cover` but huge
     #[serde(rename = "slimcover@2x")]
     pub slim_cover_2x: String,
 }
@@ -322,6 +333,16 @@ impl Eq for BeatmapsetDiscussion {}
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case", tag = "type")]
 pub enum BeatmapsetEvent {
+    Disqualify {
+        #[serde(rename = "id")]
+        event_id: u64,
+        comment: BeatmapsetCommentId,
+        created_at: DateTime<Utc>,
+        user_id: u32,
+        #[serde(rename = "beatmapset")]
+        mapset: BeatmapsetCompact,
+        discussion: BeatmapsetDiscussion,
+    },
     GenreEdit {
         #[serde(rename = "id")]
         event_id: u64,
@@ -518,13 +539,6 @@ impl<'de> Visitor<'de> for HundredU32Visitor {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[serde(untagged)]
-pub enum Mapset {
-    Full(Beatmapset),
-    Compact(BeatmapsetCompact),
-}
-
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct MostPlayedMap {
     pub count: usize,
@@ -544,71 +558,6 @@ impl PartialEq for MostPlayedMap {
 }
 
 impl Eq for MostPlayedMap {}
-
-macro_rules! impl_get {
-    ($func:ident -> $ret:ident) => {
-        #[inline]
-        pub fn $func(&self) -> $ret {
-            match self {
-                Self::Full(set) => set.$func,
-                Self::Compact(set) => set.$func,
-            }
-        }
-    };
-
-    ($func:ident -> &$ret:ident) => {
-        #[inline]
-        pub fn $func(&self) -> &$ret {
-            match self {
-                Self::Full(set) => &set.$func,
-                Self::Compact(set) => &set.$func,
-            }
-        }
-    };
-}
-
-impl Mapset {
-    #[inline]
-    pub fn artist_unicode(&self) -> Option<&str> {
-        match self {
-            Self::Full(set) => set.artist_unicode.as_deref(),
-            Self::Compact(set) => set.artist_unicode.as_deref(),
-        }
-    }
-
-    #[inline]
-    pub fn creator(&self) -> &str {
-        match self {
-            Self::Full(set) => &set.creator_name,
-            Self::Compact(set) => &set.creator,
-        }
-    }
-
-    #[inline]
-    pub fn title_unicode(&self) -> Option<&str> {
-        match self {
-            Self::Full(set) => set.title_unicode.as_deref(),
-            Self::Compact(set) => set.title_unicode.as_deref(),
-        }
-    }
-
-    #[inline]
-    pub fn get_creator<'o>(&self, osu: &'o Osu) -> GetUser<'o> {
-        osu.user(self.creator_id())
-    }
-
-    impl_get!(artist -> &str);
-    impl_get!(covers -> &BeatmapsetCovers);
-    impl_get!(creator_id -> u32);
-    impl_get!(favourite_count -> u32);
-    impl_get!(mapset_id -> u32);
-    impl_get!(playcount -> u32);
-    impl_get!(preview_url -> &str);
-    impl_get!(source -> &str);
-    impl_get!(status -> RankStatus);
-    impl_get!(title -> &str);
-    impl_get!(video -> bool);
-}
 
 def_enum!(i8 RankStatus {
     Graveyard = -2 ("graveyard"),

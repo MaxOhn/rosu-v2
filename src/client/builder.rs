@@ -156,7 +156,7 @@ impl OsuBuilder {
             inner,
 
             #[cfg(feature = "cache")]
-            cache: DashMap::new(),
+            cache: Arc::new(DashMap::new()),
         })
     }
 

@@ -1,7 +1,7 @@
 use crate::{
     model::{
         beatmap::{Beatmap, Beatmapset, BeatmapsetEvents},
-        score::{BeatmapScores, BeatmapUserScore},
+        score::{BeatmapScores, BeatmapUserScore, Score},
         GameMode, GameMods,
     },
     request::{Pending, Query, Request},
@@ -84,7 +84,7 @@ poll_req!(GetBeatmap<'_> => Beatmap);
 /// Get top scores of a beatmap by its id.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetBeatmapScores<'a> {
-    fut: Option<Pending<'a, BeatmapScores>>,
+    fut: Option<Pending<'a, Vec<Score>>>,
     osu: &'a Osu,
     map_id: u32,
     score_type: Option<&'static str>,
@@ -119,7 +119,7 @@ impl<'a> GetBeatmapScores<'a> {
         self
     }
 
-    fn start(&mut self) -> Pending<'a, BeatmapScores> {
+    fn start(&mut self) -> Pending<'a, Vec<Score>> {
         let mut query = Query::new();
 
         if let Some(mode) = self.mode {
@@ -141,11 +141,16 @@ impl<'a> GetBeatmapScores<'a> {
             },
         ));
 
-        Box::pin(self.osu.inner.request(req))
+        Box::pin(
+            self.osu
+                .inner
+                .request(req)
+                .map_ok(|s: BeatmapScores| s.scores),
+        )
     }
 }
 
-poll_req!(GetBeatmapScores<'_> => BeatmapScores);
+poll_req!(GetBeatmapScores<'_> => Vec<Score>);
 
 /// Get scores of a user on a beatmap by the user's and the map's id.
 #[must_use = "futures do nothing unless you `.await` or poll them"]

@@ -277,15 +277,12 @@ pub struct User {
     pub support_level: Option<u8>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub unranked_beatmapset_count: Option<u32>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub unread_pm_count: Option<u32>,
     #[serde(
         default,
         rename = "user_achievements",
         skip_serializing_if = "Option::is_none"
     )]
     pub medals: Option<Vec<MedalCompact>>,
-    // user_preferences: Option<>,
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
@@ -383,9 +380,6 @@ pub struct UserCompact {
     pub support_level: Option<u8>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub unranked_beatmapset_count: Option<u32>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub unread_pm_count: Option<u32>,
-    // user_preferences: Option<>,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]

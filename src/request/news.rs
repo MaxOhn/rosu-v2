@@ -5,7 +5,7 @@ use crate::{
     Osu,
 };
 
-/// Get the wiki article or image data
+/// Get a [`News`](crate::model::news::News) struct.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetNews<'a> {
     fut: Option<Pending<'a, News>>,

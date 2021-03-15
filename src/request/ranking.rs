@@ -9,9 +9,10 @@ use crate::{
     Osu, OsuResult,
 };
 
+use futures::future::TryFutureExt;
 use serde::Deserialize;
 
-/// Get the recent events of a user by their id.
+/// Get a [`Rankings`](crate::model::ranking::Rankings) struct.
 ///
 /// Any of the `type_` methods **must** be specified before awaiting.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
@@ -169,10 +170,10 @@ impl<'a> GetRankings<'a> {
 
 poll_req!(GetRankings<'_> => OsuResult<Rankings>);
 
-/// Get the list of spotlights
+/// Get a vec of [`Spotlight`](crate::model::ranking::Spotlight)s.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetSpotlights<'a> {
-    fut: Option<Pending<'a, Spotlights>>,
+    fut: Option<Pending<'a, Vec<Spotlight>>>,
     osu: &'a Osu,
 }
 
@@ -182,34 +183,22 @@ impl<'a> GetSpotlights<'a> {
         Self { fut: None, osu }
     }
 
-    fn start(&mut self) {
+    fn start(&mut self) -> Pending<'a, Vec<Spotlight>> {
         let req = Request::from(Route::GetSpotlights);
-        self.fut.replace(Box::pin(self.osu.inner.request(req)));
+
+        let fut = self
+            .osu
+            .inner
+            .request(req)
+            .map_ok(|s: Spotlights| s.spotlights);
+
+        Box::pin(fut)
     }
 }
+
+poll_req!(GetSpotlights<'_> => Vec<Spotlight>);
 
 #[derive(Deserialize)]
-#[must_use = "futures do nothing unless you `.await` or poll them"]
 struct Spotlights {
     spotlights: Vec<Spotlight>,
-}
-
-impl std::future::Future for GetSpotlights<'_> {
-    type Output = crate::OsuResult<Vec<Spotlight>>;
-
-    fn poll(
-        mut self: std::pin::Pin<&mut Self>,
-        cx: &mut std::task::Context<'_>,
-    ) -> std::task::Poll<Self::Output> {
-        loop {
-            if let Some(fut) = self.as_mut().fut.as_mut() {
-                return fut
-                    .as_mut()
-                    .poll(cx)
-                    .map_ok(|spotlights| spotlights.spotlights);
-            }
-
-            self.as_mut().start();
-        }
-    }
 }

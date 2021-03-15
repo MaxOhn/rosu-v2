@@ -114,7 +114,7 @@ async fn beatmap_scores() {
     init().await;
 
     match osu().beatmap_scores(adesso_balla()).await {
-        Ok(scores) => println!("Received {} scores", scores.len(),),
+        Ok(scores) => println!("Received {} scores", scores.len()),
         Err(why) => {
             unwind_error!(error, why, "Error while requesting beatmap scores: {}");
             panic!()

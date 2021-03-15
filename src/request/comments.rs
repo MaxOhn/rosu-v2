@@ -6,6 +6,7 @@ use crate::{
 };
 
 /// Get a list of comments and their replies up to two levels deep
+/// in form of a [`CommentBundle`](crate::model::comments::CommentBundle).
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetComments<'a> {
     fut: Option<Pending<'a, CommentBundle>>,

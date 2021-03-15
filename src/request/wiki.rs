@@ -5,7 +5,7 @@ use crate::{
     Osu,
 };
 
-/// Get the wiki article or image data
+/// Get a [`WikiPage`](crate::model::wiki::WikiPage) or image data.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetWikiPage<'a> {
     fut: Option<Pending<'a, WikiPage>>, // TODO: Make this enum; either WikiPage or binary blob

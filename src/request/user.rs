@@ -65,7 +65,7 @@ impl fmt::Display for UserId {
     }
 }
 
-/// Get the beatmapsets of a user by their id.
+/// Get the [`Beatmapset`](crate::model::beatmap::Beatmapset)s of a user by their id.
 ///
 /// The map type **must** be specified before awaiting, either manually through
 /// [`map_type`](crate::request::GetUserBeatmapsets::map_type),
@@ -220,7 +220,7 @@ impl<'a> GetUserBeatmapsets<'a> {
 
 poll_req!(GetUserBeatmapsets<'_> => OsuResult<Vec<Beatmapset>>);
 
-/// Get the recent events of a user by their id.
+/// Get a vec of [`RecentEvent`](crate::model::recent_event::RecentEvent) of a user by their id.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetRecentEvents<'a> {
     fut: Option<Pending<'a, Vec<RecentEvent>>>,
@@ -310,7 +310,8 @@ impl<'a> GetRecentEvents<'a> {
 
 poll_req!(GetRecentEvents<'_> => Vec<RecentEvent>);
 
-/// Get a user's kudosu history by their user id.
+/// Get a user's kudosu history by their user id in form of a vec
+/// of [`KudosuHistory`](crate::model::kudosu::KudosuHistory).
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetUserKudosu<'a> {
     fut: Option<Pending<'a, Vec<KudosuHistory>>>,
@@ -400,7 +401,8 @@ impl<'a> GetUserKudosu<'a> {
 
 poll_req!(GetUserKudosu<'_> => Vec<KudosuHistory>);
 
-/// Get the most played beatmaps of a user by their id.
+/// Get the most played beatmaps of a user by their id in form
+/// of a vec of [`MostPlayedMap`](crate::model::beatmap::MostPlayedMap).
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetUserMostPlayed<'a> {
     fut: Option<Pending<'a, Vec<MostPlayedMap>>>,
@@ -503,7 +505,7 @@ impl<'a> GetUserMostPlayed<'a> {
 
 poll_req!(GetUserMostPlayed<'_> => Vec<MostPlayedMap>);
 
-/// Get scores of a user by the user's id.
+/// Get a vec of [`Score`](crate::model::score::Score) of a user by the user's id.
 ///
 /// Either of the following methods **must** be specified before awaiting:
 /// [`best`](crate::request::GetUserScores::best),
@@ -663,7 +665,7 @@ impl<'a> GetUserScores<'a> {
 
 poll_req!(GetUserScores<'_> => OsuResult<Vec<Score>>);
 
-/// Get a user by their id.
+/// Get a [`User`](crate::model::user::User) by their id.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetUser<'a> {
     fut: Option<Pending<'a, User>>,
@@ -702,7 +704,7 @@ impl<'a> GetUser<'a> {
 
 poll_req!(GetUser<'_> => User);
 
-/// Get multiple users by their ids.
+/// Get a vec of [`UserCompact`](crate::model::user::UserCompact) by their ids.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetUsers<'a> {
     fut: Option<Pending<'a, Vec<UserCompact>>>,

@@ -81,7 +81,8 @@ impl<'a> GetBeatmap<'a> {
 
 poll_req!(GetBeatmap<'_> => Beatmap);
 
-/// Get top scores of a beatmap by its id.
+/// Get top scores of a beatmap by its id in form of a
+/// vec of [`Score`](crate::model::score::Score)s.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetBeatmapScores<'a> {
     fut: Option<Pending<'a, Vec<Score>>>,
@@ -90,6 +91,9 @@ pub struct GetBeatmapScores<'a> {
     score_type: Option<&'static str>,
     mode: Option<GameMode>,
     mods: Option<GameMods>,
+    // ! Currently not working
+    // limit: Option<u32>,
+    // offset: Option<u32>,
 }
 
 impl<'a> GetBeatmapScores<'a> {
@@ -102,6 +106,8 @@ impl<'a> GetBeatmapScores<'a> {
             score_type: None, // TODO
             mode: None,
             mods: None,
+            // limit: None,
+            // offset: None,
         }
     }
 
@@ -119,6 +125,20 @@ impl<'a> GetBeatmapScores<'a> {
         self
     }
 
+    // #[inline]
+    // pub fn limit(mut self, limit: u32) -> Self {
+    //     self.limit.replace(limit);
+
+    //     self
+    // }
+
+    // #[inline]
+    // pub fn offset(mut self, offset: u32) -> Self {
+    //     self.offset.replace(offset);
+
+    //     self
+    // }
+
     fn start(&mut self) -> Pending<'a, Vec<Score>> {
         let mut query = Query::new();
 
@@ -133,6 +153,14 @@ impl<'a> GetBeatmapScores<'a> {
         if let Some(_score_type) = self.score_type {
             // TODO
         }
+
+        // if let Some(limit) = self.limit {
+        //     query.push("limit", limit.to_string());
+        // }
+
+        // if let Some(offset) = self.offset {
+        //     query.push("offset", offset.to_string());
+        // }
 
         let req = Request::from((
             query,
@@ -152,7 +180,8 @@ impl<'a> GetBeatmapScores<'a> {
 
 poll_req!(GetBeatmapScores<'_> => Vec<Score>);
 
-/// Get scores of a user on a beatmap by the user's and the map's id.
+/// Get [`BeatmapUserScore`](crate::model::score::BeatmapUserScore)
+/// of a user on a beatmap by the user's and the map's id.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetBeatmapUserScore<'a> {
     fut: Option<Pending<'a, BeatmapUserScore>>,
@@ -253,7 +282,7 @@ impl<'a> GetBeatmapUserScore<'a> {
 
 poll_req!(GetBeatmapUserScore<'_> => BeatmapUserScore);
 
-/// Get a [`BeatmapsetEvents`] struct.
+/// Get a [`Beatmapset`](crate::model::beatmap::Beatmapset).
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetBeatmapset<'a> {
     fut: Option<Pending<'a, Beatmapset>>,
@@ -282,7 +311,7 @@ impl<'a> GetBeatmapset<'a> {
 
 poll_req!(GetBeatmapset<'_> => Beatmapset);
 
-/// Get a [`BeatmapsetEvents`] struct.
+/// Get a [`BeatmapsetEvents`](crate::model::beatmap::BeatmapsetEvents) struct.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetBeatmapsetEvents<'a> {
     fut: Option<Pending<'a, BeatmapsetEvents>>,

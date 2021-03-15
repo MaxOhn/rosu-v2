@@ -46,6 +46,9 @@ impl<'a> GetMatch<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, OsuMatch> {
+        #[cfg(feature = "metrics")]
+        self.osu.metrics.osu_match.inc();
+
         let mut query = Query::new();
 
         if let Some(after) = self.after {
@@ -96,6 +99,9 @@ impl<'a> GetMatches<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, MatchList> {
+        #[cfg(feature = "metrics")]
+        self.osu.metrics.match_list.inc();
+
         let mut query = Query::new();
 
         if let Some(cursor) = self.cursor.take() {

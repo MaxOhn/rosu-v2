@@ -130,6 +130,9 @@ impl<'a> GetRankings<'a> {
     }
 
     fn start(&mut self) -> OsuResult<Pending<'a, Rankings>> {
+        #[cfg(feature = "metrics")]
+        self.osu.metrics.rankings.inc();
+
         let ranking_type = self.ranking_type.ok_or(OsuError::MissingParameter {
             param: "ranking type",
         })?;
@@ -184,6 +187,9 @@ impl<'a> GetSpotlights<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, Vec<Spotlight>> {
+        #[cfg(feature = "metrics")]
+        self.osu.metrics.spotlights.inc();
+
         let req = Request::from(Route::GetSpotlights);
 
         let fut = self

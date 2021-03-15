@@ -15,6 +15,7 @@ documentation = "https://docs.rs/rosu-v2/"
 [features]
 default = ["cache"]
 cache = ["dashmap", "futures"]
+metrics = ["prometheus"]
 
 # --- Future dependencies ---
 
@@ -26,6 +27,10 @@ optional = true
 [dependencies.futures]
 version = "0.3"
 default-features = false
+optional = true
+
+[dependencies.prometheus]
+version = "0.11"
 optional = true
 
 # --- Dependencies ---

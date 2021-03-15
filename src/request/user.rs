@@ -179,6 +179,9 @@ impl<'a> GetUserBeatmapsets<'a> {
     }
 
     fn start(&mut self) -> OsuResult<Pending<'a, Vec<Beatmapset>>> {
+        #[cfg(feature = "metrics")]
+        self.osu.metrics.user_beatmapsets.inc();
+
         let map_type = self
             .map_type
             .ok_or(OsuError::MissingParameter { param: "map type" })?;
@@ -275,6 +278,9 @@ impl<'a> GetRecentEvents<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, Vec<RecentEvent>> {
+        #[cfg(feature = "metrics")]
+        self.osu.metrics.recent_events.inc();
+
         let mut query = Query::new();
 
         if let Some(limit) = self.limit {
@@ -366,6 +372,9 @@ impl<'a> GetUserKudosu<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, Vec<KudosuHistory>> {
+        #[cfg(feature = "metrics")]
+        self.osu.metrics.user_kudosu.inc();
+
         let mut query = Query::new();
 
         if let Some(limit) = self.limit {
@@ -457,6 +466,9 @@ impl<'a> GetUserMostPlayed<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, Vec<MostPlayedMap>> {
+        #[cfg(feature = "metrics")]
+        self.osu.metrics.most_played.inc();
+
         let mut query = Query::new();
 
         if let Some(limit) = self.limit {
@@ -505,6 +517,12 @@ impl<'a> GetUserMostPlayed<'a> {
 
 poll_req!(GetUserMostPlayed<'_> => Vec<MostPlayedMap>);
 
+enum ScoreType {
+    Best,
+    First,
+    Recent,
+}
+
 /// Get a vec of [`Score`](crate::model::score::Score) of a user by the user's id.
 ///
 /// Either of the following methods **must** be specified before awaiting:
@@ -515,7 +533,7 @@ poll_req!(GetUserMostPlayed<'_> => Vec<MostPlayedMap>);
 pub struct GetUserScores<'a> {
     fut: Option<Pending<'a, Vec<Score>>>,
     osu: &'a Osu,
-    score_type: Option<&'static str>,
+    score_type: Option<ScoreType>,
     limit: Option<u32>,
     offset: Option<u32>,
     include_fails: Option<bool>,
@@ -589,29 +607,51 @@ impl<'a> GetUserScores<'a> {
 
     #[inline]
     pub fn best(mut self) -> Self {
-        self.score_type.replace("best");
+        self.score_type.replace(ScoreType::Best);
 
         self
     }
 
     #[inline]
     pub fn firsts(mut self) -> Self {
-        self.score_type.replace("firsts");
+        self.score_type.replace(ScoreType::First);
 
         self
     }
 
     #[inline]
     pub fn recent(mut self) -> Self {
-        self.score_type.replace("recent");
+        self.score_type.replace(ScoreType::Recent);
 
         self
     }
 
     fn start(&mut self) -> OsuResult<Pending<'a, Vec<Score>>> {
-        let score_type = self.score_type.ok_or(OsuError::MissingParameter {
-            param: "score type",
-        })?;
+        let score_type = match self.score_type.take() {
+            Some(ScoreType::Best) => {
+                #[cfg(feature = "metrics")]
+                self.osu.metrics.user_top_scores.inc();
+
+                "best"
+            }
+            Some(ScoreType::Recent) => {
+                #[cfg(feature = "metrics")]
+                self.osu.metrics.user_recent_scores.inc();
+
+                "recent"
+            }
+            Some(ScoreType::First) => {
+                #[cfg(feature = "metrics")]
+                self.osu.metrics.user_first_scores.inc();
+
+                "firsts"
+            }
+            None => {
+                return Err(OsuError::MissingParameter {
+                    param: "score type",
+                })
+            }
+        };
 
         let mut query = Query::new();
 
@@ -693,6 +733,9 @@ impl<'a> GetUser<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, User> {
+        #[cfg(feature = "metrics")]
+        self.osu.metrics.user.inc();
+
         let req = Request::from(Route::GetUser {
             user_id: self.user_id.take().unwrap(),
             mode: self.mode,
@@ -732,6 +775,9 @@ impl<'a> GetUsers<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, Vec<UserCompact>> {
+        #[cfg(feature = "metrics")]
+        self.osu.metrics.users.inc();
+
         let query = self.query.take().unwrap();
         let req = Request::from((query, Route::GetUsers));
 

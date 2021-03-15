@@ -13,6 +13,12 @@ use tokio::sync::{oneshot::Sender, RwLock};
 #[cfg(feature = "cache")]
 use dashmap::DashMap;
 
+#[cfg(feature = "metrics")]
+use crate::metrics::Metrics;
+
+#[cfg(feature = "metrics")]
+use prometheus::IntCounterVec;
+
 /// The main osu client.
 /// Cheap to clone.
 ///
@@ -21,6 +27,8 @@ pub struct Osu {
     pub(crate) inner: Arc<OsuRef>,
     #[cfg(feature = "cache")]
     pub(crate) cache: Arc<DashMap<String, u32>>,
+    #[cfg(feature = "metrics")]
+    pub(crate) metrics: Arc<Metrics>,
 }
 
 impl Osu {
@@ -39,6 +47,14 @@ impl Osu {
     #[inline]
     pub fn builder() -> OsuBuilder {
         OsuBuilder::default()
+    }
+
+    /// Returns an [`IntCounterVec`](crate::prelude::IntCounterVec) from
+    /// [prometheus](https://crates.io/crates/prometheus) containing
+    /// a counter for each request type.
+    #[cfg(feature = "metrics")]
+    pub fn metrics(&self) -> IntCounterVec {
+        self.metrics.counters.clone()
     }
 
     /// Get a [`Beatmap`](crate::model::beatmap::Beatmap).

@@ -82,6 +82,9 @@ impl<'a> GetComments<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, CommentBundle> {
+        #[cfg(feature = "metrics")]
+        self.osu.metrics.comments.inc();
+
         let mut query = Query::new();
 
         if let Some(sort) = self.sort {

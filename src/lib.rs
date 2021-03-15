@@ -5,6 +5,9 @@ mod ratelimiter;
 pub mod request;
 mod routing;
 
+#[cfg(feature = "metrics")]
+mod metrics;
+
 pub use client::{Osu, OsuBuilder};
 
 #[macro_use]
@@ -24,4 +27,7 @@ pub mod prelude {
     };
 
     pub use reqwest::{Client as ReqwestClient, StatusCode};
+
+    #[cfg(feature = "metrics")]
+    pub use prometheus::IntCounterVec;
 }

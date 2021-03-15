@@ -27,6 +27,9 @@ impl<'a> GetMultiplayerScore<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, u32> {
+        #[cfg(feature = "metrics")]
+        self.osu.metrics.multiplayer_score.inc();
+
         let req = Request::from(Route::GetMultiplayerScore {
             room: self.room,
             playlist: self.playlist,
@@ -80,6 +83,9 @@ impl<'a> GetMultiplayerScores<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, u32> {
+        #[cfg(feature = "metrics")]
+        self.osu.metrics.multiplayer_scores.inc();
+
         let mut query = Query::new();
 
         if let Some(limit) = self.limit {
@@ -131,6 +137,9 @@ impl<'a> GetMultiplayerUserHighScore<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, u32> {
+        #[cfg(feature = "metrics")]
+        self.osu.metrics.multiplayer_user_highscore.inc();
+
         let req = Request::from(Route::GetMultiplayerUserHighScore {
             room: self.room,
             playlist: self.playlist,

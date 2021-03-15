@@ -14,6 +14,9 @@ use tokio::{
 #[cfg(feature = "cache")]
 use dashmap::DashMap;
 
+#[cfg(feature = "metrics")]
+use crate::metrics::Metrics;
+
 /// Builder struct for an [`Osu`](crate::Osu) client.
 ///
 /// `client_id` as well as `client_secret` **must** be specified before building.
@@ -157,6 +160,9 @@ impl OsuBuilder {
 
             #[cfg(feature = "cache")]
             cache: Arc::new(DashMap::new()),
+
+            #[cfg(feature = "metrics")]
+            metrics: Arc::new(Metrics::new()),
         })
     }
 

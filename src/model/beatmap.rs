@@ -97,6 +97,23 @@ pub struct BeatmapCompact {
     pub version: String,
 }
 
+impl From<Beatmap> for BeatmapCompact {
+    fn from(map: Beatmap) -> Self {
+        Self {
+            checksum: map.checksum,
+            fail_times: map.fail_times,
+            map_id: map.map_id,
+            mapset: map.mapset.map(|ms| ms.into()),
+            max_combo: map.max_combo,
+            mode: map.mode,
+            seconds_total: map.seconds_total,
+            stars: map.stars,
+            status: map.status,
+            version: map.version,
+        }
+    }
+}
+
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Beatmapset {
     pub artist: String,
@@ -259,6 +276,31 @@ impl BeatmapsetCompact {
     #[inline]
     pub fn get_creator<'o>(&self, osu: &'o Osu) -> GetUser<'o> {
         osu.user(self.creator_id)
+    }
+}
+
+impl From<Beatmapset> for BeatmapsetCompact {
+    fn from(mapset: Beatmapset) -> Self {
+        Self {
+            artist: mapset.artist,
+            artist_unicode: mapset.artist_unicode,
+            covers: mapset.covers,
+            creator_name: mapset.creator_name,
+            creator_id: mapset.creator_id,
+            favourite_count: mapset.favourite_count,
+            genre: mapset.genre,
+            hype: mapset.hype,
+            language: mapset.language,
+            mapset_id: mapset.mapset_id,
+            nsfw: mapset.nsfw,
+            playcount: mapset.playcount,
+            preview_url: mapset.preview_url,
+            source: mapset.source,
+            status: mapset.status,
+            title: mapset.title,
+            title_unicode: mapset.title_unicode,
+            video: mapset.video,
+        }
     }
 }
 

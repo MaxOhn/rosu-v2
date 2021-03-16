@@ -383,6 +383,58 @@ pub struct UserCompact {
     pub unranked_beatmapset_count: Option<u32>,
 }
 
+impl From<User> for UserCompact {
+    fn from(user: User) -> Self {
+        Self {
+            avatar_url: user.avatar_url,
+            country_code: user.country_code,
+            default_group: user.default_group,
+            is_active: user.is_active,
+            is_bot: user.is_bot,
+            is_deleted: user.is_deleted,
+            is_online: user.is_online,
+            is_supporter: user.is_supporter,
+            last_visit: user.last_visit,
+            pm_friends_only: user.pm_friends_only,
+            profile_color: user.profile_color,
+            user_id: user.user_id,
+            username: user.username,
+            account_history: user.account_history,
+            badges: user.badges,
+            beatmap_playcounts_count: user.beatmap_playcounts_count,
+            country: Some(user.country),
+            cover: Some(user.cover),
+            favourite_beatmapset_count: user.favourite_beatmapset_count,
+            follower_count: user.follower_count,
+            graveyard_beatmapset_count: user.graveyard_beatmapset_count,
+            groups: user.groups,
+            is_admin: user.is_admin,
+            is_bng: user.is_bng,
+            is_full_bn: user.is_full_bn,
+            is_gmt: user.is_gmt,
+            is_limited_bn: user.is_limited_bn,
+            is_moderator: user.is_moderator,
+            is_nat: user.is_nat,
+            is_restricted: user.is_restricted,
+            is_silenced: user.is_silenced,
+            loved_beatmapset_count: user.loved_beatmapset_count,
+            medals: user.medals,
+            monthly_playcounts: user.monthly_playcounts,
+            page: user.page,
+            previous_usernames: user.previous_usernames,
+            rank_history: user.rank_history,
+            ranked_and_approved_beatmapset_count: user.ranked_and_approved_beatmapset_count,
+            replays_watched_counts: user.replays_watched_counts,
+            scores_best_count: user.scores_best_count,
+            scores_first_count: user.scores_first_count,
+            scores_recent_count: user.scores_recent_count,
+            statistics: user.statistics,
+            support_level: user.support_level,
+            unranked_beatmapset_count: user.unranked_beatmapset_count,
+        }
+    }
+}
+
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct UserCover {
     #[serde(default, skip_serializing_if = "Option::is_none")]

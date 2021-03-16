@@ -9,11 +9,12 @@ use serde::{
     de::{Deserializer, Error, IgnoredAny, MapAccess, Unexpected, Visitor},
     Deserialize, Serialize,
 };
-use std::{fmt, slice::Iter};
+use std::{fmt, slice::Iter, vec::Drain};
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub enum MatchEvent {
+    /// The match was created
     #[serde(rename(serialize = "match-created"))]
     Create {
         #[serde(rename(serialize = "id"))]
@@ -21,19 +22,24 @@ pub enum MatchEvent {
         timestamp: DateTime<Utc>,
         user_id: u32,
     },
+    /// The match was closed
     #[serde(rename(serialize = "match-disbanded"))]
     Disbanded {
         #[serde(rename(serialize = "id"))]
         event_id: u64,
         timestamp: DateTime<Utc>,
     },
+    /// A map is / was being played
     #[serde(rename(serialize = "other"))]
     Game {
         #[serde(rename(serialize = "id"))]
         event_id: u64,
+        /// Boxed to optimize [`MatchEvent`](crate::model::matches::Matchevent)'s
+        /// size in memory.
         game: Box<MatchGame>,
         timestamp: DateTime<Utc>,
     },
+    /// The match host changed
     #[serde(rename(serialize = "host-changed"))]
     HostChanged {
         #[serde(rename(serialize = "id"))]
@@ -41,6 +47,7 @@ pub enum MatchEvent {
         timestamp: DateTime<Utc>,
         user_id: u32,
     },
+    /// A player joined the match
     #[serde(rename(serialize = "player-joined"))]
     Joined {
         #[serde(rename(serialize = "id"))]
@@ -48,6 +55,7 @@ pub enum MatchEvent {
         timestamp: DateTime<Utc>,
         user_id: u32,
     },
+    /// A player left the match
     #[serde(rename(serialize = "player-left"))]
     Left {
         #[serde(rename(serialize = "id"))]
@@ -282,6 +290,7 @@ impl MatchGame {
     }
 }
 
+/// Iterates over `&MatchGame`s.
 #[derive(Clone, Debug)]
 pub struct MatchGameIter<'m> {
     iter: Iter<'m, MatchEvent>,
@@ -301,6 +310,31 @@ impl<'m> Iterator for MatchGameIter<'m> {
         loop {
             if let MatchEvent::Game { game, .. } = self.iter.next()? {
                 return Some(game);
+            }
+        }
+    }
+}
+
+/// Iterates over `MatchGame`s by draining the events of a match.
+#[derive(Debug)]
+pub struct MatchGameDrain<'m> {
+    drain: Drain<'m, MatchEvent>,
+}
+
+impl<'m> MatchGameDrain<'m> {
+    #[inline]
+    fn new(drain: Drain<'m, MatchEvent>) -> Self {
+        Self { drain }
+    }
+}
+
+impl<'m> Iterator for MatchGameDrain<'m> {
+    type Item = MatchGame;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            if let MatchEvent::Game { game, .. } = self.drain.next()? {
+                return Some(*game);
             }
         }
     }
@@ -507,16 +541,122 @@ impl OsuMatch {
     ///
     /// The games are drained from the match's events meaning the
     /// `events` field will be empty after this method is called.
-    pub fn collect_games(&mut self) -> Vec<MatchGame> {
-        let mut games = Vec::new();
-
-        for event in self.events.drain(..) {
-            if let MatchEvent::Game { game, .. } = event {
-                games.push(*game);
-            }
-        }
-
-        games
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use rosu_v2::model::matches::{OsuMatch, MatchEvent, MatchGame};
+    /// # use rosu_v2::prelude::{BeatmapCompact, GameMode, GameMods, RankStatus, ScoringType, TeamType};
+    /// # use chrono::{DateTime, Utc};
+    /// #
+    /// # let date = DateTime::parse_from_rfc3339("1996-12-19T16:39:57-08:00")
+    /// #     .unwrap()
+    /// #     .with_timezone(&Utc);
+    /// #
+    /// # let map = BeatmapCompact {
+    /// #     checksum: None,
+    /// #     fail_times: None,
+    /// #     map_id: 0,
+    /// #     mapset: None,
+    /// #     max_combo: None,
+    /// #     mode: GameMode::STD,
+    /// #     seconds_total: 0,
+    /// #     stars: 0.0,
+    /// #     status: RankStatus::Ranked,
+    /// #     version: String::new(),
+    /// # };
+    ///
+    /// let mut osu_match = OsuMatch {
+    ///     events: vec![
+    ///         # /*
+    ///         MatchEvent::Create { ... },
+    ///         # */
+    ///         # MatchEvent::Create {
+    ///         #     event_id: 0,
+    ///         #     timestamp: date,
+    ///         #     user_id: 0,
+    ///         # },
+    ///         MatchEvent::Game {
+    ///             # /*
+    ///             game: Box::new(MatchGame { game_id: 14, ... }),
+    ///             # */
+    ///             # game: Box::new(MatchGame {
+    ///                 # game_id: 14,
+    ///                 # start_time:date,
+    ///                 # end_time: None,
+    ///                 # mode: GameMode::STD,
+    ///                 # scoring_type: ScoringType::Score,
+    ///                 # team_type: TeamType::HeadToHead,
+    ///                 # mods: GameMods::NoMod,
+    ///                 # map: map.clone(),
+    ///                 # scores: vec![],
+    ///             # }),
+    ///             # /*
+    ///             ...
+    ///             # */
+    ///             # event_id: 0,
+    ///             # timestamp: date,
+    ///         },
+    ///         # /*
+    ///         MatchEvent::Joined { ... },
+    ///         # */
+    ///         # MatchEvent::Joined {
+    ///             # event_id: 0,
+    ///             # timestamp: date,
+    ///             # user_id: 0,
+    ///         # },
+    ///         MatchEvent::Game {
+    ///             # /*
+    ///             game: Box::new(MatchGame { game_id: 52, ... }),
+    ///             # */
+    ///             # game: Box::new(MatchGame {
+    ///                 # game_id: 52,
+    ///                 # start_time: date,
+    ///                 # end_time: None,
+    ///                 # mode: GameMode::STD,
+    ///                 # scoring_type: ScoringType::Score,
+    ///                 # team_type: TeamType::HeadToHead,
+    ///                 # mods: GameMods::NoMod,
+    ///                 # map,
+    ///                 # scores: vec![],
+    ///             # }),
+    ///             # /*
+    ///             ...
+    ///             # */
+    ///             # event_id: 0,
+    ///             # timestamp: date,
+    ///         },
+    ///     ],
+    ///     # /*
+    ///     ...
+    ///     # */
+    ///     # current_game_id: None,
+    ///     # end_time: None,
+    ///     # first_event_id: 0,
+    ///     # latest_event_id: 0,
+    ///     # match_id: 0,
+    ///     # name: String::new(),
+    ///     # start_time: date,
+    ///     # users: vec![],
+    /// };
+    ///
+    /// assert_eq!(osu_match.events.len(), 4);
+    ///
+    /// {
+    ///     // Borrows osu_match mutably, this smaller scope lifts that borrow
+    ///     let mut iter = osu_match.drain_games();
+    ///
+    ///     assert!(matches!(iter.next(), Some(MatchGame { game_id: 14, .. })));
+    ///     assert!(matches!(iter.next(), Some(MatchGame { game_id: 52, .. })));
+    ///     assert!(matches!(iter.next(), None));
+    /// }
+    ///
+    /// // Events were drained, hence empty
+    /// assert!(osu_match.events.is_empty());
+    /// ```
+    #[inline]
+    pub fn drain_games(&mut self) -> MatchGameDrain {
+        MatchGameDrain::new(self.events.drain(..))
     }
 
     /// Get the [`OsuMatch`] containing only data __after__ the currently last event.

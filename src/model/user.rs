@@ -19,7 +19,8 @@ fn date_to_str<S: Serializer>(date: &Date<Utc>, s: S) -> Result<S::Ok, S::Error>
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct AccountHistory {
-    pub id: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<u32>, // TODO: Can be removed?
     #[serde(rename = "type")]
     pub history_type: HistoryType,
     pub timestamp: DateTime<Utc>,

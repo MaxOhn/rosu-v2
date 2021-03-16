@@ -510,7 +510,7 @@ fn get_user() -> User {
         username: "bob".to_owned(),
         website: Some(String::new()),
         account_history: Some(vec![AccountHistory {
-            id: 1,
+            id: Some(1),
             history_type: HistoryType::Note,
             timestamp: get_date(),
             seconds: 2,
@@ -590,7 +590,7 @@ fn get_user_compact() -> UserCompact {
         user_id: 12345,
         username: "bob".to_owned(),
         account_history: Some(vec![AccountHistory {
-            id: 1,
+            id: Some(1),
             history_type: HistoryType::Note,
             timestamp: get_date(),
             seconds: 2,

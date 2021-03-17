@@ -468,7 +468,7 @@ pub struct UserStatistics {
     pub accuracy: f32,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub country_rank: Option<u32>,
-    pub global_rank: u32,
+    pub global_rank: Option<u32>,
     pub grade_counts: GradeCounts,
     pub is_ranked: bool,
     pub level: UserLevel,

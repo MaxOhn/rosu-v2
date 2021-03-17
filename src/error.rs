@@ -98,9 +98,9 @@ impl fmt::Display for OsuError {
             Self::MissingParameter { param } => {
                 write!(f, "Missing parameter for request: {}", param)
             }
-            Self::NotFound => {
-                f.write_str("The API returned a 404 implying an incorrect name, id, etc")
-            }
+            Self::NotFound => f.write_str(
+                "The API returned a 404 implying a missing score, incorrect name, id, etc",
+            ),
             Self::NoToken => f.write_str(
                 "The previous API token expired and the client \
                 has not yet succeeded in acquiring a new one. \

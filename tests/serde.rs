@@ -666,7 +666,7 @@ fn get_user_stats() -> UserStatistics {
     UserStatistics {
         accuracy: 99.11,
         country_rank: Some(1),
-        global_rank: 1,
+        global_rank: Some(1),
         grade_counts: GradeCounts {
             ss: 1,
             ssh: 2,

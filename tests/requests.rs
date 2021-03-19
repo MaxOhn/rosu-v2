@@ -439,11 +439,7 @@ async fn user_scores() {
         .best()
         .await
     {
-        Ok(scores) => {
-            let pp = scores[1].pp.expect("Got fewer than two scores");
-
-            println!("Received {} scores, the second has {}pp", scores.len(), pp);
-        }
+        Ok(scores) => println!("Received {} scores", scores.len()),
         Err(why) => {
             unwind_error!(error, why, "Error while requesting user scores: {}");
             panic!()

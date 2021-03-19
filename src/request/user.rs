@@ -669,6 +669,10 @@ impl<'a> GetUserScores<'a> {
             query.push("mode", mode.to_string());
         }
 
+        if let Some(include_fails) = self.include_fails {
+            query.push("include_fails", (include_fails as u8).to_string());
+        }
+
         #[cfg(not(feature = "cache"))]
         {
             let req = Request::from((

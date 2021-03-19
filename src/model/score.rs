@@ -110,7 +110,7 @@ impl Score {
 impl PartialEq for Score {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
-        self.score_id == other.score_id
+        self.user_id == other.user_id && self.created_at == other.created_at
     }
 }
 

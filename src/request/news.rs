@@ -25,12 +25,13 @@ impl<'a> GetNews<'a> {
         }
     }
 
-    #[inline]
-    pub fn news(mut self, news: ()) -> Self {
-        self.news.replace(news);
+    // TODO
+    // #[inline]
+    // pub fn news(mut self, news: ()) -> Self {
+    //     self.news.replace(news);
 
-        self
-    }
+    //     self
+    // }
 
     #[inline]
     pub(crate) fn cursor(mut self, cursor: NewsCursor) -> Self {

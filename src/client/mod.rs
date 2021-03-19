@@ -276,6 +276,10 @@ impl Osu {
     ///
     /// All options of the contained [`BeatmapCompact`](crate::model::beatmap::BeatmapCompact) and
     /// [`BeatmapsetCompact`](crate::model::beatmap::BeatmapsetCompact) will be `None`.
+    ///
+    /// ## Limit
+    ///
+    /// The API provides at most 51 results per requests, 100 in total.
     #[cfg(not(feature = "cache"))]
     #[inline]
     pub fn user_most_played(&self, user_id: u32) -> GetUserMostPlayed {
@@ -286,6 +290,10 @@ impl Osu {
     ///
     /// All options of the contained [`BeatmapCompact`](crate::model::beatmap::BeatmapCompact) and
     /// [`BeatmapsetCompact`](crate::model::beatmap::BeatmapsetCompact) will be `None`.
+    ///
+    /// ## Limit
+    ///
+    /// The API provides at most 51 results per requests, 100 in total.
     #[cfg(feature = "cache")]
     #[inline]
     pub fn user_most_played(&self, user_id: impl Into<UserId>) -> GetUserMostPlayed {
@@ -303,7 +311,13 @@ impl Osu {
     /// [`BeatmapsetCompact`](crate::model::beatmap::Beatmapset), and
     /// [`UserCompact`](crate::model::user::UserCompact) will be `None`.
     ///
-    /// Note: `pp` will only be `Some` for the `firsts` score type if the map
+    /// ## Note
+    ///
+    /// - The API provides at most 51 results per requests, 100 in total.
+    /// - For the `recent` score type, failed score are excluded by default.
+    /// Use [`include_fails`](crate::request::GetUserScores::include_fails)
+    /// to include them.
+    /// - For the `firsts` score type, `pp` will only be `Some` if the map
     /// is not loved.
     #[cfg(not(feature = "cache"))]
     #[inline]
@@ -322,7 +336,13 @@ impl Osu {
     /// [`BeatmapsetCompact`](crate::model::beatmap::Beatmapset), and
     /// [`UserCompact`](crate::model::user::UserCompact) will be `None`.
     ///
-    /// Note: `pp` will only be `Some` for the `firsts` score type if the map
+    /// ## Note
+    ///
+    /// - The API provides at most 51 results per requests, 100 in total.
+    /// - For the `recent` score type, failed score are excluded by default.
+    /// Use [`include_fails`](crate::request::GetUserScores::include_fails)
+    /// to include them.
+    /// - For the `firsts` score type, `pp` will only be `Some` if the map
     /// is not loved.
     #[cfg(feature = "cache")]
     #[inline]

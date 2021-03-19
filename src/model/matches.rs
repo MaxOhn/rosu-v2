@@ -34,7 +34,7 @@ pub enum MatchEvent {
     Game {
         #[serde(rename(serialize = "id"))]
         event_id: u64,
-        /// Boxed to optimize [`MatchEvent`](crate::model::matches::Matchevent)'s
+        /// Boxed to optimize [`MatchEvent`](crate::model::matches::MatchEvent)'s
         /// size in memory.
         game: Box<MatchGame>,
         timestamp: DateTime<Utc>,
@@ -259,8 +259,9 @@ pub struct MatchGame {
     pub scoring_type: ScoringType,
     pub team_type: TeamType,
     pub mods: GameMods,
+    /// Optional in case the map was deleted
     #[serde(rename = "beatmap")]
-    pub map: BeatmapCompact,
+    pub map: Option<BeatmapCompact>,
     pub scores: Vec<MatchScore>,
 }
 

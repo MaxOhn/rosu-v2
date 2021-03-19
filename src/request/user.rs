@@ -451,6 +451,7 @@ impl<'a> GetUserMostPlayed<'a> {
         }
     }
 
+    /// The API provides at most 51 results per requests.
     #[inline]
     pub fn limit(mut self, limit: u32) -> Self {
         self.limit.replace(limit);
@@ -577,6 +578,7 @@ impl<'a> GetUserScores<'a> {
         }
     }
 
+    /// The API provides at most 51 results per requests.
     #[inline]
     pub fn limit(mut self, limit: u32) -> Self {
         self.limit.replace(limit);

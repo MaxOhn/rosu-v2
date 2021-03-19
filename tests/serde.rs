@@ -388,7 +388,7 @@ fn get_match() -> OsuMatch {
                     scoring_type: ScoringType::Score,
                     team_type: TeamType::HeadToHead,
                     mods: GameMods::Hidden | GameMods::HardRock,
-                    map: get_map_compact(),
+                    map: Some(get_map_compact()),
                     scores: vec![get_match_score()],
                 }),
             },

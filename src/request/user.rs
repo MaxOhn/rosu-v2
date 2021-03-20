@@ -79,8 +79,8 @@ pub struct GetUserBeatmapsets<'a> {
     fut: Option<Pending<'a, Vec<Beatmapset>>>,
     osu: &'a Osu,
     map_type: Option<&'static str>,
-    limit: Option<u32>,
-    offset: Option<u32>,
+    limit: Option<usize>,
+    offset: Option<usize>,
 
     #[cfg(not(feature = "cache"))]
     user_id: u32,
@@ -117,14 +117,14 @@ impl<'a> GetUserBeatmapsets<'a> {
     }
 
     #[inline]
-    pub fn limit(mut self, limit: u32) -> Self {
+    pub fn limit(mut self, limit: usize) -> Self {
         self.limit.replace(limit);
 
         self
     }
 
     #[inline]
-    pub fn offset(mut self, offset: u32) -> Self {
+    pub fn offset(mut self, offset: usize) -> Self {
         self.offset.replace(offset);
 
         self
@@ -228,8 +228,8 @@ poll_req!(GetUserBeatmapsets<'_> => OsuResult<Vec<Beatmapset>>);
 pub struct GetRecentEvents<'a> {
     fut: Option<Pending<'a, Vec<RecentEvent>>>,
     osu: &'a Osu,
-    limit: Option<u32>,
-    offset: Option<u32>,
+    limit: Option<usize>,
+    offset: Option<usize>,
 
     #[cfg(not(feature = "cache"))]
     user_id: u32,
@@ -264,14 +264,14 @@ impl<'a> GetRecentEvents<'a> {
     }
 
     #[inline]
-    pub fn limit(mut self, limit: u32) -> Self {
+    pub fn limit(mut self, limit: usize) -> Self {
         self.limit.replace(limit);
 
         self
     }
 
     #[inline]
-    pub fn offset(mut self, offset: u32) -> Self {
+    pub fn offset(mut self, offset: usize) -> Self {
         self.offset.replace(offset);
 
         self
@@ -322,8 +322,8 @@ poll_req!(GetRecentEvents<'_> => Vec<RecentEvent>);
 pub struct GetUserKudosu<'a> {
     fut: Option<Pending<'a, Vec<KudosuHistory>>>,
     osu: &'a Osu,
-    limit: Option<u32>,
-    offset: Option<u32>,
+    limit: Option<usize>,
+    offset: Option<usize>,
 
     #[cfg(not(feature = "cache"))]
     user_id: u32,
@@ -358,14 +358,14 @@ impl<'a> GetUserKudosu<'a> {
     }
 
     #[inline]
-    pub fn limit(mut self, limit: u32) -> Self {
+    pub fn limit(mut self, limit: usize) -> Self {
         self.limit.replace(limit);
 
         self
     }
 
     #[inline]
-    pub fn offset(mut self, offset: u32) -> Self {
+    pub fn offset(mut self, offset: usize) -> Self {
         self.offset.replace(offset);
 
         self
@@ -416,8 +416,8 @@ poll_req!(GetUserKudosu<'_> => Vec<KudosuHistory>);
 pub struct GetUserMostPlayed<'a> {
     fut: Option<Pending<'a, Vec<MostPlayedMap>>>,
     osu: &'a Osu,
-    limit: Option<u32>,
-    offset: Option<u32>,
+    limit: Option<usize>,
+    offset: Option<usize>,
 
     #[cfg(not(feature = "cache"))]
     user_id: u32,
@@ -453,14 +453,14 @@ impl<'a> GetUserMostPlayed<'a> {
 
     /// The API provides at most 51 results per requests.
     #[inline]
-    pub fn limit(mut self, limit: u32) -> Self {
+    pub fn limit(mut self, limit: usize) -> Self {
         self.limit.replace(limit);
 
         self
     }
 
     #[inline]
-    pub fn offset(mut self, offset: u32) -> Self {
+    pub fn offset(mut self, offset: usize) -> Self {
         self.offset.replace(offset);
 
         self
@@ -535,8 +535,8 @@ pub struct GetUserScores<'a> {
     fut: Option<Pending<'a, Vec<Score>>>,
     osu: &'a Osu,
     score_type: Option<ScoreType>,
-    limit: Option<u32>,
-    offset: Option<u32>,
+    limit: Option<usize>,
+    offset: Option<usize>,
     include_fails: Option<bool>,
     mode: Option<GameMode>,
 
@@ -580,14 +580,14 @@ impl<'a> GetUserScores<'a> {
 
     /// The API provides at most 51 results per requests.
     #[inline]
-    pub fn limit(mut self, limit: u32) -> Self {
+    pub fn limit(mut self, limit: usize) -> Self {
         self.limit.replace(limit);
 
         self
     }
 
     #[inline]
-    pub fn offset(mut self, offset: u32) -> Self {
+    pub fn offset(mut self, offset: usize) -> Self {
         self.offset.replace(offset);
 
         self

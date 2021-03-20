@@ -12,7 +12,7 @@ pub struct GetMatch<'a> {
     osu: &'a Osu,
     match_id: u32,
     after: Option<u64>,
-    limit: Option<u32>,
+    limit: Option<usize>,
 }
 
 impl<'a> GetMatch<'a> {
@@ -39,7 +39,7 @@ impl<'a> GetMatch<'a> {
 
     /// Get the match state after at most `limit` many new events.
     #[inline]
-    pub fn limit(mut self, limit: u32) -> Self {
+    pub fn limit(mut self, limit: usize) -> Self {
         self.limit.replace(limit);
 
         self

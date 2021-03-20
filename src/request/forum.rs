@@ -12,7 +12,7 @@ pub struct GetForumPosts<'a> {
     osu: &'a Osu,
     topic_id: u64,
     sort: Option<&'static str>,
-    limit: Option<u32>,
+    limit: Option<usize>,
     start: Option<u64>,
     end: Option<u64>,
     cursor: Option<ForumPostsCursor>,
@@ -35,7 +35,7 @@ impl<'a> GetForumPosts<'a> {
 
     /// Maximum number of posts to be returned (20 default, 50 at most)
     #[inline]
-    pub fn limit(mut self, limit: u32) -> Self {
+    pub fn limit(mut self, limit: usize) -> Self {
         self.limit.replace(limit.min(50));
 
         self

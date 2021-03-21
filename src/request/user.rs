@@ -65,6 +65,48 @@ impl fmt::Display for UserId {
     }
 }
 
+/// Get a [`User`](crate::model::user::User) by their id.
+#[must_use = "futures do nothing unless you `.await` or poll them"]
+pub struct GetUser<'a> {
+    fut: Option<Pending<'a, User>>,
+    osu: &'a Osu,
+    user_id: Option<UserId>,
+    mode: Option<GameMode>,
+}
+
+impl<'a> GetUser<'a> {
+    #[inline]
+    pub(crate) fn new(osu: &'a Osu, user_id: impl Into<UserId>) -> Self {
+        Self {
+            fut: None,
+            osu,
+            user_id: Some(user_id.into()),
+            mode: None,
+        }
+    }
+
+    #[inline]
+    pub fn mode(mut self, mode: GameMode) -> Self {
+        self.mode.replace(mode);
+
+        self
+    }
+
+    fn start(&mut self) -> Pending<'a, User> {
+        #[cfg(feature = "metrics")]
+        self.osu.metrics.user.inc();
+
+        let req = Request::from(Route::GetUser {
+            user_id: self.user_id.take().unwrap(),
+            mode: self.mode,
+        });
+
+        Box::pin(self.osu.inner.request(req))
+    }
+}
+
+poll_req!(GetUser<'_> => User);
+
 /// Get the [`Beatmapset`](crate::model::beatmap::Beatmapset)s of a user by their id.
 ///
 /// The map type **must** be specified before awaiting, either manually through
@@ -222,99 +264,6 @@ impl<'a> GetUserBeatmapsets<'a> {
 }
 
 poll_req!(GetUserBeatmapsets<'_> => OsuResult<Vec<Beatmapset>>);
-
-/// Get a vec of [`RecentEvent`](crate::model::recent_event::RecentEvent) of a user by their id.
-#[must_use = "futures do nothing unless you `.await` or poll them"]
-pub struct GetRecentEvents<'a> {
-    fut: Option<Pending<'a, Vec<RecentEvent>>>,
-    osu: &'a Osu,
-    limit: Option<usize>,
-    offset: Option<usize>,
-
-    #[cfg(not(feature = "cache"))]
-    user_id: u32,
-
-    #[cfg(feature = "cache")]
-    user_id: Option<UserId>,
-}
-
-impl<'a> GetRecentEvents<'a> {
-    #[cfg(not(feature = "cache"))]
-    #[inline]
-    pub(crate) fn new(osu: &'a Osu, user_id: u32) -> Self {
-        Self {
-            fut: None,
-            osu,
-            user_id,
-            limit: None,
-            offset: None,
-        }
-    }
-
-    #[cfg(feature = "cache")]
-    #[inline]
-    pub(crate) fn new(osu: &'a Osu, user_id: UserId) -> Self {
-        Self {
-            fut: None,
-            osu,
-            user_id: Some(user_id),
-            limit: None,
-            offset: None,
-        }
-    }
-
-    #[inline]
-    pub fn limit(mut self, limit: usize) -> Self {
-        self.limit.replace(limit);
-
-        self
-    }
-
-    #[inline]
-    pub fn offset(mut self, offset: usize) -> Self {
-        self.offset.replace(offset);
-
-        self
-    }
-
-    fn start(&mut self) -> Pending<'a, Vec<RecentEvent>> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.recent_events.inc();
-
-        let mut query = Query::new();
-
-        if let Some(limit) = self.limit {
-            query.push("limit", limit.to_string());
-        }
-
-        if let Some(offset) = self.offset {
-            query.push("offset", offset.to_string());
-        }
-
-        #[cfg(not(feature = "cache"))]
-        {
-            let user_id = self.user_id;
-            let req = Request::from((query, Route::GetRecentEvents { user_id }));
-
-            Box::pin(self.osu.inner.request(req))
-        }
-
-        #[cfg(feature = "cache")]
-        {
-            let osu = &self.osu.inner;
-
-            let fut = self
-                .osu
-                .cache_user(self.user_id.take().unwrap())
-                .map_ok(move |user_id| Request::from((query, Route::GetRecentEvents { user_id })))
-                .and_then(move |req| osu.request(req));
-
-            Box::pin(fut)
-        }
-    }
-}
-
-poll_req!(GetRecentEvents<'_> => Vec<RecentEvent>);
 
 /// Get a user's kudosu history by their user id in form of a vec
 /// of [`KudosuHistory`](crate::model::kudosu::KudosuHistory).
@@ -518,6 +467,99 @@ impl<'a> GetUserMostPlayed<'a> {
 
 poll_req!(GetUserMostPlayed<'_> => Vec<MostPlayedMap>);
 
+/// Get a vec of [`RecentEvent`](crate::model::recent_event::RecentEvent) of a user by their id.
+#[must_use = "futures do nothing unless you `.await` or poll them"]
+pub struct GetRecentEvents<'a> {
+    fut: Option<Pending<'a, Vec<RecentEvent>>>,
+    osu: &'a Osu,
+    limit: Option<usize>,
+    offset: Option<usize>,
+
+    #[cfg(not(feature = "cache"))]
+    user_id: u32,
+
+    #[cfg(feature = "cache")]
+    user_id: Option<UserId>,
+}
+
+impl<'a> GetRecentEvents<'a> {
+    #[cfg(not(feature = "cache"))]
+    #[inline]
+    pub(crate) fn new(osu: &'a Osu, user_id: u32) -> Self {
+        Self {
+            fut: None,
+            osu,
+            user_id,
+            limit: None,
+            offset: None,
+        }
+    }
+
+    #[cfg(feature = "cache")]
+    #[inline]
+    pub(crate) fn new(osu: &'a Osu, user_id: UserId) -> Self {
+        Self {
+            fut: None,
+            osu,
+            user_id: Some(user_id),
+            limit: None,
+            offset: None,
+        }
+    }
+
+    #[inline]
+    pub fn limit(mut self, limit: usize) -> Self {
+        self.limit.replace(limit);
+
+        self
+    }
+
+    #[inline]
+    pub fn offset(mut self, offset: usize) -> Self {
+        self.offset.replace(offset);
+
+        self
+    }
+
+    fn start(&mut self) -> Pending<'a, Vec<RecentEvent>> {
+        #[cfg(feature = "metrics")]
+        self.osu.metrics.recent_events.inc();
+
+        let mut query = Query::new();
+
+        if let Some(limit) = self.limit {
+            query.push("limit", limit.to_string());
+        }
+
+        if let Some(offset) = self.offset {
+            query.push("offset", offset.to_string());
+        }
+
+        #[cfg(not(feature = "cache"))]
+        {
+            let user_id = self.user_id;
+            let req = Request::from((query, Route::GetRecentEvents { user_id }));
+
+            Box::pin(self.osu.inner.request(req))
+        }
+
+        #[cfg(feature = "cache")]
+        {
+            let osu = &self.osu.inner;
+
+            let fut = self
+                .osu
+                .cache_user(self.user_id.take().unwrap())
+                .map_ok(move |user_id| Request::from((query, Route::GetRecentEvents { user_id })))
+                .and_then(move |req| osu.request(req));
+
+            Box::pin(fut)
+        }
+    }
+}
+
+poll_req!(GetRecentEvents<'_> => Vec<RecentEvent>);
+
 enum ScoreType {
     Best,
     First,
@@ -710,48 +752,6 @@ impl<'a> GetUserScores<'a> {
 }
 
 poll_req!(GetUserScores<'_> => OsuResult<Vec<Score>>);
-
-/// Get a [`User`](crate::model::user::User) by their id.
-#[must_use = "futures do nothing unless you `.await` or poll them"]
-pub struct GetUser<'a> {
-    fut: Option<Pending<'a, User>>,
-    osu: &'a Osu,
-    user_id: Option<UserId>,
-    mode: Option<GameMode>,
-}
-
-impl<'a> GetUser<'a> {
-    #[inline]
-    pub(crate) fn new(osu: &'a Osu, user_id: impl Into<UserId>) -> Self {
-        Self {
-            fut: None,
-            osu,
-            user_id: Some(user_id.into()),
-            mode: None,
-        }
-    }
-
-    #[inline]
-    pub fn mode(mut self, mode: GameMode) -> Self {
-        self.mode.replace(mode);
-
-        self
-    }
-
-    fn start(&mut self) -> Pending<'a, User> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.user.inc();
-
-        let req = Request::from(Route::GetUser {
-            user_id: self.user_id.take().unwrap(),
-            mode: self.mode,
-        });
-
-        Box::pin(self.osu.inner.request(req))
-    }
-}
-
-poll_req!(GetUser<'_> => User);
 
 /// Get a vec of [`UserCompact`](crate::model::user::UserCompact) by their ids.
 #[must_use = "futures do nothing unless you `.await` or poll them"]

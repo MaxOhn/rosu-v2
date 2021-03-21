@@ -397,11 +397,11 @@ pub(crate) struct OsuRef {
 }
 
 static USER_AGENT: &str = concat!(
-    "(",
-    env!("CARGO_PKG_HOMEPAGE"),
-    ", ",
+    "Rust API v2 (",
+    env!("CARGO_PKG_REPOSITORY"),
+    " v",
     env!("CARGO_PKG_VERSION"),
-    ") rosu-v2",
+    ")",
 );
 
 impl OsuRef {

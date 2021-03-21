@@ -773,7 +773,6 @@ impl PartialEq for OsuMatch {
 
 impl Eq for OsuMatch {}
 
-// TODO: Test all values
 def_enum!(u8 ScoringType {
     Score = 0 ("score"),
     Accuracy = 1 ("accuracy"),
@@ -789,9 +788,9 @@ def_enum!(u8 Team {
 
 def_enum!(u8 TeamType {
     HeadToHead = 0 ("head-to-head"),
-    TagCoop = 1 ("tagcoop"),
+    TagCoop = 1 ("tag-coop"),
     TeamVS = 2 ("team-vs"),
-    TagTeamVS = 3 ("tagteamvs"),
+    TagTeamVS = 3 ("tag-team-vs"),
 });
 
 struct Bool(bool);

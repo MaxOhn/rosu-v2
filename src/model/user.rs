@@ -477,7 +477,7 @@ pub struct UserStatistics {
     #[serde(rename = "play_count")]
     pub playcount: u32,
     /// Playtime in seconds
-    #[serde(rename = "play_time")]
+    #[serde(rename = "play_time", deserialize_with = "maybe_u32")]
     pub playtime: u32,
     pub pp: f32,
     pub ranked_score: u64,
@@ -489,8 +489,14 @@ pub struct UserStatistics {
     pub user: Option<Box<UserCompact>>,
 }
 
+#[inline]
+fn maybe_u32<'de, D: Deserializer<'de>>(d: D) -> Result<u32, D::Error> {
+    <Option<u32> as Deserialize>::deserialize(d).map(Option::unwrap_or_default)
+}
+
+#[inline]
 fn rank_history_vec<'de, D: Deserializer<'de>>(d: D) -> Result<Option<Vec<u32>>, D::Error> {
-    d.deserialize_any(RankHistoryVisitor)
+    d.deserialize_option(RankHistoryVisitor)
 }
 
 struct RankHistoryVisitor;
@@ -525,5 +531,13 @@ impl<'de> Visitor<'de> for RankHistoryVisitor {
         }
 
         rank_history_vec.ok_or_else(|| Error::missing_field("data"))
+    }
+
+    fn visit_some<D: Deserializer<'de>>(self, d: D) -> Result<Self::Value, D::Error> {
+        d.deserialize_any(RankHistoryVisitor)
+    }
+
+    fn visit_none<E: Error>(self) -> Result<Self::Value, E> {
+        Ok(None)
     }
 }

@@ -127,7 +127,11 @@ async fn beatmap_scores() {
 async fn beatmap_user_score() {
     init().await;
 
-    match osu().beatmap_user_score(adesso_balla(), "baDeWanNe3").await {
+    match osu()
+        .beatmap_user_score(adesso_balla(), badewanne3())
+        .mods(GameMods::Hidden | GameMods::HardRock | GameMods::HalfTime)
+        .await
+    {
         Ok(score) => println!(
             "Received score, pos={} | mods={}",
             score.pos, score.score.mods,

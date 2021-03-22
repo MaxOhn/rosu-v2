@@ -152,8 +152,10 @@ impl<'a> GetBeatmapScores<'a> {
             query.push("mode", mode.to_string());
         }
 
-        if let Some(_mods) = self.mods {
-            // TODO
+        if let Some(mods) = self.mods {
+            for m in mods {
+                query.push("mods[]", m.to_string());
+            }
         }
 
         if let Some(_score_type) = self.score_type {
@@ -254,8 +256,10 @@ impl<'a> GetBeatmapUserScore<'a> {
             query.push("mode", mode.to_string());
         }
 
-        if let Some(_mods) = self.mods {
-            // TODO
+        if let Some(mods) = self.mods {
+            for m in mods {
+                query.push("mods[]", m.to_string());
+            }
         }
 
         #[cfg(not(feature = "cache"))]

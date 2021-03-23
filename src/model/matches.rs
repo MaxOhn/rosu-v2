@@ -547,25 +547,12 @@ impl OsuMatch {
     ///
     /// ```
     /// use rosu_v2::model::matches::{OsuMatch, MatchEvent, MatchGame};
-    /// # use rosu_v2::prelude::{BeatmapCompact, GameMode, GameMods, RankStatus, ScoringType, TeamType};
+    /// # use rosu_v2::prelude::{GameMode, GameMods, RankStatus, ScoringType, TeamType};
     /// # use chrono::{DateTime, Utc};
     /// #
     /// # let date = DateTime::parse_from_rfc3339("1996-12-19T16:39:57-08:00")
     /// #     .unwrap()
     /// #     .with_timezone(&Utc);
-    /// #
-    /// # let map = BeatmapCompact {
-    /// #     checksum: None,
-    /// #     fail_times: None,
-    /// #     map_id: 0,
-    /// #     mapset: None,
-    /// #     max_combo: None,
-    /// #     mode: GameMode::STD,
-    /// #     seconds_total: 0,
-    /// #     stars: 0.0,
-    /// #     status: RankStatus::Ranked,
-    /// #     version: String::new(),
-    /// # };
     ///
     /// let mut osu_match = OsuMatch {
     ///     events: vec![
@@ -589,7 +576,7 @@ impl OsuMatch {
     ///                 # scoring_type: ScoringType::Score,
     ///                 # team_type: TeamType::HeadToHead,
     ///                 # mods: GameMods::NoMod,
-    ///                 # map: map.clone(),
+    ///                 # map: None,
     ///                 # scores: vec![],
     ///             # }),
     ///             # /*
@@ -618,7 +605,7 @@ impl OsuMatch {
     ///                 # scoring_type: ScoringType::Score,
     ///                 # team_type: TeamType::HeadToHead,
     ///                 # mods: GameMods::NoMod,
-    ///                 # map,
+    ///                 # map: None,
     ///                 # scores: vec![],
     ///             # }),
     ///             # /*

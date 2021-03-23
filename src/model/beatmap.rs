@@ -215,13 +215,13 @@ pub struct BeatmapsetCommentEdit<T> {
 pub struct BeatmapsetCommentId {
     #[serde(
         default,
-        rename = "beatmap_discussion_id",
+        rename = "beatmapset_discussion_id",
         skip_serializing_if = "Option::is_none"
     )]
     pub discussion_id: Option<u64>,
     #[serde(
         default,
-        rename = "beatmap_discussion_post_id",
+        rename = "beatmapset_discussion_post_id",
         skip_serializing_if = "Option::is_none"
     )]
     pub discussion_post_id: Option<u64>,
@@ -491,7 +491,7 @@ pub struct BeatmapsetNominations {
 pub struct BeatmapsetPost {
     #[serde(rename = "id")]
     pub post_id: u64,
-    #[serde(rename = "beatmap_discussion_id")]
+    #[serde(rename = "beatmapset_discussion_id")]
     pub discussion_id: u64,
     pub user_id: u32,
     #[serde(default, skip_serializing_if = "Option::is_none")]

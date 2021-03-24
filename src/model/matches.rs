@@ -55,6 +55,14 @@ pub enum MatchEvent {
         timestamp: DateTime<Utc>,
         user_id: u32,
     },
+    /// A player was kicked from the match
+    #[serde(rename(serialize = "player-kicked"))]
+    Kicked {
+        #[serde(rename(serialize = "id"))]
+        event_id: u64,
+        timestamp: DateTime<Utc>,
+        user_id: u32,
+    },
     /// A player left the match
     #[serde(rename(serialize = "player-left"))]
     Left {
@@ -73,6 +81,7 @@ impl MatchEvent {
             Self::Game { event_id, .. } => *event_id,
             Self::HostChanged { event_id, .. } => *event_id,
             Self::Joined { event_id, .. } => *event_id,
+            Self::Kicked { event_id, .. } => *event_id,
             Self::Left { event_id, .. } => *event_id,
         }
     }
@@ -84,6 +93,7 @@ impl MatchEvent {
             Self::Game { timestamp, .. } => *timestamp,
             Self::HostChanged { timestamp, .. } => *timestamp,
             Self::Joined { timestamp, .. } => *timestamp,
+            Self::Kicked { timestamp, .. } => *timestamp,
             Self::Left { timestamp, .. } => *timestamp,
         }
     }
@@ -95,6 +105,7 @@ impl MatchEvent {
             Self::Game { .. } => None,
             Self::HostChanged { user_id, .. } => Some(*user_id),
             Self::Joined { user_id, .. } => Some(*user_id),
+            Self::Kicked { user_id, .. } => Some(*user_id),
             Self::Left { user_id, .. } => Some(*user_id),
         }
     }
@@ -106,6 +117,7 @@ enum MatchEventType {
     Game,
     HostChanged,
     Joined,
+    Kicked,
     Left,
 }
 
@@ -129,6 +141,7 @@ impl<'de> Visitor<'de> for MatchEventTypeVisitor {
             "host-changed" => MatchEventType::HostChanged,
             "match-created" => MatchEventType::Create,
             "match-disbanded" => MatchEventType::Disbanded,
+            "player-kicked" => MatchEventType::Kicked,
             _ => {
                 return Err(E::unknown_variant(
                     s,
@@ -136,6 +149,7 @@ impl<'de> Visitor<'de> for MatchEventTypeVisitor {
                         "match-created",
                         "player-joined",
                         "player-left",
+                        "player-kicked",
                         "match-disbanded",
                         "host-changed",
                         "other",
@@ -235,6 +249,11 @@ impl<'de> Visitor<'de> for MatchEventVisitor {
             MatchEventType::Disbanded => MatchEvent::Disbanded {
                 event_id,
                 timestamp,
+            },
+            MatchEventType::Kicked => MatchEvent::Kicked {
+                event_id,
+                timestamp,
+                user_id: user_id.ok_or_else(|| Error::missing_field("user_id"))?,
             },
         };
 

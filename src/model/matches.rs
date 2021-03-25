@@ -335,6 +335,16 @@ impl<'m> Iterator for MatchGameIter<'m> {
     }
 }
 
+impl<'m> DoubleEndedIterator for MatchGameIter<'m> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        loop {
+            if let MatchEvent::Game { game, .. } = self.iter.next_back()? {
+                return Some(game);
+            }
+        }
+    }
+}
+
 /// Iterates over `MatchGame`s by draining the events of a match.
 #[derive(Debug)]
 pub struct MatchGameDrain<'m> {
@@ -354,6 +364,16 @@ impl<'m> Iterator for MatchGameDrain<'m> {
     fn next(&mut self) -> Option<Self::Item> {
         loop {
             if let MatchEvent::Game { game, .. } = self.drain.next()? {
+                return Some(*game);
+            }
+        }
+    }
+}
+
+impl<'m> DoubleEndedIterator for MatchGameDrain<'m> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        loop {
+            if let MatchEvent::Game { game, .. } = self.drain.next_back()? {
                 return Some(*game);
             }
         }

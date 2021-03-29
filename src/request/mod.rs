@@ -48,6 +48,7 @@ mod matches;
 mod multiplayer;
 mod news;
 mod ranking;
+mod seasonal_backgrounds;
 mod user;
 mod wiki;
 
@@ -60,6 +61,7 @@ pub use matches::{GetMatch, GetMatches};
 pub use multiplayer::{GetMultiplayerScore, GetMultiplayerScores, GetMultiplayerUserHighScore};
 pub use news::GetNews;
 pub use ranking::{GetRankings, GetSpotlights};
+pub use seasonal_backgrounds::GetSeasonalBackgrounds;
 pub use user::{
     GetRecentEvents, GetUser, GetUserBeatmapsets, GetUserKudosu, GetUserMostPlayed, GetUserScores,
     GetUsers, UserId,

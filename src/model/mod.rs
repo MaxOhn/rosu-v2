@@ -189,6 +189,7 @@ pub mod news;
 pub mod ranking;
 pub mod recent_event;
 pub mod score;
+pub mod seasonal_backgrounds;
 pub mod user;
 pub mod wiki;
 

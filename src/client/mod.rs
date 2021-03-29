@@ -229,6 +229,12 @@ impl Osu {
         GetRecentEvents::new(self, user_id.into())
     }
 
+    /// Get [`SeasonalBackgrounds`](crate::model::seasonal_backgrounds::SeasonalBackgrounds).
+    #[inline]
+    pub fn seasonal_backgrounds(&self) -> GetSeasonalBackgrounds {
+        GetSeasonalBackgrounds::new(self)
+    }
+
     /// Get the vec of [`Spotlight`](crate::model::ranking::Spotlight).
     #[inline]
     pub fn spotlights(&self) -> GetSpotlights {

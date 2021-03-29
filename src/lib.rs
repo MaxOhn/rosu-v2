@@ -21,7 +21,8 @@ pub mod prelude {
         error::OsuError,
         model::{
             beatmap::*, comments::*, forum::*, kudosu::*, matches::*, multiplayer::*, news::*,
-            ranking::*, recent_event::*, score::*, user::*, wiki::*, GameMode, GameMods, Grade,
+            ranking::*, recent_event::*, score::*, seasonal_backgrounds::*, user::*, wiki::*,
+            GameMode, GameMods, Grade,
         },
         Osu, OsuBuilder, OsuResult,
     };

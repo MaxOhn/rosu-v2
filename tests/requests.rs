@@ -353,6 +353,19 @@ async fn rankings() {
 }
 
 #[tokio::test]
+async fn seasonal_backgrounds() {
+    init().await;
+
+    match osu().seasonal_backgrounds().await {
+        Ok(backgrounds) => println!("Received {} backgrounds", backgrounds.backgrounds.len()),
+        Err(why) => {
+            unwind_error!(error, why, "Error while requesting user: {}");
+            panic!()
+        }
+    }
+}
+
+#[tokio::test]
 async fn spotlights() {
     init().await;
 

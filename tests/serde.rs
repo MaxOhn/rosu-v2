@@ -462,6 +462,16 @@ fn get_score() -> Score {
     }
 }
 
+fn get_seasonal_backgrounds() -> SeasonalBackgrounds {
+    SeasonalBackgrounds {
+        ends_at: get_date(),
+        backgrounds: vec![SeasonalBackground {
+            url: "https://www.bing.com".to_owned(),
+            artist: get_user_compact(),
+        }],
+    }
+}
+
 fn get_user() -> User {
     User {
         avatar_url: String::new(),
@@ -714,6 +724,11 @@ fn serde_match() {
 #[test]
 fn serde_score() {
     ser_de(get_score());
+}
+
+#[test]
+fn serde_seasonal_backgrounds() {
+    ser_de(get_seasonal_backgrounds());
 }
 
 #[test]

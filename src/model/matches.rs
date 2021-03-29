@@ -686,16 +686,27 @@ impl OsuMatch {
         MatchGameDrain::new(self.events.drain(..))
     }
 
-    /// Get the [`OsuMatch`] containing only data __after__ the currently last event.
+    /// Get the [`OsuMatch`] containing only data from some event id onwards.
     ///
-    /// If the currently last event is an in-progress game, then it will be included
-    /// in the next [`OsuMatch`]. In all other cases, only new events will be contained.
+    /// If the latest *game* event is an in-progress game, the result will contain
+    /// all events starting from this game event, inclusively.
+    /// Otherwise it will contain all events after the currently last event.
     ///
     /// Convenient to display a "live" update of the match, e.g. the way an mp link
     /// pulls the next result every 10 seconds.
     pub async fn get_next(&self, osu: &Osu) -> OsuResult<OsuMatch> {
-        let sub = matches!(self.events.last(), Some(MatchEvent::Game { game, .. }) if game.end_time.is_none());
-        let last_id = self.latest_event_id - sub as u64;
+        let mut last_id = self.latest_event_id;
+        let mut iter = self.events.iter().rev();
+
+        while let Some(event) = iter.next() {
+            if let MatchEvent::Game { event_id, game, .. } = event {
+                if game.end_time.is_none() {
+                    last_id = event_id - 1;
+                }
+
+                break;
+            }
+        }
 
         osu.osu_match(self.match_id).after(last_id).limit(100).await
     }

@@ -50,7 +50,7 @@ impl OsuBuilder {
     ///   - client secret was not set
     ///   - API did not provide a token for the given client id and client secret
     pub async fn build(self) -> OsuResult<Osu> {
-        let client_id = self.client_id.ok_or(OsuError::BuilderMissingID)?;
+        let client_id = self.client_id.ok_or(OsuError::BuilderMissingId)?;
         let client_secret = self.client_secret.ok_or(OsuError::BuilderMissingSecret)?;
 
         let http = self

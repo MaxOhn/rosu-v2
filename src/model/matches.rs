@@ -696,9 +696,8 @@ impl OsuMatch {
     /// pulls the next result every 10 seconds.
     pub async fn get_next(&self, osu: &Osu) -> OsuResult<OsuMatch> {
         let mut last_id = self.latest_event_id;
-        let mut iter = self.events.iter().rev();
 
-        while let Some(event) = iter.next() {
+        for event in self.events.iter().rev() {
             if let MatchEvent::Game { event_id, game, .. } = event {
                 if game.end_time.is_none() {
                     last_id = event_id - 1;

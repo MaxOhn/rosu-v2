@@ -1,5 +1,4 @@
 use crate::{
-    error::OsuError,
     model::{
         beatmap::{Beatmapset, MostPlayedMap, RankStatus},
         kudosu::KudosuHistory,
@@ -10,7 +9,7 @@ use crate::{
     },
     request::{Pending, Query, Request},
     routing::Route,
-    Osu, OsuResult,
+    Osu,
 };
 
 use std::fmt;
@@ -109,18 +108,19 @@ poll_req!(GetUser<'_> => User);
 
 /// Get the [`Beatmapset`](crate::model::beatmap::Beatmapset)s of a user by their id.
 ///
-/// The map type **must** be specified before awaiting, either manually through
+/// If no map type specified, either manually through
 /// [`map_type`](crate::request::GetUserBeatmapsets::map_type),
 /// or through any of the methods [`loved`](crate::request::GetUserBeatmapsets::loved),
 /// [`favourite`](crate::request::GetUserBeatmapsets::favourite),
 /// [`graveyard`](crate::request::GetUserBeatmapsets::graveyard),
 /// [`ranked_and_approved`](crate::request::GetUserBeatmapsets::ranked_and_approved),
-/// [`unranked`](crate::request::GetUserBeatmapsets::unranked).
+/// [`unranked`](crate::request::GetUserBeatmapsets::unranked),
+/// it defaults to `ranked_and_approved`.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetUserBeatmapsets<'a> {
     fut: Option<Pending<'a, Vec<Beatmapset>>>,
     osu: &'a Osu,
-    map_type: Option<&'static str>,
+    map_type: &'static str,
     limit: Option<usize>,
     offset: Option<usize>,
 
@@ -139,7 +139,7 @@ impl<'a> GetUserBeatmapsets<'a> {
             fut: None,
             osu,
             user_id,
-            map_type: None,
+            map_type: "ranked_and_approved",
             limit: None,
             offset: None,
         }
@@ -152,7 +152,7 @@ impl<'a> GetUserBeatmapsets<'a> {
             fut: None,
             osu,
             user_id: Some(user_id),
-            map_type: None,
+            map_type: "ranked_and_approved",
             limit: None,
             offset: None,
         }
@@ -173,61 +173,56 @@ impl<'a> GetUserBeatmapsets<'a> {
     }
 
     pub fn map_type(mut self, map_type: RankStatus) -> Self {
-        let map_type = match map_type {
+        self.map_type = match map_type {
             RankStatus::Approved | RankStatus::Ranked => "ranked_and_approved",
             RankStatus::Graveyard => "graveyard",
             RankStatus::Pending | RankStatus::WIP | RankStatus::Qualified => "unranked",
             RankStatus::Loved => "loved",
         };
 
-        self.map_type.replace(map_type);
-
         self
     }
 
     #[inline]
     pub fn loved(mut self) -> Self {
-        self.map_type.replace("loved");
+        self.map_type = "loved";
 
         self
     }
 
     #[inline]
     pub fn favourite(mut self) -> Self {
-        self.map_type.replace("favourite");
+        self.map_type = "favourite";
 
         self
     }
 
     #[inline]
     pub fn graveyard(mut self) -> Self {
-        self.map_type.replace("graveyard");
+        self.map_type = "graveyard";
 
         self
     }
 
     #[inline]
     pub fn ranked_and_approved(mut self) -> Self {
-        self.map_type.replace("ranked_and_approved");
+        self.map_type = "ranked_and_approved";
 
         self
     }
 
     #[inline]
     pub fn unranked(mut self) -> Self {
-        self.map_type.replace("unranked");
+        self.map_type = "unranked";
 
         self
     }
 
-    fn start(&mut self) -> OsuResult<Pending<'a, Vec<Beatmapset>>> {
+    fn start(&mut self) -> Pending<'a, Vec<Beatmapset>> {
         #[cfg(feature = "metrics")]
         self.osu.metrics.user_beatmapsets.inc();
 
-        let map_type = self
-            .map_type
-            .ok_or(OsuError::MissingParameter { param: "map type" })?;
-
+        let map_type = self.map_type;
         let mut query = Query::new();
 
         if let Some(limit) = self.limit {
@@ -243,7 +238,7 @@ impl<'a> GetUserBeatmapsets<'a> {
             let user_id = self.user_id;
             let req = Request::from((query, Route::GetUserBeatmapsets { user_id, map_type }));
 
-            Ok(Box::pin(self.osu.inner.request(req)))
+            Box::pin(self.osu.inner.request(req))
         }
 
         #[cfg(feature = "cache")]
@@ -258,12 +253,12 @@ impl<'a> GetUserBeatmapsets<'a> {
                 })
                 .and_then(move |req| osu.request(req));
 
-            Ok(Box::pin(fut))
+            Box::pin(fut)
         }
     }
 }
 
-poll_req!(GetUserBeatmapsets<'_> => OsuResult<Vec<Beatmapset>>);
+poll_req!(GetUserBeatmapsets<'_> => Vec<Beatmapset>);
 
 /// Get a user's kudosu history by their user id in form of a vec
 /// of [`KudosuHistory`](crate::model::kudosu::KudosuHistory).
@@ -560,23 +555,36 @@ impl<'a> GetRecentEvents<'a> {
 
 poll_req!(GetRecentEvents<'_> => Vec<RecentEvent>);
 
-enum ScoreType {
+#[derive(Copy, Clone, Debug)]
+pub(crate) enum ScoreType {
     Best,
     First,
     Recent,
 }
 
+impl fmt::Display for ScoreType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let kind = match self {
+            Self::Best => "best",
+            Self::First => "firsts",
+            Self::Recent => "recent",
+        };
+
+        f.write_str(kind)
+    }
+}
+
 /// Get a vec of [`Score`](crate::model::score::Score) of a user by the user's id.
 ///
-/// Either of the following methods **must** be specified before awaiting:
+/// If no score type is specified by either
 /// [`best`](crate::request::GetUserScores::best),
 /// [`firsts`](crate::request::GetUserScores::firsts),
-/// [`recent`](crate::request::GetUserScores::recent).
+/// or [`recent`](crate::request::GetUserScores::recent), it defaults to `best`.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetUserScores<'a> {
     fut: Option<Pending<'a, Vec<Score>>>,
     osu: &'a Osu,
-    score_type: Option<ScoreType>,
+    score_type: ScoreType,
     limit: Option<usize>,
     offset: Option<usize>,
     include_fails: Option<bool>,
@@ -597,7 +605,7 @@ impl<'a> GetUserScores<'a> {
             fut: None,
             osu,
             user_id,
-            score_type: None,
+            score_type: ScoreType::Best,
             limit: None,
             offset: None,
             include_fails: None,
@@ -612,7 +620,7 @@ impl<'a> GetUserScores<'a> {
             fut: None,
             osu,
             user_id: Some(user_id),
-            score_type: None,
+            score_type: ScoreType::Best,
             limit: None,
             offset: None,
             include_fails: None,
@@ -649,53 +657,37 @@ impl<'a> GetUserScores<'a> {
         self
     }
 
+    /// Get top scores of a user
     #[inline]
     pub fn best(mut self) -> Self {
-        self.score_type.replace(ScoreType::Best);
+        self.score_type = ScoreType::Best;
 
         self
     }
 
+    /// Get global #1 scores of a user.
     #[inline]
     pub fn firsts(mut self) -> Self {
-        self.score_type.replace(ScoreType::First);
+        self.score_type = ScoreType::First;
 
         self
     }
 
+    /// Get recent scores of a user.
     #[inline]
     pub fn recent(mut self) -> Self {
-        self.score_type.replace(ScoreType::Recent);
+        self.score_type = ScoreType::Recent;
 
         self
     }
 
-    fn start(&mut self) -> OsuResult<Pending<'a, Vec<Score>>> {
-        let score_type = match self.score_type.take() {
-            Some(ScoreType::Best) => {
-                #[cfg(feature = "metrics")]
-                self.osu.metrics.user_top_scores.inc();
-
-                "best"
-            }
-            Some(ScoreType::Recent) => {
-                #[cfg(feature = "metrics")]
-                self.osu.metrics.user_recent_scores.inc();
-
-                "recent"
-            }
-            Some(ScoreType::First) => {
-                #[cfg(feature = "metrics")]
-                self.osu.metrics.user_first_scores.inc();
-
-                "firsts"
-            }
-            None => {
-                return Err(OsuError::MissingParameter {
-                    param: "score type",
-                })
-            }
-        };
+    fn start(&mut self) -> Pending<'a, Vec<Score>> {
+        #[cfg(feature = "metrics")]
+        match self.score_type {
+            ScoreType::Best => self.osu.metrics.user_top_scores.inc(),
+            ScoreType::First => self.osu.metrics.user_first_scores.inc(),
+            ScoreType::Recent => self.osu.metrics.user_recent_scores.inc(),
+        }
 
         let mut query = Query::new();
 
@@ -721,15 +713,16 @@ impl<'a> GetUserScores<'a> {
                 query,
                 Route::GetUserScores {
                     user_id: self.user_id,
-                    score_type,
+                    score_type: self.score_type,
                 },
             ));
 
-            Ok(Box::pin(self.osu.inner.request(req)))
+            Box::pin(self.osu.inner.request(req))
         }
 
         #[cfg(feature = "cache")]
         {
+            let score_type = self.score_type;
             let osu = &self.osu.inner;
 
             let fut = self
@@ -746,12 +739,12 @@ impl<'a> GetUserScores<'a> {
                 })
                 .and_then(move |req| osu.request(req));
 
-            Ok(Box::pin(fut))
+            Box::pin(fut)
         }
     }
 }
 
-poll_req!(GetUserScores<'_> => OsuResult<Vec<Score>>);
+poll_req!(GetUserScores<'_> => Vec<Score>);
 
 /// Get a vec of [`UserCompact`](crate::model::user::UserCompact) by their ids.
 #[must_use = "futures do nothing unless you `.await` or poll them"]

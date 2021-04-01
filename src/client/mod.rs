@@ -289,7 +289,16 @@ impl Osu {
         GetUser::new(self, user_id)
     }
 
-    /// Get a vec of [`Beatmapset`](crate::model::beatmap::Beatmapset)s a user made.
+    /// Get the [`Beatmapset`](crate::model::beatmap::Beatmapset)s of a user by their id.
+    ///
+    /// If no map type specified, either manually through
+    /// [`map_type`](crate::request::GetUserBeatmapsets::map_type),
+    /// or through any of the methods [`loved`](crate::request::GetUserBeatmapsets::loved),
+    /// [`favourite`](crate::request::GetUserBeatmapsets::favourite),
+    /// [`graveyard`](crate::request::GetUserBeatmapsets::graveyard),
+    /// [`ranked_and_approved`](crate::request::GetUserBeatmapsets::ranked_and_approved),
+    /// [`unranked`](crate::request::GetUserBeatmapsets::unranked),
+    /// it defaults to `ranked_and_approved`.
     ///
     /// Filled options will be: `artist_unicode`, `legacy_thread_url`, `maps`, `title_unicode`.
     ///
@@ -342,6 +351,11 @@ impl Osu {
     /// Get either top, global firsts, or recent scores of a user,
     /// i.e. a vec of [`Score`](crate::model::score::Score).
     ///
+    /// If no score type is specified by either
+    /// [`best`](crate::request::GetUserScores::best),
+    /// [`firsts`](crate::request::GetUserScores::firsts),
+    /// or [`recent`](crate::request::GetUserScores::recent), it defaults to `best`.
+    ///
     /// The resulting scores will have these options filled: `map`, `mapset`, `pp`, `user`
     ///
     /// Additionally, the `best` score type will provide the `weight` option.
@@ -366,6 +380,11 @@ impl Osu {
 
     /// Get either top, global firsts, or recent scores of a user,
     /// i.e. a vec of [`Score`](crate::model::score::Score).
+    ///
+    /// If no score type is specified by either
+    /// [`best`](crate::request::GetUserScores::best),
+    /// [`firsts`](crate::request::GetUserScores::firsts),
+    /// or [`recent`](crate::request::GetUserScores::recent), it defaults to `best`.
     ///
     /// The resulting scores will have these options filled: `map`, `mapset`, `pp`, `user`
     ///

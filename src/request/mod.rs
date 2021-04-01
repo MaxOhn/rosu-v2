@@ -1,25 +1,4 @@
 macro_rules! poll_req {
-    // Starting can fail
-    ($ty:ty => OsuResult<$ret:ty>) => {
-        impl ::std::future::Future for $ty {
-            type Output = $crate::OsuResult<$ret>;
-
-            fn poll(
-                mut self: ::std::pin::Pin<&mut Self>,
-                cx: &mut ::std::task::Context<'_>,
-            ) -> ::std::task::Poll<Self::Output> {
-                match self.fut {
-                    Some(ref mut fut) => fut.as_mut().poll(cx),
-                    None => match self.start() {
-                        Ok(fut) => self.fut.get_or_insert(fut).as_mut().poll(cx),
-                        Err(why) => ::std::task::Poll::Ready(Err(why)),
-                    },
-                }
-            }
-        }
-    };
-
-    // Starting can't fail
     ($ty:ty => $ret:ty) => {
         impl ::std::future::Future for $ty {
             type Output = $crate::OsuResult<$ret>;

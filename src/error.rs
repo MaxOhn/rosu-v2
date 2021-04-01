@@ -5,13 +5,13 @@ use std::{error::Error as StdError, fmt};
 
 #[derive(Debug, Deserialize)]
 /// The API response was of the form `{ "error": ... }`
-pub struct APIError {
+pub struct ApiError {
     pub error: Option<String>,
 }
 
-impl StdError for APIError {}
+impl StdError for ApiError {}
 
-impl fmt::Display for APIError {
+impl fmt::Display for ApiError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self.error {
             Some(ref msg) => f.write_str(msg),
@@ -24,7 +24,7 @@ impl fmt::Display for APIError {
 #[derive(Debug)]
 pub enum OsuError {
     /// Failed to build an [`Osu`](crate::Osu) client because no client id was provided
-    BuilderMissingID,
+    BuilderMissingId,
     /// Failed to build an [`Osu`](crate::Osu) client because no client secret was provided
     BuilderMissingSecret,
     /// Reqwest failed to build its client.
@@ -36,8 +36,6 @@ pub enum OsuError {
         name: &'static str,
         source: InvalidHeaderValue,
     },
-    /// Failed to request because of missing parameter
-    MissingParameter { param: &'static str },
     /// The API returned a 404
     NotFound,
     /// Attempted to make request without valid token
@@ -51,7 +49,7 @@ pub enum OsuError {
     /// API returned an error
     Response {
         body: String,
-        source: APIError,
+        source: ApiError,
         status: StatusCode,
     },
     /// Temporal (?) downtime of the osu API
@@ -63,12 +61,11 @@ pub enum OsuError {
 impl StdError for OsuError {
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
         match self {
-            Self::BuilderMissingID => None,
+            Self::BuilderMissingId => None,
             Self::BuilderMissingSecret => None,
             Self::BuildingClient { source } => Some(source),
             Self::ChunkingResponse { source } => Some(source),
             Self::CreatingHeader { source, .. } => Some(source),
-            Self::MissingParameter { .. } => None,
             Self::NotFound => None,
             Self::NoToken => None,
             Self::Parsing { source, .. } => Some(source),
@@ -84,7 +81,7 @@ impl StdError for OsuError {
 impl fmt::Display for OsuError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::BuilderMissingID => {
+            Self::BuilderMissingId => {
                 f.write_str("Failed to build osu client, no client id was provided")
             }
             Self::BuilderMissingSecret => {
@@ -94,9 +91,6 @@ impl fmt::Display for OsuError {
             Self::ChunkingResponse { .. } => f.write_str("Failed to chunk the response"),
             Self::CreatingHeader { name, .. } => {
                 write!(f, "Failed to parse value for header {}", name)
-            }
-            Self::MissingParameter { param } => {
-                write!(f, "Missing parameter for request: {}", param)
             }
             Self::NotFound => f.write_str(
                 "The API returned a 404 implying a missing score, incorrect name, id, etc",

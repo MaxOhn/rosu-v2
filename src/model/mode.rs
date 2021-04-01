@@ -5,6 +5,7 @@ use serde::{
 use std::fmt;
 
 /// Available game modes
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub enum GameMode {
     STD = 0,

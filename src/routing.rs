@@ -1,6 +1,6 @@
 use crate::{
     model::{ranking::RankingType, GameMode},
-    request::UserId,
+    request::{ScoreType, UserId},
 };
 
 use reqwest::Method;
@@ -68,7 +68,7 @@ pub(crate) enum Route {
     },
     GetUserScores {
         user_id: u32,
-        score_type: &'static str,
+        score_type: ScoreType,
     },
     GetUsers,
     GetWikiPage {

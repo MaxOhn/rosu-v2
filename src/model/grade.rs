@@ -7,6 +7,7 @@ use serde::{
 use std::{fmt, str::FromStr};
 
 /// Enum for a [`Score`](crate::model::score::Score)'s grade (sometimes called rank)
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Copy, Clone, Hash, Debug, Eq, PartialEq, PartialOrd, Serialize)]
 pub enum Grade {
     F,

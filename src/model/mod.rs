@@ -1,6 +1,7 @@
 macro_rules! def_enum {
     // Actually defining the enum and implementing Deserialize on it
     (@BASE $type:tt { $($variant:ident = $n:literal,)* }) => {
+        #[allow(clippy::upper_case_acronyms)]
         #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
         pub enum $type {
             $($variant = $n,)*

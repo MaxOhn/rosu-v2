@@ -15,6 +15,14 @@ fn ser_de<T: DeserializeOwned + Serialize + PartialEq + Debug>(val: T) {
     assert_eq!(val, deserialized);
 }
 
+fn get_chart_rankings() -> ChartRankings {
+    ChartRankings {
+        mapsets: vec![get_mapset()],
+        ranking: vec![get_user_stats()],
+        spotlight: get_spotlight(),
+    }
+}
+
 fn get_country_ranking() -> CountryRanking {
     CountryRanking {
         active_users: 2,
@@ -483,6 +491,18 @@ fn get_seasonal_backgrounds() -> SeasonalBackgrounds {
     }
 }
 
+fn get_spotlight() -> Spotlight {
+    Spotlight {
+        end_date: get_date(),
+        mode_specific: true,
+        name: "epic spotlight".to_owned(),
+        participant_count: Some(3),
+        spotlight_id: 2,
+        spotlight_type: "idk".to_owned(),
+        start_date: get_date(),
+    }
+}
+
 fn get_user() -> User {
     User {
         avatar_url: String::new(),
@@ -714,6 +734,11 @@ fn serde_beatmap() {
 #[test]
 fn serde_beatmapset_events() {
     ser_de(get_mapset_events());
+}
+
+#[test]
+fn serde_chart_rankings() {
+    ser_de(get_chart_rankings());
 }
 
 #[test]

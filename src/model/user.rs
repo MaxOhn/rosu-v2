@@ -94,11 +94,21 @@ where
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct GradeCounts {
+    #[serde(deserialize_with = "deserialize_i32_default")]
     pub ss: i32,
+    #[serde(deserialize_with = "deserialize_i32_default")]
     pub ssh: i32,
+    #[serde(deserialize_with = "deserialize_i32_default")]
     pub s: i32,
+    #[serde(deserialize_with = "deserialize_i32_default")]
     pub sh: i32,
+    #[serde(deserialize_with = "deserialize_i32_default")]
     pub a: i32,
+}
+
+#[inline]
+fn deserialize_i32_default<'de, D: Deserializer<'de>>(d: D) -> Result<i32, D::Error> {
+    <Option<i32> as Deserialize>::deserialize(d).map(Option::unwrap_or_default)
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -534,6 +544,7 @@ pub struct UserStatistics {
     /// Playtime in seconds
     #[serde(rename = "play_time", deserialize_with = "maybe_u32")]
     pub playtime: u32,
+    #[serde(deserialize_with = "deserialize_f32_default")]
     pub pp: f32,
     pub ranked_score: u64,
     #[serde(rename = "replays_watched_by_others")]
@@ -542,6 +553,11 @@ pub struct UserStatistics {
     pub total_score: u64,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub user: Option<Box<UserCompact>>,
+}
+
+#[inline]
+fn deserialize_f32_default<'de, D: Deserializer<'de>>(d: D) -> Result<f32, D::Error> {
+    <Option<f32> as Deserialize>::deserialize(d).map(Option::unwrap_or_default)
 }
 
 #[inline]

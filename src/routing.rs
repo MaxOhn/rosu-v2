@@ -1,4 +1,7 @@
-use crate::{model::GameMode, request::UserId};
+use crate::{
+    model::{ranking::RankingType, GameMode},
+    request::UserId,
+};
 
 use reqwest::Method;
 use std::{borrow::Cow, fmt::Write};
@@ -45,7 +48,7 @@ pub(crate) enum Route {
     },
     GetRankings {
         mode: GameMode,
-        ranking_type: &'static str,
+        ranking_type: RankingType,
     },
     GetRecentEvents {
         user_id: u32,

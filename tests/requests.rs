@@ -77,11 +77,11 @@ fn osu() -> &'static Osu {
 }
 
 #[tokio::test]
-#[ignore = "specific testing"]
+// #[ignore = "specific testing"]
 async fn custom() {
     init().await;
 
-    let req_fut = osu().country_rankings(GameMode::STD);
+    let req_fut = osu().chart_rankings(GameMode::STD);
 
     match req_fut.await {
         Ok(result) => println!("{:#?}", result),
@@ -186,6 +186,23 @@ async fn comments() {
             "Received bundle, {} comments | {} users",
             bundle.comments.len(),
             bundle.users.len(),
+        ),
+        Err(why) => {
+            unwind_error!(error, why, "Error while requesting comments: {}");
+            panic!()
+        }
+    }
+}
+
+#[tokio::test]
+async fn chart_rankings() {
+    init().await;
+
+    match osu().chart_rankings(GameMode::STD).await {
+        Ok(rankings) => println!(
+            "Received a spotlight with {} mapsets and {} statistics",
+            rankings.mapsets.len(),
+            rankings.ranking.len(),
         ),
         Err(why) => {
             unwind_error!(error, why, "Error while requesting comments: {}");
@@ -343,23 +360,38 @@ async fn osu_matches() {
 }
 
 #[tokio::test]
-async fn rankings() {
+async fn performance_rankings() {
     init().await;
 
     match osu()
-        .rankings(GameMode::STD)
+        .performance_rankings(GameMode::STD)
         .country("be")
-        .type_performance()
         .await
     {
         Ok(rankings) => {
-            let mapsets = rankings.mapsets.map_or(0, |mapsets| mapsets.len());
-            let total = rankings.total;
-            let rankings = rankings.ranking.len();
-
             println!(
-                "Received value with {} mapsets, {} rankings, and a total of {}",
-                mapsets, rankings, total
+                "Received performance rankings with {} out of {} users",
+                rankings.ranking.len(),
+                rankings.total
+            );
+        }
+        Err(why) => {
+            unwind_error!(error, why, "Error while requesting rankings: {}");
+            panic!()
+        }
+    }
+}
+
+#[tokio::test]
+async fn score_rankings() {
+    init().await;
+
+    match osu().score_rankings(GameMode::STD).await {
+        Ok(rankings) => {
+            println!(
+                "Received score rankings with {} out of {} users",
+                rankings.ranking.len(),
+                rankings.total
             );
         }
         Err(why) => {

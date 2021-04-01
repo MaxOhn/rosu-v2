@@ -1,16 +1,78 @@
 use crate::{
-    error::OsuError,
     model::{
-        ranking::{CountryRankings, Rankings, Spotlight},
+        ranking::{ChartRankings, CountryRankings, RankingType, Rankings, Spotlight},
         GameMode,
     },
     request::{Pending, Query, Request},
     routing::Route,
-    Osu, OsuResult,
+    Osu,
 };
 
 use futures::future::TryFutureExt;
 use serde::Deserialize;
+
+/// Get a [`ChartRankings`](crate::model::ranking::ChartRankings) struct
+/// containing a [`Spotlight`](crate::model::ranking::Spotlight), its
+/// [`Beatmapset`](crate::model::beatmap::Beatmapset)s, and participating
+/// [`UserStatistics`](crate::model::user::UserStatistics).
+///
+/// The mapset will have their `maps` option filled.
+///
+/// The user statistics contain specific, spotlight related data.
+/// All fields depends only on scores on maps of the spotlight.
+/// The statistics vector is ordered by `ranked_score`.
+/// The `user` option is filled.
+#[must_use = "futures do nothing unless you `.await` or poll them"]
+pub struct GetChartRankings<'a> {
+    fut: Option<Pending<'a, ChartRankings>>,
+    osu: &'a Osu,
+    mode: GameMode,
+    spotlight: Option<u32>,
+}
+
+impl<'a> GetChartRankings<'a> {
+    #[inline]
+    pub(crate) fn new(osu: &'a Osu, mode: GameMode) -> Self {
+        Self {
+            fut: None,
+            osu,
+            mode,
+            spotlight: None,
+        }
+    }
+
+    /// Specify the spotlight id. If none is given,
+    /// the latest spotlight will be returned.
+    #[inline]
+    pub fn spotlight(mut self, spotlight_id: u32) -> Self {
+        self.spotlight.replace(spotlight_id);
+
+        self
+    }
+
+    fn start(&mut self) -> Pending<'a, ChartRankings> {
+        #[cfg(feature = "metrics")]
+        self.osu.metrics.chart_rankings.inc();
+
+        let mut query = Query::new();
+
+        if let Some(spotlight) = self.spotlight {
+            query.push("spotlight", spotlight.to_string());
+        }
+
+        let req = Request::from((
+            query,
+            Route::GetRankings {
+                mode: self.mode,
+                ranking_type: RankingType::Charts,
+            },
+        ));
+
+        Box::pin(self.osu.inner.request(req))
+    }
+}
+
+poll_req!(GetChartRankings<'_> => ChartRankings);
 
 /// Get a [`CountryRankings`](crate::model::ranking::CountryRankings) struct
 /// containing a vec of [`CountryRanking`](crate::model::ranking::CountryRanking)s
@@ -35,13 +97,13 @@ impl<'a> GetCountryRankings<'a> {
     }
 
     #[inline]
-    pub(crate) fn page(mut self, page: u32) -> Self {
+    pub fn page(mut self, page: u32) -> Self {
         self.page.replace(page);
 
         self
     }
 
-    fn start(&mut self) -> OsuResult<Pending<'a, CountryRankings>> {
+    fn start(&mut self) -> Pending<'a, CountryRankings> {
         #[cfg(feature = "metrics")]
         self.osu.metrics.country_rankings.inc();
 
@@ -55,104 +117,53 @@ impl<'a> GetCountryRankings<'a> {
             query,
             Route::GetRankings {
                 mode: self.mode,
-                ranking_type: "country",
+                ranking_type: RankingType::Country,
             },
         ));
 
-        Ok(Box::pin(self.osu.inner.request(req)))
+        Box::pin(self.osu.inner.request(req))
     }
 }
 
-poll_req!(GetCountryRankings<'_> => OsuResult<CountryRankings>);
+poll_req!(GetCountryRankings<'_> => CountryRankings);
 
-/// Get a [`Rankings`](crate::model::ranking::Rankings) struct.
-///
-/// Any of the `type_` methods **must** be specified before awaiting.
+/// Get a [`Rankings`](crate::model::ranking::Rankings) struct whose
+/// [`UserStatistics`](crate::model::user::UserStatistics) are sorted
+/// by their pp, i.e. the current pp leaderboard.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
-pub struct GetRankings<'a> {
+pub struct GetPerformanceRankings<'a> {
     fut: Option<Pending<'a, Rankings>>,
     osu: &'a Osu,
     mode: GameMode,
-    filter: Option<&'static str>,
-    ranking_type: Option<&'static str>,
     country: Option<String>,
     variant: Option<&'static str>,
-    spotlight: Option<u32>,
     page: Option<u32>,
 }
 
-impl<'a> GetRankings<'a> {
+impl<'a> GetPerformanceRankings<'a> {
     #[inline]
     pub(crate) fn new(osu: &'a Osu, mode: GameMode) -> Self {
         Self {
             fut: None,
             osu,
             mode,
-            filter: None,
-            ranking_type: None,
             country: None,
             variant: None,
-            spotlight: None,
             page: None,
         }
     }
 
+    /// Specify a country code.
     #[inline]
     pub fn country(mut self, country: impl Into<String>) -> Self {
-        if let None | Some("performance") = self.ranking_type {
-            self.country.replace(country.into());
-        }
-
-        self
-    }
-
-    #[inline]
-    pub fn filter_all(mut self) -> Self {
-        self.filter.replace("all");
-
-        self
-    }
-
-    #[inline]
-    pub fn filter_friends(mut self) -> Self {
-        self.filter.replace("friends");
-
-        self
-    }
-
-    #[inline]
-    pub fn spotlight(mut self, spotlight_id: u32) -> Self {
-        if let None | Some("charts") = self.ranking_type {
-            self.spotlight.replace(spotlight_id);
-        }
-
-        self
-    }
-
-    #[inline]
-    pub fn type_charts(mut self) -> Self {
-        self.ranking_type.replace("charts");
-
-        self
-    }
-
-    #[inline]
-    pub fn type_performance(mut self) -> Self {
-        self.ranking_type.replace("performance");
-
-        self
-    }
-
-    #[inline]
-    pub fn type_score(mut self) -> Self {
-        self.ranking_type.replace("score");
+        self.country.replace(country.into());
 
         self
     }
 
     #[inline]
     pub fn variant_4k(mut self) -> Self {
-        if self.mode == GameMode::MNA && matches!(self.ranking_type, None | Some("performance")) {
+        if self.mode == GameMode::MNA {
             self.variant.replace("4k");
         }
 
@@ -161,7 +172,7 @@ impl<'a> GetRankings<'a> {
 
     #[inline]
     pub fn variant_7k(mut self) -> Self {
-        if self.mode == GameMode::MNA && matches!(self.ranking_type, None | Some("performance")) {
+        if self.mode == GameMode::MNA {
             self.variant.replace("7k");
         }
 
@@ -175,14 +186,11 @@ impl<'a> GetRankings<'a> {
         self
     }
 
-    fn start(&mut self) -> OsuResult<Pending<'a, Rankings>> {
+    fn start(&mut self) -> Pending<'a, Rankings> {
         #[cfg(feature = "metrics")]
-        self.osu.metrics.rankings.inc();
+        self.osu.metrics.performance_rankings.inc();
 
-        let ranking_type = self.ranking_type.ok_or(OsuError::MissingParameter {
-            param: "ranking type",
-        })?;
-
+        let mode = self.mode;
         let mut query = Query::new();
 
         if let Some(country) = self.country.take() {
@@ -193,13 +201,70 @@ impl<'a> GetRankings<'a> {
             query.push("variant", variant);
         }
 
-        if let Some(spotlight) = self.spotlight {
-            query.push("spotlight", spotlight.to_string());
+        if let Some(page) = self.page {
+            query.push("cursor[page]", page.to_string());
         }
 
-        if let Some(filter) = self.filter {
-            query.push("filter", filter);
+        let req = Request::from((
+            query,
+            Route::GetRankings {
+                mode,
+                ranking_type: RankingType::Performance,
+            },
+        ));
+
+        let fut = self
+            .osu
+            .inner
+            .request(req)
+            .map_ok(move |mut rankings: Rankings| {
+                rankings.mode.replace(mode);
+                rankings.ranking_type.replace(RankingType::Performance);
+
+                rankings
+            });
+
+        Box::pin(fut)
+    }
+}
+
+poll_req!(GetPerformanceRankings<'_> => Rankings);
+
+/// Get a [`Rankings`](crate::model::ranking::Rankings) struct whose
+/// [`UserStatistics`](crate::model::user::UserStatistics) are sorted
+/// by their ranked score, i.e. the current ranked score leaderboard.
+#[must_use = "futures do nothing unless you `.await` or poll them"]
+pub struct GetScoreRankings<'a> {
+    fut: Option<Pending<'a, Rankings>>,
+    osu: &'a Osu,
+    mode: GameMode,
+    page: Option<u32>,
+}
+
+impl<'a> GetScoreRankings<'a> {
+    #[inline]
+    pub(crate) fn new(osu: &'a Osu, mode: GameMode) -> Self {
+        Self {
+            fut: None,
+            osu,
+            mode,
+            page: None,
         }
+    }
+
+    #[inline]
+    pub fn page(mut self, page: u32) -> Self {
+        self.page.replace(page);
+
+        self
+    }
+
+    fn start(&mut self) -> Pending<'a, Rankings> {
+        #[cfg(feature = "metrics")]
+        self.osu.metrics.score_rankings.inc();
+
+        let mode = self.mode;
+        let mut query = Query::new();
 
         if let Some(page) = self.page {
             query.push("cursor[page]", page.to_string());
@@ -208,16 +273,27 @@ impl<'a> GetRankings<'a> {
         let req = Request::from((
             query,
             Route::GetRankings {
-                mode: self.mode,
-                ranking_type,
+                mode,
+                ranking_type: RankingType::Score,
             },
         ));
 
-        Ok(Box::pin(self.osu.inner.request(req)))
+        let fut = self
+            .osu
+            .inner
+            .request(req)
+            .map_ok(move |mut rankings: Rankings| {
+                rankings.mode.replace(mode);
+                rankings.ranking_type.replace(RankingType::Score);
+
+                rankings
+            });
+
+        Box::pin(fut)
     }
 }
 
-poll_req!(GetRankings<'_> => OsuResult<Rankings>);
+poll_req!(GetScoreRankings<'_> => Rankings);
 
 /// Get a vec of [`Spotlight`](crate::model::ranking::Spotlight)s.
 #[must_use = "futures do nothing unless you `.await` or poll them"]

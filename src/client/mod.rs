@@ -135,6 +135,22 @@ impl Osu {
         GetComments::new(self)
     }
 
+    /// Get a [`ChartRankings`](crate::model::ranking::ChartRankings) struct
+    /// containing a [`Spotlight`](crate::model::ranking::Spotlight), its
+    /// [`Beatmapset`](crate::model::beatmap::Beatmapset)s, and participating
+    /// [`UserStatistics`](crate::model::user::UserStatistics).
+    ///
+    /// The mapset will have their `maps` option filled.
+    ///
+    /// The user statistics contain specific, spotlight related data.
+    /// All fields depends only on scores on maps of the spotlight.
+    /// The statistics vector is ordered by `ranked_score`.
+    /// The `user` option is filled.
+    #[inline]
+    pub fn chart_rankings(&self, mode: GameMode) -> GetChartRankings {
+        GetChartRankings::new(self, mode)
+    }
+
     /// Get a [`CountryRankings`](crate::model::ranking::CountryRankings) struct
     /// containing a vec of [`CountryRanking`](crate::model::ranking::CountryRanking)s
     /// which will be sorted by the country's total pp.
@@ -207,18 +223,19 @@ impl Osu {
         GetMatch::new(self, match_id)
     }
 
-    /// Get a [`MatchList`](crate::model::matches::OsuMatch) containing all
+    /// Get a [`MatchList`](crate::model::matches::MatchList) containing all
     /// currently open multiplayer lobbies.
     #[inline]
     pub fn osu_matches(&self) -> GetMatches {
         GetMatches::new(self)
     }
 
-    /// Get the current ranking for the specified type and mode
-    /// in form of a [`Rankings`](crate::model::ranking::Rankings) struct.
+    /// Get a [`Rankings`](crate::model::ranking::Rankings) struct whose
+    /// [`UserStatistics`](crate::model::user::UserStatistics) are sorted
+    /// by their pp, i.e. the current pp leaderboard.
     #[inline]
-    pub fn rankings(&self, mode: GameMode) -> GetRankings {
-        GetRankings::new(self, mode)
+    pub fn performance_rankings(&self, mode: GameMode) -> GetPerformanceRankings {
+        GetPerformanceRankings::new(self, mode)
     }
 
     /// Get the recent activity of a user in form of a vec of
@@ -235,6 +252,14 @@ impl Osu {
     #[inline]
     pub fn recent_events(&self, user_id: impl Into<UserId>) -> GetRecentEvents {
         GetRecentEvents::new(self, user_id.into())
+    }
+
+    /// Get a [`Rankings`](crate::model::ranking::Rankings) struct whose
+    /// [`UserStatistics`](crate::model::user::UserStatistics) are sorted
+    /// by their ranked score, i.e. the current ranked score leaderboard.
+    #[inline]
+    pub fn score_rankings(&self, mode: GameMode) -> GetScoreRankings {
+        GetScoreRankings::new(self, mode)
     }
 
     /// Get [`SeasonalBackgrounds`](crate::model::seasonal_backgrounds::SeasonalBackgrounds).

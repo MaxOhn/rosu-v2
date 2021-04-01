@@ -24,8 +24,10 @@ pub(crate) struct Metrics {
 
     pub(crate) news: IntCounter,
 
+    pub(crate) chart_rankings: IntCounter,
     pub(crate) country_rankings: IntCounter,
-    pub(crate) rankings: IntCounter,
+    pub(crate) performance_rankings: IntCounter,
+    pub(crate) score_rankings: IntCounter,
     pub(crate) spotlights: IntCounter,
 
     pub(crate) seasonal_backgrounds: IntCounter,
@@ -69,8 +71,10 @@ impl Metrics {
 
             news: counters.with_label_values(&["News"]),
 
+            chart_rankings: counters.with_label_values(&["Chart rankings"]),
             country_rankings: counters.with_label_values(&["Country rankings"]),
-            rankings: counters.with_label_values(&["Rankings"]),
+            performance_rankings: counters.with_label_values(&["Performance rankings"]),
+            score_rankings: counters.with_label_values(&["Score rankings"]),
             spotlights: counters.with_label_values(&["Spotlights"]),
 
             seasonal_backgrounds: counters.with_label_values(&["Seasonal backgrounds"]),

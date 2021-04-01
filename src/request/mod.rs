@@ -55,18 +55,15 @@ mod wiki;
 pub use beatmap::{
     GetBeatmap, GetBeatmapScores, GetBeatmapUserScore, GetBeatmapset, GetBeatmapsetEvents,
 };
-pub use comments::GetComments;
-pub use forum::GetForumPosts;
-pub use matches::{GetMatch, GetMatches};
-pub use multiplayer::{GetMultiplayerScore, GetMultiplayerScores, GetMultiplayerUserHighScore};
-pub use news::GetNews;
-pub use ranking::{GetCountryRankings, GetRankings, GetSpotlights};
-pub use seasonal_backgrounds::GetSeasonalBackgrounds;
-pub use user::{
-    GetRecentEvents, GetUser, GetUserBeatmapsets, GetUserKudosu, GetUserMostPlayed, GetUserScores,
-    GetUsers, UserId,
-};
-pub use wiki::GetWikiPage;
+pub use comments::*;
+pub use forum::*;
+pub use matches::*;
+pub use multiplayer::*;
+pub use news::*;
+pub use ranking::*;
+pub use seasonal_backgrounds::*;
+pub use user::*;
+pub use wiki::*;
 
 use crate::{routing::Route, OsuResult};
 

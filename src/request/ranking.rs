@@ -1,7 +1,7 @@
 use crate::{
     error::OsuError,
     model::{
-        ranking::{CountryRankings, Rankings, RankingsCursor, Spotlight},
+        ranking::{CountryRankings, Rankings, Spotlight},
         GameMode,
     },
     request::{Pending, Query, Request},
@@ -20,7 +20,7 @@ pub struct GetCountryRankings<'a> {
     fut: Option<Pending<'a, CountryRankings>>,
     osu: &'a Osu,
     mode: GameMode,
-    cursor: Option<RankingsCursor>,
+    page: Option<u32>,
 }
 
 impl<'a> GetCountryRankings<'a> {
@@ -30,13 +30,13 @@ impl<'a> GetCountryRankings<'a> {
             fut: None,
             osu,
             mode,
-            cursor: None,
+            page: None,
         }
     }
 
     #[inline]
-    pub(crate) fn cursor(mut self, cursor: RankingsCursor) -> Self {
-        self.cursor.replace(cursor);
+    pub(crate) fn page(mut self, page: u32) -> Self {
+        self.page.replace(page);
 
         self
     }
@@ -47,8 +47,8 @@ impl<'a> GetCountryRankings<'a> {
 
         let mut query = Query::new();
 
-        if let Some(cursor) = self.cursor {
-            query.push("cursor[page]", cursor.page.to_string());
+        if let Some(page) = self.page {
+            query.push("cursor[page]", page.to_string());
         }
 
         let req = Request::from((
@@ -78,7 +78,7 @@ pub struct GetRankings<'a> {
     country: Option<String>,
     variant: Option<&'static str>,
     spotlight: Option<u32>,
-    cursor: Option<RankingsCursor>,
+    page: Option<u32>,
 }
 
 impl<'a> GetRankings<'a> {
@@ -93,7 +93,7 @@ impl<'a> GetRankings<'a> {
             country: None,
             variant: None,
             spotlight: None,
-            cursor: None,
+            page: None,
         }
     }
 
@@ -169,8 +169,8 @@ impl<'a> GetRankings<'a> {
     }
 
     #[inline]
-    pub fn cursor(mut self, cursor: RankingsCursor) -> Self {
-        self.cursor.replace(cursor);
+    pub fn page(mut self, page: u32) -> Self {
+        self.page.replace(page);
 
         self
     }
@@ -201,8 +201,8 @@ impl<'a> GetRankings<'a> {
             query.push("filter", filter);
         }
 
-        if let Some(cursor) = self.cursor {
-            query.push("cursor[page]", cursor.page.to_string());
+        if let Some(page) = self.page {
+            query.push("cursor[page]", page.to_string());
         }
 
         let req = Request::from((

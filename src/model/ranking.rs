@@ -40,7 +40,7 @@ impl CountryRankings {
     /// Otherwise, this method returns `None`.
     #[inline]
     pub async fn get_next(&self, osu: &Osu, mode: GameMode) -> Option<OsuResult<CountryRankings>> {
-        Some(osu.country_rankings(mode).cursor(self.cursor?).await)
+        Some(osu.country_rankings(mode).page(self.cursor?.page).await)
     }
 }
 

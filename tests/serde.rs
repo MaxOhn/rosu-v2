@@ -15,6 +15,17 @@ fn ser_de<T: DeserializeOwned + Serialize + PartialEq + Debug>(val: T) {
     assert_eq!(val, deserialized);
 }
 
+fn get_country_ranking() -> CountryRanking {
+    CountryRanking {
+        active_users: 2,
+        country: "belgiania".to_owned(),
+        country_code: "be".to_owned(),
+        playcount: 420,
+        pp: 123.45,
+        ranked_score: 1_000_000_000_000_000,
+    }
+}
+
 fn get_date() -> DateTime<Utc> {
     Utc.timestamp(1_500_000_000, 0)
 }
@@ -477,10 +488,7 @@ fn get_user() -> User {
         avatar_url: String::new(),
         comments_count: 0,
         cover_url: String::new(),
-        country: Country {
-            code: "be".to_owned(),
-            name: "belgiania".to_owned(),
-        },
+        country: "belgiania".to_owned(),
         country_code: "be".to_owned(),
         cover: UserCover {
             custom_url: Some(String::new()),
@@ -612,10 +620,7 @@ fn get_user_compact() -> UserCompact {
             url: String::new(),
         }]),
         beatmap_playcounts_count: Some(3),
-        country: Some(Country {
-            code: "be".to_owned(),
-            name: "belgiania".to_owned(),
-        }),
+        country: Some("belgiania".to_owned()),
         cover: Some(UserCover {
             custom_url: None,
             url: String::new(),
@@ -709,6 +714,11 @@ fn serde_beatmap() {
 #[test]
 fn serde_beatmapset_events() {
     ser_de(get_mapset_events());
+}
+
+#[test]
+fn serde_country_ranking() {
+    ser_de(get_country_ranking());
 }
 
 #[test]

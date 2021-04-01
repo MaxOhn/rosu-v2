@@ -24,6 +24,7 @@ pub(crate) struct Metrics {
 
     pub(crate) news: IntCounter,
 
+    pub(crate) country_rankings: IntCounter,
     pub(crate) rankings: IntCounter,
     pub(crate) spotlights: IntCounter,
 
@@ -68,6 +69,7 @@ impl Metrics {
 
             news: counters.with_label_values(&["News"]),
 
+            country_rankings: counters.with_label_values(&["Country rankings"]),
             rankings: counters.with_label_values(&["Rankings"]),
             spotlights: counters.with_label_values(&["Spotlights"]),
 

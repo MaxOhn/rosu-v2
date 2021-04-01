@@ -36,10 +36,60 @@ pub struct Badge {
     pub url: String,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub struct Country {
-    pub code: String,
-    pub name: String,
+struct CountryVisitor;
+
+impl<'de> Visitor<'de> for CountryVisitor {
+    type Value = Option<String>;
+
+    fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str("a string, a map containing a `name` field, or null")
+    }
+
+    fn visit_str<E: Error>(self, v: &str) -> Result<Self::Value, E> {
+        Ok(Some(v.to_owned()))
+    }
+
+    fn visit_string<E: Error>(self, v: String) -> Result<Self::Value, E> {
+        Ok(Some(v))
+    }
+
+    fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
+        let mut country = None;
+
+        while let Some(key) = map.next_key()? {
+            match key {
+                "name" => {
+                    country.replace(map.next_value()?);
+                }
+                _ => {
+                    let _: IgnoredAny = map.next_value()?;
+                }
+            }
+        }
+
+        country
+            .ok_or_else(|| Error::missing_field("name"))
+            .map(Some)
+    }
+
+    fn visit_some<D: Deserializer<'de>>(self, d: D) -> Result<Self::Value, D::Error> {
+        d.deserialize_any(Self)
+    }
+
+    fn visit_none<E: Error>(self) -> Result<Self::Value, E> {
+        Ok(None)
+    }
+}
+
+pub(crate) fn deserialize_country<'de, D: Deserializer<'de>>(d: D) -> Result<String, D::Error> {
+    d.deserialize_any(CountryVisitor).map(Option::unwrap)
+}
+
+pub(crate) fn deserialize_maybe_country<'de, D>(d: D) -> Result<Option<String>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    d.deserialize_option(CountryVisitor)
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -158,7 +208,8 @@ pub struct User {
     pub avatar_url: String,
     pub comments_count: usize,
     pub cover_url: String,
-    pub country: Country,
+    #[serde(deserialize_with = "deserialize_country")]
+    pub country: String,
     pub country_code: String,
     pub cover: UserCover,
     pub default_group: String,
@@ -317,8 +368,12 @@ pub struct UserCompact {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub beatmap_playcounts_count: Option<u32>,
     // blocks: Option<>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub country: Option<Country>,
+    #[serde(
+        default,
+        deserialize_with = "deserialize_maybe_country",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub country: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub cover: Option<UserCover>,
     // current_mode_rank: Option<>,

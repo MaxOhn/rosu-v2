@@ -135,6 +135,14 @@ impl Osu {
         GetComments::new(self)
     }
 
+    /// Get a [`CountryRankings`](crate::model::ranking::CountryRankings) struct
+    /// containing a vec of [`CountryRanking`](crate::model::ranking::CountryRanking)s
+    /// which will be sorted by the country's total pp.
+    #[inline]
+    pub fn country_rankings(&self, mode: GameMode) -> GetCountryRankings {
+        GetCountryRankings::new(self, mode)
+    }
+
     /// Get a [`ForumPosts`](crate::model::forum::ForumPosts) struct for a forum topic
     #[inline]
     pub fn forum_posts(&self, topic_id: u64) -> GetForumPosts {

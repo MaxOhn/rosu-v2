@@ -60,7 +60,7 @@ pub use forum::GetForumPosts;
 pub use matches::{GetMatch, GetMatches};
 pub use multiplayer::{GetMultiplayerScore, GetMultiplayerScores, GetMultiplayerUserHighScore};
 pub use news::GetNews;
-pub use ranking::{GetRankings, GetSpotlights};
+pub use ranking::{GetCountryRankings, GetRankings, GetSpotlights};
 pub use seasonal_backgrounds::GetSeasonalBackgrounds;
 pub use user::{
     GetRecentEvents, GetUser, GetUserBeatmapsets, GetUserKudosu, GetUserMostPlayed, GetUserScores,

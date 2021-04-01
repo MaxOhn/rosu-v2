@@ -1,7 +1,7 @@
 use crate::{
     error::OsuError,
     model::{
-        ranking::{Rankings, RankingsCursor, Spotlight},
+        ranking::{CountryRankings, Rankings, RankingsCursor, Spotlight},
         GameMode,
     },
     request::{Pending, Query, Request},
@@ -11,6 +11,59 @@ use crate::{
 
 use futures::future::TryFutureExt;
 use serde::Deserialize;
+
+/// Get a [`CountryRankings`](crate::model::ranking::CountryRankings) struct
+/// containing a vec of [`CountryRanking`](crate::model::ranking::CountryRanking)s
+/// which will be sorted by the country's total pp.
+#[must_use = "futures do nothing unless you `.await` or poll them"]
+pub struct GetCountryRankings<'a> {
+    fut: Option<Pending<'a, CountryRankings>>,
+    osu: &'a Osu,
+    mode: GameMode,
+    cursor: Option<RankingsCursor>,
+}
+
+impl<'a> GetCountryRankings<'a> {
+    #[inline]
+    pub(crate) fn new(osu: &'a Osu, mode: GameMode) -> Self {
+        Self {
+            fut: None,
+            osu,
+            mode,
+            cursor: None,
+        }
+    }
+
+    #[inline]
+    pub(crate) fn cursor(mut self, cursor: RankingsCursor) -> Self {
+        self.cursor.replace(cursor);
+
+        self
+    }
+
+    fn start(&mut self) -> OsuResult<Pending<'a, CountryRankings>> {
+        #[cfg(feature = "metrics")]
+        self.osu.metrics.country_rankings.inc();
+
+        let mut query = Query::new();
+
+        if let Some(cursor) = self.cursor {
+            query.push("cursor[page]", cursor.page.to_string());
+        }
+
+        let req = Request::from((
+            query,
+            Route::GetRankings {
+                mode: self.mode,
+                ranking_type: "country",
+            },
+        ));
+
+        Ok(Box::pin(self.osu.inner.request(req)))
+    }
+}
+
+poll_req!(GetCountryRankings<'_> => OsuResult<CountryRankings>);
 
 /// Get a [`Rankings`](crate::model::ranking::Rankings) struct.
 ///
@@ -79,13 +132,6 @@ impl<'a> GetRankings<'a> {
     #[inline]
     pub fn type_charts(mut self) -> Self {
         self.ranking_type.replace("charts");
-
-        self
-    }
-
-    #[inline]
-    pub fn type_country(mut self) -> Self {
-        self.ranking_type.replace("country");
 
         self
     }

@@ -81,10 +81,10 @@ fn osu() -> &'static Osu {
 async fn custom() {
     init().await;
 
-    let req_fut = osu().forum_posts(1265690);
+    let req_fut = osu().country_rankings(GameMode::STD);
 
     match req_fut.await {
-        Ok(posts) => println!("{:#?}", posts),
+        Ok(result) => println!("{:#?}", result),
         Err(why) => {
             unwind_error!(error, why, "{}");
             panic!();
@@ -186,6 +186,23 @@ async fn comments() {
             "Received bundle, {} comments | {} users",
             bundle.comments.len(),
             bundle.users.len(),
+        ),
+        Err(why) => {
+            unwind_error!(error, why, "Error while requesting comments: {}");
+            panic!()
+        }
+    }
+}
+
+#[tokio::test]
+async fn country_rankings() {
+    init().await;
+
+    match osu().country_rankings(GameMode::STD).await {
+        Ok(countries) => println!(
+            "Received the first {} out of {} countries",
+            countries.ranking.len(),
+            countries.total
         ),
         Err(why) => {
             unwind_error!(error, why, "Error while requesting comments: {}");

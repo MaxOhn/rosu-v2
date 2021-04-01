@@ -1,7 +1,48 @@
-use super::{beatmap::Beatmapset, user::UserStatistics};
+use super::{
+    beatmap::Beatmapset,
+    user::{deserialize_country, UserStatistics},
+    GameMode,
+};
+use crate::{Osu, OsuResult};
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+pub struct CountryRanking {
+    pub active_users: u32,
+    #[serde(deserialize_with = "deserialize_country")]
+    pub country: String,
+    #[serde(rename = "code")]
+    pub country_code: String,
+    #[serde(rename = "play_count")]
+    pub playcount: u64,
+    #[serde(rename = "performance")]
+    pub pp: f32,
+    pub ranked_score: u64,
+}
+
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+pub struct CountryRankings {
+    pub(crate) cursor: Option<RankingsCursor>,
+    pub ranking: Vec<CountryRanking>,
+    /// Total amount of countries
+    pub total: u32,
+}
+
+impl CountryRankings {
+    #[inline]
+    pub fn has_more(&self) -> bool {
+        self.cursor.is_some()
+    }
+
+    /// If `has_more()` is true, the API can provide the next set of countries and this method will request them.
+    /// Otherwise, this method returns `None`.
+    #[inline]
+    pub async fn get_next(&self, osu: &Osu, mode: GameMode) -> Option<OsuResult<CountryRankings>> {
+        Some(osu.country_rankings(mode).cursor(self.cursor?).await)
+    }
+}
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct Rankings {

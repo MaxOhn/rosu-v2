@@ -424,6 +424,16 @@ pub enum BeatmapsetEvent {
         mapset: BeatmapsetCompact,
         discussion: BeatmapsetDiscussion,
     },
+    KudosuLost {
+        #[serde(rename = "id")]
+        event_id: u64,
+        comment: BeatmapsetCommentKudosuGain,
+        created_at: DateTime<Utc>,
+        user_id: u32,
+        #[serde(rename = "beatmapset")]
+        mapset: BeatmapsetCompact,
+        discussion: BeatmapsetDiscussion,
+    },
     LanguageEdit {
         #[serde(rename = "id")]
         event_id: u64,

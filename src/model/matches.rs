@@ -634,6 +634,7 @@ impl OsuMatch {
     ///             ...
     ///             # */
     ///             # event_id: 0,
+    ///             # match_name: String::new(),
     ///             # timestamp: date,
     ///         },
     ///         # /*
@@ -663,6 +664,7 @@ impl OsuMatch {
     ///             ...
     ///             # */
     ///             # event_id: 0,
+    ///             # match_name: String::new(),
     ///             # timestamp: date,
     ///         },
     ///     ],

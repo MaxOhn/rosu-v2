@@ -179,6 +179,7 @@ impl<'a> GetPerformanceRankings<'a> {
         self
     }
 
+    /// Pages range from 1 to 200.
     #[inline]
     pub fn page(mut self, page: u32) -> Self {
         self.page.replace(page);
@@ -252,6 +253,7 @@ impl<'a> GetScoreRankings<'a> {
         }
     }
 
+    /// Pages range from 1 to 200.
     #[inline]
     pub fn page(mut self, page: u32) -> Self {
         self.page.replace(page);

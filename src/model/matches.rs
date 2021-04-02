@@ -37,6 +37,8 @@ pub enum MatchEvent {
         /// Boxed to optimize [`MatchEvent`](crate::model::matches::MatchEvent)'s
         /// size in memory.
         game: Box<MatchGame>,
+        #[serde(default)]
+        match_name: String,
         timestamp: DateTime<Utc>,
     },
     /// The match host changed
@@ -172,6 +174,8 @@ impl<'de> Deserialize<'de> for MatchEventType {
 struct Detail {
     #[serde(rename = "type")]
     kind: MatchEventType,
+    #[serde(default, rename = "text")]
+    match_name: String,
 }
 
 struct MatchEventVisitor;
@@ -188,6 +192,7 @@ impl<'de> Visitor<'de> for MatchEventVisitor {
         let mut timestamp = None;
         let mut user_id = None;
         let mut kind = None;
+        let mut match_name = None;
         let mut game = None;
 
         while let Some(key) = map.next_key()? {
@@ -202,13 +207,20 @@ impl<'de> Visitor<'de> for MatchEventVisitor {
                     let detail: Detail = map.next_value()?;
 
                     kind.replace(detail.kind);
+
+                    if !detail.match_name.is_empty() {
+                        match_name.replace(detail.match_name);
+                    }
                 }
                 "user_id" => user_id = map.next_value()?,
+                "game" => {
+                    game.replace(map.next_value()?);
+                }
                 "type" => {
                     kind.replace(map.next_value()?);
                 }
-                "game" => {
-                    game.replace(map.next_value()?);
+                "match_name" => {
+                    match_name.replace(map.next_value()?);
                 }
                 _ => {
                     let _: IgnoredAny = map.next_value()?;
@@ -234,6 +246,8 @@ impl<'de> Visitor<'de> for MatchEventVisitor {
             MatchEventType::Game => MatchEvent::Game {
                 event_id,
                 game: game.ok_or_else(|| Error::missing_field("game"))?,
+                match_name: match_name
+                    .ok_or_else(|| Error::missing_field("detail or match_name"))?,
                 timestamp,
             },
             MatchEventType::HostChanged => MatchEvent::HostChanged {
@@ -575,11 +589,9 @@ impl OsuMatch {
         MatchGameIter::new(self.events.iter())
     }
 
-    /// Return a vec containing all [`MatchGame`]s of the match.
+    /// Return an iterator over all [`MatchGame`]s of the match.
     ///
-    /// ## Note
-    ///
-    /// The games are drained from the match's events meaning the
+    /// **Note:** The games are drained from the match's events meaning the
     /// `events` field will be empty after this method is called.
     ///
     /// # Example
@@ -709,6 +721,34 @@ impl OsuMatch {
 
         osu.osu_match(self.match_id).after(last_id).limit(100).await
     }
+
+    /// The API sends only up to 100 events per request.
+    /// This method checks whether there are events before the currently first event.
+    pub fn has_previous(&self) -> bool {
+        self.events
+            .first()
+            .map_or(false, |event| self.first_event_id != event.event_id())
+    }
+
+    /// Get the [`OsuMatch`] containing only data before some event id.
+    ///
+    /// This method returns `None` either if the `events` field is empty or
+    /// if the first event is already contained.
+    pub async fn get_previous(&self, osu: &Osu) -> Option<OsuResult<OsuMatch>> {
+        let first_id = self
+            .events
+            .first()
+            .map(MatchEvent::event_id)
+            .filter(|&first_id| first_id == self.first_event_id)?;
+
+        let previous = osu
+            .osu_match(self.match_id)
+            .before(first_id)
+            .limit(100)
+            .await;
+
+        Some(previous)
+    }
 }
 
 struct OsuMatchVisitor;
@@ -736,7 +776,18 @@ impl<'de> Visitor<'de> for OsuMatchVisitor {
                 "current_game_id" => current_game_id = map.next_value()?,
                 "end_time" => end_time = map.next_value()?,
                 "events" => {
-                    events.replace(map.next_value()?);
+                    let value: Vec<MatchEvent> = map.next_value()?;
+
+                    let name_opt = value.iter().rev().find_map(|event| match event {
+                        MatchEvent::Game { match_name, .. } => Some(match_name.to_owned()),
+                        _ => None,
+                    });
+
+                    if let Some(match_name) = name_opt {
+                        name.replace(match_name);
+                    }
+
+                    events.replace(value);
                 }
                 "first_event_id" => {
                     first_event_id.replace(map.next_value()?);

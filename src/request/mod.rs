@@ -31,9 +31,7 @@ mod seasonal_backgrounds;
 mod user;
 mod wiki;
 
-pub use beatmap::{
-    GetBeatmap, GetBeatmapScores, GetBeatmapUserScore, GetBeatmapset, GetBeatmapsetEvents,
-};
+pub use beatmap::*;
 pub use comments::*;
 pub use forum::*;
 pub use matches::*;

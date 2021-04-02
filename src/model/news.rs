@@ -68,8 +68,8 @@ pub struct NewsSearch {
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct NewsSidebar {
-    current_year: u32,
+    pub current_year: u32,
     #[serde(rename = "news_posts")]
-    posts: Vec<NewsPost>,
-    years: Vec<u32>,
+    pub posts: Vec<NewsPost>,
+    pub years: Vec<u32>,
 }

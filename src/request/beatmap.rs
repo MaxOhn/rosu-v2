@@ -129,6 +129,14 @@ impl<'a> GetBeatmapScores<'a> {
         self
     }
 
+    #[deprecated = "Does not currently work since the API requires osu!supporter for this feature"]
+    #[inline]
+    pub fn score_type(mut self, score_type: &'static str) -> Self {
+        self.score_type.replace(score_type);
+
+        self
+    }
+
     // #[inline]
     // pub fn limit(mut self, limit: u32) -> Self {
     //     self.limit.replace(limit);
@@ -159,8 +167,8 @@ impl<'a> GetBeatmapScores<'a> {
             }
         }
 
-        if let Some(_score_type) = self.score_type {
-            // TODO
+        if let Some(score_type) = self.score_type {
+            query.push("type", score_type);
         }
 
         // if let Some(limit) = self.limit {

@@ -12,6 +12,7 @@ pub struct GetMatch<'a> {
     osu: &'a Osu,
     match_id: u32,
     after: Option<u64>,
+    before: Option<u64>,
     limit: Option<usize>,
 }
 
@@ -23,6 +24,7 @@ impl<'a> GetMatch<'a> {
             osu,
             match_id,
             after: None,
+            before: None,
             limit: None,
         }
     }
@@ -33,6 +35,16 @@ impl<'a> GetMatch<'a> {
     #[inline]
     pub fn after(mut self, after: u64) -> Self {
         self.after.replace(after);
+
+        self
+    }
+
+    /// Get the match state containing only events before the given event id.
+    ///
+    /// Note: The given event id won't be included.
+    #[inline]
+    pub fn before(mut self, before: u64) -> Self {
+        self.before.replace(before);
 
         self
     }
@@ -53,6 +65,10 @@ impl<'a> GetMatch<'a> {
 
         if let Some(after) = self.after {
             query.push("after", after.to_string());
+        }
+
+        if let Some(before) = self.before {
+            query.push("before", before.to_string());
         }
 
         if let Some(limit) = self.limit {

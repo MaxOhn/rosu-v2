@@ -398,7 +398,6 @@ fn get_match() -> OsuMatch {
             },
             MatchEvent::Game {
                 event_id: 4,
-                timestamp: get_date(),
                 game: Box::new(MatchGame {
                     game_id: 0,
                     start_time: get_date(),
@@ -410,6 +409,8 @@ fn get_match() -> OsuMatch {
                     map: Some(get_map_compact()),
                     scores: vec![get_match_score()],
                 }),
+                match_name: "other name".to_owned(),
+                timestamp: get_date(),
             },
             MatchEvent::Disbanded {
                 event_id: 5,

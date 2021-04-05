@@ -1,6 +1,9 @@
 use crate::{
     model::{
-        beatmap::{Beatmap, Beatmapset, BeatmapsetEvents},
+        beatmap::{
+            Beatmap, Beatmapset, BeatmapsetEvents, BeatmapsetSearchCursor, BeatmapsetSearchResult,
+            BeatmapsetSearchSort, Genre, Language, RankStatus, SearchRankStatus,
+        },
         score::{BeatmapScores, BeatmapUserScore, Score},
         GameMode, GameMods,
     },
@@ -8,6 +11,8 @@ use crate::{
     routing::Route,
     Osu,
 };
+
+use std::fmt::Write;
 
 #[cfg(feature = "cache")]
 use super::UserId;
@@ -186,12 +191,13 @@ impl<'a> GetBeatmapScores<'a> {
             },
         ));
 
-        Box::pin(
-            self.osu
-                .inner
-                .request(req)
-                .map_ok(|s: BeatmapScores| s.scores),
-        )
+        let fut = self
+            .osu
+            .inner
+            .request(req)
+            .map_ok(|s: BeatmapScores| s.scores);
+
+        Box::pin(fut)
     }
 }
 
@@ -360,3 +366,264 @@ impl<'a> GetBeatmapsetEvents<'a> {
 }
 
 poll_req!(GetBeatmapsetEvents => BeatmapsetEvents);
+
+/// Get a [`BeatmapsetSearchResult`](crate::model::beatmap::BeatmapsetSearchResult)
+/// struct containing the first page of maps that fit the search query.
+///
+/// The default search parameters are:
+/// - mode: any
+/// - status: has leaderboard (ranked, loved, approved, and qualified)
+/// - genre: any
+/// - language: any
+/// - extra: does neither contain have video nor storyboard
+/// - nsfw: allowed
+/// - sort: by relevance, descending
+///
+/// The contained [`Beatmapset`](crate::mode::beatmap::Beatmapset)s will have the
+/// following options filled: `artist_unicode`, `legacy_thread_url`, `maps`,
+/// `ranked_date` and `submitted_date` if available, and `title_unicode`.
+///
+/// The search query allows the following options to be specified: `ar`, `artist`,
+/// `bpm`, `created`, `creator`, `cs`, `dr` (hp drain rate), `keys`, `length`,
+/// `ranked`, `stars`, and `status`.
+///
+/// ## Example
+///
+/// ```
+/// // Search for mapsets from Sotarks that have a map with no more than AR 9.
+/// let query = "creator=sotarks ar<9";
+///
+/// // Loved mapsets from Camellia including at least one map above 8 stars
+/// let query = "status=loved artist=camellia stars>8";
+/// ```
+#[must_use = "futures do nothing unless you `.await` or poll them"]
+pub struct GetBeatmapsetSearch<'a> {
+    fut: Option<Pending<'a, BeatmapsetSearchResult>>,
+    osu: &'a Osu,
+    query: Option<String>,
+    mode: Option<u8>,
+    status: Option<SearchRankStatus>,
+    genre: Option<u8>,
+    language: Option<u8>,
+    video: bool,
+    storyboard: bool,
+    nsfw: bool,
+    sort: Option<BeatmapsetSearchSort>,
+    descending: bool,
+    cursor: Option<BeatmapsetSearchCursor>,
+}
+
+impl<'a> GetBeatmapsetSearch<'a> {
+    #[inline]
+    pub(crate) fn new(osu: &'a Osu, query: impl Into<String>) -> Self {
+        Self {
+            fut: None,
+            osu,
+            query: Some(query.into()),
+            mode: None,
+            status: None,
+            genre: None,
+            language: None,
+            video: false,
+            storyboard: false,
+            nsfw: true,
+            sort: None,
+            descending: true,
+            cursor: None,
+        }
+    }
+
+    /// Specify the mode for which the mapsets has to have at least one map.
+    #[inline]
+    pub fn mode(mut self, mode: GameMode) -> Self {
+        self.mode.replace(mode as u8);
+
+        self
+    }
+
+    /// Allow any status for mapsets. To specify a specific one, use the
+    /// [`status`](crate::request::GetBeatmapsetSearch::status) method.
+    #[inline]
+    pub fn any_status(mut self) -> Self {
+        self.status.replace(SearchRankStatus::Any);
+
+        self
+    }
+
+    /// Specify a status for the mapsets, defaults to `has_leaderboard`
+    /// i.e. ranked, loved, approved, and qualified. To allow any status, use the
+    /// [`any_status`](crate::request::GetBeatmapsetSearch::any_status) method.
+    ///
+    /// ## Note
+    /// The API does not seem to filter for the `RankStatus::Approved` status specifically.
+    #[inline]
+    pub fn status(mut self, mut status: RankStatus) -> Self {
+        if status == RankStatus::WIP {
+            status = RankStatus::Pending;
+        }
+
+        self.status.replace(SearchRankStatus::Specific(status));
+
+        self
+    }
+
+    /// Specify a genre for the mapsets, defaults to `Any`.
+    #[inline]
+    pub fn genre(mut self, genre: Genre) -> Self {
+        self.genre.replace(genre as u8);
+
+        self
+    }
+
+    /// Specify a language for the mapsets, defaults to `Any`.
+    #[inline]
+    pub fn language(mut self, language: Language) -> Self {
+        self.language.replace(language as u8);
+
+        self
+    }
+
+    /// Specify whether mapsets can have a video, defaults to false.
+    #[inline]
+    pub fn video(mut self, video: bool) -> Self {
+        self.video = video;
+
+        self
+    }
+
+    /// Specify whether mapsets can have a storyboard, defaults to false.
+    #[inline]
+    pub fn storyboard(mut self, storyboard: bool) -> Self {
+        self.storyboard = storyboard;
+
+        self
+    }
+
+    /// Specify whether mapsets can be NSFW, defaults to true.
+    #[inline]
+    pub fn nsfw(mut self, nsfw: bool) -> Self {
+        self.nsfw = nsfw;
+
+        self
+    }
+
+    #[inline]
+    pub fn sort(mut self, sort: BeatmapsetSearchSort, descending: bool) -> Self {
+        self.sort.replace(sort);
+        self.descending = descending;
+
+        self
+    }
+
+    #[inline]
+    pub(crate) fn cursor(mut self, cursor: BeatmapsetSearchCursor) -> Self {
+        self.cursor.replace(cursor);
+
+        self
+    }
+
+    fn start(&mut self) -> Pending<'a, BeatmapsetSearchResult> {
+        #[cfg(feature = "metrics")]
+        self.osu.metrics.beatmapset_search.inc();
+
+        let q = self.query.take().unwrap();
+        let mode = self.mode;
+        let status = self.status;
+        let genre = self.genre;
+        let language = self.language;
+        let video = self.video;
+        let storyboard = self.storyboard;
+        let nsfw = self.nsfw;
+
+        let mut query = Query::new();
+
+        query.push("q", q.to_owned());
+
+        if let Some(mode) = mode {
+            query.push("m", mode.to_string());
+        }
+
+        match status {
+            None => {}
+            Some(SearchRankStatus::Specific(status)) => {
+                let mut buf = String::with_capacity(8);
+                let _ = write!(buf, "{:?}", status);
+
+                // SAFETY: Debug formats of RankStatus are guaranteed
+                // to only contain ASCII chars and have a length >= 1.
+                unsafe { buf.as_bytes_mut()[0].make_ascii_lowercase() }
+
+                query.push("s", buf);
+            }
+            Some(SearchRankStatus::Any) => query.push("s", "any"),
+        }
+
+        if let Some(genre) = genre {
+            query.push("g", genre.to_string());
+        }
+
+        if let Some(language) = language {
+            query.push("l", language.to_string());
+        }
+
+        let extra = match (video, storyboard) {
+            (false, false) => None,
+            (false, true) => Some("storyboard"),
+            (true, false) => Some("video"),
+            (true, true) => Some("storyboard.video"),
+        };
+
+        if let Some(extra) = extra {
+            query.push("e", extra);
+        }
+
+        if !nsfw {
+            query.push("nsfw", "false");
+        }
+
+        if let Some(cursor) = self.cursor.take() {
+            query.push("cursor[_id]", cursor.id);
+
+            if let Some(score) = cursor.score {
+                query.push("cursor[_score]", score.to_string());
+            }
+
+            if let Some(playcount) = cursor.playcount {
+                query.push("cursor[play_count]", playcount);
+            }
+        }
+
+        if let Some(ref sort) = self.sort {
+            let mut buf = String::with_capacity(16);
+            let _ = write!(buf, "{}_", sort);
+            let order = if self.descending { "desc" } else { "asc" };
+            buf.push_str(order);
+
+            query.push("sort", buf);
+        }
+
+        let req = Request::from((query, Route::GetBeatmapsetSearch));
+
+        let fut =
+            self.osu
+                .inner
+                .request(req)
+                .map_ok(move |mut search_result: BeatmapsetSearchResult| {
+                    let params = &mut search_result.params;
+                    params.query = q;
+                    params.mode = mode;
+                    params.status = status;
+                    params.genre = genre;
+                    params.language = language;
+                    params.video = video;
+                    params.storyboard = storyboard;
+                    params.nsfw = nsfw;
+
+                    search_result
+                });
+
+        Box::pin(fut)
+    }
+}
+
+poll_req!(GetBeatmapsetSearch => BeatmapsetSearchResult);

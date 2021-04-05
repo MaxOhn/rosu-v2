@@ -1,16 +1,18 @@
 use super::{user::UserCompact, GameMode};
-use crate::{request::GetUser, Osu};
+use crate::{request::GetUser, Osu, OsuResult};
 
 use chrono::{DateTime, Utc};
 use serde::{
-    de::{Deserializer, Error, IgnoredAny, MapAccess, SeqAccess, Visitor},
+    de::{Deserializer, Error, IgnoredAny, MapAccess, SeqAccess, Unexpected, Visitor},
+    ser::Serializer,
     Deserialize, Serialize,
 };
-use std::fmt;
+use std::{convert::TryFrom, fmt, str::FromStr};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Beatmap {
     pub ar: f32,
+    #[serde(deserialize_with = "deserialize_f32_default")]
     pub bpm: f32,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub checksum: Option<String>,
@@ -120,6 +122,7 @@ pub struct Beatmapset {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub artist_unicode: Option<String>,
     pub availability: BeatmapsetAvailability,
+    #[serde(deserialize_with = "deserialize_f32_default")]
     pub bpm: f32,
     pub can_be_hyped: bool,
     /// Each difficulty's converted map for each mode
@@ -178,6 +181,11 @@ pub struct Beatmapset {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub title_unicode: Option<String>,
     pub video: bool,
+}
+
+#[inline]
+fn deserialize_f32_default<'de, D: Deserializer<'de>>(d: D) -> Result<f32, D::Error> {
+    Option::<f32>::deserialize(d).map(Option::unwrap_or_default)
 }
 
 impl Beatmapset {
@@ -522,6 +530,425 @@ pub struct BeatmapsetReviewsConfig {
     pub max_blocks: u32,
 }
 
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+pub(crate) struct BeatmapsetSearchCursor {
+    #[serde(rename = "_id")]
+    pub(crate) id: String,
+    #[serde(
+        default,
+        rename = "play_count",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub(crate) playcount: Option<String>,
+    #[serde(default, rename = "_score", skip_serializing_if = "Option::is_none")]
+    pub(crate) score: Option<f32>,
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub(crate) enum SearchRankStatus {
+    Any,
+    Specific(RankStatus),
+}
+
+const SEARCH_RANK_STATUS_ANY: i8 = 9;
+
+struct SearchRankStatusVisitor;
+
+impl<'de> Visitor<'de> for SearchRankStatusVisitor {
+    type Value = SearchRankStatus;
+
+    fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str("a rank status, `any`, or 9")
+    }
+
+    fn visit_str<E: Error>(self, s: &str) -> Result<Self::Value, E> {
+        let visitor = super::EnumVisitor::<RankStatus>::new();
+
+        if let Ok(status) = visitor.visit_str::<E>(s) {
+            Ok(SearchRankStatus::Specific(status))
+        } else if s == "any" {
+            Ok(SearchRankStatus::Any)
+        } else {
+            Err(Error::invalid_value(
+                Unexpected::Str(s),
+                &"a rank status or `any`",
+            ))
+        }
+    }
+
+    fn visit_u64<E: Error>(self, u: u64) -> Result<Self::Value, E> {
+        let visitor = super::EnumVisitor::<RankStatus>::new();
+
+        if let Ok(status) = visitor.visit_u64::<E>(u) {
+            Ok(SearchRankStatus::Specific(status))
+        } else if u as i8 == SEARCH_RANK_STATUS_ANY {
+            Ok(SearchRankStatus::Any)
+        } else {
+            Err(Error::invalid_value(
+                Unexpected::Unsigned(u),
+                &"a rank status or 9",
+            ))
+        }
+    }
+
+    fn visit_i64<E: Error>(self, i: i64) -> Result<Self::Value, E> {
+        let visitor = super::EnumVisitor::<RankStatus>::new();
+
+        if let Ok(status) = visitor.visit_i64::<E>(i) {
+            Ok(SearchRankStatus::Specific(status))
+        } else if i as i8 == SEARCH_RANK_STATUS_ANY {
+            Ok(SearchRankStatus::Any)
+        } else {
+            Err(Error::invalid_value(
+                Unexpected::Signed(i),
+                &"a rank status or 9",
+            ))
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for SearchRankStatus {
+    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        d.deserialize_any(SearchRankStatusVisitor)
+    }
+}
+
+impl Serialize for SearchRankStatus {
+    fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        match self {
+            Self::Any => s.serialize_i8(SEARCH_RANK_STATUS_ANY),
+            Self::Specific(status) => s.serialize_i8(*status as i8),
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+pub(crate) struct BeatmapsetSearchParameters {
+    pub(crate) query: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub(crate) mode: Option<u8>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub(crate) status: Option<SearchRankStatus>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub(crate) genre: Option<u8>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub(crate) language: Option<u8>,
+    pub(crate) video: bool,
+    pub(crate) storyboard: bool,
+    pub(crate) nsfw: bool,
+    #[serde(rename(serialize = "_sort"))]
+    sort: BeatmapsetSearchSort,
+    descending: bool,
+}
+
+impl Default for BeatmapsetSearchParameters {
+    #[inline]
+    fn default() -> Self {
+        Self {
+            query: String::new(),
+            mode: None,
+            status: None,
+            genre: None,
+            language: None,
+            video: false,
+            storyboard: false,
+            nsfw: true,
+            sort: BeatmapsetSearchSort::default(),
+            descending: true,
+        }
+    }
+}
+
+struct BeatmapsetSearchParametersVisitor;
+
+impl<'de> Visitor<'de> for BeatmapsetSearchParametersVisitor {
+    type Value = BeatmapsetSearchParameters;
+
+    fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str("a search struct")
+    }
+
+    fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
+        let mut params = None;
+
+        let mut query = None;
+        let mut mode = None;
+        let mut status = None;
+        let mut genre = None;
+        let mut language = None;
+        let mut video = None;
+        let mut storyboard = None;
+        let mut nsfw = None;
+        let mut sort = None;
+        let mut descending = None;
+
+        while let Some(key) = map.next_key()? {
+            match key {
+                "sort" => {
+                    let SubSort { sort, descending } = map.next_value()?;
+
+                    params.replace(BeatmapsetSearchParameters {
+                        sort,
+                        descending,
+                        ..Default::default()
+                    });
+                }
+                "query" => query = map.next_value()?,
+                "mode" => {
+                    mode.replace(map.next_value()?);
+                }
+                "status" => {
+                    status.replace(map.next_value()?);
+                }
+                "genre" => {
+                    genre.replace(map.next_value()?);
+                }
+                "language" => {
+                    language.replace(map.next_value()?);
+                }
+                "video" => {
+                    video.replace(map.next_value()?);
+                }
+                "storyboard" => {
+                    storyboard.replace(map.next_value()?);
+                }
+                "nsfw" => {
+                    nsfw.replace(map.next_value()?);
+                }
+                "_sort" => {
+                    sort.replace(map.next_value()?);
+                }
+                "descending" => {
+                    descending.replace(map.next_value()?);
+                }
+                _ => {
+                    let _: IgnoredAny = map.next_value()?;
+                }
+            }
+        }
+
+        if let Some(params) = params {
+            return Ok(params);
+        }
+
+        let query = query.ok_or_else(|| Error::missing_field("sort or query"))?;
+        let sort = sort.ok_or_else(|| Error::missing_field("sort or _sort"))?;
+        let video = video.ok_or_else(|| Error::missing_field("sort or video"))?;
+        let storyboard = storyboard.ok_or_else(|| Error::missing_field("sort or storyboard"))?;
+        let nsfw = nsfw.ok_or_else(|| Error::missing_field("sort or nsfw"))?;
+        let descending = descending.ok_or_else(|| Error::missing_field("sort or descending"))?;
+
+        let params = BeatmapsetSearchParameters {
+            query,
+            mode,
+            status,
+            genre,
+            language,
+            video,
+            storyboard,
+            nsfw,
+            sort,
+            descending,
+        };
+
+        Ok(params)
+    }
+}
+
+impl<'de> Deserialize<'de> for BeatmapsetSearchParameters {
+    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        d.deserialize_map(BeatmapsetSearchParametersVisitor)
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize)]
+pub struct BeatmapsetSearchResult {
+    cursor: Option<BeatmapsetSearchCursor>,
+    #[serde(rename(serialize = "beatmapsets"))]
+    pub mapsets: Vec<Beatmapset>,
+    #[serde(rename(serialize = "search"))]
+    pub(crate) params: BeatmapsetSearchParameters,
+    /// Total amount of mapsets that fit the search query
+    pub total: u32,
+}
+
+impl BeatmapsetSearchResult {
+    #[inline]
+    pub fn has_more(&self) -> bool {
+        self.cursor.is_some()
+    }
+
+    /// If `has_more()` is true, the API can provide the next set of search results and this method will request them.
+    /// Otherwise, this method returns `None`.
+    pub async fn get_next(&self, osu: &Osu) -> Option<OsuResult<BeatmapsetSearchResult>> {
+        let cursor = self.cursor.as_ref()?.to_owned();
+        let params = &self.params;
+
+        let mut fut = osu
+            .beatmapset_search(&params.query)
+            .cursor(cursor)
+            .video(params.video)
+            .storyboard(params.storyboard)
+            .nsfw(params.nsfw)
+            .sort(params.sort, params.descending);
+
+        if let Some(mode) = params.mode.map(GameMode::from) {
+            fut = fut.mode(mode);
+        }
+
+        match params.status {
+            None => {}
+            Some(SearchRankStatus::Specific(status)) => fut = fut.status(status),
+            Some(SearchRankStatus::Any) => fut = fut.any_status(),
+        }
+
+        if let Some(genre) = params.genre {
+            fut = fut.genre(Genre::try_from(genre).unwrap());
+        }
+
+        if let Some(language) = params.language {
+            fut = fut.language(Language::try_from(language).unwrap());
+        }
+
+        Some(fut.await)
+    }
+}
+
+struct BeatmapsetSearchResultVisitor;
+
+impl<'de> Visitor<'de> for BeatmapsetSearchResultVisitor {
+    type Value = BeatmapsetSearchResult;
+
+    fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str("a BeatmapsetSearchResult struct")
+    }
+
+    fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
+        let mut mapsets = None;
+        let mut cursor = None;
+        let mut params = None;
+        let mut total = None;
+
+        while let Some(key) = map.next_key()? {
+            match key {
+                "beatmapsets" => {
+                    mapsets.replace(map.next_value()?);
+                }
+                "cursor" => cursor = map.next_value()?,
+                "search" => {
+                    params.replace(map.next_value()?);
+                }
+                "total" => {
+                    total.replace(map.next_value()?);
+                }
+                _ => {
+                    let _: IgnoredAny = map.next_value()?;
+                }
+            }
+        }
+
+        let mapsets = mapsets.ok_or_else(|| Error::missing_field("beatmapsets"))?;
+        let params = params.unwrap_or_default();
+        let total = total.ok_or_else(|| Error::missing_field("total"))?;
+
+        Ok(BeatmapsetSearchResult {
+            cursor,
+            mapsets,
+            params,
+            total,
+        })
+    }
+}
+
+impl<'de> Deserialize<'de> for BeatmapsetSearchResult {
+    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        d.deserialize_map(BeatmapsetSearchResultVisitor)
+    }
+}
+
+macro_rules! search_sort_enum {
+    ($($variant:ident => $name:literal,)+) => {
+        /// Provides an option to specify a mapset order in a mapset search,
+        /// see [`Osu::beatmapset_search`](crate::client::Osu::beatmapset_search).
+        #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+        pub enum BeatmapsetSearchSort {
+            $(
+                #[serde(rename = $name)]
+                $variant,
+            )+
+        }
+
+        impl fmt::Display for BeatmapsetSearchSort {
+            fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+                match self {
+                    $(Self::$variant => f.write_str($name),)+
+                }
+
+
+            }
+        }
+
+        impl FromStr for BeatmapsetSearchSort {
+            type Err = ();
+
+            fn from_str(s: &str) -> Result<Self, Self::Err> {
+                match s {
+                    $($name => Ok(Self::$variant),)+
+                    _ => Err(()),
+                }
+            }
+        }
+
+        impl<'de> Deserialize<'de> for SubSort {
+            fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+                let s: &str = Deserialize::deserialize(d)?;
+
+                let underscore = s.find('_').ok_or_else(|| {
+                    Error::invalid_value(Unexpected::Str(s), &"a string containing an underscore")
+                })?;
+
+                let sort = s[..underscore].parse().map_err(|_| {
+                    Error::invalid_value(
+                        Unexpected::Str(&s[..underscore]),
+                        &stringify!($($name),+),
+                    )
+                })?;
+
+                let descending = match s.get(underscore + 1..) {
+                    Some("desc") => true,
+                    Some("asc") => false,
+                    _ => return Err(Error::invalid_value(Unexpected::Str(s), &"*_desc or *_asc")),
+                };
+
+                Ok(SubSort { sort, descending })
+            }
+        }
+    }
+}
+
+search_sort_enum!(
+    Artist => "artist",
+    Favourites => "favourites",
+    Playcount => "plays",
+    RankedDate => "ranked",
+    Rating => "rating",
+    Relevance => "relevance",
+    Stars => "difficulty",
+    Title => "title",
+);
+
+impl Default for BeatmapsetSearchSort {
+    #[inline]
+    fn default() -> Self {
+        BeatmapsetSearchSort::Relevance
+    }
+}
+
+struct SubSort {
+    sort: BeatmapsetSearchSort,
+    descending: bool,
+}
+
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct BeatmapsetVote {
     pub user_id: u32,
@@ -703,4 +1130,75 @@ impl<'de> Visitor<'de> for DescriptionVisitor {
 
 fn flatten_description<'de, D: Deserializer<'de>>(d: D) -> Result<Option<String>, D::Error> {
     d.deserialize_option(DescriptionVisitor)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde::de::DeserializeOwned;
+    use std::fmt::Debug;
+
+    fn ser_de<T: DeserializeOwned + Serialize + PartialEq + Debug>(val: T) {
+        let serialized =
+            serde_json::to_string(&val).unwrap_or_else(|e| panic!("Failed to serialize: {}", e));
+
+        let deserialized: T = serde_json::from_str(&serialized)
+            .unwrap_or_else(|e| panic!("Failed to deserialize: {}", e));
+
+        assert_eq!(val, deserialized);
+    }
+
+    #[test]
+    fn ser_de_search_result_any_status() {
+        let search_result = BeatmapsetSearchResult {
+            cursor: Some(BeatmapsetSearchCursor {
+                id: "123".to_owned(),
+                score: Some(3.1415),
+                playcount: None,
+            }),
+            mapsets: Vec::new(),
+            params: BeatmapsetSearchParameters {
+                query: "my query".to_owned(),
+                mode: Some(1),
+                status: Some(SearchRankStatus::Any),
+                genre: Some(4),
+                language: Some(5),
+                video: true,
+                storyboard: false,
+                nsfw: false,
+                sort: BeatmapsetSearchSort::RankedDate,
+                descending: false,
+            },
+            total: 42,
+        };
+
+        ser_de(search_result);
+    }
+
+    #[test]
+    fn ser_de_search_result_specific_status() {
+        let search_result = BeatmapsetSearchResult {
+            cursor: Some(BeatmapsetSearchCursor {
+                id: "123".to_owned(),
+                score: None,
+                playcount: Some("123".to_owned()),
+            }),
+            mapsets: Vec::new(),
+            params: BeatmapsetSearchParameters {
+                query: "my query".to_owned(),
+                mode: Some(1),
+                status: Some(SearchRankStatus::Specific(RankStatus::Pending)),
+                genre: None,
+                language: Some(5),
+                video: true,
+                storyboard: false,
+                nsfw: true,
+                sort: BeatmapsetSearchSort::Playcount,
+                descending: true,
+            },
+            total: 42,
+        };
+
+        ser_de(search_result);
+    }
 }

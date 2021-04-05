@@ -10,6 +10,7 @@ pub(crate) struct Metrics {
     pub(crate) beatmap_user_score: IntCounter,
     pub(crate) beatmapset: IntCounter,
     pub(crate) beatmapset_events: IntCounter,
+    pub(crate) beatmapset_search: IntCounter,
 
     pub(crate) comments: IntCounter,
 
@@ -57,6 +58,7 @@ impl Metrics {
             beatmap_user_score: counters.with_label_values(&["Beatmap user scores"]),
             beatmapset: counters.with_label_values(&["Beatmapset"]),
             beatmapset_events: counters.with_label_values(&["Beatmapset events"]),
+            beatmapset_search: counters.with_label_values(&["Beatmapset search"]),
 
             comments: counters.with_label_values(&["Comments"]),
 

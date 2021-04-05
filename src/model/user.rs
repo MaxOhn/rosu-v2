@@ -108,7 +108,7 @@ pub struct GradeCounts {
 
 #[inline]
 fn deserialize_i32_default<'de, D: Deserializer<'de>>(d: D) -> Result<i32, D::Error> {
-    <Option<i32> as Deserialize>::deserialize(d).map(Option::unwrap_or_default)
+    Option::<i32>::deserialize(d).map(Option::unwrap_or_default)
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -557,7 +557,7 @@ pub struct UserStatistics {
 
 #[inline]
 fn deserialize_f32_default<'de, D: Deserializer<'de>>(d: D) -> Result<f32, D::Error> {
-    <Option<f32> as Deserialize>::deserialize(d).map(Option::unwrap_or_default)
+    Option::<f32>::deserialize(d).map(Option::unwrap_or_default)
 }
 
 #[inline]

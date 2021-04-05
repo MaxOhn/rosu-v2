@@ -128,6 +128,40 @@ impl Osu {
         GetBeatmapsetEvents::new(self)
     }
 
+    /// Get a [`BeatmapsetSearchResult`](crate::model::beatmap::BeatmapsetSearchResult)
+    /// struct containing the first page of maps that fit the search query.
+    ///
+    /// The default search parameters are:
+    /// - mode: any
+    /// - status: has leaderboard (ranked, loved, approved, and qualified)
+    /// - genre: any
+    /// - language: any
+    /// - extra: does neither contain have video nor storyboard
+    /// - nsfw: allowed
+    /// - sort: by relevance, descending
+    ///
+    /// The contained [`Beatmapset`](crate::mode::beatmap::Beatmapset)s will have the
+    /// following options filled: `artist_unicode`, `legacy_thread_url`, `maps`,
+    /// `ranked_date` and `submitted_date` if available, and `title_unicode`.
+    ///
+    /// The search query allows the following options to be specified: `ar`, `artist`,
+    /// `bpm`, `created`, `creator`, `cs`, `dr` (hp drain rate), `keys`, `length`,
+    /// `ranked`, `stars`, and `status`.
+    ///
+    /// ## Example
+    ///
+    /// ```
+    /// // Search for mapsets from Sotarks that have a map with no more than AR 9.
+    /// let query = "creator=sotarks ar<9";
+    ///
+    /// // Loved mapsets from Camellia including at least one map above 8 stars
+    /// let query = "status=loved artist=camellia stars>8";
+    /// ```
+    #[inline]
+    pub fn beatmapset_search(&self, query: impl Into<String>) -> GetBeatmapsetSearch {
+        GetBeatmapsetSearch::new(self, query)
+    }
+
     /// Get a list of comments and their replies up to two levels deep
     /// in form of a [`CommentBundle`](crate::model::comments::CommentBundle) .
     #[inline]

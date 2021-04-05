@@ -2,11 +2,14 @@ extern crate rosu_v2;
 
 use dotenv::dotenv;
 use once_cell::sync::OnceCell;
-use rosu_v2::{model::GameMode, Osu};
+use rosu_v2::{
+    model::{
+        beatmap::{BeatmapsetSearchSort, RankStatus},
+        GameMode, GameMods,
+    },
+    Osu,
+};
 use std::env;
-
-#[allow(unused_imports)]
-use rosu_v2::model::GameMods;
 
 #[macro_use]
 extern crate log;
@@ -81,15 +84,13 @@ fn osu() -> &'static Osu {
 async fn custom() {
     init().await;
 
-    let req_fut = osu().chart_rankings(GameMode::STD);
+    let req_fut = osu().beatmapset_search("status=loved artist=camellia stars>8");
 
-    match req_fut.await {
-        Ok(result) => println!("{:#?}", result),
-        Err(why) => {
-            unwind_error!(error, why, "{}");
-            panic!();
-        }
-    }
+    let result = req_fut.await.unwrap();
+    println!("Result 1: {:#?}", result);
+
+    let result = result.get_next(osu()).await.unwrap().unwrap();
+    println!("Result 2: {:#?}", result);
 }
 
 #[tokio::test]
@@ -169,6 +170,30 @@ async fn beatmapset_events() {
             "Received {} events, {} users",
             events.events.len(),
             events.users.len(),
+        ),
+        Err(why) => {
+            unwind_error!(println, why, "Error while requesting beatmapset events: {}");
+            panic!()
+        }
+    }
+}
+
+#[tokio::test]
+async fn beatmapset_search() {
+    init().await;
+
+    let search_fut = osu()
+        .beatmapset_search("artist=camellia stars>8 ar>9 length<400")
+        .status(RankStatus::Graveyard)
+        .mode(GameMode::STD)
+        .nsfw(false)
+        .sort(BeatmapsetSearchSort::Favourites, false);
+
+    match search_fut.await {
+        Ok(result) => println!(
+            "Received search result containing {} out of {} mapsets",
+            result.mapsets.len(),
+            result.total,
         ),
         Err(why) => {
             unwind_error!(println, why, "Error while requesting beatmapset events: {}");

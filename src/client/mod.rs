@@ -431,8 +431,6 @@ impl Osu {
                 name.make_ascii_lowercase();
 
                 if let Some(id) = self.cache.get(&name) {
-                    debug!("Found user `{}` in cache", name);
-
                     return Ok(*id.value());
                 }
 

@@ -119,4 +119,4 @@ impl<'a> GetForumPosts<'a> {
     }
 }
 
-poll_req!(GetForumPosts<'_> => ForumPosts);
+poll_req!(GetForumPosts => ForumPosts);

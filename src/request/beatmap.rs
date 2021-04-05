@@ -82,7 +82,7 @@ impl<'a> GetBeatmap<'a> {
     }
 }
 
-poll_req!(GetBeatmap<'_> => Beatmap);
+poll_req!(GetBeatmap => Beatmap);
 
 /// Get top scores of a beatmap by its id in form of a
 /// vec of [`Score`](crate::model::score::Score)s.
@@ -195,7 +195,7 @@ impl<'a> GetBeatmapScores<'a> {
     }
 }
 
-poll_req!(GetBeatmapScores<'_> => Vec<Score>);
+poll_req!(GetBeatmapScores => Vec<Score>);
 
 /// Get [`BeatmapUserScore`](crate::model::score::BeatmapUserScore)
 /// of a user on a beatmap by the user's and the map's id.
@@ -302,7 +302,7 @@ impl<'a> GetBeatmapUserScore<'a> {
     }
 }
 
-poll_req!(GetBeatmapUserScore<'_> => BeatmapUserScore);
+poll_req!(GetBeatmapUserScore => BeatmapUserScore);
 
 /// Get a [`Beatmapset`](crate::model::beatmap::Beatmapset).
 #[must_use = "futures do nothing unless you `.await` or poll them"]
@@ -334,7 +334,7 @@ impl<'a> GetBeatmapset<'a> {
     }
 }
 
-poll_req!(GetBeatmapset<'_> => Beatmapset);
+poll_req!(GetBeatmapset => Beatmapset);
 
 /// Get a [`BeatmapsetEvents`](crate::model::beatmap::BeatmapsetEvents) struct.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
@@ -359,4 +359,4 @@ impl<'a> GetBeatmapsetEvents<'a> {
     }
 }
 
-poll_req!(GetBeatmapsetEvents<'_> => BeatmapsetEvents);
+poll_req!(GetBeatmapsetEvents => BeatmapsetEvents);

@@ -1,6 +1,6 @@
 macro_rules! poll_req {
-    ($ty:ty => $ret:ty) => {
-        impl ::std::future::Future for $ty {
+    ($ty:ident => $ret:ty) => {
+        impl ::std::future::Future for $ty<'_> {
             type Output = $crate::OsuResult<$ret>;
 
             fn poll(

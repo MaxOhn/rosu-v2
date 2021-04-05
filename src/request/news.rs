@@ -57,4 +57,4 @@ impl<'a> GetNews<'a> {
     }
 }
 
-poll_req!(GetNews<'_> => News);
+poll_req!(GetNews => News);

@@ -114,4 +114,4 @@ impl<'a> GetComments<'a> {
     }
 }
 
-poll_req!(GetComments<'_> => CommentBundle);
+poll_req!(GetComments => CommentBundle);

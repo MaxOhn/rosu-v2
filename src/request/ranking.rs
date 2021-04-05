@@ -72,7 +72,7 @@ impl<'a> GetChartRankings<'a> {
     }
 }
 
-poll_req!(GetChartRankings<'_> => ChartRankings);
+poll_req!(GetChartRankings => ChartRankings);
 
 /// Get a [`CountryRankings`](crate::model::ranking::CountryRankings) struct
 /// containing a vec of [`CountryRanking`](crate::model::ranking::CountryRanking)s
@@ -125,7 +125,7 @@ impl<'a> GetCountryRankings<'a> {
     }
 }
 
-poll_req!(GetCountryRankings<'_> => CountryRankings);
+poll_req!(GetCountryRankings => CountryRankings);
 
 /// Get a [`Rankings`](crate::model::ranking::Rankings) struct whose
 /// [`UserStatistics`](crate::model::user::UserStatistics) are sorted
@@ -229,7 +229,7 @@ impl<'a> GetPerformanceRankings<'a> {
     }
 }
 
-poll_req!(GetPerformanceRankings<'_> => Rankings);
+poll_req!(GetPerformanceRankings => Rankings);
 
 /// Get a [`Rankings`](crate::model::ranking::Rankings) struct whose
 /// [`UserStatistics`](crate::model::user::UserStatistics) are sorted
@@ -295,7 +295,7 @@ impl<'a> GetScoreRankings<'a> {
     }
 }
 
-poll_req!(GetScoreRankings<'_> => Rankings);
+poll_req!(GetScoreRankings => Rankings);
 
 /// Get a vec of [`Spotlight`](crate::model::ranking::Spotlight)s.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
@@ -326,7 +326,7 @@ impl<'a> GetSpotlights<'a> {
     }
 }
 
-poll_req!(GetSpotlights<'_> => Vec<Spotlight>);
+poll_req!(GetSpotlights => Vec<Spotlight>);
 
 #[derive(Deserialize)]
 struct Spotlights {

@@ -28,4 +28,4 @@ impl<'a> GetSeasonalBackgrounds<'a> {
     }
 }
 
-poll_req!(GetSeasonalBackgrounds<'_> => SeasonalBackgrounds);
+poll_req!(GetSeasonalBackgrounds => SeasonalBackgrounds);

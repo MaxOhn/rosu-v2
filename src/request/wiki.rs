@@ -45,4 +45,4 @@ impl<'a> GetWikiPage<'a> {
     }
 }
 
-poll_req!(GetWikiPage<'_> => WikiPage);
+poll_req!(GetWikiPage => WikiPage);

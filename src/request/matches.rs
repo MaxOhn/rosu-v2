@@ -86,7 +86,7 @@ impl<'a> GetMatch<'a> {
     }
 }
 
-poll_req!(GetMatch<'_> => OsuMatch);
+poll_req!(GetMatch => OsuMatch);
 
 /// Get a [`MatchList`](crate::model::matches::MatchList) containing all
 /// currently open multiplayer lobbies.
@@ -130,4 +130,4 @@ impl<'a> GetMatches<'a> {
     }
 }
 
-poll_req!(GetMatches<'_> => MatchList);
+poll_req!(GetMatches => MatchList);

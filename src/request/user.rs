@@ -104,7 +104,7 @@ impl<'a> GetUser<'a> {
     }
 }
 
-poll_req!(GetUser<'_> => User);
+poll_req!(GetUser => User);
 
 /// Get the [`Beatmapset`](crate::model::beatmap::Beatmapset)s of a user by their id.
 ///
@@ -258,7 +258,7 @@ impl<'a> GetUserBeatmapsets<'a> {
     }
 }
 
-poll_req!(GetUserBeatmapsets<'_> => Vec<Beatmapset>);
+poll_req!(GetUserBeatmapsets => Vec<Beatmapset>);
 
 /// Get a user's kudosu history by their user id in form of a vec
 /// of [`KudosuHistory`](crate::model::kudosu::KudosuHistory).
@@ -352,7 +352,7 @@ impl<'a> GetUserKudosu<'a> {
     }
 }
 
-poll_req!(GetUserKudosu<'_> => Vec<KudosuHistory>);
+poll_req!(GetUserKudosu => Vec<KudosuHistory>);
 
 /// Get the most played beatmaps of a user by their id in form
 /// of a vec of [`MostPlayedMap`](crate::model::beatmap::MostPlayedMap).
@@ -460,7 +460,7 @@ impl<'a> GetUserMostPlayed<'a> {
     }
 }
 
-poll_req!(GetUserMostPlayed<'_> => Vec<MostPlayedMap>);
+poll_req!(GetUserMostPlayed => Vec<MostPlayedMap>);
 
 /// Get a vec of [`RecentEvent`](crate::model::recent_event::RecentEvent) of a user by their id.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
@@ -553,7 +553,7 @@ impl<'a> GetRecentEvents<'a> {
     }
 }
 
-poll_req!(GetRecentEvents<'_> => Vec<RecentEvent>);
+poll_req!(GetRecentEvents => Vec<RecentEvent>);
 
 #[derive(Copy, Clone, Debug)]
 pub(crate) enum ScoreType {
@@ -744,7 +744,7 @@ impl<'a> GetUserScores<'a> {
     }
 }
 
-poll_req!(GetUserScores<'_> => Vec<Score>);
+poll_req!(GetUserScores => Vec<Score>);
 
 /// Get a vec of [`UserCompact`](crate::model::user::UserCompact) by their ids.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
@@ -784,4 +784,4 @@ impl<'a> GetUsers<'a> {
     }
 }
 
-poll_req!(GetUsers<'_> => Vec<UserCompact>);
+poll_req!(GetUsers => Vec<UserCompact>);

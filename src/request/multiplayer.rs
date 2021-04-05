@@ -40,7 +40,7 @@ impl<'a> GetMultiplayerScore<'a> {
     }
 }
 
-poll_req!(GetMultiplayerScore<'_> => u32); // TODO
+poll_req!(GetMultiplayerScore => u32); // TODO
 
 /// TODO: Documentation
 #[must_use = "futures do nothing unless you `.await` or poll them"]
@@ -112,7 +112,7 @@ impl<'a> GetMultiplayerScores<'a> {
     }
 }
 
-poll_req!(GetMultiplayerScores<'_> => u32); // TODO
+poll_req!(GetMultiplayerScores => u32); // TODO
 
 /// TODO: Documentation
 #[must_use = "futures do nothing unless you `.await` or poll them"]
@@ -150,4 +150,4 @@ impl<'a> GetMultiplayerUserHighScore<'a> {
     }
 }
 
-poll_req!(GetMultiplayerUserHighScore<'_> => u32); // TODO
+poll_req!(GetMultiplayerUserHighScore => u32); // TODO

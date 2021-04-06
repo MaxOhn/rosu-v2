@@ -415,11 +415,11 @@ pub struct GetBeatmapsetSearch<'a> {
 
 impl<'a> GetBeatmapsetSearch<'a> {
     #[inline]
-    pub(crate) fn new(osu: &'a Osu, query: impl Into<String>) -> Self {
+    pub(crate) fn new(osu: &'a Osu) -> Self {
         Self {
             fut: None,
             osu,
-            query: Some(query.into()),
+            query: None,
             mode: None,
             status: None,
             genre: None,
@@ -431,6 +431,14 @@ impl<'a> GetBeatmapsetSearch<'a> {
             descending: true,
             cursor: None,
         }
+    }
+
+    /// Specify a search query.
+    #[inline]
+    pub fn query(mut self, query: impl Into<String>) -> Self {
+        self.query.replace(query.into());
+
+        self
     }
 
     /// Specify the mode for which the mapsets has to have at least one map.
@@ -526,7 +534,7 @@ impl<'a> GetBeatmapsetSearch<'a> {
         #[cfg(feature = "metrics")]
         self.osu.metrics.beatmapset_search.inc();
 
-        let q = self.query.take().unwrap();
+        let q = self.query.take();
         let mode = self.mode;
         let status = self.status;
         let genre = self.genre;
@@ -537,7 +545,9 @@ impl<'a> GetBeatmapsetSearch<'a> {
 
         let mut query = Query::new();
 
-        query.push("q", q.to_owned());
+        if let Some(ref q) = q {
+            query.push("q", q.to_owned());
+        }
 
         if let Some(mode) = mode {
             query.push("m", mode.to_string());

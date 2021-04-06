@@ -624,7 +624,7 @@ impl Serialize for SearchRankStatus {
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub(crate) struct BeatmapsetSearchParameters {
-    pub(crate) query: String,
+    pub(crate) query: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub(crate) mode: Option<u8>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -645,7 +645,7 @@ impl Default for BeatmapsetSearchParameters {
     #[inline]
     fn default() -> Self {
         Self {
-            query: String::new(),
+            query: None,
             mode: None,
             status: None,
             genre: None,
@@ -785,12 +785,16 @@ impl BeatmapsetSearchResult {
         let params = &self.params;
 
         let mut fut = osu
-            .beatmapset_search(&params.query)
+            .beatmapset_search()
             .cursor(cursor)
             .video(params.video)
             .storyboard(params.storyboard)
             .nsfw(params.nsfw)
             .sort(params.sort, params.descending);
+
+        if let Some(ref query) = params.query {
+            fut = fut.query(query);
+        }
 
         if let Some(mode) = params.mode.map(GameMode::from) {
             fut = fut.mode(mode);
@@ -1158,7 +1162,7 @@ mod tests {
             }),
             mapsets: Vec::new(),
             params: BeatmapsetSearchParameters {
-                query: "my query".to_owned(),
+                query: Some("my query".to_owned()),
                 mode: Some(1),
                 status: Some(SearchRankStatus::Any),
                 genre: Some(4),
@@ -1185,7 +1189,7 @@ mod tests {
             }),
             mapsets: Vec::new(),
             params: BeatmapsetSearchParameters {
-                query: "my query".to_owned(),
+                query: None,
                 mode: Some(1),
                 status: Some(SearchRankStatus::Specific(RankStatus::Pending)),
                 genre: None,

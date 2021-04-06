@@ -158,8 +158,8 @@ impl Osu {
     /// let query = "status=loved artist=camellia stars>8";
     /// ```
     #[inline]
-    pub fn beatmapset_search(&self, query: impl Into<String>) -> GetBeatmapsetSearch {
-        GetBeatmapsetSearch::new(self, query)
+    pub fn beatmapset_search(&self) -> GetBeatmapsetSearch {
+        GetBeatmapsetSearch::new(self)
     }
 
     /// Get a list of comments and their replies up to two levels deep

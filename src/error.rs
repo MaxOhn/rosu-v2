@@ -15,7 +15,7 @@ impl fmt::Display for ApiError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self.error {
             Some(ref msg) => f.write_str(msg),
-            None => f.write_str("Empty error message"),
+            None => f.write_str("empty error message"),
         }
     }
 }
@@ -82,35 +82,35 @@ impl fmt::Display for OsuError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Self::BuilderMissingId => {
-                f.write_str("Failed to build osu client, no client id was provided")
+                f.write_str("failed to build osu client, no client id was provided")
             }
             Self::BuilderMissingSecret => {
-                f.write_str("Failed to build osu client, no client secret was provided")
+                f.write_str("failed to build osu client, no client secret was provided")
             }
-            Self::BuildingClient { .. } => f.write_str("Failed to build reqwest client"),
-            Self::ChunkingResponse { .. } => f.write_str("Failed to chunk the response"),
+            Self::BuildingClient { .. } => f.write_str("failed to build reqwest client"),
+            Self::ChunkingResponse { .. } => f.write_str("failed to chunk the response"),
             Self::CreatingHeader { name, .. } => {
-                write!(f, "Failed to parse value for header {}", name)
+                write!(f, "failed to parse value for header {}", name)
             }
             Self::NotFound => f.write_str(
-                "The API returned a 404 implying a missing score, incorrect name, id, etc",
+                "the osu!api returned a 404 implying a missing score, incorrect name, id, etc",
             ),
             Self::NoToken => f.write_str(
-                "The previous API token expired and the client \
+                "The previous osu!api token expired and the client \
                 has not yet succeeded in acquiring a new one. \
                 Can not send requests until a new token has been acquired. \
                 This should only occur during an extended downtime of the osu!api.",
             ),
-            Self::Parsing { body, .. } => write!(f, "Failed to deserialize response: {}", body),
-            Self::ParsingValue { .. } => f.write_str("Failed to parse value"),
-            Self::Request { .. } => f.write_str("Failed to send request"),
-            Self::Response { status, .. } => write!(f, "Response error, status {}", status),
+            Self::Parsing { body, .. } => write!(f, "failed to deserialize response: {}", body),
+            Self::ParsingValue { .. } => f.write_str("failed to parse value"),
+            Self::Request { .. } => f.write_str("failed to send request"),
+            Self::Response { status, .. } => write!(f, "response error, status {}", status),
             Self::ServiceUnavailable(body) => write!(
                 f,
                 "osu!api may be temporarily unavailable (received 503): {}",
                 body.as_deref().unwrap_or("error while parsing body")
             ),
-            Self::UpdateToken { .. } => f.write_str("Failed to update osu!api token"),
+            Self::UpdateToken { .. } => f.write_str("failed to update osu!api token"),
         }
     }
 }
@@ -140,15 +140,15 @@ impl StdError for ParsingError {}
 impl fmt::Display for ParsingError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::Genre(n) => write!(f, "Failed to parse {} into Genre", n),
-            Self::Grade(s) => write!(f, "Failed to parse `{}` into Grade", s),
-            Self::Language(n) => write!(f, "Failed to parse {} into Language", n),
-            Self::ModsU32(n) => write!(f, "Failed to parse {} into GameMods", n),
-            Self::ModsStr(s) => write!(f, "Failed to parse `{}` into GameMods", s),
-            Self::RankStatus(n) => write!(f, "Failed to parse {} into RankStatus", n),
-            Self::ScoringType(n) => write!(f, "Failed to parse {} into ScoringType", n),
-            Self::Team(n) => write!(f, "Failed to parse {} into Team", n),
-            Self::TeamType(n) => write!(f, "Failed to parse {} into TeamType", n),
+            Self::Genre(n) => write!(f, "failed to parse {} into Genre", n),
+            Self::Grade(s) => write!(f, "failed to parse `{}` into Grade", s),
+            Self::Language(n) => write!(f, "failed to parse {} into Language", n),
+            Self::ModsU32(n) => write!(f, "failed to parse {} into GameMods", n),
+            Self::ModsStr(s) => write!(f, "failed to parse `{}` into GameMods", s),
+            Self::RankStatus(n) => write!(f, "failed to parse {} into RankStatus", n),
+            Self::ScoringType(n) => write!(f, "failed to parse {} into ScoringType", n),
+            Self::Team(n) => write!(f, "failed to parse {} into Team", n),
+            Self::TeamType(n) => write!(f, "failed to parse {} into TeamType", n),
         }
     }
 }

@@ -587,9 +587,7 @@ impl<'a> GetBeatmapsetSearch<'a> {
             query.push("e", extra);
         }
 
-        if !nsfw {
-            query.push("nsfw", "false");
-        }
+        query.push("nsfw", nsfw.to_string());
 
         if let Some(cursor) = self.cursor.take() {
             query.push("cursor[_id]", cursor.id);

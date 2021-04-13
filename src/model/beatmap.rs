@@ -451,6 +451,14 @@ pub enum BeatmapsetEvent {
         #[serde(rename = "beatmapset")]
         mapset: BeatmapsetCompact,
     },
+    Love {
+        #[serde(rename = "id")]
+        event_id: u64,
+        created_at: DateTime<Utc>,
+        user_id: u32,
+        #[serde(rename = "beatmapset")]
+        mapset: BeatmapsetCompact,
+    },
     Nominate {
         #[serde(rename = "id")]
         event_id: u64,

@@ -624,6 +624,7 @@ impl Serialize for SearchRankStatus {
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub(crate) struct BeatmapsetSearchParameters {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub(crate) query: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub(crate) mode: Option<u8>,
@@ -731,7 +732,6 @@ impl<'de> Visitor<'de> for BeatmapsetSearchParametersVisitor {
             return Ok(params);
         }
 
-        let query = query.ok_or_else(|| Error::missing_field("sort or query"))?;
         let sort = sort.ok_or_else(|| Error::missing_field("sort or _sort"))?;
         let video = video.ok_or_else(|| Error::missing_field("sort or video"))?;
         let storyboard = storyboard.ok_or_else(|| Error::missing_field("sort or storyboard"))?;

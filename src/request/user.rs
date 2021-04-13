@@ -95,8 +95,19 @@ impl<'a> GetUser<'a> {
         #[cfg(feature = "metrics")]
         self.osu.metrics.user.inc();
 
+        let mut query = Query::new();
+
+        let user_id = self.user_id.take().unwrap();
+
+        let kind = match &user_id {
+            UserId::Id(_) => "id",
+            UserId::Name(_) => "username",
+        };
+
+        query.push("key", kind);
+
         let req = Request::from(Route::GetUser {
-            user_id: self.user_id.take().unwrap(),
+            user_id,
             mode: self.mode,
         });
 

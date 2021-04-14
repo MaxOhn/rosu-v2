@@ -1117,18 +1117,14 @@ impl<'de> Visitor<'de> for DescriptionVisitor {
 
         while let Some(key) = map.next_key()? {
             match key {
-                "description" => {
-                    description.replace(map.next_value()?);
-                }
+                "description" => description = map.next_value()?,
                 _ => {
                     let _: IgnoredAny = map.next_value()?;
                 }
             }
         }
 
-        description
-            .ok_or_else(|| Error::missing_field("description"))
-            .map(Some)
+        Ok(description)
     }
 
     fn visit_some<D: Deserializer<'de>>(self, d: D) -> Result<Self::Value, D::Error> {

@@ -140,7 +140,7 @@ impl Osu {
     /// - nsfw: allowed
     /// - sort: by relevance, descending
     ///
-    /// The contained [`Beatmapset`](crate::mode::beatmap::Beatmapset)s will have the
+    /// The contained [`Beatmapset`](crate::model::beatmap::Beatmapset)s will have the
     /// following options filled: `artist_unicode`, `legacy_thread_url`, `maps`,
     /// `ranked_date` and `submitted_date` if available, and `title_unicode`.
     ///

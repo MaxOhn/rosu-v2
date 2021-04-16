@@ -3,7 +3,7 @@ extern crate rosu_v2;
 use chrono::{DateTime, TimeZone, Utc};
 use rosu_v2::prelude::*;
 use serde::{de::DeserializeOwned, Serialize};
-use std::fmt::Debug;
+use std::{collections::HashMap, fmt::Debug};
 
 fn ser_de<T: DeserializeOwned + Serialize + PartialEq + Debug>(val: T) {
     let serialized =
@@ -422,7 +422,12 @@ fn get_match() -> OsuMatch {
         match_id: 0,
         name: "A: B vs C".to_owned(),
         start_time: get_date(),
-        users: vec![get_user_compact()],
+        users: {
+            let mut map = HashMap::new();
+            map.insert(3, get_user_compact());
+
+            map
+        },
     }
 }
 

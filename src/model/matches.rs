@@ -6,10 +6,11 @@ use crate::{Osu, OsuResult};
 
 use chrono::{DateTime, Utc};
 use serde::{
-    de::{Deserializer, Error, IgnoredAny, MapAccess, Unexpected, Visitor},
+    de::{Deserializer, Error, IgnoredAny, MapAccess, SeqAccess, Unexpected, Visitor},
+    ser::{SerializeSeq, Serializer},
     Deserialize, Serialize,
 };
-use std::{fmt, slice::Iter, vec::Drain};
+use std::{collections::HashMap, fmt, slice::Iter, vec::Drain};
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
@@ -567,6 +568,34 @@ struct MatchScoreInfo {
     pass: bool,
 }
 
+struct MatchUsers(HashMap<u32, UserCompact>);
+
+struct MatchUsersVisitor;
+
+impl<'de> Visitor<'de> for MatchUsersVisitor {
+    type Value = MatchUsers;
+
+    fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str("a sequence containing UserCompact")
+    }
+
+    fn visit_seq<A: SeqAccess<'de>>(self, mut seq: A) -> Result<Self::Value, A::Error> {
+        let mut users = HashMap::with_capacity(seq.size_hint().unwrap_or_default());
+
+        while let Some(next) = seq.next_element::<UserCompact>()? {
+            users.insert(next.user_id, next);
+        }
+
+        Ok(MatchUsers(users))
+    }
+}
+
+impl<'de> Deserialize<'de> for MatchUsers {
+    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        d.deserialize_seq(MatchUsersVisitor)
+    }
+}
+
 #[derive(Clone, Debug, Serialize)]
 pub struct OsuMatch {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -579,7 +608,21 @@ pub struct OsuMatch {
     pub match_id: u32,
     pub name: String,
     pub start_time: DateTime<Utc>,
-    pub users: Vec<UserCompact>,
+    #[serde(serialize_with = "serialize_match_users")]
+    pub users: HashMap<u32, UserCompact>,
+}
+
+fn serialize_match_users<S: Serializer>(
+    users: &HashMap<u32, UserCompact>,
+    s: S,
+) -> Result<S::Ok, S::Error> {
+    let mut seq = s.serialize_seq(Some(users.len()))?;
+
+    for user in users.values() {
+        seq.serialize_element(user)?;
+    }
+
+    seq.end()
 }
 
 impl OsuMatch {
@@ -741,7 +784,7 @@ impl OsuMatch {
             .events
             .first()
             .map(MatchEvent::event_id)
-            .filter(|&first_id| first_id == self.first_event_id)?;
+            .filter(|&first_id| first_id != self.first_event_id)?;
 
         let previous = osu
             .osu_match(self.match_id)
@@ -815,7 +858,9 @@ impl<'de> Visitor<'de> for OsuMatchVisitor {
                     start_time.replace(map.next_value()?);
                 }
                 "users" => {
-                    users.replace(map.next_value()?);
+                    let MatchUsers(user_map) = map.next_value()?;
+
+                    users.replace(user_map);
                 }
                 _ => {
                     let _: IgnoredAny = map.next_value()?;

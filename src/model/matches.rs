@@ -608,6 +608,7 @@ pub struct OsuMatch {
     pub match_id: u32,
     pub name: String,
     pub start_time: DateTime<Utc>,
+    /// Maps user ids to users
     #[serde(serialize_with = "serialize_match_users")]
     pub users: HashMap<u32, UserCompact>,
 }
@@ -721,7 +722,7 @@ impl OsuMatch {
     ///     # match_id: 0,
     ///     # name: String::new(),
     ///     # start_time: date,
-    ///     # users: vec![],
+    ///     # users: std::collections::HashMap::new(),
     /// };
     ///
     /// assert_eq!(osu_match.events.len(), 4);

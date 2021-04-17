@@ -73,7 +73,7 @@ get_id!(badewanne3, 2211396);
 get_id!(sylas, 3906405);
 
 // Match id
-get_id!(de_vs_ca, 73827718);
+get_id!(de_vs_ca, 71028303);
 
 fn osu() -> &'static Osu {
     OSU.get().expect("OSU not initialized")

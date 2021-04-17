@@ -416,7 +416,11 @@ pub struct UserCompact {
     pub is_silenced: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub loved_beatmapset_count: Option<u32>,
-    #[serde(rename = "user_achievements")]
+    #[serde(
+        default,
+        rename = "user_achievements",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub medals: Option<Vec<MedalCompact>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub monthly_playcounts: Option<Vec<MonthlyCount>>,
@@ -551,8 +555,6 @@ pub struct UserStatistics {
     pub replays_watched: u32,
     pub total_hits: u64,
     pub total_score: u64,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub user: Option<Box<UserCompact>>,
 }
 
 #[inline]

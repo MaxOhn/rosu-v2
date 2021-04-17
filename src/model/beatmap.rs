@@ -223,16 +223,28 @@ pub struct BeatmapsetCommentEdit<T> {
 pub struct BeatmapsetCommentId {
     #[serde(
         default,
+        rename = "beatmap_discussion_id",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub map_discussion_id: Option<u64>,
+    #[serde(
+        default,
+        rename = "beatmap_discussion_post_id",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub map_discussion_post_id: Option<u64>,
+    #[serde(
+        default,
         rename = "beatmapset_discussion_id",
         skip_serializing_if = "Option::is_none"
     )]
-    pub discussion_id: Option<u64>,
+    pub mapset_discussion_id: Option<u64>,
     #[serde(
         default,
         rename = "beatmapset_discussion_post_id",
         skip_serializing_if = "Option::is_none"
     )]
-    pub discussion_post_id: Option<u64>,
+    pub mapset_discussion_post_id: Option<u64>,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -418,6 +430,15 @@ pub enum BeatmapsetEvent {
         comment: BeatmapsetCommentId,
         created_at: DateTime<Utc>,
         user_id: u32,
+        #[serde(rename = "beatmapset")]
+        mapset: BeatmapsetCompact,
+        discussion: BeatmapsetDiscussion,
+    },
+    KudosuDeny {
+        #[serde(rename = "id")]
+        event_id: u64,
+        comment: BeatmapsetCommentId,
+        created_at: DateTime<Utc>,
         #[serde(rename = "beatmapset")]
         mapset: BeatmapsetCompact,
         discussion: BeatmapsetDiscussion,

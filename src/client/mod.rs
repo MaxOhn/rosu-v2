@@ -172,7 +172,7 @@ impl Osu {
     /// Get a [`ChartRankings`](crate::model::ranking::ChartRankings) struct
     /// containing a [`Spotlight`](crate::model::ranking::Spotlight), its
     /// [`Beatmapset`](crate::model::beatmap::Beatmapset)s, and participating
-    /// [`UserStatistics`](crate::model::user::UserStatistics).
+    /// [`UserCompact`](crate::model::user::UserCompact).
     ///
     /// The mapset will have their `maps` option filled.
     ///
@@ -265,7 +265,7 @@ impl Osu {
     }
 
     /// Get a [`Rankings`](crate::model::ranking::Rankings) struct whose
-    /// [`UserStatistics`](crate::model::user::UserStatistics) are sorted
+    /// [`UserCompact`](crate::model::user::UserCompact)s are sorted
     /// by their pp, i.e. the current pp leaderboard.
     #[inline]
     pub fn performance_rankings(&self, mode: GameMode) -> GetPerformanceRankings {
@@ -289,7 +289,7 @@ impl Osu {
     }
 
     /// Get a [`Rankings`](crate::model::ranking::Rankings) struct whose
-    /// [`UserStatistics`](crate::model::user::UserStatistics) are sorted
+    /// [`UserCompact`](crate::model::user::UserCompact)s are sorted
     /// by their ranked score, i.e. the current ranked score leaderboard.
     #[inline]
     pub fn score_rankings(&self, mode: GameMode) -> GetScoreRankings {

@@ -3,8 +3,8 @@ use serde::Deserialize;
 use serde_json::Error as SerdeError;
 use std::{error::Error as StdError, fmt};
 
-#[derive(Debug, Deserialize)]
 /// The API response was of the form `{ "error": ... }`
+#[derive(Debug, Deserialize)]
 pub struct ApiError {
     pub error: Option<String>,
 }

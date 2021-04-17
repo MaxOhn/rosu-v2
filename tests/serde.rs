@@ -18,7 +18,7 @@ fn ser_de<T: DeserializeOwned + Serialize + PartialEq + Debug>(val: T) {
 fn get_chart_rankings() -> ChartRankings {
     ChartRankings {
         mapsets: vec![get_mapset()],
-        ranking: vec![get_user_stats()],
+        ranking: vec![get_user_compact()],
         spotlight: get_spotlight(),
     }
 }
@@ -253,8 +253,10 @@ fn get_mapset_events() -> BeatmapsetEvents {
             BeatmapsetEvent::Disqualify {
                 event_id: 10,
                 comment: BeatmapsetCommentId {
-                    discussion_id: None,
-                    discussion_post_id: None,
+                    map_discussion_id: None,
+                    map_discussion_post_id: None,
+                    mapset_discussion_id: None,
+                    mapset_discussion_post_id: None,
                 },
                 created_at: get_date(),
                 mapset: get_mapset_compact(),
@@ -265,8 +267,10 @@ fn get_mapset_events() -> BeatmapsetEvents {
                 event_id: 0,
                 comment: BeatmapsetCommentEdit {
                     comment_id: BeatmapsetCommentId {
-                        discussion_id: Some(0),
-                        discussion_post_id: Some(1),
+                        map_discussion_id: Some(0),
+                        map_discussion_post_id: Some(1),
+                        mapset_discussion_id: Some(0),
+                        mapset_discussion_post_id: Some(1),
                     },
                     old: Genre::HipHop,
                     new: Genre::Unspecified,
@@ -278,8 +282,10 @@ fn get_mapset_events() -> BeatmapsetEvents {
             BeatmapsetEvent::IssueReopen {
                 event_id: 1,
                 comment: BeatmapsetCommentId {
-                    discussion_id: Some(2),
-                    discussion_post_id: None,
+                    map_discussion_id: Some(2),
+                    map_discussion_post_id: None,
+                    mapset_discussion_id: Some(2),
+                    mapset_discussion_post_id: None,
                 },
                 created_at: get_date(),
                 user_id: 123456,
@@ -289,11 +295,25 @@ fn get_mapset_events() -> BeatmapsetEvents {
             BeatmapsetEvent::IssueResolve {
                 event_id: 2,
                 comment: BeatmapsetCommentId {
-                    discussion_id: None,
-                    discussion_post_id: Some(3),
+                    map_discussion_id: None,
+                    map_discussion_post_id: Some(3),
+                    mapset_discussion_id: None,
+                    mapset_discussion_post_id: Some(3),
                 },
                 created_at: get_date(),
                 user_id: 123456,
+                mapset: get_mapset_compact(),
+                discussion: get_mapset_discussion(),
+            },
+            BeatmapsetEvent::KudosuDeny {
+                event_id: 8,
+                comment: BeatmapsetCommentId {
+                    map_discussion_id: None,
+                    map_discussion_post_id: Some(3),
+                    mapset_discussion_id: None,
+                    mapset_discussion_post_id: Some(3),
+                },
+                created_at: get_date(),
                 mapset: get_mapset_compact(),
                 discussion: get_mapset_discussion(),
             },
@@ -301,8 +321,10 @@ fn get_mapset_events() -> BeatmapsetEvents {
                 event_id: 3,
                 comment: BeatmapsetCommentKudosuGain {
                     comment_id: BeatmapsetCommentId {
-                        discussion_id: None,
-                        discussion_post_id: None,
+                        map_discussion_id: None,
+                        map_discussion_post_id: None,
+                        mapset_discussion_id: None,
+                        mapset_discussion_post_id: None,
                     },
                     new_vote: BeatmapsetVote {
                         user_id: 111_111,
@@ -322,8 +344,10 @@ fn get_mapset_events() -> BeatmapsetEvents {
                 event_id: 4,
                 comment: BeatmapsetCommentEdit {
                     comment_id: BeatmapsetCommentId {
-                        discussion_id: None,
-                        discussion_post_id: None,
+                        map_discussion_id: None,
+                        map_discussion_post_id: None,
+                        mapset_discussion_id: None,
+                        mapset_discussion_post_id: None,
                     },
                     old: Language::Any,
                     new: Language::Polish,
@@ -345,8 +369,10 @@ fn get_mapset_events() -> BeatmapsetEvents {
                 event_id: 6,
                 comment: BeatmapsetCommentEdit {
                     comment_id: BeatmapsetCommentId {
-                        discussion_id: None,
-                        discussion_post_id: None,
+                        map_discussion_id: None,
+                        map_discussion_post_id: None,
+                        mapset_discussion_id: None,
+                        mapset_discussion_post_id: None,
                     },
                     old: true,
                     new: false,
@@ -728,7 +754,6 @@ fn get_user_stats() -> UserStatistics {
         replays_watched: 123,
         total_hits: 123_456_789,
         total_score: 111_222_333_444_555,
-        user: None,
     }
 }
 

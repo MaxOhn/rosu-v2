@@ -30,15 +30,18 @@ pub(crate) enum Route {
     GetMatch {
         match_id: Option<u32>,
     },
+    #[allow(dead_code)]
     GetMultiplayerScore {
         room: u32,
         playlist: u32,
         score_id: u32,
     },
+    #[allow(dead_code)]
     GetMultiplayerScores {
         room: u32,
         playlist: u32,
     },
+    #[allow(dead_code)]
     GetMultiplayerUserHighScore {
         room: u32,
         playlist: u32,
@@ -71,6 +74,7 @@ pub(crate) enum Route {
         user_id: u32,
         score_type: ScoreType,
     },
+    #[allow(dead_code)]
     GetUsers,
     GetWikiPage {
         locale: String,

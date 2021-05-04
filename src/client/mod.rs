@@ -228,6 +228,7 @@ impl Osu {
     }
 
     /// TODO: Documentation
+    #[deprecated = "The API currently doesn't allow this endpoint for public use"]
     #[inline]
     pub fn multiplayer_scores(&self, room: u32, playlist: u32) -> GetMultiplayerScores {
         GetMultiplayerScores::new(self, room, playlist)

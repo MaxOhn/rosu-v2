@@ -1,10 +1,12 @@
+#[allow(unused_imports)]
 use crate::{
+    error::OsuError,
     request::{Pending, Query, Request},
-    routing::Route,
     Osu,
 };
 
 /// TODO: Documentation
+#[allow(dead_code)]
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetMultiplayerScore<'a> {
     fut: Option<Pending<'a, u32>>, // TODO
@@ -30,19 +32,22 @@ impl<'a> GetMultiplayerScore<'a> {
         #[cfg(feature = "metrics")]
         self.osu.metrics.multiplayer_score.inc();
 
-        let req = Request::from(Route::GetMultiplayerScore {
-            room: self.room,
-            playlist: self.playlist,
-            score_id: self.score_id,
-        });
+        Box::pin(async { Err(OsuError::UnavailableEndpoint) })
 
-        Box::pin(self.osu.inner.request(req))
+        // let req = Request::from(Route::GetMultiplayerScore {
+        //     room: self.room,
+        //     playlist: self.playlist,
+        //     score_id: self.score_id,
+        // });
+
+        // Box::pin(self.osu.inner.request(req))
     }
 }
 
 poll_req!(GetMultiplayerScore => u32); // TODO
 
-/// TODO: Documentation
+/// TODO: Documentation; test with room=70651 | playlist=153023
+#[allow(dead_code)]
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetMultiplayerScores<'a> {
     fut: Option<Pending<'a, u32>>, // TODO
@@ -86,35 +91,38 @@ impl<'a> GetMultiplayerScores<'a> {
         #[cfg(feature = "metrics")]
         self.osu.metrics.multiplayer_scores.inc();
 
-        let mut query = Query::new();
+        Box::pin(async { Err(OsuError::UnavailableEndpoint) })
 
-        if let Some(limit) = self.limit {
-            query.push("limit", limit.to_string());
-        }
+        // let mut query = Query::new();
 
-        if let Some(sort) = self.sort {
-            query.push("sort", sort);
-        }
+        // if let Some(limit) = self.limit {
+        //     query.push("limit", limit.to_string());
+        // }
 
-        if let Some(_cursor) = self.cursor.take() {
-            // TODO
-        }
+        // if let Some(sort) = self.sort {
+        //     query.push("sort", sort);
+        // }
 
-        let req = Request::from((
-            query,
-            Route::GetMultiplayerScores {
-                room: self.room,
-                playlist: self.playlist,
-            },
-        ));
+        // if let Some(_cursor) = self.cursor.take() {
+        //     // TODO
+        // }
 
-        Box::pin(self.osu.inner.request(req))
+        // let req = Request::from((
+        //     query,
+        //     Route::GetMultiplayerScores {
+        //         room: self.room,
+        //         playlist: self.playlist,
+        //     },
+        // ));
+
+        // Box::pin(self.osu.inner.request(req))
     }
 }
 
 poll_req!(GetMultiplayerScores => u32); // TODO
 
 /// TODO: Documentation
+#[allow(dead_code)]
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetMultiplayerUserHighScore<'a> {
     fut: Option<Pending<'a, u32>>, // TODO
@@ -140,13 +148,15 @@ impl<'a> GetMultiplayerUserHighScore<'a> {
         #[cfg(feature = "metrics")]
         self.osu.metrics.multiplayer_user_highscore.inc();
 
-        let req = Request::from(Route::GetMultiplayerUserHighScore {
-            room: self.room,
-            playlist: self.playlist,
-            user_id: self.user_id,
-        });
+        Box::pin(async { Err(OsuError::UnavailableEndpoint) })
 
-        Box::pin(self.osu.inner.request(req))
+        // let req = Request::from(Route::GetMultiplayerUserHighScore {
+        //     room: self.room,
+        //     playlist: self.playlist,
+        //     user_id: self.user_id,
+        // });
+
+        // Box::pin(self.osu.inner.request(req))
     }
 }
 

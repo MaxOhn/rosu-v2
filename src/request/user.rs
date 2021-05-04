@@ -1,4 +1,5 @@
 use crate::{
+    error::OsuError,
     model::{
         beatmap::{Beatmapset, MostPlayedMap, RankStatus},
         kudosu::KudosuHistory,
@@ -758,6 +759,7 @@ impl<'a> GetUserScores<'a> {
 poll_req!(GetUserScores => Vec<Score>);
 
 /// Get a vec of [`UserCompact`](crate::model::user::UserCompact) by their ids.
+#[allow(dead_code)]
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetUsers<'a> {
     fut: Option<Pending<'a, Vec<UserCompact>>>,
@@ -788,10 +790,12 @@ impl<'a> GetUsers<'a> {
         #[cfg(feature = "metrics")]
         self.osu.metrics.users.inc();
 
-        let query = self.query.take().unwrap();
-        let req = Request::from((query, Route::GetUsers));
+        Box::pin(async { Err(OsuError::UnavailableEndpoint) })
 
-        Box::pin(self.osu.inner.request(req))
+        // let query = self.query.take().unwrap();
+        // let req = Request::from((query, Route::GetUsers));
+
+        // Box::pin(self.osu.inner.request(req))
     }
 }
 

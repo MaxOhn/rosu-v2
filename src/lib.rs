@@ -7,7 +7,7 @@
 //!
 //! However, osu!'s api v2 is still very much a WIP and also weakly documented. Hence, there is a chance that some things might break either because of changes in the api or because the response is not being parsed properly.
 //!
-//! Feel free to open an issue or even write a PR when things don't work as expected.
+//! Feel free to open an issue when things don't work as expected.
 //!
 //! ## Authentication
 //!
@@ -43,7 +43,7 @@
 //!
 //! The api itself provides a bunch more endpoints which are not yet implemented because they're really niche and/or missing any documentation.
 //!
-//! If you find an endpoint on the [api page](https://osu.ppy.sh/docs/index.html) that you want to use but is missing in rosu-v2, feel free to open an issue or even write a PR.
+//! If you find an endpoint on the [api page](https://osu.ppy.sh/docs/index.html) that you want to use but is missing in rosu-v2, feel free to open an issue.
 //!
 //! ## Usage
 //!

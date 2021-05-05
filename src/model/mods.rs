@@ -301,7 +301,7 @@ impl fmt::Display for GameMods {
                 _ => unreachable!(),
             };
 
-            write!(f, "{}", abbrev)?;
+            f.write_str(abbrev)?;
         }
 
         Ok(())

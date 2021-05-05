@@ -26,7 +26,7 @@ use prometheus::IntCounterVec;
 pub struct Osu {
     pub(crate) inner: Arc<OsuRef>,
     #[cfg(feature = "cache")]
-    pub(crate) cache: Arc<DashMap<String, u32>>,
+    pub(crate) cache: Arc<DashMap<Username, u32>>,
     #[cfg(feature = "metrics")]
     pub(crate) metrics: Arc<Metrics>,
 }

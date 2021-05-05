@@ -13,10 +13,14 @@ use crate::{
     Osu,
 };
 
+use smallstr::SmallString;
 use std::fmt;
 
 #[cfg(feature = "cache")]
 use futures::future::TryFutureExt;
+
+// osu! usernames are at most 15 ASCII characters long
+pub(crate) type Username = SmallString<[u8; 15]>;
 
 /// Either a user id as u32 or a username as String.
 ///
@@ -25,7 +29,7 @@ use futures::future::TryFutureExt;
 #[derive(Debug)]
 pub enum UserId {
     Id(u32),
-    Name(String),
+    Name(Username),
 }
 
 impl From<u32> for UserId {
@@ -38,21 +42,21 @@ impl From<u32> for UserId {
 impl From<&str> for UserId {
     #[inline]
     fn from(name: &str) -> Self {
-        Self::Name(name.to_owned())
+        Self::Name(SmallString::from_str(name))
     }
 }
 
 impl From<&String> for UserId {
     #[inline]
     fn from(name: &String) -> Self {
-        Self::Name(name.to_owned())
+        Self::Name(SmallString::from_str(name))
     }
 }
 
 impl From<String> for UserId {
     #[inline]
     fn from(name: String) -> Self {
-        Self::Name(name)
+        Self::Name(SmallString::from_string(name))
     }
 }
 

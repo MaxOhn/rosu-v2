@@ -66,6 +66,9 @@ features = ["derive"]
 version = "1.0"
 default-features = false
 
+[dependencies.smallstr]
+version = "0.2"
+
 [dependencies.tokio]
 version = "1.2"
 default-features = false

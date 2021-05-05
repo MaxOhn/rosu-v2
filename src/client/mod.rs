@@ -136,7 +136,7 @@ impl Osu {
     /// - status: has leaderboard (ranked, loved, approved, and qualified)
     /// - genre: any
     /// - language: any
-    /// - extra: does neither contain have video nor storyboard
+    /// - extra: contains neither video nor storyboard
     /// - nsfw: allowed
     /// - sort: by relevance, descending
     ///
@@ -215,7 +215,7 @@ impl Osu {
         GetUserKudosu::new(self, user_id.into())
     }
 
-    /// TODO: Documentation
+    // TODO: Documentation
     #[deprecated = "The API currently doesn't allow this endpoint for public use"]
     #[inline]
     pub fn multiplayer_score(
@@ -227,14 +227,14 @@ impl Osu {
         GetMultiplayerScore::new(self, room, playlist, score_id)
     }
 
-    /// TODO: Documentation
+    // TODO: Documentation
     #[deprecated = "The API currently doesn't allow this endpoint for public use"]
     #[inline]
     pub fn multiplayer_scores(&self, room: u32, playlist: u32) -> GetMultiplayerScores {
         GetMultiplayerScores::new(self, room, playlist)
     }
 
-    /// TODO: Documentation
+    // TODO: Documentation
     #[deprecated = "The API currently doesn't allow this endpoint for public use"]
     #[inline]
     pub fn multiplayer_user_highscore(
@@ -463,6 +463,7 @@ impl Osu {
         match user_id {
             UserId::Id(id) => Ok(id),
             UserId::Name(mut name) => {
+                // osu! usernames are ASCII-only
                 name.make_ascii_lowercase();
 
                 if let Some(id) = self.cache.get(&name) {

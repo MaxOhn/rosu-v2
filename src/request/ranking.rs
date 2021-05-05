@@ -161,20 +161,18 @@ impl<'a> GetPerformanceRankings<'a> {
         self
     }
 
+    /// Consider only 4K scores. Only relevant for osu!mania.
     #[inline]
     pub fn variant_4k(mut self) -> Self {
-        if self.mode == GameMode::MNA {
-            self.variant.replace("4k");
-        }
+        self.variant.replace("4k");
 
         self
     }
 
+    /// Consider only 7K scores. Only relevant for osu!mania.
     #[inline]
     pub fn variant_7k(mut self) -> Self {
-        if self.mode == GameMode::MNA {
-            self.variant.replace("7k");
-        }
+        self.variant.replace("7k");
 
         self
     }
@@ -198,7 +196,8 @@ impl<'a> GetPerformanceRankings<'a> {
             query.push("country", country);
         }
 
-        if let Some(variant) = self.variant {
+        // ! Adjust filter once there are non-mania variants
+        if let Some(variant) = self.variant.filter(|_| mode == GameMode::MNA) {
             query.push("variant", variant);
         }
 

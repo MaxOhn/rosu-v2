@@ -54,7 +54,7 @@ pub enum OsuError {
     },
     /// Temporal (?) downtime of the osu API
     ServiceUnavailable(Option<String>),
-    /// The client's authorization is not sufficient for the endpoint
+    /// The client's authentication is not sufficient for the endpoint
     UnavailableEndpoint,
     /// Failed to update token
     UpdateToken { source: Box<OsuError> },

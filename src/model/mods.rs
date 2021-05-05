@@ -216,10 +216,10 @@ impl GameMods {
     /// ```
     #[inline]
     pub fn changes_stars(self, mode: GameMode) -> bool {
-        if self.intersects(GameMods::DoubleTime | GameMods::NightCore | GameMods::HalfTime) {
+        if self.intersects(GameMods::DoubleTime | GameMods::HalfTime) {
             true
         } else if self.intersects(GameMods::HardRock | GameMods::Easy) {
-            mode == GameMode::STD || mode == GameMode::CTB
+            matches!(mode, GameMode::STD | GameMode::CTB)
         } else {
             false
         }
@@ -516,7 +516,7 @@ mod util {
                 let end_idx = source
                     .char_indices()
                     .nth(n - 1)
-                    .map_or_else(|| source.len(), |(idx, ch)| idx + ch.len_utf8());
+                    .map_or_else(|| source.len(), |(idx, c)| idx + c.len_utf8());
 
                 let (sub_str, rest) = source.split_at(end_idx);
                 source = rest;

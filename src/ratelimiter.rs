@@ -1,13 +1,17 @@
 use std::time::{Duration, Instant};
 use tokio::{sync::Mutex, time::sleep};
 
+struct RatelimitData {
+    allowance: f32,
+    last_call: Instant,
+}
+
 /// Basic rate limiter that grants access for a certain amount of times within a time span.
 /// Implemented through token bucket algorithm.
 pub(crate) struct Ratelimiter {
     rate: f32,
     rate_per_ms: f32,
-    allowance: Mutex<f32>,
-    last_call: Mutex<Instant>,
+    data: Mutex<RatelimitData>,
 }
 
 impl Ratelimiter {
@@ -17,25 +21,29 @@ impl Ratelimiter {
         Self {
             rate: rate as f32,
             rate_per_ms: rate as f32 / per_seconds as f32 / 1000.0,
-            allowance: Mutex::new(0.0),
-            last_call: Mutex::new(Instant::now()),
+            data: Mutex::new(RatelimitData {
+                allowance: 0.0,
+                last_call: Instant::now(),
+            }),
         }
     }
 
     /// Wait until the next access
     pub(crate) async fn await_access(&self) {
-        let mut allowance = self.allowance.lock().await;
-        let elapsed = self.last_call.lock().await.elapsed().as_millis() as f32; // ms
-        *allowance += elapsed * self.rate_per_ms; // msgs
-        if *allowance > self.rate {
-            *allowance = self.rate - 1.0;
-        } else if *allowance < 1.0 {
-            let ms_left = (1.0 - *allowance) / self.rate_per_ms; // s
+        let mut data = self.data.lock().await;
+        let elapsed = data.last_call.elapsed().as_millis() as f32; // ms
+        data.allowance += elapsed * self.rate_per_ms; // msgs
+
+        if data.allowance > self.rate {
+            data.allowance = self.rate - 1.0;
+        } else if data.allowance < 1.0 {
+            let ms_left = (1.0 - data.allowance) / self.rate_per_ms; // s
             sleep(Duration::from_micros((1000.0 * ms_left).round() as u64)).await;
-            *allowance = 0.0;
+            data.allowance = 0.0;
         } else {
-            *allowance -= 1.0;
+            data.allowance -= 1.0;
         }
-        *self.last_call.lock().await = Instant::now();
+
+        data.last_call = Instant::now();
     }
 }

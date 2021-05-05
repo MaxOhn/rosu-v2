@@ -69,7 +69,7 @@ get_id!(hikoui_gumo, 357161);
 // Player id
 get_id!(badewanne3, 2211396);
 
-// Player id
+// Mapper id
 get_id!(sylas, 3906405);
 
 // Match id

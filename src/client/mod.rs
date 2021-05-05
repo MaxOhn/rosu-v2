@@ -21,8 +21,6 @@ use prometheus::IntCounterVec;
 
 /// The main osu client.
 /// Cheap to clone.
-///
-/// Must be constructed through [`OsuBuilder`](crate::OsuBuilder).
 pub struct Osu {
     pub(crate) inner: Arc<OsuRef>,
     #[cfg(feature = "cache")]

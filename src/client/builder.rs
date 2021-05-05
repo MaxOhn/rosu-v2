@@ -5,7 +5,7 @@ use reqwest::ClientBuilder as ReqwestClientBuilder;
 use std::{sync::Arc, time::Duration as StdDuration};
 use tokio::{
     sync::{
-        oneshot::{self, error::TryRecvError},
+        oneshot::{self, error::TryRecvError, Receiver},
         RwLock,
     },
     time::{sleep, Duration},
@@ -61,7 +61,7 @@ impl OsuBuilder {
             .map_err(|source| OsuError::BuildingClient { source })?;
 
         let ratelimiter = Ratelimiter::new(15, 1);
-        let (tx, mut rx) = oneshot::channel();
+        let (tx, rx) = oneshot::channel();
 
         let inner = Arc::new(OsuRef {
             client_id,
@@ -83,77 +83,7 @@ impl OsuBuilder {
         inner.token.write().await.replace(access_token);
 
         // Let an async worker update the token regularly
-        let mut actual_expire = token.expires_in;
-        let mut adjusted_expire = adjust_token_expire(actual_expire);
-        let osu = Arc::clone(&inner);
-
-        tokio::spawn(async move {
-            sleep(Duration::from_secs(adjusted_expire)).await;
-
-            loop {
-                if matches!(rx.try_recv(), Ok(_) | Err(TryRecvError::Closed)) {
-                    debug!("Exiting token update loop");
-
-                    return;
-                }
-
-                // In case of acquiring a new token taking too long,
-                // remove the previous token as soon as it expires
-                // so that new requests will not be sent until
-                // a new token has been acquired
-                let (expire_tx, expire_rx) = oneshot::channel();
-                let osu_clone = Arc::clone(&osu);
-
-                tokio::spawn(async move {
-                    tokio::select!(
-                        _ = expire_rx => {}
-                        _ = sleep(Duration::from_secs(actual_expire - adjusted_expire)) => {
-                            warn!("Acquiring new token took too long, remove current token");
-                            osu_clone.token.write().await.take();
-                        }
-                    )
-                });
-
-                // Acquire a new token through exponential backoff
-                let mut backoff = 200;
-                info!("API token expired, acquire new one");
-
-                while {
-                    match osu.request_token().await {
-                        Ok(token) if token.token_type == "Bearer" => {
-                            actual_expire = token.expires_in;
-                            adjusted_expire = adjust_token_expire(token.expires_in);
-                            let access_token = format!("Bearer {}", token.access_token);
-                            osu.token.write().await.replace(access_token);
-
-                            false
-                        }
-                        Ok(token) => {
-                            warn!(
-                                "Failed to acquire new token, {:?} != \"Bearer\"; retry in {}ms",
-                                token.token_type, backoff
-                            );
-
-                            true
-                        }
-                        Err(why) => {
-                            warn!(
-                                "Failed to acquire new token: {}; retry in {}ms",
-                                why, backoff
-                            );
-
-                            true
-                        }
-                    }
-                } {
-                    sleep(Duration::from_millis(backoff)).await;
-                    backoff = (backoff * 2).min(60_000);
-                }
-
-                let _ = expire_tx.send(());
-                sleep(Duration::from_secs(adjusted_expire)).await;
-            }
-        });
+        token_update_worker(Arc::clone(&inner), token.expires_in, rx);
 
         Ok(Osu {
             inner,
@@ -211,4 +141,69 @@ impl OsuBuilder {
 #[inline]
 fn adjust_token_expire(expires_in: u64) -> u64 {
     expires_in - (expires_in as f64 * 0.05) as u64
+}
+
+fn token_update_worker(osu: Arc<OsuRef>, mut actual_expire: u64, mut rx: Receiver<()>) {
+    let mut adjusted_expire = adjust_token_expire(actual_expire);
+
+    tokio::spawn(async move {
+        loop {
+            sleep(Duration::from_secs(adjusted_expire)).await;
+
+            if matches!(rx.try_recv(), Ok(_) | Err(TryRecvError::Closed)) {
+                return debug!("Exiting token update loop");
+            }
+
+            // In case acquiring a new token takes too long,
+            // remove the previous token as soon as it expires
+            // so that new requests will not be sent until
+            // a new token has been acquired
+            let (expire_tx, expire_rx) = oneshot::channel::<()>();
+            let osu_clone = Arc::clone(&osu);
+
+            tokio::spawn(async move {
+                tokio::select!(
+                    _ = expire_rx => {}
+                    _ = sleep(Duration::from_secs(actual_expire)) => {
+                        warn!("Acquiring new token took too long, remove current token");
+                        osu_clone.token.write().await.take();
+                    }
+                )
+            });
+
+            // Acquire a new token through exponential backoff
+            let mut backoff = 200;
+            info!("API token expired, acquire new one");
+
+            loop {
+                match osu.request_token().await {
+                    Ok(token) if token.token_type == "Bearer" => {
+                        actual_expire = token.expires_in;
+                        adjusted_expire = adjust_token_expire(actual_expire);
+                        let access_token = format!("Bearer {}", token.access_token);
+                        osu.token.write().await.replace(access_token);
+
+                        break;
+                    }
+                    Ok(token) => {
+                        warn!(
+                            "Failed to acquire new token, {:?} != \"Bearer\"; retry in {}ms",
+                            token.token_type, backoff
+                        );
+                    }
+                    Err(why) => {
+                        warn!(
+                            "Failed to acquire new token: {}; retry in {}ms",
+                            why, backoff
+                        );
+                    }
+                }
+
+                sleep(Duration::from_millis(backoff)).await;
+                backoff = (backoff * 2).min(60_000);
+            }
+
+            let _ = expire_tx.send(());
+        }
+    });
 }

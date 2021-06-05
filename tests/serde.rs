@@ -539,7 +539,6 @@ fn get_user() -> User {
     User {
         avatar_url: String::new(),
         comments_count: 0,
-        cover_url: String::new(),
         country: "belgiania".to_owned(),
         country_code: "be".to_owned(),
         cover: UserCover {

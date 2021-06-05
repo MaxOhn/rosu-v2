@@ -217,7 +217,6 @@ pub enum ProfilePage {
 pub struct User {
     pub avatar_url: String,
     pub comments_count: usize,
-    pub cover_url: String,
     #[serde(deserialize_with = "deserialize_country")]
     pub country: String,
     pub country_code: String,

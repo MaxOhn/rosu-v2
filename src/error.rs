@@ -22,6 +22,7 @@ impl fmt::Display for ApiError {
 
 /// The main error type
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum OsuError {
     /// Failed to build an [`Osu`](crate::Osu) client because no client id was provided
     BuilderMissingId,

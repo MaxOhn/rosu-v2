@@ -100,11 +100,11 @@
 //!
 //! ## Features
 //!
-//! | Flag | Description |
-//! |-----|-----|
+//! | Flag | Description | deps
+//! |-----|-----|-----|
 //! | `default` | Enable the `cache` feature |
-//! | `cache` | Cache username-userid pairs so that usernames can be used on all user endpoints instead of only user ids |
-//! | `metrics` | Provide a count of all request types the client makes with the function `Osu::metrics` returning [prometheus](https://github.com/tikv/rust-prometheus)' `IntCounterVec` |
+//! | `cache` | Cache username-user_id pairs so that usernames can be used on all user endpoints instead of only user ids | [dashmap](https://github.com/xacrimon/dashmap), [futures](https://github.com/rust-lang/futures-rs)
+//! | `metrics` | Provide a count of all request types the client makes with the function `Osu::metrics` returning a `prometheus::IntCounterVec` | [prometheus](https://github.com/tikv/rust-prometheus)
 
 mod client;
 pub mod error;

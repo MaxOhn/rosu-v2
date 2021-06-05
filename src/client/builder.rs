@@ -2,13 +2,13 @@ use super::{Osu, OsuRef};
 use crate::{error::OsuError, ratelimiter::Ratelimiter, OsuResult};
 
 use reqwest::ClientBuilder as ReqwestClientBuilder;
-use std::{sync::Arc, time::Duration as StdDuration};
+use std::{sync::Arc, time::Duration};
 use tokio::{
     sync::{
         oneshot::{self, error::TryRecvError, Receiver},
         RwLock,
     },
-    time::{sleep, Duration},
+    time::sleep,
 };
 
 #[cfg(feature = "cache")]
@@ -27,7 +27,7 @@ pub struct OsuBuilder {
     client_id: Option<u64>,
     client_secret: Option<String>,
     reqwest_client: Option<ReqwestClientBuilder>,
-    timeout: Option<StdDuration>,
+    timeout: Option<Duration>,
 }
 
 impl OsuBuilder {
@@ -56,7 +56,7 @@ impl OsuBuilder {
         let http = self
             .reqwest_client
             .unwrap_or_else(ReqwestClientBuilder::new)
-            .timeout(self.timeout.unwrap_or_else(|| StdDuration::from_secs(10)))
+            .timeout(self.timeout.unwrap_or_else(|| Duration::from_secs(10)))
             .build()
             .map_err(|source| OsuError::BuildingClient { source })?;
 

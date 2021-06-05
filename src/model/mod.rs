@@ -9,7 +9,7 @@ macro_rules! def_enum {
 
         impl<'de> serde::Deserialize<'de> for $type {
             fn deserialize<D: serde::Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
-                d.deserialize_any(super::EnumVisitor::<$type>::new())
+                d.deserialize_option(super::EnumVisitor::<$type>::new())
             }
         }
     };
@@ -72,6 +72,7 @@ macro_rules! def_enum {
     };
 
     // Provide visit_u64 for visitor
+    // Note that the type has to implement Default
     (@VISIT_DIGIT u8 $type:tt { $($variant:ident = $n:literal,)* }) => {
         fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<Self::Value, E> {
             match v {
@@ -80,6 +81,14 @@ macro_rules! def_enum {
                     Err(serde::de::Error::invalid_value(serde::de::Unexpected::Unsigned(v), &stringify!($($n),*)))
                 },
             }
+        }
+
+        fn visit_some<D: Deserializer<'de>>(self, d: D) -> Result<Self::Value, D::Error> {
+            d.deserialize_any(self)
+        }
+
+        fn visit_none<E: serde::de::Error>(self) -> Result<Self::Value, E> {
+            Ok($type::default())
         }
     };
 
@@ -101,6 +110,10 @@ macro_rules! def_enum {
                     Err(serde::de::Error::invalid_value(serde::de::Unexpected::Unsigned(v), &stringify!($($n),*)))
                 },
             }
+        }
+
+        fn visit_some<D: Deserializer<'de>>(self, d: D) -> Result<Self::Value, D::Error> {
+            d.deserialize_any(self)
         }
     };
 

@@ -1098,6 +1098,12 @@ def_enum!(u8 Genre {
     Jazz = 14 ("Jazz"),
 });
 
+impl Default for Genre {
+    fn default() -> Self {
+        Self::Any
+    }
+}
+
 def_enum!(u8 Language {
     Any = 0,
     Other = 1,
@@ -1115,6 +1121,12 @@ def_enum!(u8 Language {
     Polish = 13,
     Unspecified = 14,
 });
+
+impl Default for Language {
+    fn default() -> Self {
+        Self::Any
+    }
+}
 
 struct DescriptionVisitor;
 

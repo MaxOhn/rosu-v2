@@ -915,11 +915,23 @@ def_enum!(u8 ScoringType {
     ScoreV2 = 3 ("scorev2"),
 });
 
+impl Default for ScoringType {
+    fn default() -> Self {
+        Self::Score
+    }
+}
+
 def_enum!(u8 Team {
     None = 0 ("none"),
     Blue = 1 ("blue"),
     Red = 2 ("red"),
 });
+
+impl Default for Team {
+    fn default() -> Self {
+        Self::None
+    }
+}
 
 def_enum!(u8 TeamType {
     HeadToHead = 0 ("head-to-head"),
@@ -927,6 +939,12 @@ def_enum!(u8 TeamType {
     TeamVS = 2 ("team-vs"),
     TagTeamVS = 3 ("tag-team-vs"),
 });
+
+impl Default for TeamType {
+    fn default() -> Self {
+        Self::HeadToHead
+    }
+}
 
 struct Bool(bool);
 struct BoolVisitor;

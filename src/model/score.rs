@@ -175,15 +175,19 @@ impl ScoreStatistics {
 
 #[derive(Copy, Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct ScoreWeight {
-    /// Percentage of the score's pp that will be added to the user's total pp
+    /// Percentage of the score's pp that will be added to the user's total pp between 0 and 100
     pub percentage: f32,
     /// PP **after** taking the percentage of the score's raw pp
     pub pp: f32,
 }
 
+const HDFL: GameMods =
+    GameMods::from_bits_truncate(GameMods::Hidden.bits() + GameMods::Flashlight.bits());
+const HDFLFI: GameMods = GameMods::from_bits_truncate(HDFL.bits() + GameMods::FadeIn.bits());
+
 fn osu_grade(score: &Score, passed_objects: u32) -> Grade {
     if score.statistics.count_300 == passed_objects {
-        return if score.mods.contains(GameMods::Hidden) {
+        return if score.mods.intersects(HDFL) {
             Grade::XH
         } else {
             Grade::X
@@ -196,7 +200,7 @@ fn osu_grade(score: &Score, passed_objects: u32) -> Grade {
     let ratio50 = stats.count_50 as f32 / passed_objects as f32;
 
     if ratio300 > 0.9 && ratio50 < 0.01 && stats.count_miss == 0 {
-        if score.mods.contains(GameMods::Hidden) {
+        if score.mods.intersects(HDFL) {
             Grade::SH
         } else {
             Grade::S
@@ -214,7 +218,7 @@ fn osu_grade(score: &Score, passed_objects: u32) -> Grade {
 
 fn mania_grade(score: &Score, passed_objects: u32, accuracy: Option<f32>) -> Grade {
     if score.statistics.count_geki == passed_objects {
-        return if score.mods.contains(GameMods::Hidden) {
+        return if score.mods.intersects(HDFLFI) {
             Grade::XH
         } else {
             Grade::X
@@ -224,7 +228,7 @@ fn mania_grade(score: &Score, passed_objects: u32, accuracy: Option<f32>) -> Gra
     let accuracy = accuracy.unwrap_or_else(|| score.accuracy());
 
     if accuracy > 95.0 {
-        if score.mods.contains(GameMods::Hidden) {
+        if score.mods.intersects(HDFLFI) {
             Grade::SH
         } else {
             Grade::S
@@ -242,7 +246,7 @@ fn mania_grade(score: &Score, passed_objects: u32, accuracy: Option<f32>) -> Gra
 
 fn taiko_grade(score: &Score, passed_objects: u32, accuracy: Option<f32>) -> Grade {
     if score.statistics.count_300 == passed_objects {
-        return if score.mods.contains(GameMods::Hidden) {
+        return if score.mods.intersects(HDFL) {
             Grade::XH
         } else {
             Grade::X
@@ -252,7 +256,7 @@ fn taiko_grade(score: &Score, passed_objects: u32, accuracy: Option<f32>) -> Gra
     let accuracy = accuracy.unwrap_or_else(|| score.accuracy());
 
     if accuracy > 95.0 {
-        if score.mods.contains(GameMods::Hidden) {
+        if score.mods.intersects(HDFL) {
             Grade::SH
         } else {
             Grade::S
@@ -270,13 +274,13 @@ fn ctb_grade(score: &Score, accuracy: Option<f32>) -> Grade {
     let accuracy = accuracy.unwrap_or_else(|| score.accuracy());
 
     if (100.0 - accuracy).abs() <= std::f32::EPSILON {
-        if score.mods.contains(GameMods::Hidden) {
+        if score.mods.intersects(HDFL) {
             Grade::XH
         } else {
             Grade::X
         }
     } else if accuracy > 98.0 {
-        if score.mods.contains(GameMods::Hidden) {
+        if score.mods.intersects(HDFL) {
             Grade::SH
         } else {
             Grade::S

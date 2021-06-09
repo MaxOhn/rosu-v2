@@ -118,7 +118,7 @@ pub struct Group {
     pub is_probationary: bool,
     pub name: String,
     pub short_name: String,
-    pub description: String,
+    pub description: Option<String>,
     #[serde(rename = "colour")]
     pub color: Option<String>,
     #[serde(default, rename = "playmodes", skip_serializing_if = "Option::is_none")]

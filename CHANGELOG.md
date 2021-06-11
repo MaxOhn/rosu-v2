@@ -4,6 +4,7 @@
 - Implemented `Default` for `Language`, `Genre`, `ScoringType`, `TeamType`, and `Team` enums
 - [Breaking] Removed deprecated `cover_url` field from `User`; use `cover.url` instead
 - [Breaking] `description` field of `Group` is now `Option<String>` instead of `String`
+- Made checking for `Score` equivalency more lenient w.r.t. their timestamps
 
 # v0.1.0
 

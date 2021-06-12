@@ -92,11 +92,11 @@ impl<'a> GetComments<'a> {
         }
 
         if let Some(parent) = self.parent_id {
-            query.push("parent_id", &parent.to_string());
+            query.push("parent_id", &parent);
         }
 
         if let Some(commentable) = self.commentable_id {
-            query.push("commentable_id", &commentable.to_string());
+            query.push("commentable_id", &commentable);
         }
 
         if let Some(commentable) = self.commentable_type.take() {
@@ -104,8 +104,8 @@ impl<'a> GetComments<'a> {
         }
 
         if let Some(cursor) = self.cursor.take() {
-            query.push("cursor[id]", &cursor.id.to_string());
-            query.push("cursor[created_at]", &cursor.created_at.to_string()); // TODO: Test
+            query.push("cursor[id]", &cursor.id);
+            query.push("cursor[created_at]", &cursor.created_at); // TODO: Test
         }
 
         let req = Request::new(Route::GetComments).query(query);

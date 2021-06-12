@@ -64,15 +64,15 @@ impl<'a> GetMatch<'a> {
         let mut query = Query::new();
 
         if let Some(after) = self.after {
-            query.push("after", &after.to_string());
+            query.push("after", &after);
         }
 
         if let Some(before) = self.before {
-            query.push("before", &before.to_string());
+            query.push("before", &before);
         }
 
         if let Some(limit) = self.limit {
-            query.push("limit", &limit.to_string());
+            query.push("limit", &limit);
         }
 
         let route = Route::GetMatch {
@@ -120,7 +120,7 @@ impl<'a> GetMatches<'a> {
         let mut query = Query::new();
 
         if let Some(cursor) = self.cursor.take() {
-            query.push("cursor[match_id]", &cursor.match_id.to_string());
+            query.push("cursor[match_id]", &cursor.match_id);
         }
 
         let req = Request::new(Route::GetMatch { match_id: None }).query(query);

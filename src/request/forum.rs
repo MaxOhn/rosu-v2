@@ -93,19 +93,19 @@ impl<'a> GetForumPosts<'a> {
         }
 
         if let Some(limit) = self.limit {
-            query.push("limit", &limit.to_string());
+            query.push("limit", &limit);
         }
 
         if let Some(id) = self.start {
-            query.push("start", &id.to_string());
+            query.push("start", &id);
         }
 
         if let Some(id) = self.end {
-            query.push("end", &id.to_string());
+            query.push("end", &id);
         }
 
         if let Some(cursor) = self.cursor.take() {
-            query.push("cursor[id]", &cursor.post_id.to_string());
+            query.push("cursor[id]", &cursor.post_id);
         }
 
         let route = Route::GetForumPosts {

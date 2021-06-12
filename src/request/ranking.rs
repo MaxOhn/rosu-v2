@@ -57,7 +57,7 @@ impl<'a> GetChartRankings<'a> {
         let mut query = Query::new();
 
         if let Some(spotlight) = self.spotlight {
-            query.push("spotlight", &spotlight.to_string());
+            query.push("spotlight", &spotlight);
         }
 
         let route = Route::GetRankings {
@@ -109,7 +109,7 @@ impl<'a> GetCountryRankings<'a> {
         let mut query = Query::new();
 
         if let Some(page) = self.page {
-            query.push("cursor[page]", &page.to_string());
+            query.push("cursor[page]", &page);
         }
 
         let route = Route::GetRankings {
@@ -190,8 +190,8 @@ impl<'a> GetPerformanceRankings<'a> {
         let mode = self.mode;
         let mut query = Query::new();
 
-        if let Some(country) = self.country.take() {
-            query.push("country", &country);
+        if let Some(ref country) = self.country {
+            query.push("country", country);
         }
 
         // ! Adjust filter once there are non-mania variants
@@ -200,7 +200,7 @@ impl<'a> GetPerformanceRankings<'a> {
         }
 
         if let Some(page) = self.page {
-            query.push("cursor[page]", &page.to_string());
+            query.push("cursor[page]", &page);
         }
 
         let route = Route::GetRankings {
@@ -265,7 +265,7 @@ impl<'a> GetScoreRankings<'a> {
         let mut query = Query::new();
 
         if let Some(page) = self.page {
-            query.push("cursor[page]", &page.to_string());
+            query.push("cursor[page]", &page);
         }
 
         let route = Route::GetRankings {

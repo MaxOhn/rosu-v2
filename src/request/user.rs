@@ -244,11 +244,11 @@ impl<'a> GetUserBeatmapsets<'a> {
         let mut query = Query::new();
 
         if let Some(limit) = self.limit {
-            query.push("limit", &limit.to_string());
+            query.push("limit", &limit);
         }
 
         if let Some(offset) = self.offset {
-            query.push("offset", &offset.to_string());
+            query.push("offset", &offset);
         }
 
         #[cfg(not(feature = "cache"))]
@@ -340,11 +340,11 @@ impl<'a> GetUserKudosu<'a> {
         let mut query = Query::new();
 
         if let Some(limit) = self.limit {
-            query.push("limit", &limit.to_string());
+            query.push("limit", &limit);
         }
 
         if let Some(offset) = self.offset {
-            query.push("offset", &offset.to_string());
+            query.push("offset", &offset);
         }
 
         #[cfg(not(feature = "cache"))]
@@ -435,11 +435,11 @@ impl<'a> GetUserMostPlayed<'a> {
         let mut query = Query::new();
 
         if let Some(limit) = self.limit {
-            query.push("limit", &limit.to_string());
+            query.push("limit", &limit);
         }
 
         if let Some(offset) = self.offset {
-            query.push("offset", &offset.to_string());
+            query.push("offset", &offset);
         }
 
         #[cfg(not(feature = "cache"))]
@@ -539,11 +539,11 @@ impl<'a> GetRecentEvents<'a> {
         let mut query = Query::new();
 
         if let Some(limit) = self.limit {
-            query.push("limit", &limit.to_string());
+            query.push("limit", &limit);
         }
 
         if let Some(offset) = self.offset {
-            query.push("offset", &offset.to_string());
+            query.push("offset", &offset);
         }
 
         #[cfg(not(feature = "cache"))]
@@ -710,11 +710,11 @@ impl<'a> GetUserScores<'a> {
         let mut query = Query::new();
 
         if let Some(limit) = self.limit {
-            query.push("limit", &limit.to_string());
+            query.push("limit", &limit);
         }
 
         if let Some(offset) = self.offset {
-            query.push("offset", &offset.to_string());
+            query.push("offset", &offset);
         }
 
         if let Some(mode) = self.mode {
@@ -722,7 +722,7 @@ impl<'a> GetUserScores<'a> {
         }
 
         if let Some(include_fails) = self.include_fails {
-            query.push("include_fails", &(include_fails as u8).to_string());
+            query.push("include_fails", &(include_fails as u8));
         }
 
         #[cfg(not(feature = "cache"))]
@@ -777,7 +777,7 @@ impl<'a> GetUsers<'a> {
         let mut query = Query::new();
 
         for user_id in user_ids.iter().take(50) {
-            query.push("id[]", &user_id.to_string());
+            query.push("id[]", user_id);
         }
 
         Self {

@@ -48,8 +48,8 @@ impl<'a> GetNews<'a> {
 
         if let Some(cursor) = self.cursor {
             query
-                .push("cursor[published_at]", &cursor.published_at.to_string())
-                .push("cursor[id]", &cursor.id.to_string());
+                .push("cursor[published_at]", &cursor.published_at) // TODO: Test
+                .push("cursor[id]", &cursor.id);
         }
 
         let req = Request::new(Route::GetNews { news: self.news }).query(query);

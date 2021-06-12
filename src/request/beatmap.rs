@@ -76,7 +76,7 @@ impl<'a> GetBeatmap<'a> {
         }
 
         if let Some(map_id) = self.map_id {
-            query.push("id", &map_id.to_string());
+            query.push("id", &map_id);
         }
 
         let req = Request::new(Route::GetBeatmap).query(query);
@@ -175,11 +175,11 @@ impl<'a> GetBeatmapScores<'a> {
         }
 
         // if let Some(limit) = self.limit {
-        //     query.push("limit", limit.to_string());
+        //     query.push("limit", limit);
         // }
 
         // if let Some(offset) = self.offset {
-        //     query.push("offset", offset.to_string());
+        //     query.push("offset", offset);
         // }
 
         let route = Route::GetBeatmapScores {
@@ -546,7 +546,7 @@ impl<'a> GetBeatmapsetSearch<'a> {
         }
 
         if let Some(mode) = mode {
-            query.push("m", &mode.to_string());
+            query.push("m", &mode);
         }
 
         match status {
@@ -567,11 +567,11 @@ impl<'a> GetBeatmapsetSearch<'a> {
         }
 
         if let Some(genre) = genre {
-            query.push("g", &genre.to_string());
+            query.push("g", &genre);
         }
 
         if let Some(language) = language {
-            query.push("l", &language.to_string());
+            query.push("l", &language);
         }
 
         let extra = match (video, storyboard) {
@@ -585,13 +585,13 @@ impl<'a> GetBeatmapsetSearch<'a> {
             query.push("e", &extra);
         }
 
-        query.push("nsfw", &nsfw.to_string());
+        query.push("nsfw", &nsfw);
 
         if let Some(cursor) = self.cursor.take() {
             query.push("cursor[_id]", &cursor.id);
 
             if let Some(score) = cursor.score {
-                query.push("cursor[_score]", &score.to_string());
+                query.push("cursor[_score]", &score);
             }
 
             if let Some(playcount) = cursor.playcount {

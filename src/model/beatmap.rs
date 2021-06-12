@@ -261,6 +261,29 @@ pub struct BeatmapsetCommentNominate {
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+pub struct BeatmapsetCommentOwnerChange {
+    #[serde(
+        default,
+        rename = "beatmap_discussion_id",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub map_discussion_id: Option<u64>,
+    #[serde(
+        default,
+        rename = "beatmap_discussion_post_id",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub map_discussion_post_id: Option<u64>,
+    #[serde(rename = "beatmap_id")]
+    pub map_id: u32,
+    #[serde(rename = "beatmap_version")]
+    pub version: String,
+    pub new_user_id: u32,
+    #[serde(rename = "new_user_username")]
+    pub new_username: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct BeatmapsetCompact {
     pub artist: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -394,6 +417,7 @@ impl Eq for BeatmapsetDiscussion {}
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case", tag = "type")]
+#[non_exhaustive]
 pub enum BeatmapsetEvent {
     Disqualify {
         #[serde(rename = "id")]
@@ -493,6 +517,16 @@ pub enum BeatmapsetEvent {
         #[serde(rename = "id")]
         event_id: u64,
         comment: BeatmapsetCommentEdit<bool>,
+        created_at: DateTime<Utc>,
+        user_id: u32,
+        #[serde(rename = "beatmapset")]
+        mapset: BeatmapsetCompact,
+    },
+    #[serde(rename = "beatmap_owner_change")]
+    OwnerChange {
+        #[serde(rename = "id")]
+        event_id: u64,
+        comment: BeatmapsetCommentOwnerChange,
         created_at: DateTime<Utc>,
         user_id: u32,
         #[serde(rename = "beatmapset")]

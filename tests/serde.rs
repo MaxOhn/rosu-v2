@@ -381,6 +381,20 @@ fn get_mapset_events() -> BeatmapsetEvents {
                 user_id: 123456,
                 mapset: get_mapset_compact(),
             },
+            BeatmapsetEvent::OwnerChange {
+                event_id: 9,
+                comment: BeatmapsetCommentOwnerChange {
+                    map_discussion_id: Some(0),
+                    map_discussion_post_id: Some(1),
+                    map_id: 123,
+                    version: "epic version".to_owned(),
+                    new_user_id: 98,
+                    new_username: "new name".to_owned(),
+                },
+                created_at: get_date(),
+                user_id: 99,
+                mapset: get_mapset_compact(),
+            },
             BeatmapsetEvent::Rank {
                 event_id: 7,
                 created_at: get_date(),

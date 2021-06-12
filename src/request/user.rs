@@ -109,12 +109,14 @@ impl<'a> GetUser<'a> {
             UserId::Name(_) => "username",
         };
 
-        query.push("key", kind);
+        query.push("key", &kind);
 
-        let req = Request::from(Route::GetUser {
+        let route = Route::GetUser {
             user_id,
             mode: self.mode,
-        });
+        };
+
+        let req = Request::new(route).query(query);
 
         Box::pin(self.osu.inner.request(req))
     }
@@ -242,17 +244,17 @@ impl<'a> GetUserBeatmapsets<'a> {
         let mut query = Query::new();
 
         if let Some(limit) = self.limit {
-            query.push("limit", limit.to_string());
+            query.push("limit", &limit.to_string());
         }
 
         if let Some(offset) = self.offset {
-            query.push("offset", offset.to_string());
+            query.push("offset", &offset.to_string());
         }
 
         #[cfg(not(feature = "cache"))]
         {
             let user_id = self.user_id;
-            let req = Request::from((query, Route::GetUserBeatmapsets { user_id, map_type }));
+            let req = Request::new(Route::GetUserBeatmapsets { user_id, map_type }).query(query);
 
             Box::pin(self.osu.inner.request(req))
         }
@@ -265,7 +267,7 @@ impl<'a> GetUserBeatmapsets<'a> {
                 .osu
                 .cache_user(self.user_id.take().unwrap())
                 .map_ok(move |user_id| {
-                    Request::from((query, Route::GetUserBeatmapsets { user_id, map_type }))
+                    Request::new(Route::GetUserBeatmapsets { user_id, map_type }).query(query)
                 })
                 .and_then(move |req| osu.request(req));
 
@@ -338,17 +340,17 @@ impl<'a> GetUserKudosu<'a> {
         let mut query = Query::new();
 
         if let Some(limit) = self.limit {
-            query.push("limit", limit.to_string());
+            query.push("limit", &limit.to_string());
         }
 
         if let Some(offset) = self.offset {
-            query.push("offset", offset.to_string());
+            query.push("offset", &offset.to_string());
         }
 
         #[cfg(not(feature = "cache"))]
         {
             let user_id = self.user_id;
-            let req = Request::from((query, Route::GetUserKudosu { user_id }));
+            let req = Request::new(Route::GetUserKudosu { user_id }).query(query);
 
             Box::pin(self.osu.inner.request(req))
         }
@@ -360,7 +362,7 @@ impl<'a> GetUserKudosu<'a> {
             let fut = self
                 .osu
                 .cache_user(self.user_id.take().unwrap())
-                .map_ok(move |user_id| Request::from((query, Route::GetUserKudosu { user_id })))
+                .map_ok(move |user_id| Request::new(Route::GetUserKudosu { user_id }).query(query))
                 .and_then(move |req| osu.request(req));
 
             Box::pin(fut)
@@ -433,22 +435,21 @@ impl<'a> GetUserMostPlayed<'a> {
         let mut query = Query::new();
 
         if let Some(limit) = self.limit {
-            query.push("limit", limit.to_string());
+            query.push("limit", &limit.to_string());
         }
 
         if let Some(offset) = self.offset {
-            query.push("offset", offset.to_string());
+            query.push("offset", &offset.to_string());
         }
 
         #[cfg(not(feature = "cache"))]
         {
-            let req = Request::from((
-                query,
-                Route::GetUserBeatmapsets {
-                    user_id: self.user_id,
-                    map_type: "most_played",
-                },
-            ));
+            let route = Route::GetUserBeatmapsets {
+                user_id: self.user_id,
+                map_type: "most_played",
+            };
+
+            let req = Request::new(route).query(query);
 
             Box::pin(self.osu.inner.request(req))
         }
@@ -461,13 +462,12 @@ impl<'a> GetUserMostPlayed<'a> {
                 .osu
                 .cache_user(self.user_id.take().unwrap())
                 .map_ok(move |user_id| {
-                    Request::from((
-                        query,
-                        Route::GetUserBeatmapsets {
-                            user_id,
-                            map_type: "most_played",
-                        },
-                    ))
+                    let route = Route::GetUserBeatmapsets {
+                        user_id,
+                        map_type: "most_played",
+                    };
+
+                    Request::new(route).query(query)
                 })
                 .and_then(move |req| osu.request(req));
 
@@ -539,17 +539,17 @@ impl<'a> GetRecentEvents<'a> {
         let mut query = Query::new();
 
         if let Some(limit) = self.limit {
-            query.push("limit", limit.to_string());
+            query.push("limit", &limit.to_string());
         }
 
         if let Some(offset) = self.offset {
-            query.push("offset", offset.to_string());
+            query.push("offset", &offset.to_string());
         }
 
         #[cfg(not(feature = "cache"))]
         {
             let user_id = self.user_id;
-            let req = Request::from((query, Route::GetRecentEvents { user_id }));
+            let req = Request::new(Route::GetRecentEvents { user_id }).query(query);
 
             Box::pin(self.osu.inner.request(req))
         }
@@ -561,7 +561,9 @@ impl<'a> GetRecentEvents<'a> {
             let fut = self
                 .osu
                 .cache_user(self.user_id.take().unwrap())
-                .map_ok(move |user_id| Request::from((query, Route::GetRecentEvents { user_id })))
+                .map_ok(move |user_id| {
+                    Request::new(Route::GetRecentEvents { user_id }).query(query)
+                })
                 .and_then(move |req| osu.request(req));
 
             Box::pin(fut)
@@ -708,30 +710,29 @@ impl<'a> GetUserScores<'a> {
         let mut query = Query::new();
 
         if let Some(limit) = self.limit {
-            query.push("limit", limit.to_string());
+            query.push("limit", &limit.to_string());
         }
 
         if let Some(offset) = self.offset {
-            query.push("offset", offset.to_string());
+            query.push("offset", &offset.to_string());
         }
 
         if let Some(mode) = self.mode {
-            query.push("mode", mode.to_string());
+            query.push("mode", &mode.to_string());
         }
 
         if let Some(include_fails) = self.include_fails {
-            query.push("include_fails", (include_fails as u8).to_string());
+            query.push("include_fails", &(include_fails as u8).to_string());
         }
 
         #[cfg(not(feature = "cache"))]
         {
-            let req = Request::from((
-                query,
-                Route::GetUserScores {
-                    user_id: self.user_id,
-                    score_type: self.score_type,
-                },
-            ));
+            let route = Route::GetUserScores {
+                user_id: self.user_id,
+                score_type: self.score_type,
+            };
+
+            let req = Request::new(route).query(query);
 
             Box::pin(self.osu.inner.request(req))
         }
@@ -745,13 +746,12 @@ impl<'a> GetUserScores<'a> {
                 .osu
                 .cache_user(self.user_id.take().unwrap())
                 .map_ok(move |user_id| {
-                    Request::from((
-                        query,
-                        Route::GetUserScores {
-                            user_id,
-                            score_type,
-                        },
-                    ))
+                    let route = Route::GetUserScores {
+                        user_id,
+                        score_type,
+                    };
+
+                    Request::new(route).query(query)
                 })
                 .and_then(move |req| osu.request(req));
 
@@ -768,7 +768,7 @@ poll_req!(GetUserScores => Vec<Score>);
 pub struct GetUsers<'a> {
     fut: Option<Pending<'a, Vec<UserCompact>>>,
     osu: &'a Osu,
-    query: Option<Query>,
+    form: Option<Query>,
 }
 
 impl<'a> GetUsers<'a> {
@@ -776,17 +776,14 @@ impl<'a> GetUsers<'a> {
     pub(crate) fn new(osu: &'a Osu, user_ids: &[u32]) -> Self {
         let mut query = Query::new();
 
-        let iter = user_ids
-            .iter()
-            .take(50)
-            .map(|user_id| ("id[]", user_id.to_string()));
-
-        query.extend(iter);
+        for user_id in user_ids.iter().take(50) {
+            query.push("id[]", &user_id.to_string());
+        }
 
         Self {
             fut: None,
             osu,
-            query: Some(query),
+            form: Some(query),
         }
     }
 

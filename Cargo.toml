@@ -14,18 +14,13 @@ documentation = "https://docs.rs/rosu-v2/"
 
 [features]
 default = ["cache"]
-cache = ["dashmap", "futures"]
+cache = ["dashmap"]
 metrics = ["prometheus"]
 
-# --- Future dependencies ---
+# --- Feature dependencies ---
 
 [dependencies.dashmap]
 version = "4.0"
-default-features = false
-optional = true
-
-[dependencies.futures]
-version = "0.3"
 default-features = false
 optional = true
 
@@ -48,14 +43,28 @@ version = "0.4"
 default-features = false
 features = ["serde"]
 
+[dependencies.futures]
+version = "0.3"
+default-features = false
+
 [dependencies.log]
 version = "0.4"
 default-features = false
 
-[dependencies.reqwest]
-version = "0.11"
+[dependencies.hyper]
+version = "0.14"
 default-features = false
-features = ["rustls-tls", "multipart"]
+features = ["client", "http2"]
+
+[dependencies.hyper-rustls]
+version = "0.22"
+default-features = false
+features = ["native-tokio"]
+
+[dependencies.rand]
+version = "0.8"
+default-features = false
+features = ["std_rng", "std"]
 
 [dependencies.serde]
 version = "1.0"
@@ -65,12 +74,17 @@ features = ["derive"]
 [dependencies.serde_json]
 version = "1.0"
 default-features = false
+features = ["std"]
 
 [dependencies.smallstr]
 version = "0.2"
 
 [dependencies.tokio]
 version = "1.2"
+default-features = false
+
+[dependencies.url]
+version = "2.2"
 default-features = false
 
 # --- Dev dependencies ---

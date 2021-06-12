@@ -36,7 +36,7 @@ impl<'a> GetWikiPage<'a> {
         #[cfg(feature = "metrics")]
         self.osu.metrics.wiki.inc();
 
-        let req = Request::from(Route::GetWikiPage {
+        let req = Request::new(Route::GetWikiPage {
             locale: self.locale.take().unwrap(),
             page: self.page.take(),
         });

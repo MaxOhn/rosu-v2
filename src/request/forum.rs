@@ -89,31 +89,30 @@ impl<'a> GetForumPosts<'a> {
         let mut query = Query::new();
 
         if let Some(sort) = self.sort {
-            query.push("sort", sort);
+            query.push("sort", &sort);
         }
 
         if let Some(limit) = self.limit {
-            query.push("limit", limit.to_string());
+            query.push("limit", &limit.to_string());
         }
 
         if let Some(id) = self.start {
-            query.push("start", id.to_string());
+            query.push("start", &id.to_string());
         }
 
         if let Some(id) = self.end {
-            query.push("end", id.to_string());
+            query.push("end", &id.to_string());
         }
 
         if let Some(cursor) = self.cursor.take() {
-            query.push("cursor[id]", cursor.post_id.to_string());
+            query.push("cursor[id]", &cursor.post_id.to_string());
         }
 
-        let req = Request::from((
-            query,
-            Route::GetForumPosts {
-                topic_id: self.topic_id,
-            },
-        ));
+        let route = Route::GetForumPosts {
+            topic_id: self.topic_id,
+        };
+
+        let req = Request::new(route).query(query);
 
         Box::pin(self.osu.inner.request(req))
     }

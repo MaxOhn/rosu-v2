@@ -1,7 +1,8 @@
 use super::{Osu, OsuRef};
 use crate::{error::OsuError, ratelimiter::Ratelimiter, OsuResult};
 
-use reqwest::ClientBuilder as ReqwestClientBuilder;
+use hyper::client::Builder;
+use hyper_rustls::HttpsConnector;
 use std::{sync::Arc, time::Duration};
 use tokio::{
     sync::{
@@ -22,12 +23,20 @@ use crate::metrics::Metrics;
 /// `client_id` as well as `client_secret` **must** be specified before building.
 ///
 /// For more info, check out https://osu.ppy.sh/docs/index.html#client-credentials-grant
-#[derive(Default)]
 pub struct OsuBuilder {
     client_id: Option<u64>,
     client_secret: Option<String>,
-    reqwest_client: Option<ReqwestClientBuilder>,
-    timeout: Option<Duration>,
+    timeout: Duration,
+}
+
+impl Default for OsuBuilder {
+    fn default() -> Self {
+        Self {
+            client_id: None,
+            client_secret: None,
+            timeout: Duration::from_secs(10),
+        }
+    }
 }
 
 impl OsuBuilder {
@@ -53,12 +62,8 @@ impl OsuBuilder {
         let client_id = self.client_id.ok_or(OsuError::BuilderMissingId)?;
         let client_secret = self.client_secret.ok_or(OsuError::BuilderMissingSecret)?;
 
-        let http = self
-            .reqwest_client
-            .unwrap_or_else(ReqwestClientBuilder::new)
-            .timeout(self.timeout.unwrap_or_else(|| Duration::from_secs(10)))
-            .build()
-            .map_err(|source| OsuError::BuildingClient { source })?;
+        let connector = HttpsConnector::with_native_roots();
+        let http = Builder::default().build(connector);
 
         let ratelimiter = Ratelimiter::new(15, 1);
         let (tx, rx) = oneshot::channel();
@@ -68,6 +73,7 @@ impl OsuBuilder {
             client_secret,
             http,
             ratelimiter,
+            timeout: self.timeout,
             token: RwLock::new(None),
             token_loop_tx: Some(tx),
         });
@@ -116,23 +122,10 @@ impl OsuBuilder {
         self
     }
 
-    /// Set a pre-configured reqwest client builder to build off of.
-    ///
-    /// The timeout settings in the reqwest client will be overwritten by
-    /// those in this builder.
-    ///
-    /// The default client uses Rustls as its TLS backend.
-    #[inline]
-    pub fn reqwest_client(mut self, client: ReqwestClientBuilder) -> Self {
-        self.reqwest_client.replace(client);
-
-        self
-    }
-
     /// Set the timeout for HTTP requests, defaults to 10 seconds.
     #[inline]
     pub fn timeout(mut self, duration: Duration) -> Self {
-        self.timeout.replace(duration);
+        self.timeout = duration;
 
         self
     }

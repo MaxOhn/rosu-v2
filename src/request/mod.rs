@@ -44,89 +44,79 @@ pub use wiki::*;
 
 use crate::{routing::Route, OsuResult};
 
-use reqwest::Method;
-use serde::ser::{Serialize, SerializeSeq, Serializer};
-use std::{borrow::Cow, future::Future, iter::Extend, pin::Pin, vec::IntoIter};
+use hyper::Method;
+use serde::Serialize;
+use std::{borrow::Cow, future::Future, pin::Pin};
 
 type Pending<'a, T> = Pin<Box<dyn Future<Output = OsuResult<T>> + Send + 'a>>;
 
-#[derive(Debug, Default)]
-pub(crate) struct Query(Vec<(&'static str, Cow<'static, str>)>);
-
-impl Query {
-    #[inline]
-    fn new() -> Self {
-        Self::default()
-    }
-
-    #[inline]
-    fn push(&mut self, key: &'static str, value: impl Into<Cow<'static, str>>) {
-        self.0.push((key, value.into()));
-    }
-
-    #[inline]
-    pub(crate) fn is_empty(&self) -> bool {
-        self.0.is_empty()
-    }
-}
-
-impl IntoIterator for Query {
-    type Item = (&'static str, Cow<'static, str>);
-    type IntoIter = IntoIter<Self::Item>;
-
-    #[inline]
-    fn into_iter(self) -> Self::IntoIter {
-        self.0.into_iter()
-    }
-}
-
-impl<T: Into<Cow<'static, str>>> Extend<(&'static str, T)> for Query {
-    #[inline]
-    fn extend<I: IntoIterator<Item = (&'static str, T)>>(&mut self, iter: I) {
-        self.0
-            .extend(iter.into_iter().map(|(key, val)| (key, val.into())));
-    }
-}
-
-impl Serialize for Query {
-    fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
-        let mut seq = s.serialize_seq(Some(self.0.len()))?;
-
-        for pair in &self.0 {
-            seq.serialize_element(pair)?;
-        }
-
-        seq.end()
-    }
-}
-
 #[derive(Debug)]
 pub(crate) struct Request {
-    pub query: Query,
+    pub query: Option<Query>,
     pub method: Method,
     pub path: Cow<'static, str>,
 }
 
-impl From<Route> for Request {
-    fn from(route: Route) -> Self {
+impl Request {
+    #[inline]
+    fn new(route: Route) -> Self {
         let (method, path) = route.into_parts();
 
         Self {
-            query: Query::new(),
+            query: None,
             method,
             path,
         }
     }
+
+    #[inline]
+    fn query(mut self, query: Query) -> Self {
+        self.query.replace(query);
+
+        self
+    }
 }
 
-impl From<(Query, Route)> for Request {
-    fn from((query, route): (Query, Route)) -> Self {
-        let (method, path) = route.into_parts();
+#[derive(Debug)]
+pub(crate) struct Query {
+    query: Vec<u8>,
+}
 
-        Self {
-            query,
-            method,
-            path,
+impl Default for Query {
+    #[inline]
+    fn default() -> Self {
+        Self { query: vec![b'{'] }
+    }
+}
+
+impl Query {
+    #[inline]
+    pub(crate) fn new() -> Self {
+        Self::default()
+    }
+
+    #[inline]
+    pub(crate) fn finish(mut self) -> Vec<u8> {
+        if self.query.len() > 1 {
+            self.query.pop();
         }
+
+        self.query.push(b'}');
+
+        self.query
+    }
+
+    #[inline]
+    pub(crate) fn push(&mut self, key: &str, value: &impl Serialize) -> &mut Self {
+        self.query.reserve(5 + key.len());
+
+        self.query.push(b'"');
+        self.query.extend_from_slice(key.as_bytes());
+        self.query.push(b'"');
+        self.query.push(b':');
+        let _ = serde_json::to_writer(&mut self.query, value);
+        self.query.push(b',');
+
+        self
     }
 }

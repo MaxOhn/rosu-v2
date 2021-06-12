@@ -47,11 +47,12 @@ impl<'a> GetNews<'a> {
         let mut query = Query::new();
 
         if let Some(cursor) = self.cursor {
-            query.push("cursor[published_at]", cursor.published_at.to_string());
-            query.push("cursor[id]", cursor.id.to_string());
+            query
+                .push("cursor[published_at]", &cursor.published_at.to_string())
+                .push("cursor[id]", &cursor.id.to_string());
         }
 
-        let req = Request::from((query, Route::GetNews { news: self.news }));
+        let req = Request::new(Route::GetNews { news: self.news }).query(query);
 
         Box::pin(self.osu.inner.request(req))
     }

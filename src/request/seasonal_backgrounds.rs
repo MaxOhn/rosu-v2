@@ -22,7 +22,7 @@ impl<'a> GetSeasonalBackgrounds<'a> {
         #[cfg(feature = "metrics")]
         self.osu.metrics.seasonal_backgrounds.inc();
 
-        let req = Request::from(Route::GetSeasonalBackgrounds);
+        let req = Request::new(Route::GetSeasonalBackgrounds);
 
         Box::pin(self.osu.inner.request(req))
     }

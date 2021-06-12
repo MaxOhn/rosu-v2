@@ -1,7 +1,10 @@
-use reqwest::{header::InvalidHeaderValue, Error as ReqwestError, StatusCode};
+use hyper::{
+    header::InvalidHeaderValue, http::Error as HttpError, Error as HyperError, StatusCode,
+};
 use serde::Deserialize;
 use serde_json::Error as SerdeError;
 use std::{error::Error as StdError, fmt};
+use url::ParseError;
 
 /// The API response was of the form `{ "error": ... }`
 #[derive(Debug, Deserialize)]
@@ -24,14 +27,14 @@ impl fmt::Display for ApiError {
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum OsuError {
+    /// Failed to create a request body
+    BodyError { source: HttpError },
     /// Failed to build an [`Osu`](crate::Osu) client because no client id was provided
     BuilderMissingId,
     /// Failed to build an [`Osu`](crate::Osu) client because no client secret was provided
     BuilderMissingSecret,
-    /// Reqwest failed to build its client.
-    BuildingClient { source: ReqwestError },
     /// Error while handling response from the API
-    ChunkingResponse { source: ReqwestError },
+    ChunkingResponse { source: HyperError },
     /// Failed to create a request header
     CreatingHeader {
         name: &'static str,
@@ -46,7 +49,9 @@ pub enum OsuError {
     /// Failed to parse a value
     ParsingValue { source: ParsingError },
     /// Failed to send request
-    Request { source: ReqwestError },
+    Request { source: HyperError },
+    /// Timeout while requesting from API
+    RequestTimeout,
     /// API returned an error
     Response {
         body: String,
@@ -59,14 +64,16 @@ pub enum OsuError {
     UnavailableEndpoint,
     /// Failed to update token
     UpdateToken { source: Box<OsuError> },
+    /// Failed to parse the URL for a request
+    Url { source: ParseError, url: String },
 }
 
 impl StdError for OsuError {
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
         match self {
+            Self::BodyError { source } => Some(source),
             Self::BuilderMissingId => None,
             Self::BuilderMissingSecret => None,
-            Self::BuildingClient { source } => Some(source),
             Self::ChunkingResponse { source } => Some(source),
             Self::CreatingHeader { source, .. } => Some(source),
             Self::NotFound => None,
@@ -74,10 +81,12 @@ impl StdError for OsuError {
             Self::Parsing { source, .. } => Some(source),
             Self::ParsingValue { source } => Some(source),
             Self::Request { source } => Some(source),
+            Self::RequestTimeout => None,
             Self::Response { source, .. } => Some(source),
             Self::ServiceUnavailable(_) => None,
             Self::UnavailableEndpoint => None,
             Self::UpdateToken { source } => Some(source),
+            Self::Url { source, .. } => Some(source),
         }
     }
 }
@@ -85,13 +94,13 @@ impl StdError for OsuError {
 impl fmt::Display for OsuError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
+            Self::BodyError { .. } => f.write_str("failed to create request body"),
             Self::BuilderMissingId => {
                 f.write_str("failed to build osu client, no client id was provided")
             }
             Self::BuilderMissingSecret => {
                 f.write_str("failed to build osu client, no client secret was provided")
             }
-            Self::BuildingClient { .. } => f.write_str("failed to build reqwest client"),
             Self::ChunkingResponse { .. } => f.write_str("failed to chunk the response"),
             Self::CreatingHeader { name, .. } => {
                 write!(f, "failed to parse value for header {}", name)
@@ -108,6 +117,7 @@ impl fmt::Display for OsuError {
             Self::Parsing { body, .. } => write!(f, "failed to deserialize response: {}", body),
             Self::ParsingValue { .. } => f.write_str("failed to parse value"),
             Self::Request { .. } => f.write_str("failed to send request"),
+            Self::RequestTimeout => f.write_str("osu!api did not respond in time"),
             Self::Response { status, .. } => write!(f, "response error, status {}", status),
             Self::ServiceUnavailable(body) => write!(
                 f,
@@ -118,7 +128,14 @@ impl fmt::Display for OsuError {
                 f.write_str("the endpoint is not available for the client's authorization level")
             }
             Self::UpdateToken { .. } => f.write_str("failed to update osu!api token"),
+            Self::Url { url, .. } => write!(f, "failed to parse URL of a request; url: `{}`", url),
         }
+    }
+}
+
+impl From<HttpError> for OsuError {
+    fn from(e: HttpError) -> Self {
+        Self::BodyError { source: e }
     }
 }
 

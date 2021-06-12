@@ -57,16 +57,15 @@ impl<'a> GetChartRankings<'a> {
         let mut query = Query::new();
 
         if let Some(spotlight) = self.spotlight {
-            query.push("spotlight", spotlight.to_string());
+            query.push("spotlight", &spotlight.to_string());
         }
 
-        let req = Request::from((
-            query,
-            Route::GetRankings {
-                mode: self.mode,
-                ranking_type: RankingType::Charts,
-            },
-        ));
+        let route = Route::GetRankings {
+            mode: self.mode,
+            ranking_type: RankingType::Charts,
+        };
+
+        let req = Request::new(route).query(query);
 
         Box::pin(self.osu.inner.request(req))
     }
@@ -110,16 +109,15 @@ impl<'a> GetCountryRankings<'a> {
         let mut query = Query::new();
 
         if let Some(page) = self.page {
-            query.push("cursor[page]", page.to_string());
+            query.push("cursor[page]", &page.to_string());
         }
 
-        let req = Request::from((
-            query,
-            Route::GetRankings {
-                mode: self.mode,
-                ranking_type: RankingType::Country,
-            },
-        ));
+        let route = Route::GetRankings {
+            mode: self.mode,
+            ranking_type: RankingType::Country,
+        };
+
+        let req = Request::new(route).query(query);
 
         Box::pin(self.osu.inner.request(req))
     }
@@ -193,25 +191,24 @@ impl<'a> GetPerformanceRankings<'a> {
         let mut query = Query::new();
 
         if let Some(country) = self.country.take() {
-            query.push("country", country);
+            query.push("country", &country);
         }
 
         // ! Adjust filter once there are non-mania variants
         if let Some(variant) = self.variant.filter(|_| mode == GameMode::MNA) {
-            query.push("variant", variant);
+            query.push("variant", &variant);
         }
 
         if let Some(page) = self.page {
-            query.push("cursor[page]", page.to_string());
+            query.push("cursor[page]", &page.to_string());
         }
 
-        let req = Request::from((
-            query,
-            Route::GetRankings {
-                mode,
-                ranking_type: RankingType::Performance,
-            },
-        ));
+        let route = Route::GetRankings {
+            mode,
+            ranking_type: RankingType::Performance,
+        };
+
+        let req = Request::new(route).query(query);
 
         let fut = self
             .osu
@@ -268,16 +265,15 @@ impl<'a> GetScoreRankings<'a> {
         let mut query = Query::new();
 
         if let Some(page) = self.page {
-            query.push("cursor[page]", page.to_string());
+            query.push("cursor[page]", &page.to_string());
         }
 
-        let req = Request::from((
-            query,
-            Route::GetRankings {
-                mode,
-                ranking_type: RankingType::Score,
-            },
-        ));
+        let route = Route::GetRankings {
+            mode,
+            ranking_type: RankingType::Score,
+        };
+
+        let req = Request::new(route).query(query);
 
         let fut = self
             .osu
@@ -313,7 +309,7 @@ impl<'a> GetSpotlights<'a> {
         #[cfg(feature = "metrics")]
         self.osu.metrics.spotlights.inc();
 
-        let req = Request::from(Route::GetSpotlights);
+        let req = Request::new(Route::GetSpotlights);
 
         let fut = self
             .osu

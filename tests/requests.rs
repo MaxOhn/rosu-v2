@@ -9,7 +9,7 @@ use rosu_v2::{
     },
     Osu,
 };
-use std::env;
+use std::{env, error::Error};
 
 #[macro_use]
 extern crate log;
@@ -46,7 +46,21 @@ async fn init() {
             .client_secret(client_secret)
             .build()
             .await
-            .unwrap_or_else(|err| panic!("failed to build osu! client: {}", err));
+            .unwrap_or_else(|err| {
+                panic!(
+                    "failed to build osu! client:\n  - caused by: {}:\n  - caused by: {}",
+                    err,
+                    err.source().map_or_else(
+                        || format!("No source"),
+                        |e| format!(
+                            "{}\n  - caused by: {}",
+                            e,
+                            e.source()
+                                .map_or_else(|| format!("No source"), |e| e.to_string())
+                        )
+                    )
+                )
+            });
 
         OSU.set(osu).unwrap_or_else(|_| panic!("failed to set OSU"));
     }

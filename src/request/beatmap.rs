@@ -12,13 +12,11 @@ use crate::{
     Osu,
 };
 
+use futures::future::TryFutureExt;
 use std::fmt::Write;
 
 #[cfg(feature = "cache")]
 use super::UserId;
-
-#[cfg(feature = "cache")]
-use futures::future::TryFutureExt;
 
 /// Get a [`Beatmap`](crate::model::beatmap::Beatmap).
 #[must_use = "futures do nothing unless you `.await` or poll them"]
@@ -69,19 +67,19 @@ impl<'a> GetBeatmap<'a> {
 
         let mut query = Query::new();
 
-        if let Some(checksum) = self.checksum.take() {
+        if let Some(ref checksum) = self.checksum {
             query.push("checksum", checksum);
         }
 
-        if let Some(filename) = self.filename.take() {
+        if let Some(ref filename) = self.filename {
             query.push("filename", filename);
         }
 
         if let Some(map_id) = self.map_id {
-            query.push("id", map_id.to_string());
+            query.push("id", &map_id.to_string());
         }
 
-        let req = Request::from((query, Route::GetBeatmap));
+        let req = Request::new(Route::GetBeatmap).query(query);
 
         Box::pin(self.osu.inner.request(req))
     }
@@ -163,17 +161,17 @@ impl<'a> GetBeatmapScores<'a> {
         let mut query = Query::new();
 
         if let Some(mode) = self.mode {
-            query.push("mode", mode.to_string());
+            query.push("mode", &mode.to_string());
         }
 
         if let Some(mods) = self.mods {
             for m in mods {
-                query.push("mods[]", m.to_string());
+                query.push("mods[]", &m.to_string());
             }
         }
 
         if let Some(score_type) = self.score_type {
-            query.push("type", score_type);
+            query.push("type", &score_type);
         }
 
         // if let Some(limit) = self.limit {
@@ -184,12 +182,11 @@ impl<'a> GetBeatmapScores<'a> {
         //     query.push("offset", offset.to_string());
         // }
 
-        let req = Request::from((
-            query,
-            Route::GetBeatmapScores {
-                map_id: self.map_id,
-            },
-        ));
+        let route = Route::GetBeatmapScores {
+            map_id: self.map_id,
+        };
+
+        let req = Request::new(route).query(query);
 
         let fut = self
             .osu
@@ -268,24 +265,23 @@ impl<'a> GetBeatmapUserScore<'a> {
         let mut query = Query::new();
 
         if let Some(mode) = self.mode {
-            query.push("mode", mode.to_string());
+            query.push("mode", &mode.to_string());
         }
 
         if let Some(mods) = self.mods {
             for m in mods {
-                query.push("mods[]", m.to_string());
+                query.push("mods[]", &m.to_string());
             }
         }
 
         #[cfg(not(feature = "cache"))]
         {
-            let req = Request::from((
-                query,
-                Route::GetBeatmapUserScore {
-                    user_id: self.user_id,
-                    map_id: self.map_id,
-                },
-            ));
+            let route = Route::GetBeatmapUserScore {
+                user_id: self.user_id,
+                map_id: self.map_id,
+            };
+
+            let req = Request::new(route).query(query);
 
             Box::pin(self.osu.inner.request(req))
         }
@@ -299,7 +295,7 @@ impl<'a> GetBeatmapUserScore<'a> {
                 .osu
                 .cache_user(self.user_id.take().unwrap())
                 .map_ok(move |user_id| {
-                    Request::from((query, Route::GetBeatmapUserScore { user_id, map_id }))
+                    Request::new(Route::GetBeatmapUserScore { user_id, map_id }).query(query)
                 })
                 .and_then(move |req| osu.request(req));
 
@@ -332,7 +328,7 @@ impl<'a> GetBeatmapset<'a> {
         #[cfg(feature = "metrics")]
         self.osu.metrics.beatmapset.inc();
 
-        let req = Request::from(Route::GetBeatmapset {
+        let req = Request::new(Route::GetBeatmapset {
             mapset_id: self.mapset_id,
         });
 
@@ -359,7 +355,7 @@ impl<'a> GetBeatmapsetEvents<'a> {
         #[cfg(feature = "metrics")]
         self.osu.metrics.beatmapset_events.inc();
 
-        let req = Request::from(Route::GetBeatmapsetEvents);
+        let req = Request::new(Route::GetBeatmapsetEvents);
 
         Box::pin(self.osu.inner.request(req))
     }
@@ -546,34 +542,36 @@ impl<'a> GetBeatmapsetSearch<'a> {
         let mut query = Query::new();
 
         if let Some(ref q) = q {
-            query.push("q", q.to_owned());
+            query.push("q", q);
         }
 
         if let Some(mode) = mode {
-            query.push("m", mode.to_string());
+            query.push("m", &mode.to_string());
         }
 
         match status {
             None => {}
             Some(SearchRankStatus::Specific(status)) => {
-                let mut buf = String::with_capacity(8);
+                let mut buf = String::new();
                 let _ = write!(buf, "{:?}", status);
 
                 // SAFETY: Debug formats of RankStatus are guaranteed
                 // to only contain ASCII chars and have a length >= 1.
                 unsafe { buf.as_bytes_mut()[0].make_ascii_lowercase() }
 
-                query.push("s", buf);
+                let _ = query.push("s", &buf);
             }
-            Some(SearchRankStatus::Any) => query.push("s", "any"),
+            Some(SearchRankStatus::Any) => {
+                let _ = query.push("s", &"any");
+            }
         }
 
         if let Some(genre) = genre {
-            query.push("g", genre.to_string());
+            query.push("g", &genre.to_string());
         }
 
         if let Some(language) = language {
-            query.push("l", language.to_string());
+            query.push("l", &language.to_string());
         }
 
         let extra = match (video, storyboard) {
@@ -584,20 +582,20 @@ impl<'a> GetBeatmapsetSearch<'a> {
         };
 
         if let Some(extra) = extra {
-            query.push("e", extra);
+            query.push("e", &extra);
         }
 
-        query.push("nsfw", nsfw.to_string());
+        query.push("nsfw", &nsfw.to_string());
 
         if let Some(cursor) = self.cursor.take() {
-            query.push("cursor[_id]", cursor.id);
+            query.push("cursor[_id]", &cursor.id);
 
             if let Some(score) = cursor.score {
-                query.push("cursor[_score]", score.to_string());
+                query.push("cursor[_score]", &score.to_string());
             }
 
             if let Some(playcount) = cursor.playcount {
-                query.push("cursor[play_count]", playcount);
+                query.push("cursor[play_count]", &playcount);
             }
         }
 
@@ -607,10 +605,10 @@ impl<'a> GetBeatmapsetSearch<'a> {
             let order = if self.descending { "desc" } else { "asc" };
             buf.push_str(order);
 
-            query.push("sort", buf);
+            query.push("sort", &buf);
         }
 
-        let req = Request::from((query, Route::GetBeatmapsetSearch));
+        let req = Request::new(Route::GetBeatmapsetSearch).query(query);
 
         let fut =
             self.osu

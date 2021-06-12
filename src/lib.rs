@@ -135,7 +135,7 @@ pub mod prelude {
         Osu, OsuBuilder, OsuResult,
     };
 
-    pub use reqwest::{Client as ReqwestClient, StatusCode};
+    pub use hyper::StatusCode;
 
     #[cfg(feature = "metrics")]
     pub use prometheus::IntCounterVec;

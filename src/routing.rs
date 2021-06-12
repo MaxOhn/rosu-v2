@@ -3,7 +3,7 @@ use crate::{
     request::{ScoreType, UserId},
 };
 
-use reqwest::Method;
+use hyper::Method;
 use std::{borrow::Cow, fmt::Write};
 
 #[allow(clippy::enum_variant_names)]

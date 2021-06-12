@@ -61,11 +61,6 @@ version = "0.22"
 default-features = false
 features = ["native-tokio"]
 
-[dependencies.rand]
-version = "0.8"
-default-features = false
-features = ["std_rng", "std"]
-
 [dependencies.serde]
 version = "1.0"
 default-features = false

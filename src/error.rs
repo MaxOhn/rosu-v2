@@ -35,11 +35,8 @@ pub enum OsuError {
     BuilderMissingSecret,
     /// Error while handling response from the API
     ChunkingResponse { source: HyperError },
-    /// Failed to create a request header
-    CreatingHeader {
-        name: &'static str,
-        source: InvalidHeaderValue,
-    },
+    /// Failed to create the token header for a request
+    CreatingTokenHeader { source: InvalidHeaderValue },
     /// The API returned a 404
     NotFound,
     /// Attempted to make request without valid token
@@ -75,7 +72,7 @@ impl StdError for OsuError {
             Self::BuilderMissingId => None,
             Self::BuilderMissingSecret => None,
             Self::ChunkingResponse { source } => Some(source),
-            Self::CreatingHeader { source, .. } => Some(source),
+            Self::CreatingTokenHeader { source } => Some(source),
             Self::NotFound => None,
             Self::NoToken => None,
             Self::Parsing { source, .. } => Some(source),
@@ -102,8 +99,8 @@ impl fmt::Display for OsuError {
                 f.write_str("failed to build osu client, no client secret was provided")
             }
             Self::ChunkingResponse { .. } => f.write_str("failed to chunk the response"),
-            Self::CreatingHeader { name, .. } => {
-                write!(f, "failed to parse value for header {}", name)
+            Self::CreatingTokenHeader { .. } => {
+                f.write_str("failed to parse token for authorization header")
             }
             Self::NotFound => f.write_str(
                 "the osu!api returned a 404 implying a missing score, incorrect name, id, etc",

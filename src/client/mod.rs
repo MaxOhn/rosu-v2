@@ -588,6 +588,7 @@ impl OsuRef {
 
         serde_json::from_slice(&bytes).map_err(|source| {
             let body = String::from_utf8_lossy(&bytes).into();
+
             OsuError::Parsing { body, source }
         })
     }
@@ -651,11 +652,8 @@ impl OsuRef {
         debug!("URL: {}", url);
 
         let mut builder = if let Some(token) = self.token.read().await.as_ref() {
-            let value =
-                HeaderValue::from_str(token).map_err(|source| OsuError::CreatingHeader {
-                    name: "Authorization",
-                    source,
-                })?;
+            let value = HeaderValue::from_str(token)
+                .map_err(|source| OsuError::CreatingTokenHeader { source })?;
 
             HyperRequest::builder()
                 .method(method.clone())
@@ -665,17 +663,17 @@ impl OsuRef {
             return Err(OsuError::NoToken);
         };
 
-        let user_agent = HeaderValue::from_static(MY_USER_AGENT);
         builder = builder
-            .header(USER_AGENT, user_agent)
-            .header(ACCEPT, APPLICATION_JSON);
+            .header(USER_AGENT, MY_USER_AGENT)
+            .header(ACCEPT, APPLICATION_JSON)
+            .header(CONTENT_LENGTH, 0);
 
         self.ratelimiter.await_access().await;
 
         let inner = self.http.request(builder.body(Body::empty())?);
-        let fut = tokio::time::timeout(self.timeout, inner);
 
-        fut.await
+        tokio::time::timeout(self.timeout, inner)
+            .await
             .map_err(|_| OsuError::RequestTimeout)?
             .map_err(|source| OsuError::Request { source })
     }

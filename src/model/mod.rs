@@ -192,6 +192,7 @@ macro_rules! def_enum {
 
 pub mod beatmap;
 pub mod comments;
+mod cursor;
 pub mod forum;
 mod grade;
 pub mod kudosu;
@@ -207,6 +208,7 @@ pub mod seasonal_backgrounds;
 pub mod user;
 pub mod wiki;
 
+pub use cursor::Cursor;
 pub use grade::Grade;
 pub use mode::GameMode;
 pub use mods::GameMods;

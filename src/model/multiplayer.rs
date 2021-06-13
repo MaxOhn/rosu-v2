@@ -1,3 +1,5 @@
+use super::Cursor;
+
 use serde::{Deserialize, Serialize};
 use std::{
     ops::{Deref, DerefMut},
@@ -40,7 +42,7 @@ impl Eq for MultiplayerScore {}
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct MultiplayerScores {
-    pub(crate) cursor: ScoresCursor,
+    pub(crate) cursor: Option<Cursor>,
     // params: u32, // TODO
     pub scores: Vec<MultiplayerScore>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -79,10 +81,4 @@ pub enum ScoresAround {
     Higher,
     #[serde(rename = "lower")]
     Lower,
-}
-
-#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub struct ScoresCursor {
-    score_id: u32,
-    total_score: u32,
 }

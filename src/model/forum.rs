@@ -1,3 +1,5 @@
+use super::Cursor;
+
 use chrono::{DateTime, Utc};
 use serde::{
     de::{Deserializer, Error, IgnoredAny, MapAccess, Visitor},
@@ -8,7 +10,7 @@ use std::fmt;
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct ForumPosts {
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub cursor: Option<ForumPostsCursor>,
+    pub cursor: Option<Cursor>,
     pub posts: Vec<ForumPost>,
     pub search: ForumPostsSearch,
     pub topic: ForumTopic,
@@ -146,12 +148,6 @@ impl PartialEq for ForumPost {
 }
 
 impl Eq for ForumPost {}
-
-#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub struct ForumPostsCursor {
-    #[serde(rename = "id")]
-    pub post_id: u64,
-}
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct ForumPostsSearch {

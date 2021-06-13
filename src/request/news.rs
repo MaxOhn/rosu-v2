@@ -1,5 +1,5 @@
 use crate::{
-    model::news::{News, NewsCursor},
+    model::{news::News, Cursor},
     request::{Pending, Query, Request},
     routing::Route,
     Osu,
@@ -11,7 +11,7 @@ pub struct GetNews<'a> {
     fut: Option<Pending<'a, News>>,
     osu: &'a Osu,
     news: Option<()>, // TODO
-    cursor: Option<NewsCursor>,
+    cursor: Option<Cursor>,
 }
 
 impl<'a> GetNews<'a> {
@@ -34,7 +34,7 @@ impl<'a> GetNews<'a> {
     // }
 
     #[inline]
-    pub(crate) fn cursor(mut self, cursor: NewsCursor) -> Self {
+    pub(crate) fn cursor(mut self, cursor: Cursor) -> Self {
         self.cursor.replace(cursor);
 
         self
@@ -46,13 +46,11 @@ impl<'a> GetNews<'a> {
 
         let mut query = Query::new();
 
-        if let Some(cursor) = self.cursor {
-            query
-                .push("cursor[published_at]", &cursor.published_at) // TODO: Test
-                .push("cursor[id]", &cursor.id);
+        if let Some(cursor) = self.cursor.take() {
+            cursor.push_to_query(&mut query);
         }
 
-        let req = Request::new(Route::GetNews { news: self.news }).query(query);
+        let req = Request::with_query(Route::GetNews { news: self.news }, query);
 
         Box::pin(self.osu.inner.request(req))
     }

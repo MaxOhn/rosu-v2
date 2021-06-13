@@ -1,3 +1,4 @@
+use super::Cursor;
 use crate::{Osu, OsuResult};
 
 use chrono::{DateTime, Utc};
@@ -6,7 +7,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct News {
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub(crate) cursor: Option<NewsCursor>,
+    pub(crate) cursor: Option<Cursor>,
     #[serde(rename = "news_posts")]
     pub posts: Vec<NewsPost>,
     pub search: NewsSearch,
@@ -24,14 +25,8 @@ impl News {
     /// Otherwise, this method returns `None`.
     #[inline]
     pub async fn get_next(&self, osu: &Osu) -> Option<OsuResult<News>> {
-        Some(osu.news().cursor(self.cursor?).await)
+        Some(osu.news().cursor(self.cursor.clone()?).await)
     }
-}
-
-#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub(crate) struct NewsCursor {
-    pub(crate) published_at: DateTime<Utc>,
-    pub(crate) id: u32,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -59,10 +54,10 @@ impl PartialEq for NewsPost {
 
 impl Eq for NewsPost {}
 
-#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct NewsSearch {
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub(crate) cursor: Option<NewsCursor>,
+    pub(crate) cursor: Option<Cursor>,
     pub limit: u32,
 }
 

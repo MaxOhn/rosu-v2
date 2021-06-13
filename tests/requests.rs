@@ -98,10 +98,24 @@ fn osu() -> &'static Osu {
 async fn custom() {
     init().await;
 
-    let req_fut = osu().beatmapset_search();
+    let req_fut = osu()
+        .beatmapset_search()
+        .query("camellia")
+        .mode(GameMode::STD)
+        .status(RankStatus::Ranked)
+        .genre(rosu_v2::prelude::Genre::Electronic)
+        .language(rosu_v2::prelude::Language::Instrumental)
+        .nsfw(false)
+        .sort(rosu_v2::prelude::BeatmapsetSearchSort::Artist, true);
 
     let result = req_fut.await.unwrap();
-    println!("Result 1: {:#?}", result);
+    println!("Result 1:\n{:#?}", result);
+
+    let result = result.get_next(osu()).await.unwrap().unwrap();
+    println!("Result 2:\n{:#?}", result);
+
+    let result = result.get_next(osu()).await.unwrap().unwrap();
+    println!("Result 3:\n{:#?}", result);
 }
 
 #[tokio::test]

@@ -1,4 +1,4 @@
-use super::user::UserCompact;
+use super::{user::UserCompact, Cursor};
 use crate::{request::GetUser, Osu, OsuResult};
 
 use chrono::{DateTime, Utc};
@@ -54,7 +54,7 @@ pub struct CommentBundle {
     pub commentable_meta: Vec<CommentableMeta>,
     pub comments: Vec<Comment>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub(crate) cursor: Option<CommentBundleCursor>,
+    pub(crate) cursor: Option<Cursor>,
     pub(crate) has_more: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub has_more_id: Option<u32>,
@@ -83,14 +83,8 @@ impl CommentBundle {
     pub async fn get_next(&self, osu: &Osu) -> Option<OsuResult<CommentBundle>> {
         debug_assert!(self.has_more == self.cursor.is_some());
 
-        Some(osu.comments().cursor(self.cursor?).await)
+        Some(osu.comments().cursor(self.cursor.clone()?).await)
     }
-}
-
-#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub(crate) struct CommentBundleCursor {
-    pub(crate) created_at: DateTime<Utc>,
-    pub(crate) id: u32,
 }
 
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]

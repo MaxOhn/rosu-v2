@@ -1,6 +1,7 @@
 #[allow(unused_imports)]
 use crate::{
     error::OsuError,
+    model::Cursor,
     request::{Pending, Query, Request},
     Osu,
 };
@@ -56,7 +57,7 @@ pub struct GetMultiplayerScores<'a> {
     playlist: u32,
     limit: Option<u32>,
     sort: Option<&'static str>,
-    cursor: Option<()>, // TODO
+    cursor: Option<Cursor>,
 }
 
 impl<'a> GetMultiplayerScores<'a> {

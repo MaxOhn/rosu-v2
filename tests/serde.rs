@@ -34,13 +34,19 @@ fn get_country_ranking() -> CountryRanking {
     }
 }
 
+fn get_cursor() -> Cursor {
+    let json = r#"{"cursor":{"a":123,"b":"henlo","c":true,"d":[1, 2, 3]}}"#;
+
+    serde_json::from_str(json).unwrap()
+}
+
 fn get_date() -> DateTime<Utc> {
     Utc.timestamp(1_500_000_000, 0)
 }
 
 fn get_forum_posts() -> ForumPosts {
     ForumPosts {
-        cursor: Some(ForumPostsCursor { post_id: 0 }),
+        cursor: Some(get_cursor()),
         posts: vec![ForumPost {
             created_at: get_date(),
             deleted_at: Some(get_date()),

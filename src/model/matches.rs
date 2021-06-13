@@ -1,6 +1,6 @@
 use super::{
-    beatmap::BeatmapCompact, deflate_acc, score::ScoreStatistics, user::UserCompact, GameMode,
-    GameMods,
+    beatmap::BeatmapCompact, deflate_acc, score::ScoreStatistics, user::UserCompact, Cursor,
+    GameMode, GameMods,
 };
 use crate::{Osu, OsuResult};
 
@@ -417,7 +417,7 @@ impl Eq for MatchInfo {}
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct MatchList {
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub(crate) cursor: Option<MatchListCursor>,
+    pub(crate) cursor: Option<Cursor>,
     pub matches: Vec<MatchInfo>,
     pub params: MatchListParams,
 }
@@ -432,13 +432,8 @@ impl MatchList {
     /// Otherwise, this method returns `None`.
     #[inline]
     pub async fn get_next(&self, osu: &Osu) -> Option<OsuResult<MatchList>> {
-        Some(osu.osu_matches().cursor(self.cursor?).await)
+        Some(osu.osu_matches().cursor(self.cursor.clone()?).await)
     }
-}
-
-#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub(crate) struct MatchListCursor {
-    pub(crate) match_id: u32,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]

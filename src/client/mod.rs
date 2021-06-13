@@ -506,15 +506,12 @@ const APPLICATION_JSON: &str = "application/json";
 
 impl OsuRef {
     pub(crate) async fn request_token(&self) -> OsuResult<Token> {
-        let mut query = Query::new();
+        let data = format!(
+            r#"{{"client_id":{},"client_secret":"{}","grant_type":"client_credentials","scope":"public"}}"#,
+            self.client_id, self.client_secret
+        );
 
-        query
-            .push("client_id", &self.client_id)
-            .push("client_secret", &self.client_secret)
-            .push("grant_type", &"client_credentials")
-            .push("scope", &"public");
-
-        let bytes = query.finish();
+        let bytes = data.into_bytes();
 
         let user_agent = HeaderValue::from_static(MY_USER_AGENT);
         let url = "https://osu.ppy.sh/oauth/token";
@@ -587,7 +584,7 @@ impl OsuRef {
         let bytes = self.request_bytes(req).await?;
 
         // let text = String::from_utf8_lossy(&bytes);
-        // println!("{}", text);
+        // println!("Response:\n{}", text);
 
         serde_json::from_slice(&bytes).map_err(|source| {
             let body = String::from_utf8_lossy(&bytes).into();
@@ -649,9 +646,7 @@ impl OsuRef {
             path,
         } = req;
 
-        // println!("Path: {}", path);
-
-        let url = format!("https://osu.ppy.sh/api/v2/{}", path);
+        let url = format!("https://osu.ppy.sh/api/v2/{}{}", path, query);
         let url = Url::parse(&url).map_err(|source| OsuError::Url { source, url })?;
         debug!("URL: {}", url);
 
@@ -671,28 +666,13 @@ impl OsuRef {
         };
 
         let user_agent = HeaderValue::from_static(MY_USER_AGENT);
-        builder = builder.header(USER_AGENT, user_agent);
-
-        let body = if let Some(query) = query {
-            let bytes = query.finish();
-
-            builder = builder
-                .header(ACCEPT, APPLICATION_JSON)
-                .header(CONTENT_TYPE, APPLICATION_JSON)
-                .header(CONTENT_LENGTH, bytes.len());
-
-            Body::from(bytes)
-        } else {
-            if matches!(method, Method::PUT | Method::POST | Method::PATCH) {
-                builder = builder.header(CONTENT_LENGTH, 0);
-            }
-
-            Body::empty()
-        };
+        builder = builder
+            .header(USER_AGENT, user_agent)
+            .header(ACCEPT, APPLICATION_JSON);
 
         self.ratelimiter.await_access().await;
 
-        let inner = self.http.request(builder.body(body)?);
+        let inner = self.http.request(builder.body(Body::empty())?);
         let fut = tokio::time::timeout(self.timeout, inner);
 
         fut.await

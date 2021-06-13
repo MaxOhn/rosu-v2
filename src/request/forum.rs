@@ -1,5 +1,5 @@
 use crate::{
-    model::forum::{ForumPosts, ForumPostsCursor},
+    model::{forum::ForumPosts, Cursor},
     request::{Pending, Query, Request},
     routing::Route,
     Osu,
@@ -15,7 +15,7 @@ pub struct GetForumPosts<'a> {
     limit: Option<usize>,
     start: Option<u64>,
     end: Option<u64>,
-    cursor: Option<ForumPostsCursor>,
+    cursor: Option<Cursor>,
 }
 
 impl<'a> GetForumPosts<'a> {
@@ -76,7 +76,7 @@ impl<'a> GetForumPosts<'a> {
     }
 
     #[inline]
-    pub fn cursor(mut self, cursor: ForumPostsCursor) -> Self {
+    pub fn cursor(mut self, cursor: Cursor) -> Self {
         self.cursor.replace(cursor);
 
         self
@@ -105,14 +105,14 @@ impl<'a> GetForumPosts<'a> {
         }
 
         if let Some(cursor) = self.cursor.take() {
-            query.push("cursor[id]", &cursor.post_id);
+            cursor.push_to_query(&mut query);
         }
 
         let route = Route::GetForumPosts {
             topic_id: self.topic_id,
         };
 
-        let req = Request::new(route).query(query);
+        let req = Request::with_query(route, query);
 
         Box::pin(self.osu.inner.request(req))
     }

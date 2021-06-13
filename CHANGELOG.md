@@ -7,6 +7,7 @@
 - [Breaking] `description` field of `Group` is now `Option<String>` instead of `String`
 - [Breaking] Added new `BeatmapsetEvent` variant `OwnerChange` and declared `BeatmapsetEvent` as non-exhaustive
 - [Breaking] `OsuBuilder` no longer accepts a reqwest client since its now using a hyper client
+- [Breaking] Removed all endpoint-specific cursor structs and replaced them by a single struct `Cursor`
 
 # v0.1.0
 

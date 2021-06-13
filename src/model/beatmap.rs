@@ -1,4 +1,4 @@
-use super::{user::UserCompact, GameMode};
+use super::{user::UserCompact, Cursor, GameMode};
 use crate::{request::GetUser, Osu, OsuResult};
 
 use chrono::{DateTime, Utc};
@@ -593,20 +593,6 @@ pub struct BeatmapsetReviewsConfig {
     pub max_blocks: u32,
 }
 
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-pub(crate) struct BeatmapsetSearchCursor {
-    #[serde(rename = "_id")]
-    pub(crate) id: String,
-    #[serde(
-        default,
-        rename = "play_count",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub(crate) playcount: Option<String>,
-    #[serde(default, rename = "_score", skip_serializing_if = "Option::is_none")]
-    pub(crate) score: Option<f32>,
-}
-
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub(crate) enum SearchRankStatus {
     Any,
@@ -826,7 +812,7 @@ impl<'de> Deserialize<'de> for BeatmapsetSearchParameters {
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct BeatmapsetSearchResult {
-    cursor: Option<BeatmapsetSearchCursor>,
+    cursor: Option<Cursor>,
     #[serde(rename(serialize = "beatmapsets"))]
     pub mapsets: Vec<Beatmapset>,
     #[serde(rename(serialize = "search"))]
@@ -1226,11 +1212,7 @@ mod tests {
     #[test]
     fn ser_de_search_result_any_status() {
         let search_result = BeatmapsetSearchResult {
-            cursor: Some(BeatmapsetSearchCursor {
-                id: "123".to_owned(),
-                score: Some(3.1415),
-                playcount: None,
-            }),
+            cursor: None,
             mapsets: Vec::new(),
             params: BeatmapsetSearchParameters {
                 query: Some("my query".to_owned()),
@@ -1253,11 +1235,7 @@ mod tests {
     #[test]
     fn ser_de_search_result_specific_status() {
         let search_result = BeatmapsetSearchResult {
-            cursor: Some(BeatmapsetSearchCursor {
-                id: "123".to_owned(),
-                score: None,
-                playcount: Some("123".to_owned()),
-            }),
+            cursor: None,
             mapsets: Vec::new(),
             params: BeatmapsetSearchParameters {
                 query: None,

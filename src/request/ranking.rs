@@ -65,7 +65,7 @@ impl<'a> GetChartRankings<'a> {
             ranking_type: RankingType::Charts,
         };
 
-        let req = Request::new(route).query(query);
+        let req = Request::with_query(route, query);
 
         Box::pin(self.osu.inner.request(req))
     }
@@ -117,7 +117,7 @@ impl<'a> GetCountryRankings<'a> {
             ranking_type: RankingType::Country,
         };
 
-        let req = Request::new(route).query(query);
+        let req = Request::with_query(route, query);
 
         Box::pin(self.osu.inner.request(req))
     }
@@ -208,7 +208,7 @@ impl<'a> GetPerformanceRankings<'a> {
             ranking_type: RankingType::Performance,
         };
 
-        let req = Request::new(route).query(query);
+        let req = Request::with_query(route, query);
 
         let fut = self
             .osu
@@ -273,7 +273,7 @@ impl<'a> GetScoreRankings<'a> {
             ranking_type: RankingType::Score,
         };
 
-        let req = Request::new(route).query(query);
+        let req = Request::with_query(route, query);
 
         let fut = self
             .osu

@@ -1,11 +1,11 @@
 use crate::{
     model::{
         beatmap::{
-            Beatmap, Beatmapset, BeatmapsetEvents, BeatmapsetSearchCursor, BeatmapsetSearchResult,
-            BeatmapsetSearchSort, Genre, Language, RankStatus, SearchRankStatus,
+            Beatmap, Beatmapset, BeatmapsetEvents, BeatmapsetSearchResult, BeatmapsetSearchSort,
+            Genre, Language, RankStatus, SearchRankStatus,
         },
         score::{BeatmapScores, BeatmapUserScore, Score},
-        GameMode, GameMods,
+        Cursor, GameMode, GameMods,
     },
     request::{Pending, Query, Request},
     routing::Route,
@@ -79,7 +79,7 @@ impl<'a> GetBeatmap<'a> {
             query.push("id", &map_id);
         }
 
-        let req = Request::new(Route::GetBeatmap).query(query);
+        let req = Request::with_query(Route::GetBeatmap, query);
 
         Box::pin(self.osu.inner.request(req))
     }
@@ -186,7 +186,7 @@ impl<'a> GetBeatmapScores<'a> {
             map_id: self.map_id,
         };
 
-        let req = Request::new(route).query(query);
+        let req = Request::with_query(route, query);
 
         let fut = self
             .osu
@@ -295,7 +295,7 @@ impl<'a> GetBeatmapUserScore<'a> {
                 .osu
                 .cache_user(self.user_id.take().unwrap())
                 .map_ok(move |user_id| {
-                    Request::new(Route::GetBeatmapUserScore { user_id, map_id }).query(query)
+                    Request::with_query(Route::GetBeatmapUserScore { user_id, map_id }, query)
                 })
                 .and_then(move |req| osu.request(req));
 
@@ -406,7 +406,7 @@ pub struct GetBeatmapsetSearch<'a> {
     nsfw: bool,
     sort: Option<BeatmapsetSearchSort>,
     descending: bool,
-    cursor: Option<BeatmapsetSearchCursor>,
+    cursor: Option<Cursor>,
 }
 
 impl<'a> GetBeatmapsetSearch<'a> {
@@ -520,7 +520,7 @@ impl<'a> GetBeatmapsetSearch<'a> {
     }
 
     #[inline]
-    pub(crate) fn cursor(mut self, cursor: BeatmapsetSearchCursor) -> Self {
+    pub(crate) fn cursor(mut self, cursor: Cursor) -> Self {
         self.cursor.replace(cursor);
 
         self
@@ -546,7 +546,7 @@ impl<'a> GetBeatmapsetSearch<'a> {
         }
 
         if let Some(mode) = mode {
-            query.push("m", &mode);
+            query.push("m", mode);
         }
 
         match status {
@@ -559,19 +559,19 @@ impl<'a> GetBeatmapsetSearch<'a> {
                 // to only contain ASCII chars and have a length >= 1.
                 unsafe { buf.as_bytes_mut()[0].make_ascii_lowercase() }
 
-                let _ = query.push("s", &buf);
+                let _ = query.push("s", buf);
             }
             Some(SearchRankStatus::Any) => {
-                let _ = query.push("s", &"any");
+                let _ = query.push("s", "any");
             }
         }
 
         if let Some(genre) = genre {
-            query.push("g", &genre);
+            query.push("g", genre);
         }
 
         if let Some(language) = language {
-            query.push("l", &language);
+            query.push("l", language);
         }
 
         let extra = match (video, storyboard) {
@@ -582,21 +582,13 @@ impl<'a> GetBeatmapsetSearch<'a> {
         };
 
         if let Some(extra) = extra {
-            query.push("e", &extra);
+            query.push("e", extra);
         }
 
-        query.push("nsfw", &nsfw);
+        query.push("nsfw", nsfw);
 
         if let Some(cursor) = self.cursor.take() {
-            query.push("cursor[_id]", &cursor.id);
-
-            if let Some(score) = cursor.score {
-                query.push("cursor[_score]", &score);
-            }
-
-            if let Some(playcount) = cursor.playcount {
-                query.push("cursor[play_count]", &playcount);
-            }
+            cursor.push_to_query(&mut query);
         }
 
         if let Some(ref sort) = self.sort {
@@ -605,10 +597,10 @@ impl<'a> GetBeatmapsetSearch<'a> {
             let order = if self.descending { "desc" } else { "asc" };
             buf.push_str(order);
 
-            query.push("sort", &buf);
+            query.push("sort", buf);
         }
 
-        let req = Request::new(Route::GetBeatmapsetSearch).query(query);
+        let req = Request::with_query(Route::GetBeatmapsetSearch, query);
 
         let fut =
             self.osu

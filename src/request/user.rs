@@ -116,7 +116,7 @@ impl<'a> GetUser<'a> {
             mode: self.mode,
         };
 
-        let req = Request::new(route).query(query);
+        let req = Request::with_query(route, query);
 
         Box::pin(self.osu.inner.request(req))
     }
@@ -267,7 +267,7 @@ impl<'a> GetUserBeatmapsets<'a> {
                 .osu
                 .cache_user(self.user_id.take().unwrap())
                 .map_ok(move |user_id| {
-                    Request::new(Route::GetUserBeatmapsets { user_id, map_type }).query(query)
+                    Request::with_query(Route::GetUserBeatmapsets { user_id, map_type }, query)
                 })
                 .and_then(move |req| osu.request(req));
 
@@ -362,7 +362,7 @@ impl<'a> GetUserKudosu<'a> {
             let fut = self
                 .osu
                 .cache_user(self.user_id.take().unwrap())
-                .map_ok(move |user_id| Request::new(Route::GetUserKudosu { user_id }).query(query))
+                .map_ok(move |user_id| Request::with_query(Route::GetUserKudosu { user_id }, query))
                 .and_then(move |req| osu.request(req));
 
             Box::pin(fut)
@@ -467,7 +467,7 @@ impl<'a> GetUserMostPlayed<'a> {
                         map_type: "most_played",
                     };
 
-                    Request::new(route).query(query)
+                    Request::with_query(route, query)
                 })
                 .and_then(move |req| osu.request(req));
 
@@ -562,7 +562,7 @@ impl<'a> GetRecentEvents<'a> {
                 .osu
                 .cache_user(self.user_id.take().unwrap())
                 .map_ok(move |user_id| {
-                    Request::new(Route::GetRecentEvents { user_id }).query(query)
+                    Request::with_query(Route::GetRecentEvents { user_id }, query)
                 })
                 .and_then(move |req| osu.request(req));
 
@@ -751,7 +751,7 @@ impl<'a> GetUserScores<'a> {
                         score_type,
                     };
 
-                    Request::new(route).query(query)
+                    Request::with_query(route, query)
                 })
                 .and_then(move |req| osu.request(req));
 

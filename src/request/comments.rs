@@ -1,5 +1,8 @@
 use crate::{
-    model::comments::{CommentBundle, CommentBundleCursor, CommentSort},
+    model::{
+        comments::{CommentBundle, CommentSort},
+        Cursor,
+    },
     request::{Pending, Query, Request},
     routing::Route,
     Osu,
@@ -15,7 +18,7 @@ pub struct GetComments<'a> {
     commentable_id: Option<u32>,
     parent_id: Option<u32>,
     sort: Option<CommentSort>,
-    cursor: Option<CommentBundleCursor>,
+    cursor: Option<Cursor>,
 }
 
 impl<'a> GetComments<'a> {
@@ -75,7 +78,7 @@ impl<'a> GetComments<'a> {
     }
 
     #[inline]
-    pub(crate) fn cursor(mut self, cursor: CommentBundleCursor) -> Self {
+    pub(crate) fn cursor(mut self, cursor: Cursor) -> Self {
         self.cursor.replace(cursor);
 
         self
@@ -104,11 +107,10 @@ impl<'a> GetComments<'a> {
         }
 
         if let Some(cursor) = self.cursor.take() {
-            query.push("cursor[id]", &cursor.id);
-            query.push("cursor[created_at]", &cursor.created_at); // TODO: Test
+            cursor.push_to_query(&mut query);
         }
 
-        let req = Request::new(Route::GetComments).query(query);
+        let req = Request::with_query(Route::GetComments, query);
 
         Box::pin(self.osu.inner.request(req))
     }

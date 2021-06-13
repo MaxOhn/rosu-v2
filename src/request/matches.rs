@@ -1,5 +1,8 @@
 use crate::{
-    model::matches::{MatchList, MatchListCursor, OsuMatch},
+    model::{
+        matches::{MatchList, OsuMatch},
+        Cursor,
+    },
     request::{Pending, Query, Request},
     routing::Route,
     Osu,
@@ -79,7 +82,7 @@ impl<'a> GetMatch<'a> {
             match_id: Some(self.match_id),
         };
 
-        let req = Request::new(route).query(query);
+        let req = Request::with_query(route, query);
 
         Box::pin(self.osu.inner.request(req))
     }
@@ -93,7 +96,7 @@ poll_req!(GetMatch => OsuMatch);
 pub struct GetMatches<'a> {
     fut: Option<Pending<'a, MatchList>>,
     osu: &'a Osu,
-    cursor: Option<MatchListCursor>,
+    cursor: Option<Cursor>,
 }
 
 impl<'a> GetMatches<'a> {
@@ -107,7 +110,7 @@ impl<'a> GetMatches<'a> {
     }
 
     #[inline]
-    pub(crate) fn cursor(mut self, cursor: MatchListCursor) -> Self {
+    pub(crate) fn cursor(mut self, cursor: Cursor) -> Self {
         self.cursor.replace(cursor);
 
         self
@@ -120,10 +123,10 @@ impl<'a> GetMatches<'a> {
         let mut query = Query::new();
 
         if let Some(cursor) = self.cursor.take() {
-            query.push("cursor[match_id]", &cursor.match_id);
+            cursor.push_to_query(&mut query);
         }
 
-        let req = Request::new(Route::GetMatch { match_id: None }).query(query);
+        let req = Request::with_query(Route::GetMatch { match_id: None }, query);
 
         Box::pin(self.osu.inner.request(req))
     }

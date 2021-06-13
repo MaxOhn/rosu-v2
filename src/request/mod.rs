@@ -45,14 +45,18 @@ pub use wiki::*;
 use crate::{routing::Route, OsuResult};
 
 use hyper::Method;
-use serde::Serialize;
-use std::{borrow::Cow, future::Future, pin::Pin};
+use std::{
+    borrow::Cow,
+    fmt::{Display, Formatter, Result, Write},
+    future::Future,
+    pin::Pin,
+};
 
 type Pending<'a, T> = Pin<Box<dyn Future<Output = OsuResult<T>> + Send + 'a>>;
 
 #[derive(Debug)]
 pub(crate) struct Request {
-    pub query: Option<Query>,
+    pub query: Query,
     pub method: Method,
     pub path: Cow<'static, str>,
 }
@@ -60,32 +64,32 @@ pub(crate) struct Request {
 impl Request {
     #[inline]
     fn new(route: Route) -> Self {
-        let (method, path) = route.into_parts();
-
-        Self {
-            query: None,
-            method,
-            path,
-        }
+        Self::with_query(route, Query::default())
     }
 
     #[inline]
-    fn query(mut self, query: Query) -> Self {
-        self.query.replace(query);
+    fn with_query(route: Route, query: Query) -> Self {
+        let (method, path) = route.into_parts();
 
-        self
+        Self {
+            query,
+            method,
+            path,
+        }
     }
 }
 
 #[derive(Debug)]
 pub(crate) struct Query {
-    query: Vec<u8>,
+    query: String,
 }
 
 impl Default for Query {
     #[inline]
     fn default() -> Self {
-        Self { query: vec![b'{'] }
+        Self {
+            query: String::new(),
+        }
     }
 }
 
@@ -96,27 +100,23 @@ impl Query {
     }
 
     #[inline]
-    pub(crate) fn finish(mut self) -> Vec<u8> {
-        if self.query.len() > 1 {
-            self.query.pop();
+    pub(crate) fn push(&mut self, key: &str, value: impl Display) {
+        self.query.reserve(2 + key.len());
+
+        self.query.push_str(key);
+        self.query.push('=');
+        let _ = write!(self.query, "{}", value);
+
+        self.query.push('&');
+    }
+}
+
+impl Display for Query {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        if self.query.is_empty() {
+            return Ok(());
         }
 
-        self.query.push(b'}');
-
-        self.query
-    }
-
-    #[inline]
-    pub(crate) fn push(&mut self, key: &str, value: &impl Serialize) -> &mut Self {
-        self.query.reserve(5 + key.len());
-
-        self.query.push(b'"');
-        self.query.extend_from_slice(key.as_bytes());
-        self.query.push(b'"');
-        self.query.push(b':');
-        let _ = serde_json::to_writer(&mut self.query, value);
-        self.query.push(b',');
-
-        self
+        write!(f, "?{}", &self.query[..self.query.len() - 1])
     }
 }

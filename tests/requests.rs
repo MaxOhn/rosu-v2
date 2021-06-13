@@ -5,11 +5,14 @@ use once_cell::sync::OnceCell;
 use rosu_v2::{
     model::{
         beatmap::{BeatmapsetSearchSort, RankStatus},
-        GameMode, GameMods,
+        GameMode,
     },
     Osu,
 };
 use std::{env, error::Error};
+
+#[cfg(feature = "cache")]
+use rosu_v2::model::GameMods;
 
 #[macro_use]
 extern crate log;

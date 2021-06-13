@@ -281,7 +281,7 @@ impl<'a> GetBeatmapUserScore<'a> {
                 map_id: self.map_id,
             };
 
-            let req = Request::new(route).query(query);
+            let req = Request::with_query(route, query);
 
             Box::pin(self.osu.inner.request(req))
         }

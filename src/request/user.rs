@@ -254,7 +254,7 @@ impl<'a> GetUserBeatmapsets<'a> {
         #[cfg(not(feature = "cache"))]
         {
             let user_id = self.user_id;
-            let req = Request::new(Route::GetUserBeatmapsets { user_id, map_type }).query(query);
+            let req = Request::with_query(Route::GetUserBeatmapsets { user_id, map_type }, query);
 
             Box::pin(self.osu.inner.request(req))
         }
@@ -350,7 +350,7 @@ impl<'a> GetUserKudosu<'a> {
         #[cfg(not(feature = "cache"))]
         {
             let user_id = self.user_id;
-            let req = Request::new(Route::GetUserKudosu { user_id }).query(query);
+            let req = Request::with_query(Route::GetUserKudosu { user_id }, query);
 
             Box::pin(self.osu.inner.request(req))
         }
@@ -449,7 +449,7 @@ impl<'a> GetUserMostPlayed<'a> {
                 map_type: "most_played",
             };
 
-            let req = Request::new(route).query(query);
+            let req = Request::with_query(route, query);
 
             Box::pin(self.osu.inner.request(req))
         }
@@ -549,7 +549,7 @@ impl<'a> GetRecentEvents<'a> {
         #[cfg(not(feature = "cache"))]
         {
             let user_id = self.user_id;
-            let req = Request::new(Route::GetRecentEvents { user_id }).query(query);
+            let req = Request::with_query(Route::GetRecentEvents { user_id }, query);
 
             Box::pin(self.osu.inner.request(req))
         }
@@ -732,7 +732,7 @@ impl<'a> GetUserScores<'a> {
                 score_type: self.score_type,
             };
 
-            let req = Request::new(route).query(query);
+            let req = Request::with_query(route, query);
 
             Box::pin(self.osu.inner.request(req))
         }

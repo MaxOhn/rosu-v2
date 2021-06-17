@@ -1,5 +1,9 @@
 ## Upcoming
 
+- Nothing as of now
+
+# v0.2.0
+
 - Dont only consider HD when calculating grade but also Flashlight and FadeIn
 - Implemented `Default` for `Language`, `Genre`, `ScoringType`, `TeamType`, and `Team` enums
 - Made checking for `Score` equivalency more lenient w.r.t. their timestamps
@@ -13,6 +17,6 @@
 - [Breaking] `GetUserBeatmapsets` methods `ranked_and_approved` and `unranked` were replaced with `ranked` and `pending`, respectively
 - [Breaking] Removed `GetUserBeatmapset::favourite` method
 
-# v0.1.0
+## v0.1.0
 
 - Initial release

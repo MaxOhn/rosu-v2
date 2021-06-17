@@ -339,7 +339,7 @@ struct UserCompactWithoutStats<'u> {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rank_history: &'u Option<Vec<u32>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub ranked_and_approved_beatmapset_count: &'u Option<u32>,
+    pub ranked_beatmapset_count: &'u Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub replays_watched_counts: &'u Option<Vec<MonthlyCount>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -351,7 +351,7 @@ struct UserCompactWithoutStats<'u> {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub support_level: &'u Option<u8>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub unranked_beatmapset_count: &'u Option<u32>,
+    pub pending_beatmapset_count: &'u Option<u32>,
 }
 
 impl<'u> UserCompactWithoutStats<'u> {
@@ -394,14 +394,14 @@ impl<'u> UserCompactWithoutStats<'u> {
             page,
             previous_usernames,
             rank_history,
-            ranked_and_approved_beatmapset_count,
+            ranked_beatmapset_count,
             replays_watched_counts,
             scores_best_count,
             scores_first_count,
             scores_recent_count,
             statistics: _,
             support_level,
-            unranked_beatmapset_count,
+            pending_beatmapset_count,
         } = user;
 
         Self {
@@ -442,13 +442,13 @@ impl<'u> UserCompactWithoutStats<'u> {
             page,
             previous_usernames,
             rank_history,
-            ranked_and_approved_beatmapset_count,
+            ranked_beatmapset_count,
             replays_watched_counts,
             scores_best_count,
             scores_first_count,
             scores_recent_count,
             support_level,
-            unranked_beatmapset_count,
+            pending_beatmapset_count,
         }
     }
 }

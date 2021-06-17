@@ -322,8 +322,9 @@ pub struct User {
         skip_serializing_if = "Option::is_none"
     )]
     pub rank_history: Option<Vec<u32>>,
+    /// Counts both ranked and approved mapsets
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub ranked_and_approved_beatmapset_count: Option<u32>,
+    pub ranked_beatmapset_count: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub replays_watched_counts: Option<Vec<MonthlyCount>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -337,7 +338,7 @@ pub struct User {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub support_level: Option<u8>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub unranked_beatmapset_count: Option<u32>,
+    pub pending_beatmapset_count: Option<u32>,
     #[serde(
         default,
         rename = "user_achievements",
@@ -433,8 +434,9 @@ pub struct UserCompact {
         skip_serializing_if = "Option::is_none"
     )]
     pub rank_history: Option<Vec<u32>>,
+    /// Counts both ranked and approved mapsets
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub ranked_and_approved_beatmapset_count: Option<u32>,
+    pub ranked_beatmapset_count: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub replays_watched_counts: Option<Vec<MonthlyCount>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -448,7 +450,7 @@ pub struct UserCompact {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub support_level: Option<u8>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub unranked_beatmapset_count: Option<u32>,
+    pub pending_beatmapset_count: Option<u32>,
 }
 
 impl From<User> for UserCompact {
@@ -491,14 +493,14 @@ impl From<User> for UserCompact {
             page: user.page,
             previous_usernames: user.previous_usernames,
             rank_history: user.rank_history,
-            ranked_and_approved_beatmapset_count: user.ranked_and_approved_beatmapset_count,
+            ranked_beatmapset_count: user.ranked_beatmapset_count,
             replays_watched_counts: user.replays_watched_counts,
             scores_best_count: user.scores_best_count,
             scores_first_count: user.scores_first_count,
             scores_recent_count: user.scores_recent_count,
             statistics: user.statistics,
             support_level: user.support_level,
-            unranked_beatmapset_count: user.unranked_beatmapset_count,
+            pending_beatmapset_count: user.pending_beatmapset_count,
         }
     }
 }

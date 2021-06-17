@@ -170,7 +170,7 @@ impl<'a> GetUserBeatmapsets<'a> {
             fut: None,
             osu,
             user_id: Some(user_id),
-            map_type: "ranked_and_approved",
+            map_type: "ranked",
             limit: None,
             offset: None,
         }
@@ -192,15 +192,16 @@ impl<'a> GetUserBeatmapsets<'a> {
 
     pub fn map_type(mut self, map_type: RankStatus) -> Self {
         self.map_type = match map_type {
-            RankStatus::Approved | RankStatus::Ranked => "ranked_and_approved",
+            RankStatus::Approved | RankStatus::Ranked => "ranked",
             RankStatus::Graveyard => "graveyard",
-            RankStatus::Pending | RankStatus::WIP | RankStatus::Qualified => "unranked",
+            RankStatus::Pending | RankStatus::WIP | RankStatus::Qualified => "pending",
             RankStatus::Loved => "loved",
         };
 
         self
     }
 
+    /// Require mapset rank status to be `loved`
     #[inline]
     pub fn loved(mut self) -> Self {
         self.map_type = "loved";
@@ -215,6 +216,7 @@ impl<'a> GetUserBeatmapsets<'a> {
         self
     }
 
+    /// Require mapset rank status to be `graveyard`
     #[inline]
     pub fn graveyard(mut self) -> Self {
         self.map_type = "graveyard";
@@ -222,16 +224,18 @@ impl<'a> GetUserBeatmapsets<'a> {
         self
     }
 
+    /// Require mapset rank status to be either `ranked` or `approved`
     #[inline]
-    pub fn ranked_and_approved(mut self) -> Self {
-        self.map_type = "ranked_and_approved";
+    pub fn ranked(mut self) -> Self {
+        self.map_type = "ranked";
 
         self
     }
 
+    /// Require mapset rank status to be `pending`
     #[inline]
-    pub fn unranked(mut self) -> Self {
-        self.map_type = "unranked";
+    pub fn pending(mut self) -> Self {
+        self.map_type = "pending";
 
         self
     }

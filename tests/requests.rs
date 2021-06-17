@@ -97,28 +97,14 @@ fn osu() -> &'static Osu {
 }
 
 #[tokio::test]
-#[ignore = "specific testing"]
+// #[ignore = "specific testing"]
 async fn custom() {
     init().await;
 
-    let req_fut = osu()
-        .beatmapset_search()
-        .query("camellia")
-        .mode(GameMode::STD)
-        .status(RankStatus::Ranked)
-        .genre(rosu_v2::prelude::Genre::Electronic)
-        .language(rosu_v2::prelude::Language::Instrumental)
-        .nsfw(false)
-        .sort(rosu_v2::prelude::BeatmapsetSearchSort::Artist, true);
+    let req_fut = osu().user(sylas());
 
     let result = req_fut.await.unwrap();
-    println!("Result 1:\n{:#?}", result);
-
-    let result = result.get_next(osu()).await.unwrap().unwrap();
-    println!("Result 2:\n{:#?}", result);
-
-    let result = result.get_next(osu()).await.unwrap().unwrap();
-    println!("Result 3:\n{:#?}", result);
+    println!("Result 1:\n{:?}", result);
 }
 
 #[tokio::test]
@@ -512,7 +498,7 @@ async fn user_beatmapsets() {
     match osu()
         .user_beatmapsets(sylas())
         .limit(5)
-        .ranked_and_approved()
+        .ranked()
         .offset(2)
         .await
     {

@@ -645,7 +645,7 @@ fn get_user() -> User {
         }),
         previous_usernames: Some(vec!["b0b".to_owned()]),
         rank_history: Some(vec![50, 40, 30, 35]),
-        ranked_and_approved_beatmapset_count: Some(800),
+        ranked_beatmapset_count: Some(800),
         replays_watched_counts: Some(vec![MonthlyCount {
             start_date: Utc.ymd(2017, 01, 01),
             count: 42,
@@ -655,7 +655,7 @@ fn get_user() -> User {
         scores_recent_count: Some(13),
         statistics: Some(get_user_stats()),
         support_level: Some(3),
-        unranked_beatmapset_count: Some(13),
+        pending_beatmapset_count: Some(13),
         medals: Some(vec![MedalCompact {
             achieved_at: get_date(),
             medal_id: 1,
@@ -734,7 +734,7 @@ fn get_user_compact() -> UserCompact {
         }),
         previous_usernames: Some(vec!["b0b".to_owned()]),
         rank_history: Some(vec![50, 40, 30, 35]),
-        ranked_and_approved_beatmapset_count: Some(34),
+        ranked_beatmapset_count: Some(34),
         replays_watched_counts: Some(vec![MonthlyCount {
             start_date: Utc.ymd(2017, 01, 01),
             count: 42,
@@ -744,7 +744,7 @@ fn get_user_compact() -> UserCompact {
         scores_recent_count: Some(34),
         statistics: Some(get_user_stats()),
         support_level: Some(1),
-        unranked_beatmapset_count: Some(34),
+        pending_beatmapset_count: Some(34),
     }
 }
 

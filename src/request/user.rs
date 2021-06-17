@@ -209,13 +209,6 @@ impl<'a> GetUserBeatmapsets<'a> {
         self
     }
 
-    #[inline]
-    pub fn favourite(mut self) -> Self {
-        self.map_type = "favourite";
-
-        self
-    }
-
     /// Require mapset rank status to be `graveyard`
     #[inline]
     pub fn graveyard(mut self) -> Self {

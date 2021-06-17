@@ -11,6 +11,7 @@
 - [Breaking] Adjusted / Renamed / Added some `OsuError` variants
 - [Breaking] `User` and `UserCompact` fields `ranked_and_approved_beatmapset_count` and `unranked_beatmapset_count` where replaced with `ranked_beatmapset_count` and `pending_beatmapset_count`, respectively
 - [Breaking] `GetUserBeatmapsets` methods `ranked_and_approved` and `unranked` were replaced with `ranked` and `pending`, respectively
+- [Breaking] Removed `GetUserBeatmapset::favourite` method
 
 # v0.1.0
 

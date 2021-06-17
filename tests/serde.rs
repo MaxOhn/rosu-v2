@@ -611,9 +611,9 @@ fn get_user() -> User {
             url: String::new(),
         }]),
         beatmap_playcounts_count: Some(3),
-        favourite_beatmapset_count: Some(3),
+        favourite_mapset_count: Some(3),
         follower_count: Some(2),
-        graveyard_beatmapset_count: Some(8),
+        graveyard_mapset_count: Some(8),
         groups: Some(vec![Group {
             id: 1,
             identifier: String::new(),
@@ -633,7 +633,7 @@ fn get_user() -> User {
         is_nat: Some(true),
         is_restricted: Some(true),
         is_silenced: Some(true),
-        loved_beatmapset_count: Some(3),
+        loved_mapset_count: Some(3),
         mapping_follower_count: Some(5),
         monthly_playcounts: Some(vec![MonthlyCount {
             start_date: Utc.ymd(2017, 01, 01),
@@ -645,7 +645,7 @@ fn get_user() -> User {
         }),
         previous_usernames: Some(vec!["b0b".to_owned()]),
         rank_history: Some(vec![50, 40, 30, 35]),
-        ranked_beatmapset_count: Some(800),
+        ranked_mapset_count: Some(800),
         replays_watched_counts: Some(vec![MonthlyCount {
             start_date: Utc.ymd(2017, 01, 01),
             count: 42,
@@ -655,7 +655,7 @@ fn get_user() -> User {
         scores_recent_count: Some(13),
         statistics: Some(get_user_stats()),
         support_level: Some(3),
-        pending_beatmapset_count: Some(13),
+        pending_mapset_count: Some(13),
         medals: Some(vec![MedalCompact {
             achieved_at: get_date(),
             medal_id: 1,
@@ -697,9 +697,9 @@ fn get_user_compact() -> UserCompact {
             url: String::new(),
             id: None,
         }),
-        favourite_beatmapset_count: Some(34),
+        favourite_mapset_count: Some(34),
         follower_count: Some(2),
-        graveyard_beatmapset_count: Some(34),
+        graveyard_mapset_count: Some(34),
         groups: Some(vec![Group {
             id: 1,
             identifier: String::new(),
@@ -719,7 +719,7 @@ fn get_user_compact() -> UserCompact {
         is_nat: Some(false),
         is_restricted: Some(false),
         is_silenced: Some(false),
-        loved_beatmapset_count: Some(34),
+        loved_mapset_count: Some(34),
         medals: Some(vec![MedalCompact {
             achieved_at: get_date(),
             medal_id: 1,
@@ -734,7 +734,7 @@ fn get_user_compact() -> UserCompact {
         }),
         previous_usernames: Some(vec!["b0b".to_owned()]),
         rank_history: Some(vec![50, 40, 30, 35]),
-        ranked_beatmapset_count: Some(34),
+        ranked_mapset_count: Some(34),
         replays_watched_counts: Some(vec![MonthlyCount {
             start_date: Utc.ymd(2017, 01, 01),
             count: 42,
@@ -744,7 +744,7 @@ fn get_user_compact() -> UserCompact {
         scores_recent_count: Some(34),
         statistics: Some(get_user_stats()),
         support_level: Some(1),
-        pending_beatmapset_count: Some(34),
+        pending_mapset_count: Some(34),
     }
 }
 

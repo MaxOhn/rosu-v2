@@ -279,13 +279,21 @@ pub struct User {
     pub beatmap_playcounts_count: Option<u32>,
     // blocks: Option<>,
     // current_mode_rank: Option<>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub favourite_beatmapset_count: Option<u32>,
+    #[serde(
+        default,
+        rename = "favourite_beatmapset_count",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub favourite_mapset_count: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub follower_count: Option<u32>,
     // friends: Option<>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub graveyard_beatmapset_count: Option<u32>,
+    #[serde(
+        default,
+        rename = "gaveyard_beatmapset_count",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub graveyard_mapset_count: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub groups: Option<Vec<Group>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -306,8 +314,12 @@ pub struct User {
     pub is_restricted: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub is_silenced: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub loved_beatmapset_count: Option<u32>,
+    #[serde(
+        default,
+        rename = "loved_beatmapset_count",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub loved_mapset_count: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub mapping_follower_count: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -323,8 +335,12 @@ pub struct User {
     )]
     pub rank_history: Option<Vec<u32>>,
     /// Counts both ranked and approved mapsets
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub ranked_beatmapset_count: Option<u32>,
+    #[serde(
+        default,
+        rename = "ranked_beatmapset_count",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub ranked_mapset_count: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub replays_watched_counts: Option<Vec<MonthlyCount>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -337,8 +353,12 @@ pub struct User {
     pub statistics: Option<UserStatistics>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub support_level: Option<u8>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub pending_beatmapset_count: Option<u32>,
+    #[serde(
+        default,
+        rename = "pending_beatmapset_count",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub pending_mapset_count: Option<u32>,
     #[serde(
         default,
         rename = "user_achievements",
@@ -387,13 +407,21 @@ pub struct UserCompact {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub cover: Option<UserCover>,
     // current_mode_rank: Option<>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub favourite_beatmapset_count: Option<u32>,
+    #[serde(
+        default,
+        rename = "favourite_beatmapset_count",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub favourite_mapset_count: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub follower_count: Option<u32>,
     // friends: Option<>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub graveyard_beatmapset_count: Option<u32>,
+    #[serde(
+        default,
+        rename = "graveyard_beatmapset_count",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub graveyard_mapset_count: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub groups: Option<Vec<Group>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -414,8 +442,12 @@ pub struct UserCompact {
     pub is_restricted: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub is_silenced: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub loved_beatmapset_count: Option<u32>,
+    #[serde(
+        default,
+        rename = "loved_beatmapset_count",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub loved_mapset_count: Option<u32>,
     #[serde(
         default,
         rename = "user_achievements",
@@ -435,8 +467,12 @@ pub struct UserCompact {
     )]
     pub rank_history: Option<Vec<u32>>,
     /// Counts both ranked and approved mapsets
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub ranked_beatmapset_count: Option<u32>,
+    #[serde(
+        default,
+        rename = "ranked_beatmapset_count",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub ranked_mapset_count: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub replays_watched_counts: Option<Vec<MonthlyCount>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -449,8 +485,12 @@ pub struct UserCompact {
     pub statistics: Option<UserStatistics>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub support_level: Option<u8>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub pending_beatmapset_count: Option<u32>,
+    #[serde(
+        default,
+        rename = "pending_beatmapset_count",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub pending_mapset_count: Option<u32>,
 }
 
 impl From<User> for UserCompact {
@@ -474,9 +514,9 @@ impl From<User> for UserCompact {
             beatmap_playcounts_count: user.beatmap_playcounts_count,
             country: Some(user.country),
             cover: Some(user.cover),
-            favourite_beatmapset_count: user.favourite_beatmapset_count,
+            favourite_mapset_count: user.favourite_mapset_count,
             follower_count: user.follower_count,
-            graveyard_beatmapset_count: user.graveyard_beatmapset_count,
+            graveyard_mapset_count: user.graveyard_mapset_count,
             groups: user.groups,
             is_admin: user.is_admin,
             is_bng: user.is_bng,
@@ -487,20 +527,20 @@ impl From<User> for UserCompact {
             is_nat: user.is_nat,
             is_restricted: user.is_restricted,
             is_silenced: user.is_silenced,
-            loved_beatmapset_count: user.loved_beatmapset_count,
+            loved_mapset_count: user.loved_mapset_count,
             medals: user.medals,
             monthly_playcounts: user.monthly_playcounts,
             page: user.page,
             previous_usernames: user.previous_usernames,
             rank_history: user.rank_history,
-            ranked_beatmapset_count: user.ranked_beatmapset_count,
+            ranked_mapset_count: user.ranked_mapset_count,
             replays_watched_counts: user.replays_watched_counts,
             scores_best_count: user.scores_best_count,
             scores_first_count: user.scores_first_count,
             scores_recent_count: user.scores_recent_count,
             statistics: user.statistics,
             support_level: user.support_level,
-            pending_beatmapset_count: user.pending_beatmapset_count,
+            pending_mapset_count: user.pending_mapset_count,
         }
     }
 }

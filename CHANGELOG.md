@@ -9,7 +9,7 @@
 - [Breaking] `OsuBuilder` no longer accepts a reqwest client since its now using a hyper client
 - [Breaking] Removed all endpoint-specific cursor structs and replaced them by a single struct `Cursor`
 - [Breaking] Adjusted / Renamed / Added some `OsuError` variants
-- [Breaking] `User` and `UserCompact` fields `ranked_and_approved_beatmapset_count` and `unranked_beatmapset_count` where replaced with `ranked_beatmapset_count` and `pending_beatmapset_count`, respectively
+- [Breaking] `User` and `UserCompact` fields `ranked_and_approved_beatmapset_count`, `unranked_beatmapset_count`, `favourite_beatmapset_count`, `graveyard_beatmapset_count`, and `loved_beatmapset_count` where replaced with `ranked_mapset_count`, `pending_mapset_count`, `favourite_mapset_count`, `graveyard_mapset_count`, and `loved_mapset_count`, respectively
 - [Breaking] `GetUserBeatmapsets` methods `ranked_and_approved` and `unranked` were replaced with `ranked` and `pending`, respectively
 - [Breaking] Removed `GetUserBeatmapset::favourite` method
 

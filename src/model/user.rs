@@ -290,7 +290,7 @@ pub struct User {
     // friends: Option<>,
     #[serde(
         default,
-        rename = "gaveyard_beatmapset_count",
+        rename = "graveyard_beatmapset_count",
         skip_serializing_if = "Option::is_none"
     )]
     pub graveyard_mapset_count: Option<u32>,

@@ -56,7 +56,7 @@ pub enum OsuError {
         status: StatusCode,
     },
     /// Temporal (?) downtime of the osu API
-    ServiceUnavailable(Option<String>),
+    ServiceUnavailable(String),
     /// The client's authentication is not sufficient for the endpoint
     UnavailableEndpoint,
     /// Failed to update token
@@ -119,7 +119,7 @@ impl fmt::Display for OsuError {
             Self::ServiceUnavailable(body) => write!(
                 f,
                 "osu!api may be temporarily unavailable (received 503): {}",
-                body.as_deref().unwrap_or("error while parsing body")
+                body
             ),
             Self::UnavailableEndpoint => {
                 f.write_str("the endpoint is not available for the client's authorization level")

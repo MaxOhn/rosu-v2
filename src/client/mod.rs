@@ -5,13 +5,12 @@ pub use builder::OsuBuilder;
 use crate::{error::OsuError, model::GameMode, ratelimiter::Ratelimiter, request::*, OsuResult};
 
 use bytes::Bytes;
-// use reqwest::{header::HeaderValue, multipart::Form, Client, Method, Response, StatusCode};
 use hyper::{
     client::{Client as HyperClient, HttpConnector},
     header::{HeaderValue, ACCEPT, AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE, USER_AGENT},
     Body, Method, Request as HyperRequest, Response, StatusCode,
 };
-type HttpsConnector<T> = hyper_rustls::HttpsConnector<T>;
+use hyper_rustls::HttpsConnector;
 use serde::{de::DeserializeOwned, Deserialize};
 use std::{ops::Drop, sync::Arc, time::Duration};
 use tokio::sync::{oneshot::Sender, RwLock};
@@ -512,132 +511,31 @@ impl OsuRef {
         );
 
         let bytes = data.into_bytes();
-
-        let user_agent = HeaderValue::from_static(MY_USER_AGENT);
         let url = "https://osu.ppy.sh/oauth/token";
 
         let req = HyperRequest::builder()
             .method(Method::POST)
             .uri(url)
-            .header(USER_AGENT, user_agent)
+            .header(USER_AGENT, MY_USER_AGENT)
             .header(ACCEPT, APPLICATION_JSON)
             .header(CONTENT_TYPE, APPLICATION_JSON)
             .header(CONTENT_LENGTH, bytes.len())
             .body(Body::from(bytes))?;
 
-        self.ratelimiter.await_access().await;
+        let resp = self.send_request(req).await?;
+        let bytes = self.handle_status(resp).await?;
 
-        let inner = self.http.request(req);
-        let fut = tokio::time::timeout(self.timeout, inner);
-
-        let resp = fut
-            .await
-            .map_err(|_| OsuError::RequestTimeout)?
-            .map_err(|source| OsuError::Request { source })?;
-
-        let status = resp.status();
-
-        match status {
-            StatusCode::OK => {
-                let bytes = hyper::body::to_bytes(resp.into_body())
-                    .await
-                    .map_err(|source| OsuError::ChunkingResponse { source })?;
-
-                return serde_json::from_slice(&bytes).map_err(|source| {
-                    let body = String::from_utf8_lossy(&bytes).into();
-                    OsuError::Parsing { body, source }
-                });
-            }
-            StatusCode::SERVICE_UNAVAILABLE => {
-                let body = hyper::body::to_bytes(resp.into_body())
-                    .await
-                    .as_ref()
-                    .map(|bytes| String::from_utf8_lossy(bytes))
-                    .map(|text| text.into_owned())
-                    .ok();
-
-                return Err(OsuError::ServiceUnavailable(body));
-            }
-            StatusCode::TOO_MANY_REQUESTS => warn!("429 response: {:?}", resp),
-            _ => {}
-        }
-
-        let bytes = hyper::body::to_bytes(resp.into_body())
-            .await
-            .map_err(|source| OsuError::ChunkingResponse { source })?;
-
-        let body = String::from_utf8_lossy(bytes.as_ref()).into_owned();
-
-        let source = match serde_json::from_slice(&bytes) {
-            Ok(source) => source,
-            Err(source) => return Err(OsuError::Parsing { body, source }),
-        };
-
-        Err(OsuError::Response {
-            body,
-            source,
-            status,
-        })
+        parse_bytes(bytes)
     }
 
     pub(crate) async fn request<T: DeserializeOwned>(&self, req: Request) -> OsuResult<T> {
-        let bytes = self.request_bytes(req).await?;
+        let resp = self.raw(req).await?;
+        let bytes = self.handle_status(resp).await?;
 
         // let text = String::from_utf8_lossy(&bytes);
         // println!("Response:\n{}", text);
 
-        serde_json::from_slice(&bytes).map_err(|source| {
-            let body = String::from_utf8_lossy(&bytes).into();
-
-            OsuError::Parsing { body, source }
-        })
-    }
-
-    pub(crate) async fn request_bytes(&self, req: Request) -> OsuResult<Bytes> {
-        let resp = self.make_request(req).await?;
-
-        hyper::body::to_bytes(resp.into_body())
-            .await
-            .map_err(|source| OsuError::ChunkingResponse { source })
-    }
-
-    async fn make_request(&self, req: Request) -> OsuResult<Response<Body>> {
-        let resp = self.raw(req).await?;
-        let status = resp.status();
-
-        match status {
-            StatusCode::OK => return Ok(resp),
-            StatusCode::NOT_FOUND => return Err(OsuError::NotFound),
-            StatusCode::SERVICE_UNAVAILABLE => {
-                let body = hyper::body::to_bytes(resp.into_body())
-                    .await
-                    .as_ref()
-                    .map(|bytes| String::from_utf8_lossy(bytes))
-                    .map(|text| text.into_owned())
-                    .ok();
-
-                return Err(OsuError::ServiceUnavailable(body));
-            }
-            StatusCode::TOO_MANY_REQUESTS => warn!("429 response: {:?}", resp),
-            _ => {}
-        }
-
-        let bytes = hyper::body::to_bytes(resp.into_body())
-            .await
-            .map_err(|source| OsuError::ChunkingResponse { source })?;
-
-        let body = String::from_utf8_lossy(bytes.as_ref()).into_owned();
-
-        let source = match serde_json::from_slice(&bytes) {
-            Ok(source) => source,
-            Err(source) => return Err(OsuError::Parsing { body, source }),
-        };
-
-        Err(OsuError::Response {
-            body,
-            source,
-            status,
-        })
+        parse_bytes(bytes)
     }
 
     async fn raw(&self, req: Request) -> OsuResult<Response<Body>> {
@@ -651,31 +549,64 @@ impl OsuRef {
         let url = Url::parse(&url).map_err(|source| OsuError::Url { source, url })?;
         debug!("URL: {}", url);
 
-        let mut builder = if let Some(token) = self.token.read().await.as_ref() {
+        if let Some(token) = self.token.read().await.as_ref() {
             let value = HeaderValue::from_str(token)
                 .map_err(|source| OsuError::CreatingTokenHeader { source })?;
 
-            HyperRequest::builder()
-                .method(method.clone())
+            let req = HyperRequest::builder()
+                .method(method)
                 .uri(url.as_str())
                 .header(AUTHORIZATION, value)
+                .header(USER_AGENT, MY_USER_AGENT)
+                .header(ACCEPT, APPLICATION_JSON)
+                .header(CONTENT_LENGTH, 0)
+                .body(Body::empty())?;
+
+            self.send_request(req).await
         } else {
-            return Err(OsuError::NoToken);
-        };
+            Err(OsuError::NoToken)
+        }
+    }
 
-        builder = builder
-            .header(USER_AGENT, MY_USER_AGENT)
-            .header(ACCEPT, APPLICATION_JSON)
-            .header(CONTENT_LENGTH, 0);
-
+    async fn send_request(&self, req: HyperRequest<Body>) -> OsuResult<Response<Body>> {
         self.ratelimiter.await_access().await;
 
-        let inner = self.http.request(builder.body(Body::empty())?);
-
-        tokio::time::timeout(self.timeout, inner)
+        tokio::time::timeout(self.timeout, self.http.request(req))
             .await
             .map_err(|_| OsuError::RequestTimeout)?
             .map_err(|source| OsuError::Request { source })
+    }
+
+    async fn handle_status(&self, resp: Response<Body>) -> OsuResult<Bytes> {
+        let status = resp.status();
+
+        let bytes = hyper::body::to_bytes(resp.into_body())
+            .await
+            .map_err(|source| OsuError::ChunkingResponse { source })?;
+
+        match status {
+            StatusCode::OK => return Ok(bytes),
+            StatusCode::SERVICE_UNAVAILABLE => {
+                let body = String::from_utf8_lossy(&bytes).into_owned();
+
+                return Err(OsuError::ServiceUnavailable(body));
+            }
+            StatusCode::TOO_MANY_REQUESTS => warn!("Got a 429 response"),
+            _ => {}
+        }
+
+        let body = String::from_utf8_lossy(&bytes).into_owned();
+
+        let source = match serde_json::from_slice(&bytes) {
+            Ok(source) => source,
+            Err(source) => return Err(OsuError::Parsing { body, source }),
+        };
+
+        Err(OsuError::Response {
+            body,
+            source,
+            status,
+        })
     }
 }
 
@@ -692,4 +623,13 @@ pub(crate) struct Token {
     token_type: String,
     expires_in: u64,
     access_token: String,
+}
+
+#[inline]
+fn parse_bytes<T: DeserializeOwned>(bytes: Bytes) -> OsuResult<T> {
+    serde_json::from_slice(&bytes).map_err(|source| {
+        let body = String::from_utf8_lossy(&bytes).into_owned();
+
+        OsuError::Parsing { body, source }
+    })
 }

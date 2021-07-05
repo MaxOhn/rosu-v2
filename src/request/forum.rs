@@ -75,6 +75,7 @@ impl<'a> GetForumPosts<'a> {
         self
     }
 
+    /// Specify a page by providing a cursor
     #[inline]
     pub fn cursor(mut self, cursor: Cursor) -> Self {
         self.cursor.replace(cursor);

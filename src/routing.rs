@@ -30,23 +30,6 @@ pub(crate) enum Route {
     GetMatch {
         match_id: Option<u32>,
     },
-    #[allow(dead_code)]
-    GetMultiplayerScore {
-        room: u32,
-        playlist: u32,
-        score_id: u32,
-    },
-    #[allow(dead_code)]
-    GetMultiplayerScores {
-        room: u32,
-        playlist: u32,
-    },
-    #[allow(dead_code)]
-    GetMultiplayerUserHighScore {
-        room: u32,
-        playlist: u32,
-        user_id: u32,
-    },
     GetNews {
         news: Option<()>,
     },
@@ -110,30 +93,6 @@ impl Route {
                 };
 
                 (Method::GET, path)
-            }
-            Self::GetMultiplayerScore {
-                room,
-                playlist,
-                score_id,
-            } => (
-                Method::GET,
-                format!("rooms/{}/playlist/{}/scores/{}", room, playlist, score_id).into(),
-            ),
-            Self::GetMultiplayerScores { room, playlist } => (
-                Method::GET,
-                format!("rooms/{}/playlist/{}/scores", room, playlist).into(),
-            ),
-            Self::GetMultiplayerUserHighScore {
-                room,
-                playlist,
-                user_id,
-            } => {
-                let path = format!(
-                    "rooms/{}/playlist/{}/scores/users/{}",
-                    room, playlist, user_id
-                );
-
-                (Method::GET, path.into())
             }
             Self::GetNews { news } => {
                 let path = match news {

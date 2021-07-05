@@ -1,6 +1,12 @@
 ## Upcoming
 
-- Nothing as of now
+- Added a bunch of documentation
+- [Breaking] Adjusted some struct fields:
+  - Added `Group::has_modes`
+  - Added `WikiPage::available_locales`
+  - Removed `User::skype`
+  - Removed `User::is_restricted` and `UserCompact::is_restricted`
+- [Breaking] Removed `Osu` methods `multiplayer_score`, `multiplayer_scores`, and `multiplayer_user_highscore`
 
 # v0.2.0
 

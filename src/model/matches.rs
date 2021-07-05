@@ -77,6 +77,7 @@ pub enum MatchEvent {
 }
 
 impl MatchEvent {
+    /// Return the id of the event
     pub fn event_id(&self) -> u64 {
         match self {
             Self::Create { event_id, .. } => *event_id,
@@ -89,6 +90,7 @@ impl MatchEvent {
         }
     }
 
+    /// Return the timestamp of the event
     pub fn timestamp(&self) -> DateTime<Utc> {
         match self {
             Self::Create { timestamp, .. } => *timestamp,
@@ -101,6 +103,7 @@ impl MatchEvent {
         }
     }
 
+    /// Return the user id of the user associated with the event
     pub fn user_id(&self) -> Option<u32> {
         match self {
             Self::Create { user_id, .. } => Some(*user_id),
@@ -293,7 +296,8 @@ pub struct MatchGame {
     pub scoring_type: ScoringType,
     pub team_type: TeamType,
     pub mods: GameMods,
-    /// Optional in case the map was deleted
+    /// [`BeatmapCompact`](crate::model::beatmap::BeatmapCompact) of the game;
+    /// `None` if the map was deleted
     #[serde(rename = "beatmap")]
     pub map: Option<BeatmapCompact>,
     pub scores: Vec<MatchScore>,
@@ -423,12 +427,14 @@ pub struct MatchList {
 }
 
 impl MatchList {
+    /// Returns whether there is a next page of match results,
+    /// retrievable via [`get_next`](MatchList::get_next).
     #[inline]
     pub fn has_more(&self) -> bool {
         self.cursor.is_some()
     }
 
-    /// If `has_more()` is true, the API can provide the next set of matches and this method will request them.
+    /// If [`has_more`](MatchList::has_more) is true, the API can provide the next set of matches and this method will request them.
     /// Otherwise, this method returns `None`.
     #[inline]
     pub async fn get_next(&self, osu: &Osu) -> Option<OsuResult<MatchList>> {
@@ -444,6 +450,7 @@ pub struct MatchListParams {
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct MatchScore {
+    /// Accuracy between `0.0` and `100.0`
     #[serde(serialize_with = "deflate_acc")]
     pub accuracy: f32,
     pub max_combo: u32,

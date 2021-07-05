@@ -25,6 +25,7 @@ impl<'a> GetWikiPage<'a> {
         }
     }
 
+    /// Specify the page
     #[inline]
     pub fn page(mut self, page: impl Into<String>) -> Self {
         self.page.replace(page.into());

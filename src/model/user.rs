@@ -92,16 +92,22 @@ where
     d.deserialize_option(CountryVisitor)
 }
 
+/// Counts of grades of a [`User`].
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct GradeCounts {
+    /// Number of SS ranked scores
     #[serde(deserialize_with = "deserialize_i32_default")]
     pub ss: i32,
+    /// Number of Silver SS ranked scores
     #[serde(deserialize_with = "deserialize_i32_default")]
     pub ssh: i32,
+    /// Number of S ranked scores
     #[serde(deserialize_with = "deserialize_i32_default")]
     pub s: i32,
+    /// Number of Silver S ranked scores
     #[serde(deserialize_with = "deserialize_i32_default")]
     pub sh: i32,
+    /// Number of A ranked scores
     #[serde(deserialize_with = "deserialize_i32_default")]
     pub a: i32,
 }
@@ -110,19 +116,26 @@ pub struct GradeCounts {
 fn deserialize_i32_default<'de, D: Deserializer<'de>>(d: D) -> Result<i32, D::Error> {
     Option::<i32>::deserialize(d).map(Option::unwrap_or_default)
 }
-
+/// Describes a Group membership of a [`User`].
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Group {
-    pub id: u32,
-    pub identifier: String,
-    pub is_probationary: bool,
-    pub name: String,
-    pub short_name: String,
-    pub description: Option<String>,
     #[serde(rename = "colour")]
     pub color: Option<String>,
+    pub description: Option<String>,
+    /// Whether this group associates [`GameMode`](crate::model::GameMode)s with users' memberships.
+    #[serde(rename = "has_playmodes")]
+    pub has_modes: bool,
+    pub id: u32,
+    /// Unique string to identify the group.
+    pub identifier: String,
+    /// Whether members of this group are considered probationary.
+    pub is_probationary: bool,
+    /// [`GameMode`](crate::model::GameMode)s associated with this membership (`None` if has_modes is unset).
     #[serde(default, rename = "playmodes", skip_serializing_if = "Option::is_none")]
     pub modes: Option<Vec<GameMode>>,
+    pub name: String,
+    /// Short name of the group for display.
+    pub short_name: String,
 }
 
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -213,60 +226,92 @@ pub enum ProfilePage {
     TopRanks,
 }
 
+/// Represents a User. Extends [`UserCompact`] object with additional attributes.
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct User {
+    /// url of user's avatar
     pub avatar_url: String,
+    /// number of forum comments
     pub comments_count: usize,
+    /// country of the user
     #[serde(deserialize_with = "deserialize_country")]
     pub country: String,
+    /// two-letter code representing user's country
     pub country_code: String,
+    /// urls for the profile cover
     pub cover: UserCover,
+    /// Identifier of the default [`Group`] the user belongs to.
     pub default_group: String,
+    /// discord tag, `None` if not specified by the user
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub discord: Option<String>,
+    /// whether or not ever being a supporter in the past
     pub has_supported: bool,
+    /// interests, `None` if not specified by the user
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub interests: Option<String>,
+    /// has this account been active in the last x months?
     pub is_active: bool,
+    /// is this a bot account?
     pub is_bot: bool,
+    /// has this user been deleted?
     pub is_deleted: bool,
+    /// is the user currently online? (either on lazer or the new website)
     pub is_online: bool,
+    /// does this user have supporter?
     pub is_supporter: bool,
+    /// date of account creation
     pub join_date: DateTime<Utc>,
+    /// current kudosu of the user
     pub kudosu: UserKudosu,
+    /// last access time. `None` if the user hides online presence
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub last_visit: Option<DateTime<Utc>>,
+    /// location of the user, `None` if disabled by the user
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub location: Option<String>,
+    /// maximum number of users allowed to be blocked
     pub max_blocks: u32,
+    /// maximum number of friends allowed to be added
     pub max_friends: u32,
+    /// mode for this struct
     #[serde(rename = "playmode")]
     pub mode: GameMode,
+    /// occupation, `None` if not specified by the user
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub occupation: Option<String>,
+    /// Device choices of the user
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub playstyle: Option<Vec<Playstyle>>,
+    /// whether or not the user allows PM from other than friends
     pub pm_friends_only: bool,
+    /// number of forum posts
     #[serde(rename = "post_count")]
     pub forum_post_count: u32,
+    /// colour of username/profile highlight, hex code (e.g. `"#333333"`)
     #[serde(
         default,
         rename = "profile_colour",
         skip_serializing_if = "Option::is_none"
     )]
     pub profile_color: Option<String>,
+    /// ordered list of sections in user profile page
     pub profile_order: Vec<ProfilePage>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub skype: Option<String>,
+    /// user-specific title
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
+    /// URL to the user title
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub title_url: Option<String>,
+    /// twitter handle, `None` if not specified by the user
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub twitter: Option<String>,
+    /// unique identifier for user
     #[serde(rename = "id")]
     pub user_id: u32,
+    /// user's display name
     pub username: String,
+    /// website, `None` if not specified by the user
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub website: Option<String>,
 
@@ -277,8 +322,6 @@ pub struct User {
     pub badges: Option<Vec<Badge>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub beatmap_playcounts_count: Option<u32>,
-    // blocks: Option<>,
-    // current_mode_rank: Option<>,
     #[serde(
         default,
         rename = "favourite_beatmapset_count",
@@ -310,8 +353,6 @@ pub struct User {
     pub is_moderator: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub is_nat: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub is_restricted: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub is_silenced: Option<bool>,
     #[serde(
@@ -367,37 +408,50 @@ pub struct User {
     pub medals: Option<Vec<MedalCompact>>,
 }
 
+/// Mainly used for embedding in certain responses to save additional api lookups.
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct UserCompact {
+    /// url of user's avatar
     pub avatar_url: String,
+    /// two-letter code representing user's country
     pub country_code: String,
+    /// Identifier of the default [`Group`] the user belongs to.
     pub default_group: String,
+    /// has this account been active in the last x months?
     pub is_active: bool,
+    /// is this a bot account?
     pub is_bot: bool,
+    /// has this user been deleted?
     pub is_deleted: bool,
+    /// is the user currently online? (either on lazer or the new website)
     pub is_online: bool,
+    /// does this user have supporter?
     pub is_supporter: bool,
+    /// last access time. `None` if the user hides online presence
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub last_visit: Option<DateTime<Utc>>,
+    /// whether or not the user allows PM from other than friends
     pub pm_friends_only: bool,
+    /// colour of username/profile highlight, hex code (e.g. `"#333333"`)
     #[serde(
         default,
         rename = "profile_colour",
         skip_serializing_if = "Option::is_none"
     )]
     pub profile_color: Option<String>,
+    /// unique identifier for user
     #[serde(rename = "id")]
     pub user_id: u32,
+    /// user's display name
     pub username: String,
 
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub account_history: Option<Vec<AccountHistory>>,
-    // pub active_tournament_banner: Option<ProfileBanner>,
+    // pub active_tournament_banner: Option<ProfileBanner>, // TODO
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub badges: Option<Vec<Badge>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub beatmap_playcounts_count: Option<u32>,
-    // blocks: Option<>,
     #[serde(
         default,
         deserialize_with = "deserialize_maybe_country",
@@ -406,7 +460,6 @@ pub struct UserCompact {
     pub country: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub cover: Option<UserCover>,
-    // current_mode_rank: Option<>,
     #[serde(
         default,
         rename = "favourite_beatmapset_count",
@@ -438,8 +491,6 @@ pub struct UserCompact {
     pub is_moderator: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub is_nat: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub is_restricted: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub is_silenced: Option<bool>,
     #[serde(
@@ -525,7 +576,6 @@ impl From<User> for UserCompact {
             is_limited_bn: user.is_limited_bn,
             is_moderator: user.is_moderator,
             is_nat: user.is_nat,
-            is_restricted: user.is_restricted,
             is_silenced: user.is_silenced,
             loved_mapset_count: user.loved_mapset_count,
             medals: user.medals,
@@ -554,15 +604,21 @@ pub struct UserCover {
     pub id: Option<String>,
 }
 
+/// Kudosu of a [`User`]
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct UserKudosu {
+    /// Currently available kudosu
     pub available: i32,
+    /// Total gained kudosu
     pub total: i32,
 }
 
+/// Level progression of a [`User`].
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct UserLevel {
+    /// The current level
     pub current: u32,
+    /// Percentage to the next level between `0.0` and `100.0`
     pub progress: u32,
 }
 
@@ -572,29 +628,43 @@ pub struct UserPage {
     pub raw: String,
 }
 
+/// A summary of various gameplay statistics for a [`User`]. Specific to a [`GameMode`]
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct UserStatistics {
+    /// Hit accuracy percentage
     #[serde(rename = "hit_accuracy")]
     pub accuracy: f32,
+    /// Current country rank according to pp
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub country_rank: Option<u32>,
+    /// Current global rank according to pp
     pub global_rank: Option<u32>,
+    /// Counts of grades
     pub grade_counts: GradeCounts,
+    /// Is actively ranked
     pub is_ranked: bool,
+    /// The user's level progression
     pub level: UserLevel,
+    /// Highest maximum combo
     #[serde(rename = "maximum_combo")]
     pub max_combo: u32,
+    /// Number of maps played
     #[serde(rename = "play_count")]
     pub playcount: u32,
-    /// Playtime in seconds
+    /// Cumulative time played in seconds
     #[serde(rename = "play_time", deserialize_with = "maybe_u32")]
     pub playtime: u32,
+    /// Performance points
     #[serde(deserialize_with = "deserialize_f32_default")]
     pub pp: f32,
+    /// Current ranked score
     pub ranked_score: u64,
+    /// Number of replays watched by other users
     #[serde(rename = "replays_watched_by_others")]
     pub replays_watched: u32,
+    /// Total number of hits
     pub total_hits: u64,
+    /// Total score
     pub total_score: u64,
 }
 

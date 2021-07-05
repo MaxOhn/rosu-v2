@@ -8,9 +8,13 @@ use std::fmt;
 #[allow(clippy::upper_case_acronyms)]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub enum GameMode {
+    /// osu!standard
     STD = 0,
+    /// osu!taiko
     TKO = 1,
+    /// osu!catch
     CTB = 2,
+    /// osu!mania
     MNA = 3,
 }
 

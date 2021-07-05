@@ -219,37 +219,6 @@ impl Osu {
         GetUserKudosu::new(self, user_id.into())
     }
 
-    // TODO: Documentation
-    #[deprecated = "The API currently doesn't allow this endpoint for public use"]
-    #[inline]
-    pub fn multiplayer_score(
-        &self,
-        room: u32,
-        playlist: u32,
-        score_id: u32,
-    ) -> GetMultiplayerScore {
-        GetMultiplayerScore::new(self, room, playlist, score_id)
-    }
-
-    // TODO: Documentation
-    #[deprecated = "The API currently doesn't allow this endpoint for public use"]
-    #[inline]
-    pub fn multiplayer_scores(&self, room: u32, playlist: u32) -> GetMultiplayerScores {
-        GetMultiplayerScores::new(self, room, playlist)
-    }
-
-    // TODO: Documentation
-    #[deprecated = "The API currently doesn't allow this endpoint for public use"]
-    #[inline]
-    pub fn multiplayer_user_highscore(
-        &self,
-        room: u32,
-        playlist: u32,
-        user_id: u32,
-    ) -> GetMultiplayerUserHighScore {
-        GetMultiplayerUserHighScore::new(self, room, playlist, user_id)
-    }
-
     /// Get [`News`](crate::model::news::News).
     #[inline]
     pub fn news(&self) -> GetNews {

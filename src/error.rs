@@ -9,6 +9,7 @@ use url::ParseError;
 /// The API response was of the form `{ "error": ... }`
 #[derive(Debug, Deserialize)]
 pub struct ApiError {
+    /// Error specified by the API
     pub error: Option<String>,
 }
 
@@ -25,6 +26,7 @@ impl fmt::Display for ApiError {
 
 /// The main error type
 #[derive(Debug)]
+#[allow(missing_docs)]
 #[non_exhaustive]
 pub enum OsuError {
     /// Failed to create a request body
@@ -62,7 +64,11 @@ pub enum OsuError {
     /// Failed to update token
     UpdateToken { source: Box<OsuError> },
     /// Failed to parse the URL for a request
-    Url { source: ParseError, url: String },
+    Url {
+        source: ParseError,
+        /// URL that was attempted to be parsed
+        url: String,
+    },
 }
 
 impl StdError for OsuError {
@@ -145,14 +151,23 @@ impl From<ParsingError> for OsuError {
 /// Failed some TryFrom parsing
 #[derive(Debug)]
 pub enum ParsingError {
+    /// Failed to parse a u8 into a [`Genre`](crate::model::beatmap::Genre)
     Genre(u8),
+    /// Failed to parse a String into a [`Grade`](crate::model::Grade)
     Grade(String),
+    /// Failed to parse a u8 into a [`Language`](crate::model::beatmap::Language)
     Language(u8),
+    /// Failed to parse a u32 into [`GameMods`](crate::model::GameMods)
     ModsU32(u32),
+    /// Failed to parse a String into [`GameMods`](crate::model::GameMods)
     ModsStr(String),
+    /// Failed to parse an i8 into a [`RankStatus`](crate::model::beatmap::RankStatus)
     RankStatus(i8),
+    /// Failed to parse a u8 into a [`ScoringType`](crate::model::matches::ScoringType)
     ScoringType(u8),
+    /// Failed to parse a u8 into a [`Team`](crate::model::matches::Team)
     Team(u8),
+    /// Failed to parse a u8 into a [`TeamType`](crate::model::matches::TeamType)
     TeamType(u8),
 }
 

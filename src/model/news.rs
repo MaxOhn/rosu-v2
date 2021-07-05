@@ -16,12 +16,14 @@ pub struct News {
 }
 
 impl News {
+    /// Returns whether there is a next page of news results,
+    /// retrievable via [`get_next`](News::get_next).
     #[inline]
     pub fn has_more(&self) -> bool {
         self.cursor.is_some()
     }
 
-    /// If `has_more()` is true, the API can provide the next set of news and this method will request them.
+    /// If [`has_more`](News::has_more) is true, the API can provide the next set of news and this method will request them.
     /// Otherwise, this method returns `None`.
     #[inline]
     pub async fn get_next(&self, osu: &Osu) -> Option<OsuResult<News>> {
@@ -34,13 +36,17 @@ pub struct NewsPost {
     #[serde(rename = "id")]
     pub post_id: u32,
     pub author: String,
+    /// Link to the file view on GitHub.
     pub edit_url: String,
+    /// Link to the first image in the document.
     pub first_image: String,
     pub published_at: DateTime<Utc>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub updated_at: Option<DateTime<Utc>>,
+    /// Filename without the extension, used in URLs.
     pub slug: String,
     pub title: String,
+    /// First paragraph of `content` with HTML markup stripped.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub preview: Option<String>,
 }

@@ -1,7 +1,7 @@
 macro_rules! def_enum {
     // Actually defining the enum and implementing Deserialize on it
     (@BASE $type:tt { $($variant:ident = $n:literal,)* }) => {
-        #[allow(clippy::upper_case_acronyms)]
+        #[allow(clippy::upper_case_acronyms, missing_docs)]
         #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
         pub enum $type {
             $($variant = $n,)*
@@ -190,22 +190,34 @@ macro_rules! def_enum {
     }
 }
 
-pub mod beatmap;
-pub mod comments;
 mod cursor;
-pub mod forum;
 mod grade;
-pub mod kudosu;
-pub mod matches;
 mod mode;
 mod mods;
-pub mod multiplayer;
+
+/// Beatmap(set) related types
+pub mod beatmap;
+/// Comment related types
+pub mod comments;
+/// Forum post related types
+pub mod forum;
+/// User kudosu related types
+pub mod kudosu;
+/// Multiplayer match related types
+pub mod matches;
+/// News related types
 pub mod news;
+/// Ranking related types
 pub mod ranking;
+/// User event related types
 pub mod recent_event;
+/// Score related types
 pub mod score;
+/// Seasonal background related types
 pub mod seasonal_backgrounds;
+/// User related types
 pub mod user;
+/// Wiki related types
 pub mod wiki;
 
 pub use cursor::Cursor;

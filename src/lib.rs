@@ -106,12 +106,18 @@
 //! | `cache` | Cache username-user_id pairs so that usernames can be used on all user endpoints instead of only user ids | [dashmap](https://github.com/xacrimon/dashmap)
 //! | `metrics` | Provide a count of all request types the client makes with the function `Osu::metrics` returning a `prometheus::IntCounterVec` | [prometheus](https://github.com/tikv/rust-prometheus)
 
+// #![deny(missing_docs)] // TODO
+
 mod client;
-pub mod error;
-pub mod model;
 mod ratelimiter;
-pub mod request;
 mod routing;
+
+/// rosu-specific errors
+pub mod error;
+/// All available data types provided by the api
+pub mod model;
+/// Requesting-structs that implement [`Future`](std::future::Future) for each endpoint
+pub mod request;
 
 #[cfg(feature = "metrics")]
 mod metrics;
@@ -124,13 +130,14 @@ extern crate log;
 /// `Result<_, OsuError>`
 pub type OsuResult<T> = Result<T, error::OsuError>;
 
+/// All types except requesting, stuffed into one module
 pub mod prelude {
     pub use crate::{
         error::OsuError,
         model::{
-            beatmap::*, comments::*, forum::*, kudosu::*, matches::*, multiplayer::*, news::*,
-            ranking::*, recent_event::*, score::*, seasonal_backgrounds::*, user::*, wiki::*,
-            Cursor, GameMode, GameMods, Grade,
+            beatmap::*, comments::*, forum::*, kudosu::*, matches::*, news::*, ranking::*,
+            recent_event::*, score::*, seasonal_backgrounds::*, user::*, wiki::*, Cursor, GameMode,
+            GameMods, Grade,
         },
         Osu, OsuBuilder, OsuResult,
     };

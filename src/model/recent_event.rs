@@ -3,6 +3,7 @@ use super::{beatmap::RankStatus, user::Medal, GameMode, Grade};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+/// The object has different attributes depending on its type.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct RecentEvent {
     pub created_at: DateTime<Utc>,

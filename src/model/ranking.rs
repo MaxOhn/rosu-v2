@@ -18,32 +18,41 @@ use std::fmt;
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct ChartRankings {
+    /// The list of beatmaps in the requested spotlight for the given mode
     #[serde(rename = "beatmapsets")]
     pub mapsets: Vec<Beatmapset>,
     #[serde(
         deserialize_with = "deserialize_user_stats_vec",
         serialize_with = "serialize_user_stats_vec"
     )]
+    /// Score details ordered by score in descending order.
     pub ranking: Vec<UserCompact>,
+    /// Spotlight details
     pub spotlight: Spotlight,
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct CountryRanking {
+    /// Active user count
     pub active_users: u32,
+    /// Country name
     #[serde(deserialize_with = "deserialize_country")]
     pub country: String,
     #[serde(rename = "code")]
     pub country_code: String,
+    /// Summed playcount for all users
     #[serde(rename = "play_count")]
     pub playcount: u64,
+    /// Summed performance points for all users
     #[serde(rename = "performance")]
     pub pp: f32,
+    /// Summed ranked score for all users
     pub ranked_score: u64,
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct CountryRankings {
+    /// The next page of the ranking
     #[serde(
         default,
         rename = "cursor",
@@ -51,6 +60,7 @@ pub struct CountryRankings {
         skip_serializing_if = "Option::is_none"
     )]
     pub next_page: Option<u32>,
+    /// Country details ordered by pp in descending order.
     pub ranking: Vec<CountryRanking>,
     /// Total amount of countries
     pub total: u32,
@@ -329,8 +339,6 @@ struct UserCompactWithoutStats<'u> {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_nat: &'u Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub is_restricted: &'u Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub is_silenced: &'u Option<bool>,
     #[serde(
         rename = "loved_beatmapset_count",
@@ -401,7 +409,6 @@ impl<'u> UserCompactWithoutStats<'u> {
             is_limited_bn,
             is_moderator,
             is_nat,
-            is_restricted,
             is_silenced,
             loved_mapset_count,
             medals,
@@ -449,7 +456,6 @@ impl<'u> UserCompactWithoutStats<'u> {
             is_limited_bn,
             is_moderator,
             is_nat,
-            is_restricted,
             is_silenced,
             loved_mapset_count,
             medals,
@@ -562,17 +568,25 @@ fn deserialize_rankings_cursor<'de, D: Deserializer<'de>>(d: D) -> Result<Option
     d.deserialize_option(RankingsCursorVisitor)
 }
 
+/// The details of a spotlight.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Spotlight {
+    /// The end date of the spotlight.
     pub end_date: DateTime<Utc>,
+    /// If the spotlight has different mades specific to each [`GameMode`](crate::model::GameMode).
     pub mode_specific: bool,
+    /// The name of the spotlight.
     pub name: String,
+    /// The number of users participating in this spotlight. This is only shown when viewing a single spotlight.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub participant_count: Option<u32>,
+    /// The ID of this spotlight.
     #[serde(rename = "id")]
     pub spotlight_id: u32,
+    /// The type of spotlight.
     #[serde(rename = "type")]
     pub spotlight_type: String,
+    /// The starting date of the spotlight.
     pub start_date: DateTime<Utc>,
 }
 

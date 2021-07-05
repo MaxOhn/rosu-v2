@@ -40,6 +40,7 @@ impl<'a> GetBeatmap<'a> {
         }
     }
 
+    /// Specify a beatmap checksum
     #[inline]
     pub fn checksum(mut self, checksum: impl Into<String>) -> Self {
         self.checksum.replace(checksum.into());
@@ -47,6 +48,7 @@ impl<'a> GetBeatmap<'a> {
         self
     }
 
+    /// Specify a beatmap filename
     #[inline]
     pub fn filename(mut self, filename: impl Into<String>) -> Self {
         self.filename.replace(filename.into());
@@ -54,6 +56,7 @@ impl<'a> GetBeatmap<'a> {
         self
     }
 
+    /// Specify a beatmap id
     #[inline]
     pub fn map_id(mut self, map_id: u32) -> Self {
         self.map_id.replace(map_id);
@@ -117,6 +120,7 @@ impl<'a> GetBeatmapScores<'a> {
         }
     }
 
+    /// Specify the mode of the scores
     #[inline]
     pub fn mode(mut self, mode: GameMode) -> Self {
         self.mode.replace(mode);
@@ -124,6 +128,7 @@ impl<'a> GetBeatmapScores<'a> {
         self
     }
 
+    /// Specify the mods of the scores
     #[deprecated = "Does not currently work since the API requires osu!supporter for this feature"]
     #[inline]
     pub fn mods(mut self, mods: GameMods) -> Self {
@@ -132,6 +137,7 @@ impl<'a> GetBeatmapScores<'a> {
         self
     }
 
+    /// Specify the score type of the scores
     #[deprecated = "Does not currently work since the API requires osu!supporter for this feature"]
     #[inline]
     pub fn score_type(mut self, score_type: &'static str) -> Self {
@@ -202,6 +208,9 @@ poll_req!(GetBeatmapScores => Vec<Score>);
 
 /// Get [`BeatmapUserScore`](crate::model::score::BeatmapUserScore)
 /// of a user on a beatmap by the user's and the map's id.
+///
+/// Note that the contained score will be the user's play on the map
+/// with the most **score** across all mods, not pp.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetBeatmapUserScore<'a> {
     fut: Option<Pending<'a, BeatmapUserScore>>,
@@ -244,6 +253,7 @@ impl<'a> GetBeatmapUserScore<'a> {
         }
     }
 
+    /// Specify the mode
     #[inline]
     pub fn mode(mut self, mode: GameMode) -> Self {
         self.mode.replace(mode);
@@ -251,6 +261,7 @@ impl<'a> GetBeatmapUserScore<'a> {
         self
     }
 
+    /// Specify the mods
     #[inline]
     pub fn mods(mut self, mods: GameMods) -> Self {
         self.mods.replace(mods);
@@ -371,7 +382,7 @@ poll_req!(GetBeatmapsetEvents => BeatmapsetEvents);
 /// - status: has leaderboard (ranked, loved, approved, and qualified)
 /// - genre: any
 /// - language: any
-/// - extra: does neither contain have video nor storyboard
+/// - extra: does neither contain "have video" nor "have storyboard"
 /// - nsfw: allowed
 /// - sort: by relevance, descending
 ///
@@ -487,7 +498,7 @@ impl<'a> GetBeatmapsetSearch<'a> {
         self
     }
 
-    /// Specify whether mapsets can have a video, defaults to false.
+    /// Specify whether mapsets can have a video, defaults to `false`.
     #[inline]
     pub fn video(mut self, video: bool) -> Self {
         self.video = video;
@@ -495,7 +506,7 @@ impl<'a> GetBeatmapsetSearch<'a> {
         self
     }
 
-    /// Specify whether mapsets can have a storyboard, defaults to false.
+    /// Specify whether mapsets can have a storyboard, defaults to `false`.
     #[inline]
     pub fn storyboard(mut self, storyboard: bool) -> Self {
         self.storyboard = storyboard;
@@ -503,7 +514,7 @@ impl<'a> GetBeatmapsetSearch<'a> {
         self
     }
 
-    /// Specify whether mapsets can be NSFW, defaults to true.
+    /// Specify whether mapsets can be NSFW, defaults to `true`.
     #[inline]
     pub fn nsfw(mut self, nsfw: bool) -> Self {
         self.nsfw = nsfw;
@@ -511,6 +522,7 @@ impl<'a> GetBeatmapsetSearch<'a> {
         self
     }
 
+    /// Specify how the result should be sorted
     #[inline]
     pub fn sort(mut self, sort: BeatmapsetSearchSort, descending: bool) -> Self {
         self.sort.replace(sort);

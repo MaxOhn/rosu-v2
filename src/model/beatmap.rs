@@ -116,6 +116,7 @@ impl From<Beatmap> for BeatmapCompact {
     }
 }
 
+/// Represents a beatmapset. This extends [`BeatmapsetCompact`] with additional attributes.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Beatmapset {
     pub artist: String,
@@ -129,6 +130,7 @@ pub struct Beatmapset {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub converts: Option<Vec<Beatmap>>,
     pub covers: BeatmapsetCovers,
+    /// Username of the mapper at the time of beatmapset creation
     #[serde(default, rename = "user", skip_serializing_if = "Option::is_none")]
     pub creator: Option<UserCompact>,
     #[serde(rename = "creator")]
@@ -283,6 +285,7 @@ pub struct BeatmapsetCommentOwnerChange {
     pub new_username: String,
 }
 
+/// Represents a beatmapset.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct BeatmapsetCompact {
     pub artist: String,
@@ -813,6 +816,7 @@ impl<'de> Deserialize<'de> for BeatmapsetSearchParameters {
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct BeatmapsetSearchResult {
     cursor: Option<Cursor>,
+    /// All mapsets of the current page
     #[serde(rename(serialize = "beatmapsets"))]
     pub mapsets: Vec<Beatmapset>,
     #[serde(rename(serialize = "search"))]
@@ -822,12 +826,15 @@ pub struct BeatmapsetSearchResult {
 }
 
 impl BeatmapsetSearchResult {
+    /// Returns whether there is a next page of search results,
+    /// retrievable via [`get_next`](BeatmapsetSearchResult::get_next).
     #[inline]
     pub fn has_more(&self) -> bool {
         self.cursor.is_some()
     }
 
-    /// If `has_more()` is true, the API can provide the next set of search results and this method will request them.
+    /// If [`has_more`](BeatmapsetSearchResult::has_more) is true, the API can provide
+    /// the next set of search results and this method will request them.
     /// Otherwise, this method returns `None`.
     pub async fn get_next(&self, osu: &Osu) -> Option<OsuResult<BeatmapsetSearchResult>> {
         let cursor = self.cursor.as_ref()?.to_owned();
@@ -1008,14 +1015,17 @@ pub struct BeatmapsetVote {
     pub score: u32,
 }
 
+/// All fields are optional but there's always at least one field returned.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct FailTimes {
+    /// List of length 100
     #[serde(
         default,
         deserialize_with = "use_vec_option_visitor",
         skip_serializing_if = "Option::is_none"
     )]
     pub exit: Option<Vec<u32>>,
+    /// List of length 100
     #[serde(
         default,
         deserialize_with = "use_vec_option_visitor",

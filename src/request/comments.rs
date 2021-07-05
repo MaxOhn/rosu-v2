@@ -35,6 +35,7 @@ impl<'a> GetComments<'a> {
         }
     }
 
+    /// Sort the result by date, newest first
     #[inline]
     pub fn sort_new(mut self) -> Self {
         self.sort.replace(CommentSort::New);
@@ -42,6 +43,7 @@ impl<'a> GetComments<'a> {
         self
     }
 
+    /// Sort the result by vote count
     #[inline]
     pub fn sort_top(mut self) -> Self {
         self.sort.replace(CommentSort::Top);
@@ -49,6 +51,7 @@ impl<'a> GetComments<'a> {
         self
     }
 
+    /// Sort the result by date, oldest first
     #[inline]
     pub fn sort_old(mut self) -> Self {
         self.sort.replace(CommentSort::Old);
@@ -56,6 +59,7 @@ impl<'a> GetComments<'a> {
         self
     }
 
+    /// Limit to comments which are reply to the specified id. Specify 0 to get top level comments
     #[inline]
     pub fn parent(mut self, parent_id: u32) -> Self {
         self.parent_id.replace(parent_id);
@@ -63,6 +67,7 @@ impl<'a> GetComments<'a> {
         self
     }
 
+    /// The id of the resource to get comments for
     #[inline]
     pub fn commentable_id(mut self, commentable_id: u32) -> Self {
         self.commentable_id.replace(commentable_id);
@@ -70,6 +75,7 @@ impl<'a> GetComments<'a> {
         self
     }
 
+    /// The type of resource to get comments for
     #[inline]
     pub fn commentable_type(mut self, commentable_type: impl Into<String>) -> Self {
         self.commentable_type.replace(commentable_type.into());

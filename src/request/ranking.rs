@@ -95,6 +95,7 @@ impl<'a> GetCountryRankings<'a> {
         }
     }
 
+    /// Specify a page
     #[inline]
     pub fn page(mut self, page: u32) -> Self {
         self.page.replace(page);

@@ -16,13 +16,15 @@ pub(crate) struct BeatmapScores {
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct BeatmapUserScore {
-    /// Position of the score in the map's global leaderboard
+    /// The position of the score within the requested beatmap ranking
     #[serde(rename = "position")]
     pub pos: usize,
+    /// The details of the score
     pub score: Score,
 }
 
 impl BeatmapUserScore {
+    /// Request the [`User`](crate::model::user::User) of the score
     #[inline]
     pub fn get_user<'o>(&self, osu: &'o Osu) -> GetUser<'o> {
         self.score.get_user(osu)

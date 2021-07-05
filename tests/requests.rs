@@ -313,48 +313,6 @@ async fn kudosu() {
 }
 
 #[tokio::test]
-#[ignore = "TODO"]
-async fn multiplayer_score() {
-    init().await;
-
-    // match osu().multiplayer_score(room, playlist, score_id).await {
-    //     Ok(score) => todo!(),
-    //     Err(why) => {
-    //         unwind_error!(error, why, "Error while requesting score: {}");
-    //         panic!()
-    //     }
-    // }
-}
-
-#[tokio::test]
-#[ignore = "TODO"]
-async fn multiplayer_scores() {
-    init().await;
-
-    // match osu().multiplayer_scores(room, playlist).await {
-    //     Ok(scores) => todo!(),
-    //     Err(why) => {
-    //         unwind_error!(error, why, "Error while requesting scores: {}");
-    //         panic!()
-    //     }
-    // }
-}
-
-#[tokio::test]
-#[ignore = "TODO"]
-async fn multiplayer_user_highscore() {
-    init().await;
-
-    // match osu().multiplayer_user_highscore(room, playlist, user_id).await {
-    //     Ok(score) => todo!(),
-    //     Err(why) => {
-    //         unwind_error!(error, why, "Error while requesting user highscore: {}");
-    //         panic!()
-    //     }
-    // }
-}
-
-#[tokio::test]
 async fn news() {
     init().await;
 

@@ -24,11 +24,21 @@ pub(crate) type Username = SmallString<[u8; 15]>;
 
 /// Either a user id as u32 or a username as String.
 ///
-/// Since usernames will be stored as `String`, if possible,
-/// make use of `From<String>` instead of `From<&String>`.
+/// Use the `From` implementations to create this enum
+///
+/// # Example
+///
+/// ```
+/// use rosu_v2::request::UserId;
+///
+/// let user_id: UserId = 123_456.into();
+/// let user_id: UserId = "my username".into();
+/// ```
 #[derive(Debug)]
 pub enum UserId {
+    /// Represents a user through their user id
     Id(u32),
+    /// Represents a user through their username
     Name(Username),
 }
 
@@ -89,6 +99,7 @@ impl<'a> GetUser<'a> {
         }
     }
 
+    /// Specify the mode for which the user data should be retrieved
     #[inline]
     pub fn mode(mut self, mode: GameMode) -> Self {
         self.mode.replace(mode);
@@ -129,11 +140,10 @@ poll_req!(GetUser => User);
 /// If no map type specified, either manually through
 /// [`map_type`](crate::request::GetUserBeatmapsets::map_type),
 /// or through any of the methods [`loved`](crate::request::GetUserBeatmapsets::loved),
-/// [`favourite`](crate::request::GetUserBeatmapsets::favourite),
 /// [`graveyard`](crate::request::GetUserBeatmapsets::graveyard),
-/// [`ranked_and_approved`](crate::request::GetUserBeatmapsets::ranked_and_approved),
-/// [`unranked`](crate::request::GetUserBeatmapsets::unranked),
-/// it defaults to `ranked_and_approved`.
+/// [`ranked`](crate::request::GetUserBeatmapsets::ranked),
+/// [`pending`](crate::request::GetUserBeatmapsets::pending),
+/// it defaults to `ranked`.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetUserBeatmapsets<'a> {
     fut: Option<Pending<'a, Vec<Beatmapset>>>,
@@ -176,6 +186,7 @@ impl<'a> GetUserBeatmapsets<'a> {
         }
     }
 
+    /// Limit the amount of results in the response
     #[inline]
     pub fn limit(mut self, limit: usize) -> Self {
         self.limit.replace(limit);
@@ -183,6 +194,8 @@ impl<'a> GetUserBeatmapsets<'a> {
         self
     }
 
+    /// Set an offset for the requested elements
+    /// e.g. skip the first `offset` amount in the list
     #[inline]
     pub fn offset(mut self, offset: usize) -> Self {
         self.offset.replace(offset);
@@ -190,7 +203,9 @@ impl<'a> GetUserBeatmapsets<'a> {
         self
     }
 
-    pub fn map_type(mut self, map_type: RankStatus) -> Self {
+    /// Only include mapsets with the specified status
+    #[inline]
+    pub fn status(mut self, map_type: RankStatus) -> Self {
         self.map_type = match map_type {
             RankStatus::Approved | RankStatus::Ranked => "ranked",
             RankStatus::Graveyard => "graveyard",
@@ -316,6 +331,7 @@ impl<'a> GetUserKudosu<'a> {
         }
     }
 
+    /// Limit the amount of results in the response
     #[inline]
     pub fn limit(mut self, limit: usize) -> Self {
         self.limit.replace(limit);
@@ -323,6 +339,8 @@ impl<'a> GetUserKudosu<'a> {
         self
     }
 
+    /// Set an offset for the requested elements
+    /// e.g. skip the first `offset` amount in the list
     #[inline]
     pub fn offset(mut self, offset: usize) -> Self {
         self.offset.replace(offset);
@@ -418,6 +436,8 @@ impl<'a> GetUserMostPlayed<'a> {
         self
     }
 
+    /// Set an offset for the requested elements
+    /// e.g. skip the first `offset` amount in the list
     #[inline]
     pub fn offset(mut self, offset: usize) -> Self {
         self.offset.replace(offset);
@@ -515,6 +535,7 @@ impl<'a> GetRecentEvents<'a> {
         }
     }
 
+    /// Limit the amount of results in the response
     #[inline]
     pub fn limit(mut self, limit: usize) -> Self {
         self.limit.replace(limit);
@@ -522,6 +543,8 @@ impl<'a> GetRecentEvents<'a> {
         self
     }
 
+    /// Set an offset for the requested elements
+    /// e.g. skip the first `offset` amount in the list
     #[inline]
     pub fn offset(mut self, offset: usize) -> Self {
         self.offset.replace(offset);
@@ -651,6 +674,8 @@ impl<'a> GetUserScores<'a> {
         self
     }
 
+    /// Set an offset for the requested elements
+    /// e.g. skip the first `offset` amount in the list
     #[inline]
     pub fn offset(mut self, offset: usize) -> Self {
         self.offset.replace(offset);
@@ -658,6 +683,7 @@ impl<'a> GetUserScores<'a> {
         self
     }
 
+    /// Specify the mode of the scores
     #[inline]
     pub fn mode(mut self, mode: GameMode) -> Self {
         self.mode.replace(mode);
@@ -665,6 +691,9 @@ impl<'a> GetUserScores<'a> {
         self
     }
 
+    /// Specify whether failed scores can be included.
+    ///
+    /// Only relevant for [`firsts`](GetUserScores::firsts)
     #[inline]
     pub fn include_fails(mut self, include_fails: bool) -> Self {
         self.include_fails.replace(include_fails);

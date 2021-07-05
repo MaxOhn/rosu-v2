@@ -3,6 +3,13 @@ use crate::request::Query;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+/// A structure included in some API responses containing the parameters to get the next set of results.
+///
+/// The values of the cursor should be provided to next request of the same endpoint to get the next set of results.
+///
+/// If there are no more results available, a cursor with a value of `None` is returned.
+///
+/// Note that sort option should also be specified for it to work.
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq, Serialize)]
 #[serde(transparent)]
 pub struct Cursor {
@@ -10,6 +17,7 @@ pub struct Cursor {
 }
 
 impl Cursor {
+    /// Create a cursor
     #[inline]
     pub fn new(cursor: Value) -> Self {
         Self { cursor }

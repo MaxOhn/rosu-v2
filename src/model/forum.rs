@@ -21,7 +21,7 @@ impl ForumPosts {
     /// can be used to retrieve the next set of posts.
     ///
     /// The next set can then be retrieved by providing this
-    /// [`ForumPostsCursor`] to [`GetForumPosts::cursor`](crate::request::GetForumPosts::cursor).
+    /// [`Cursor`] to [`GetForumPosts::cursor`](crate::request::GetForumPosts::cursor).
     /// Be sure all other parameters stay the same.
     #[inline]
     pub fn has_more(&self) -> bool {
@@ -39,9 +39,11 @@ pub struct ForumPost {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub edited_by_id: Option<u32>,
     pub forum_id: u32,
+    /// Post content in HTML format
     pub html: String,
     #[serde(rename = "id")]
     pub post_id: u64,
+    /// Post content in BBCode format
     pub raw: String,
     pub topic_id: u64,
     pub user_id: u32,

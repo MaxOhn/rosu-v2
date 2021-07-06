@@ -555,6 +555,7 @@ impl OsuRef {
 
         match status {
             StatusCode::OK => return Ok(bytes),
+            StatusCode::NOT_FOUND => return Err(OsuError::NotFound),
             StatusCode::SERVICE_UNAVAILABLE => {
                 let body = String::from_utf8_lossy(&bytes).into_owned();
 

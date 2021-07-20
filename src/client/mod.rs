@@ -374,7 +374,7 @@ impl Osu {
     ///
     /// ## Note
     ///
-    /// - The API provides at most 51 results per requests, 100 in total.
+    /// - The API provides at most 100 results per requests.
     /// - For the `recent` score type, failed score are excluded by default.
     /// Use [`include_fails`](crate::request::GetUserScores::include_fails)
     /// to include them.
@@ -404,7 +404,7 @@ impl Osu {
     ///
     /// ## Note
     ///
-    /// - The API provides at most 51 results per requests, 100 in total.
+    /// - The API provides at most 100 results per requests.
     /// - For the `recent` score type, failed score are excluded by default.
     /// Use [`include_fails`](crate::request::GetUserScores::include_fails)
     /// to include them.

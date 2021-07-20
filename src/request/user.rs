@@ -666,7 +666,7 @@ impl<'a> GetUserScores<'a> {
         }
     }
 
-    /// The API provides at most 51 results per requests.
+    /// The API provides at most 100 results per requests.
     #[inline]
     pub fn limit(mut self, limit: usize) -> Self {
         self.limit.replace(limit);
@@ -693,7 +693,7 @@ impl<'a> GetUserScores<'a> {
 
     /// Specify whether failed scores can be included.
     ///
-    /// Only relevant for [`firsts`](GetUserScores::firsts)
+    /// Only relevant for [`recent`](GetUserScores::recent)
     #[inline]
     pub fn include_fails(mut self, include_fails: bool) -> Self {
         self.include_fails.replace(include_fails);

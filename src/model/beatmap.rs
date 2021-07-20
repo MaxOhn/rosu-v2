@@ -363,9 +363,9 @@ pub struct BeatmapsetCovers {
     /// Same as `card` but larger
     #[serde(rename = "card@2x")]
     pub card_2x: String,
-    /// Tiny preview of full the
+    /// Tiny preview of the full background
     pub list: String,
-    /// Small preview of full the background background
+    /// Small preview of the full background
     #[serde(rename = "list@2x")]
     pub list_2x: String,
     /// Same as `cover` but much larger

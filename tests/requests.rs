@@ -498,12 +498,12 @@ async fn user_scores() {
     match osu()
         .user_scores("Badewanne3")
         .mode(GameMode::CTB)
-        .limit(10)
+        .limit(99)
         .offset(1)
         .best()
         .await
     {
-        Ok(scores) => println!("Received {} scores", scores.len()),
+        Ok(scores) => assert_eq!(scores.len(), 99),
         Err(why) => {
             unwind_error!(error, why, "Error while requesting user scores: {}");
             panic!()

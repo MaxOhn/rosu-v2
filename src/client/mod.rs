@@ -1,6 +1,10 @@
 mod builder;
+mod token;
+
+use token::{Authorization, AuthorizationKind, Token, TokenResponse};
 
 pub use builder::OsuBuilder;
+pub use token::Scope;
 
 use crate::{error::OsuError, model::GameMode, ratelimiter::Ratelimiter, request::*, OsuResult};
 
@@ -11,8 +15,8 @@ use hyper::{
     Body, Method, Request as HyperRequest, Response, StatusCode,
 };
 use hyper_rustls::HttpsConnector;
-use serde::{de::DeserializeOwned, Deserialize};
-use std::{ops::Drop, sync::Arc, time::Duration};
+use serde::de::DeserializeOwned;
+use std::{fmt::Write, ops::Drop, sync::Arc, time::Duration};
 use tokio::sync::{oneshot::Sender, RwLock};
 use url::Url;
 
@@ -453,13 +457,14 @@ impl Osu {
 }
 
 pub(crate) struct OsuRef {
-    pub(crate) client_id: u64,
-    pub(crate) client_secret: String,
-    pub(crate) http: HyperClient<HttpsConnector<HttpConnector>, Body>,
-    pub(crate) timeout: Duration,
-    pub(crate) ratelimiter: Ratelimiter,
-    pub(crate) token: RwLock<Option<String>>,
-    pub(crate) token_loop_tx: Option<Sender<()>>,
+    client_id: u64,
+    client_secret: String,
+    http: HyperClient<HttpsConnector<HttpConnector>, Body>,
+    timeout: Duration,
+    ratelimiter: Ratelimiter,
+    auth_kind: AuthorizationKind,
+    token: RwLock<Token>,
+    token_loop_tx: Option<Sender<()>>,
 }
 
 static MY_USER_AGENT: &str = concat!(
@@ -473,11 +478,24 @@ static MY_USER_AGENT: &str = concat!(
 const APPLICATION_JSON: &str = "application/json";
 
 impl OsuRef {
-    pub(crate) async fn request_token(&self) -> OsuResult<Token> {
-        let data = format!(
-            r#"{{"client_id":{},"client_secret":"{}","grant_type":"client_credentials","scope":"public"}}"#,
-            self.client_id, self.client_secret
+    async fn request_token(&self) -> OsuResult<TokenResponse> {
+        let mut data = format!(
+            r#"{{"client_id":{},"client_secret":"{}","grant_type":""#,
+            self.client_id, self.client_secret,
         );
+
+        let _ = match &self.auth_kind {
+            AuthorizationKind::User(auth) => {
+                write!(
+                    data,
+                    r#"authorization_code","redirect_uri":"{}","code":"{}"}}"#,
+                    auth.redirect_uri, auth.code,
+                )
+            }
+            AuthorizationKind::Client(scope) => {
+                write!(data, r#"client_credentials","scope":"{}"}}"#, scope)
+            }
+        };
 
         let bytes = data.into_bytes();
         let url = "https://osu.ppy.sh/oauth/token";
@@ -518,7 +536,7 @@ impl OsuRef {
         let url = Url::parse(&url).map_err(|source| OsuError::Url { source, url })?;
         debug!("URL: {}", url);
 
-        if let Some(token) = self.token.read().await.as_ref() {
+        if let Some(token) = self.token.read().await.access.as_ref() {
             let value = HeaderValue::from_str(token)
                 .map_err(|source| OsuError::CreatingTokenHeader { source })?;
 
@@ -586,13 +604,6 @@ impl Drop for OsuRef {
             let _ = tx.send(());
         }
     }
-}
-
-#[derive(Deserialize)]
-pub(crate) struct Token {
-    token_type: String,
-    expires_in: u64,
-    access_token: String,
 }
 
 #[inline]

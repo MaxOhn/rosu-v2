@@ -133,6 +133,7 @@ pub type OsuResult<T> = Result<T, error::OsuError>;
 /// All types except requesting, stuffed into one module
 pub mod prelude {
     pub use crate::{
+        client::Scope,
         error::OsuError,
         model::{
             beatmap::*, comments::*, forum::*, kudosu::*, matches::*, news::*, ranking::*,

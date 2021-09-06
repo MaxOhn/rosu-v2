@@ -1,4 +1,4 @@
-use super::{Osu, OsuRef};
+use super::{Authorization, AuthorizationKind, Osu, OsuRef, Token};
 use crate::{error::OsuError, ratelimiter::Ratelimiter, OsuResult};
 
 use hyper::client::Builder;
@@ -24,6 +24,7 @@ use crate::metrics::Metrics;
 ///
 /// For more info, check out https://osu.ppy.sh/docs/index.html#client-credentials-grant
 pub struct OsuBuilder {
+    auth_kind: Option<AuthorizationKind>,
     client_id: Option<u64>,
     client_secret: Option<String>,
     timeout: Duration,
@@ -32,6 +33,7 @@ pub struct OsuBuilder {
 impl Default for OsuBuilder {
     fn default() -> Self {
         Self {
+            auth_kind: None,
             client_id: None,
             client_secret: None,
             timeout: Duration::from_secs(10),
@@ -74,7 +76,8 @@ impl OsuBuilder {
             http,
             ratelimiter,
             timeout: self.timeout,
-            token: RwLock::new(None),
+            auth_kind: self.auth_kind.unwrap_or_default(),
+            token: RwLock::new(Token::default()),
             token_loop_tx: Some(tx),
         });
 
@@ -85,11 +88,11 @@ impl OsuBuilder {
             .map_err(Box::new)
             .map_err(|source| OsuError::UpdateToken { source })?;
 
-        let access_token = format!("Bearer {}", token.access_token);
-        inner.token.write().await.replace(access_token);
+        let expires_in = token.expires_in;
+        inner.token.write().await.update(token);
 
         // Let an async worker update the token regularly
-        token_update_worker(Arc::clone(&inner), token.expires_in, rx);
+        token_update_worker(Arc::clone(&inner), expires_in, rx);
 
         Ok(Osu {
             inner,
@@ -118,6 +121,25 @@ impl OsuBuilder {
     #[inline]
     pub fn client_secret(mut self, client_secret: impl Into<String>) -> Self {
         self.client_secret.replace(client_secret.into());
+
+        self
+    }
+
+    /// After acquiring the authorization code from a user through oauth,
+    /// use this method to provide the given code, and specified redirect uri.
+    ///
+    /// For more info, check out https://osu.ppy.sh/docs/index.html#authorization-code-grant
+    pub fn with_authorization(
+        mut self,
+        code: impl Into<String>,
+        redirect_uri: impl Into<String>,
+    ) -> Self {
+        let authorization = Authorization {
+            code: code.into(),
+            redirect_uri: redirect_uri.into(),
+        };
+
+        self.auth_kind = Some(AuthorizationKind::User(authorization));
 
         self
     }
@@ -159,7 +181,7 @@ fn token_update_worker(osu: Arc<OsuRef>, mut actual_expire: u64, mut rx: Receive
                     _ = expire_rx => {}
                     _ = sleep(Duration::from_secs(actual_expire)) => {
                         warn!("Acquiring new token took too long, remove current token");
-                        osu_clone.token.write().await.take();
+                        osu_clone.token.write().await.access.take();
                     }
                 )
             });
@@ -173,8 +195,8 @@ fn token_update_worker(osu: Arc<OsuRef>, mut actual_expire: u64, mut rx: Receive
                     Ok(token) if token.token_type == "Bearer" => {
                         actual_expire = token.expires_in;
                         adjusted_expire = adjust_token_expire(actual_expire);
-                        let access_token = format!("Bearer {}", token.access_token);
-                        osu.token.write().await.replace(access_token);
+
+                        osu.token.write().await.update(token);
 
                         break;
                     }

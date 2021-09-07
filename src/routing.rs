@@ -33,6 +33,9 @@ pub(crate) enum Route {
     GetNews {
         news: Option<()>,
     },
+    GetOwnData {
+        mode: Option<GameMode>,
+    },
     GetRankings {
         mode: GameMode,
         ranking_type: RankingType,
@@ -98,6 +101,14 @@ impl Route {
                 let path = match news {
                     Some(_news) => unimplemented!(),
                     None => "news".into(),
+                };
+
+                (Method::GET, path)
+            }
+            Self::GetOwnData { mode } => {
+                let path = match mode {
+                    Some(mode) => format!("me/{}", mode).into(),
+                    None => "me".into(),
                 };
 
                 (Method::GET, path)

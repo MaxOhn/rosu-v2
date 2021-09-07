@@ -79,6 +79,49 @@ impl fmt::Display for UserId {
     }
 }
 
+/// Get the [`User`](crate::model::user::User) of the authenticated user.
+///
+/// Note that the client has to be initialized with the `identify` scope
+/// through the OAuth process in order for this endpoint to not return an error.
+///
+/// See [`OsuBuilder::with_authorization`](crate::OsuBuilder::with_authorization).
+#[must_use = "futures do nothing unless you `.await` or poll them"]
+pub struct GetOwnData<'a> {
+    fut: Option<Pending<'a, User>>,
+    osu: &'a Osu,
+    mode: Option<GameMode>,
+}
+
+impl<'a> GetOwnData<'a> {
+    #[inline]
+    pub(crate) fn new(osu: &'a Osu) -> Self {
+        Self {
+            fut: None,
+            osu,
+            mode: None,
+        }
+    }
+
+    /// Specify the mode for which the user data should be retrieved
+    #[inline]
+    pub fn mode(mut self, mode: GameMode) -> Self {
+        self.mode.replace(mode);
+
+        self
+    }
+
+    fn start(&mut self) -> Pending<'a, User> {
+        #[cfg(feature = "metrics")]
+        self.osu.metrics.own_data.inc();
+
+        let req = Request::new(Route::GetOwnData { mode: self.mode });
+
+        Box::pin(self.osu.inner.request(req))
+    }
+}
+
+poll_req!(GetOwnData => User);
+
 /// Get a [`User`](crate::model::user::User) by their id.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetUser<'a> {

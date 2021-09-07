@@ -33,6 +33,7 @@ pub(crate) struct Metrics {
 
     pub(crate) seasonal_backgrounds: IntCounter,
 
+    pub(crate) own_data: IntCounter,
     pub(crate) user: IntCounter,
     pub(crate) user_beatmapsets: IntCounter,
     pub(crate) recent_events: IntCounter,
@@ -81,6 +82,7 @@ impl Metrics {
 
             seasonal_backgrounds: counters.with_label_values(&["Seasonal backgrounds"]),
 
+            own_data: counters.with_label_values(&["Own Data"]),
             user: counters.with_label_values(&["User"]),
             user_beatmapsets: counters.with_label_values(&["User mapsets"]),
             recent_events: counters.with_label_values(&["User events"]),

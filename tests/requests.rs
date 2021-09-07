@@ -9,7 +9,7 @@ use rosu_v2::{
     },
     Osu,
 };
-use std::{env, error::Error};
+use std::{env, error::Error, fmt::Write};
 
 #[cfg(feature = "cache")]
 use rosu_v2::model::GameMods;
@@ -49,20 +49,16 @@ async fn init() {
             .client_secret(client_secret)
             .build()
             .await
-            .unwrap_or_else(|err| {
-                panic!(
-                    "failed to build osu! client:\n  - caused by: {}:\n  - caused by: {}",
-                    err,
-                    err.source().map_or_else(
-                        || format!("No source"),
-                        |e| format!(
-                            "{}\n  - caused by: {}",
-                            e,
-                            e.source()
-                                .map_or_else(|| format!("No source"), |e| e.to_string())
-                        )
-                    )
-                )
+            .unwrap_or_else(|e| {
+                let mut output = format!("failed to build osu! client:\n  - caused by: {}", e);
+                let mut err: &dyn Error = &e;
+
+                while let Some(src) = err.source() {
+                    let _ = Write::write_fmt(&mut output, format_args!("\n  - caused by: {}", src));
+                    err = src;
+                }
+
+                panic!("{}", output)
             });
 
         OSU.set(osu).unwrap_or_else(|_| panic!("failed to set OSU"));
@@ -352,6 +348,23 @@ async fn osu_matches() {
         Ok(osu_matches) => println!("Received {} matches", osu_matches.matches.len()),
         Err(why) => {
             unwind_error!(error, why, "Error while requesting matches: {}");
+            panic!()
+        }
+    }
+}
+
+#[tokio::test]
+#[ignore = "requires OAuth to not throw an error"]
+async fn own_data() {
+    init().await;
+
+    match osu().own_data().mode(GameMode::TKO).await {
+        Ok(user) => println!(
+            "Received own data showing a last activity of {:?}",
+            user.last_visit
+        ),
+        Err(why) => {
+            unwind_error!(error, why, "Error while requesting own data: {}");
             panic!()
         }
     }

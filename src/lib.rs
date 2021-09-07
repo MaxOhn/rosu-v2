@@ -16,6 +16,9 @@
 //! To get those, you must register an application [here](https://osu.ppy.sh/home/account/edit#new-oauth-application).
 //! Since rosu-v2 only supports client credentials and not authorization code, the callback URL here does not matter.
 //!
+//! If you went through the OAuth process for a user, you can also provide the redirect url and received code
+//! when creating the client in order to make requests on behalf of the authenticated user.
+//!
 //! ## Endpoints
 //!
 //! The following endpoints are currently supported:
@@ -30,6 +33,7 @@
 //! - `forums/topics/{topic_id}`: A forum topic and its posts
 //! - `matches`: List of currently open multiplayer lobbies
 //! - `matches/{match_id}`: More specific data about a specific multiplayer lobby including participating players and occured events
+//! - `me[/{mode}]`: Detailed info about the authenticated user [in the specified mode] (requires OAuth)
 //! - `news`: Recent news
 //! - `rankings/{mode}/{ranking_type}`: The global leaderboard of either performance points, ranked score, countries, or a spotlight
 //! - `users/{user_id}/{recent_activity}`: List of a user's recent events like achieved medals, ranks on a beatmaps, username changes, supporter status updates, beatmapset status updates, ...

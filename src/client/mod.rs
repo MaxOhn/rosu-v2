@@ -242,6 +242,17 @@ impl Osu {
         GetMatches::new(self)
     }
 
+    /// Get the [`User`](crate::model::user::User) of the authenticated user.
+    ///
+    /// Note that the client has to be initialized with the `identify` scope
+    /// through the OAuth process in order for this endpoint to not return an error.
+    ///
+    /// See [`OsuBuilder::with_authorization`](crate::OsuBuilder::with_authorization).
+    #[inline]
+    pub fn own_data(&self) -> GetOwnData {
+        GetOwnData::new(self)
+    }
+
     /// Get a [`Rankings`](crate::model::ranking::Rankings) struct whose
     /// [`UserCompact`](crate::model::user::UserCompact)s are sorted
     /// by their pp, i.e. the current pp leaderboard.

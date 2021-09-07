@@ -125,7 +125,7 @@ impl OsuBuilder {
         self
     }
 
-    /// After acquiring the authorization code from a user through oauth,
+    /// After acquiring the authorization code from a user through OAuth,
     /// use this method to provide the given code, and specified redirect uri.
     ///
     /// For more info, check out https://osu.ppy.sh/docs/index.html#authorization-code-grant

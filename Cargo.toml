@@ -88,7 +88,7 @@ default-features = false
 version = "0.15"
 
 [dev-dependencies.env_logger]
-version = "0.8"
+version = "0.9"
 
 [dev-dependencies.once_cell]
 version = "1.7"

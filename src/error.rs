@@ -26,7 +26,6 @@ impl fmt::Display for ApiError {
 
 /// The main error type
 #[derive(Debug)]
-#[allow(missing_docs)]
 #[non_exhaustive]
 pub enum OsuError {
     /// Failed to create a request body

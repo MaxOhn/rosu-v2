@@ -496,15 +496,15 @@ impl OsuRef {
         );
 
         let _ = match &self.auth_kind {
+            AuthorizationKind::Client(scope) => {
+                write!(data, r#"client_credentials","scope":"{}"}}"#, scope)
+            }
             AuthorizationKind::User(auth) => {
                 write!(
                     data,
                     r#"authorization_code","redirect_uri":"{}","code":"{}"}}"#,
                     auth.redirect_uri, auth.code,
                 )
-            }
-            AuthorizationKind::Client(scope) => {
-                write!(data, r#"client_credentials","scope":"{}"}}"#, scope)
             }
         };
 

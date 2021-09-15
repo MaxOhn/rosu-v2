@@ -4,7 +4,7 @@ use serde::Deserialize;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::{error::Error, sync::Arc, time::Duration};
 use tokio::{
-    sync::oneshot::{self, error::TryRecvError, Receiver},
+    sync::oneshot::{self, Receiver},
     time::sleep,
 };
 
@@ -25,12 +25,14 @@ impl Token {
 
         tokio::spawn(async move {
             loop {
-                info!("Acquire new API token in {} seconds", adjusted_expire);
-                sleep(Duration::from_secs(adjusted_expire)).await;
+                debug!("Acquire new API token in {} seconds", adjusted_expire);
 
-                if matches!(close_rx.try_recv(), Ok(_) | Err(TryRecvError::Closed)) {
-                    return debug!("Exiting token update loop");
+                tokio::select! {
+                    _ = &mut close_rx => return debug!("Exited token update loop"),
+                    _ = sleep(Duration::from_secs(adjusted_expire)) => {}
                 }
+
+                debug!("API token expired, acquiring new one...");
 
                 // In case acquiring a new token takes too long,
                 // remove the previous token as soon as it expires
@@ -40,59 +42,65 @@ impl Token {
                 let osu_clone = Arc::clone(&osu);
 
                 tokio::spawn(async move {
-                    tokio::select!(
+                    tokio::select! {
                         _ = expire_rx => {}
                         _ = sleep(Duration::from_secs(expire)) => {
-                            warn!("Acquiring new token took too long, remove current token");
+                            warn!("Acquiring new token took too long, removed current token");
                             osu_clone.token.write().await.access.take();
                         }
-                    )
+                    }
                 });
 
-                // Acquire a new token through exponential backoff
-                let mut backoff = 400;
-                info!("API token expired, acquire new one");
+                tokio::select! {
+                    _ = &mut close_rx => {
+                        let _ = expire_tx.send(());
 
-                loop {
-                    match osu.request_token().await {
-                        Ok(token) if token.token_type == "Bearer" => {
-                            info!("Successfully acquired new token");
-
-                            expire = token.expires_in;
-                            adjusted_expire = adjust_token_expire(expire);
-
-                            osu.token.write().await.update(token);
-
-                            break;
-                        }
-                        Ok(token) => {
-                            warn!(
-                                r#"Failed to acquire new token, "{}" != "Bearer"; retry in {}ms"#,
-                                token.token_type, backoff
-                            );
-                        }
-                        Err(why) => {
-                            warn!(
-                                "Failed to acquire new token: {}; retry in {}ms",
-                                why, backoff
-                            );
-
-                            let mut err: &dyn Error = &why;
-
-                            while let Some(src) = err.source() {
-                                warn!("  - caused by: {}", src);
-                                err = src;
-                            }
-                        }
+                        return debug!("Exited token update loop");
                     }
+                    token = Token::request_loop(&osu) => {
+                        let _ = expire_tx.send(());
+                        debug!("Successfully acquired new token");
 
-                    sleep(Duration::from_millis(backoff)).await;
-                    backoff = (backoff * 2).min(60_000);
+                        expire = token.expires_in;
+                        adjusted_expire = adjust_token_expire(expire);
+                        osu.token.write().await.update(token);
+                    }
                 }
-
-                let _ = expire_tx.send(());
             }
         });
+    }
+
+    // Acquire a new token through exponential backoff
+    async fn request_loop(osu: &OsuRef) -> TokenResponse {
+        let mut backoff = 400;
+
+        loop {
+            match osu.request_token().await {
+                Ok(token) if token.token_type == "Bearer" => return token,
+                Ok(token) => {
+                    warn!(
+                        r#"Failed to acquire new token, "{}" != "Bearer"; retry in {}ms"#,
+                        token.token_type, backoff
+                    );
+                }
+                Err(why) => {
+                    warn!(
+                        "Failed to acquire new token: {}; retry in {}ms",
+                        why, backoff
+                    );
+
+                    let mut err: &dyn Error = &why;
+
+                    while let Some(src) = err.source() {
+                        warn!("  - caused by: {}", src);
+                        err = src;
+                    }
+                }
+            }
+
+            sleep(Duration::from_millis(backoff)).await;
+            backoff = (backoff * 2).min(60_000);
+        }
     }
 }
 

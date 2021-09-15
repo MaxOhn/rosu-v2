@@ -499,13 +499,22 @@ impl OsuRef {
             AuthorizationKind::Client(scope) => {
                 write!(data, r#"client_credentials","scope":"{}"}}"#, scope)
             }
-            AuthorizationKind::User(auth) => {
-                write!(
-                    data,
-                    r#"authorization_code","redirect_uri":"{}","code":"{}"}}"#,
-                    auth.redirect_uri, auth.code,
-                )
-            }
+            AuthorizationKind::User(auth) => match &self.token.read().await.refresh {
+                Some(refresh) => {
+                    write!(
+                        data,
+                        r#"refresh_token","redirect_uri":"{}","refresh_token":"{}"}}"#,
+                        auth.redirect_uri, refresh,
+                    )
+                }
+                None => {
+                    write!(
+                        data,
+                        r#"authorization_code","redirect_uri":"{}","code":"{}"}}"#,
+                        auth.redirect_uri, auth.code,
+                    )
+                }
+            },
         };
 
         let bytes = data.into_bytes();

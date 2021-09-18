@@ -509,11 +509,7 @@ impl OsuRef {
             }
             AuthorizationKind::User(auth) => match &self.token.read().await.refresh {
                 Some(refresh) => {
-                    write!(
-                        data,
-                        r#"refresh_token","redirect_uri":"{}","refresh_token":"{}"}}"#,
-                        auth.redirect_uri, refresh,
-                    )
+                    write!(data, r#"refresh_token","refresh_token":"{}"}}"#, refresh)
                 }
                 None => {
                     write!(

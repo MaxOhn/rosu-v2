@@ -20,7 +20,7 @@ impl Token {
         self.refresh = response.refresh_token;
     }
 
-    pub(super) fn update_worker(osu: Arc<OsuRef>, mut expire: u64, mut dropped_rx: Receiver<()>) {
+    pub(super) fn update_worker(osu: Arc<OsuRef>, mut expire: i64, mut dropped_rx: Receiver<()>) {
         tokio::spawn(async move {
             loop {
                 let adjusted_expire = adjust_token_expire(expire);
@@ -28,7 +28,7 @@ impl Token {
 
                 tokio::select! {
                     _ = &mut dropped_rx => return debug!("Osu dropped; exiting token update loop"),
-                    _ = sleep(Duration::from_secs(adjusted_expire)) => {}
+                    _ = sleep(Duration::from_secs(adjusted_expire.max(0) as u64)) => {}
                 }
 
                 debug!("API token expired, acquiring new one...");
@@ -43,7 +43,7 @@ impl Token {
                 tokio::spawn(async move {
                     tokio::select! {
                         _ = expire_rx => {}
-                        _ = sleep(Duration::from_secs(expire)) => {
+                        _ = sleep(Duration::from_secs(expire.max(0) as u64)) => {
                             warn!("Acquiring new token took too long, removed current token");
                             osu_clone.token.write().await.access.take();
                         }
@@ -55,7 +55,6 @@ impl Token {
                         let _ = expire_tx.send(());
 
                         return debug!("Osu dropped; exiting token update loop");
-
                     }
                     token = Token::request_loop(&osu) => {
                         let _ = expire_tx.send(());
@@ -104,8 +103,8 @@ impl Token {
 }
 
 #[inline]
-fn adjust_token_expire(expires_in: u64) -> u64 {
-    expires_in - (expires_in as f64 * 0.05) as u64
+fn adjust_token_expire(expires_in: i64) -> i64 {
+    expires_in - (expires_in as f64 * 0.05) as i64
 }
 
 pub(super) enum AuthorizationKind {
@@ -127,7 +126,7 @@ pub(super) struct Authorization {
 #[derive(Deserialize)]
 pub(super) struct TokenResponse {
     pub access_token: String,
-    pub expires_in: u64,
+    pub expires_in: i64,
     #[serde(default)]
     pub refresh_token: Option<String>,
     pub token_type: String,

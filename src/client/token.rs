@@ -20,15 +20,14 @@ impl Token {
         self.refresh = response.refresh_token;
     }
 
-    pub(super) fn update_worker(osu: Arc<OsuRef>, mut expire: u64, mut close_rx: Receiver<()>) {
-        let mut adjusted_expire = adjust_token_expire(expire);
-
+    pub(super) fn update_worker(osu: Arc<OsuRef>, mut expire: u64, mut dropped_rx: Receiver<()>) {
         tokio::spawn(async move {
             loop {
+                let adjusted_expire = adjust_token_expire(expire);
                 debug!("Acquire new API token in {} seconds", adjusted_expire);
 
                 tokio::select! {
-                    _ = &mut close_rx => return debug!("Exited token update loop"),
+                    _ = &mut dropped_rx => return debug!("Osu dropped; exiting token update loop"),
                     _ = sleep(Duration::from_secs(adjusted_expire)) => {}
                 }
 
@@ -52,17 +51,17 @@ impl Token {
                 });
 
                 tokio::select! {
-                    _ = &mut close_rx => {
+                    _ = &mut dropped_rx => {
                         let _ = expire_tx.send(());
 
-                        return debug!("Exited token update loop");
+                        return debug!("Osu dropped; exiting token update loop");
+
                     }
                     token = Token::request_loop(&osu) => {
                         let _ = expire_tx.send(());
                         debug!("Successfully acquired new token");
 
                         expire = token.expires_in;
-                        adjusted_expire = adjust_token_expire(expire);
                         osu.token.write().await.update(token);
                     }
                 }

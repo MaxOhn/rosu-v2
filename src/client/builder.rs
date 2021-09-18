@@ -62,7 +62,7 @@ impl OsuBuilder {
         let http = Builder::default().build(connector);
 
         let ratelimiter = Ratelimiter::new(15, 1);
-        let (tx, rx) = oneshot::channel();
+        let (tx, dropped_rx) = oneshot::channel();
 
         let inner = Arc::new(OsuRef {
             client_id,
@@ -72,7 +72,6 @@ impl OsuBuilder {
             timeout: self.timeout,
             auth_kind: self.auth_kind.unwrap_or_default(),
             token: RwLock::new(Token::default()),
-            token_loop_tx: Some(tx),
         });
 
         // Acquire the initial API token
@@ -86,10 +85,11 @@ impl OsuBuilder {
         inner.token.write().await.update(token);
 
         // Let an async worker update the token regularly
-        Token::update_worker(Arc::clone(&inner), expires_in, rx);
+        Token::update_worker(Arc::clone(&inner), expires_in, dropped_rx);
 
         Ok(Osu {
             inner,
+            token_loop_tx: Some(tx),
 
             #[cfg(feature = "cache")]
             cache: Arc::new(DashMap::new()),

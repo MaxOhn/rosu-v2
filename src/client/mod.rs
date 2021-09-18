@@ -37,6 +37,7 @@ pub struct Osu {
     pub(crate) cache: Arc<DashMap<Username, u32>>,
     #[cfg(feature = "metrics")]
     pub(crate) metrics: Arc<Metrics>,
+    token_loop_tx: Option<Sender<()>>,
 }
 
 impl Osu {
@@ -467,6 +468,14 @@ impl Osu {
     }
 }
 
+impl Drop for Osu {
+    fn drop(&mut self) {
+        if let Some(tx) = self.token_loop_tx.take() {
+            let _ = tx.send(());
+        }
+    }
+}
+
 pub(crate) struct OsuRef {
     client_id: u64,
     client_secret: String,
@@ -475,7 +484,6 @@ pub(crate) struct OsuRef {
     ratelimiter: Ratelimiter,
     auth_kind: AuthorizationKind,
     token: RwLock<Token>,
-    token_loop_tx: Option<Sender<()>>,
 }
 
 static MY_USER_AGENT: &str = concat!(
@@ -615,14 +623,6 @@ impl OsuRef {
             source,
             status,
         })
-    }
-}
-
-impl Drop for OsuRef {
-    fn drop(&mut self) {
-        if let Some(tx) = self.token_loop_tx.take() {
-            let _ = tx.send(());
-        }
     }
 }
 

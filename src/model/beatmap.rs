@@ -1044,7 +1044,7 @@ impl<'de> Visitor<'de> for VecOptionVisitor {
     type Value = Option<Vec<u32>>;
 
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "null or a sequence of u32")
+        f.write_str("null or a sequence of u32")
     }
 
     fn visit_some<D: Deserializer<'de>>(self, d: D) -> Result<Self::Value, D::Error> {
@@ -1069,7 +1069,7 @@ impl<'de> Visitor<'de> for HundredU32Visitor {
     type Value = Vec<u32>;
 
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "a sequence of u32")
+        f.write_str("a sequence of u32")
     }
 
     fn visit_seq<A: SeqAccess<'de>>(mut self, mut seq: A) -> Result<Self::Value, A::Error> {
@@ -1164,7 +1164,7 @@ impl<'de> Visitor<'de> for DescriptionVisitor {
     type Value = Option<String>;
 
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "a string or a map containing a 'description' field")
+        f.write_str("a string or a map containing a 'description' field")
     }
 
     fn visit_str<E: Error>(self, v: &str) -> Result<Self::Value, E> {

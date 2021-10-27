@@ -449,8 +449,8 @@ struct ModsVisitor;
 impl<'de> Visitor<'de> for ModsVisitor {
     type Value = GameMods;
 
-    fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str("a u32, a stringified number, or a sequence")
+    fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("a u32, a stringified number, or a sequence")
     }
 
     fn visit_str<E: Error>(self, v: &str) -> Result<Self::Value, E> {

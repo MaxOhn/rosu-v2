@@ -115,6 +115,7 @@ impl Display for Query {
             return Ok(());
         }
 
-        write!(f, "?{}", &self.query[..self.query.len() - 1])
+        f.write_char('?')?;
+        f.write_str(&self.query[..self.query.len() - 1])
     }
 }

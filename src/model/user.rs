@@ -698,7 +698,7 @@ fn deserialize_f32_default<'de, D: Deserializer<'de>>(d: D) -> Result<f32, D::Er
 
 #[inline]
 fn maybe_u32<'de, D: Deserializer<'de>>(d: D) -> Result<u32, D::Error> {
-    <Option<u32> as Deserialize>::deserialize(d).map(Option::unwrap_or_default)
+    Option::<u32>::deserialize(d).map(Option::unwrap_or_default)
 }
 
 #[inline]
@@ -712,7 +712,7 @@ impl<'de> Visitor<'de> for RankHistoryVisitor {
     type Value = Option<Vec<u32>>;
 
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "a map containing the field `data`, or a list of u32")
+        f.write_str("a map containing the field `data`, or a list of u32")
     }
 
     fn visit_seq<A: SeqAccess<'de>>(self, mut seq: A) -> Result<Self::Value, A::Error> {

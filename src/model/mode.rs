@@ -53,8 +53,8 @@ struct ModeVisitor;
 impl<'de> Visitor<'de> for ModeVisitor {
     type Value = GameMode;
 
-    fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str("a u8 or a string")
+    fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("a u8 or a string")
     }
 
     fn visit_str<E: Error>(self, v: &str) -> Result<Self::Value, E> {

@@ -61,7 +61,7 @@ impl<'de> Visitor<'de> for ForumPostVisitor {
     type Value = ForumPost;
 
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "a ForumPost struct")
+        f.write_str("a ForumPost struct")
     }
 
     fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {

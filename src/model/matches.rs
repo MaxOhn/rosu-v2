@@ -133,8 +133,7 @@ impl<'de> Visitor<'de> for MatchEventTypeVisitor {
     type Value = MatchEventType;
 
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
+        f.write_str(
             r#""match-created", "player-joined", "player-left", "match-disbanded", "host-changed", or "other""#
         )
     }
@@ -188,7 +187,7 @@ impl<'de> Visitor<'de> for MatchEventVisitor {
     type Value = MatchEvent;
 
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "MatchEvent enum")
+        f.write_str("MatchEvent enum")
     }
 
     fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
@@ -470,7 +469,7 @@ impl<'de> Visitor<'de> for MatchScoreVisitor {
     type Value = MatchScore;
 
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "a MatchScore struct")
+        f.write_str("a MatchScore struct")
     }
 
     fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
@@ -805,7 +804,7 @@ impl<'de> Visitor<'de> for OsuMatchVisitor {
     type Value = OsuMatch;
 
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "an OsuMatch struct")
+        f.write_str("an OsuMatch struct")
     }
 
     fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
@@ -954,10 +953,8 @@ struct BoolVisitor;
 impl<'de> Visitor<'de> for BoolVisitor {
     type Value = Bool;
 
-    fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str(
-            "a bool, a stringified bool, or 0 or 1 in either number, string or char format",
-        )
+    fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("a bool, a stringified bool, or 0 or 1 in either number, string or char format")
     }
 
     fn visit_u64<E: Error>(self, v: u64) -> Result<Self::Value, E> {

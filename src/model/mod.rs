@@ -146,7 +146,7 @@ macro_rules! def_enum {
             type Value = $type;
 
             fn expecting(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                write!(f, "{}", concat!(stringify!($($n),*),$(", \"",stringify!($variant),"\"",)*))
+                f.write_str(concat!(stringify!($($n),*),$(", \"",stringify!($variant),"\"",)*))
             }
 
             fn visit_str<E: serde::de::Error>(self, s: &str) -> Result<Self::Value, E> {
@@ -172,7 +172,7 @@ macro_rules! def_enum {
             type Value = $type;
 
             fn expecting(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                 write!(f, "{}", concat!(stringify!($($n),*),", ",stringify!($($alt),*)))
+                 f.write_str(concat!(stringify!($($n),*),", ",stringify!($($alt),*)))
             }
 
             fn visit_str<E: serde::de::Error>(self, s: &str) -> Result<Self::Value, E> {

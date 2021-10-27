@@ -1,5 +1,9 @@
 ## Upcoming
 
+- Nothing as of now
+
+# v0.3.0
+
 - Added a bunch of documentation
 - [Breaking] Adjusted some struct fields:
   - Added `Group::has_modes`
@@ -31,7 +35,7 @@ Affected fields are:
   - `UserCompact.country_code`
   - `GetPerformanceRankings::country`
 
-# v0.2.0
+## v0.2.0
 
 - Dont only consider HD when calculating grade but also Flashlight and FadeIn
 - Implemented `Default` for `Language`, `Genre`, `ScoringType`, `TeamType`, and `Team` enums

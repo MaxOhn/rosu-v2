@@ -263,7 +263,7 @@ impl GameMods {
 }
 
 impl fmt::Display for GameMods {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for m in self.into_iter() {
             let abbrev = match m {
                 GameMods::NoMod => "NM",
@@ -449,7 +449,7 @@ struct ModsVisitor;
 impl<'de> Visitor<'de> for ModsVisitor {
     type Value = GameMods;
 
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+    fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.write_str("a u32, a stringified number, or a sequence")
     }
 
@@ -527,7 +527,7 @@ mod util {
     }
 
     /// Put a `&str` into ASCII uppercase. Doesn't allocate if it already is uppercase.
-    pub(crate) fn to_uppercase(s: &str) -> Cow<str> {
+    pub(crate) fn to_uppercase(s: &str) -> Cow<'_, str> {
         match s.as_bytes().iter().position(u8::is_ascii_lowercase) {
             Some(pos) => {
                 let mut output = s.to_owned();

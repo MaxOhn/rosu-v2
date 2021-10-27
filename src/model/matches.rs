@@ -132,7 +132,7 @@ struct MatchEventTypeVisitor;
 impl<'de> Visitor<'de> for MatchEventTypeVisitor {
     type Value = MatchEventType;
 
-    fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
             r#""match-created", "player-joined", "player-left", "match-disbanded", "host-changed", or "other""#
@@ -187,7 +187,7 @@ struct MatchEventVisitor;
 impl<'de> Visitor<'de> for MatchEventVisitor {
     type Value = MatchEvent;
 
-    fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "MatchEvent enum")
     }
 
@@ -469,7 +469,7 @@ struct MatchScoreVisitor;
 impl<'de> Visitor<'de> for MatchScoreVisitor {
     type Value = MatchScore;
 
-    fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "a MatchScore struct")
     }
 
@@ -577,7 +577,7 @@ struct MatchUsersVisitor;
 impl<'de> Visitor<'de> for MatchUsersVisitor {
     type Value = MatchUsers;
 
-    fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("a sequence containing UserCompact")
     }
 
@@ -631,7 +631,7 @@ fn serialize_match_users<S: Serializer>(
 impl OsuMatch {
     /// Iterate over references of the match's [`MatchGame`]s.
     #[inline]
-    pub fn games(&self) -> MatchGameIter {
+    pub fn games(&self) -> MatchGameIter<'_> {
         MatchGameIter::new(self.events.iter())
     }
 
@@ -742,7 +742,7 @@ impl OsuMatch {
     /// assert!(osu_match.events.is_empty());
     /// ```
     #[inline]
-    pub fn drain_games(&mut self) -> MatchGameDrain {
+    pub fn drain_games(&mut self) -> MatchGameDrain<'_> {
         MatchGameDrain::new(self.events.drain(..))
     }
 
@@ -804,7 +804,7 @@ struct OsuMatchVisitor;
 impl<'de> Visitor<'de> for OsuMatchVisitor {
     type Value = OsuMatch;
 
-    fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "an OsuMatch struct")
     }
 
@@ -954,7 +954,7 @@ struct BoolVisitor;
 impl<'de> Visitor<'de> for BoolVisitor {
     type Value = Bool;
 
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+    fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.write_str(
             "a bool, a stringified bool, or 0 or 1 in either number, string or char format",
         )

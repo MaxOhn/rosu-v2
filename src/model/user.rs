@@ -42,7 +42,7 @@ struct CountryVisitor;
 impl<'de> Visitor<'de> for CountryVisitor {
     type Value = Option<String>;
 
-    fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("a string, a map containing a `name` field, or null")
     }
 
@@ -692,7 +692,7 @@ struct RankHistoryVisitor;
 impl<'de> Visitor<'de> for RankHistoryVisitor {
     type Value = Option<Vec<u32>>;
 
-    fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "a map containing the field `data`, or a list of u32")
     }
 

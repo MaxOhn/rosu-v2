@@ -38,7 +38,7 @@ impl Default for GameMode {
 }
 
 impl fmt::Display for GameMode {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::STD => f.write_str("osu"),
             Self::TKO => f.write_str("taiko"),
@@ -53,7 +53,7 @@ struct ModeVisitor;
 impl<'de> Visitor<'de> for ModeVisitor {
     type Value = GameMode;
 
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+    fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.write_str("a u8 or a string")
     }
 

@@ -60,7 +60,7 @@ struct ForumPostBody {
 impl<'de> Visitor<'de> for ForumPostVisitor {
     type Value = ForumPost;
 
-    fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "a ForumPost struct")
     }
 

@@ -63,7 +63,7 @@ impl FromStr for Grade {
 }
 
 impl fmt::Display for Grade {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self)
     }
 }
@@ -73,7 +73,7 @@ struct GradeVisitor;
 impl<'de> Visitor<'de> for GradeVisitor {
     type Value = Grade;
 
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+    fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.write_str("a string")
     }
 

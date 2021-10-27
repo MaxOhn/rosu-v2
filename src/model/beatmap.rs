@@ -609,7 +609,7 @@ struct SearchRankStatusVisitor;
 impl<'de> Visitor<'de> for SearchRankStatusVisitor {
     type Value = SearchRankStatus;
 
-    fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("a rank status, `any`, or 9")
     }
 
@@ -717,7 +717,7 @@ struct BeatmapsetSearchParametersVisitor;
 impl<'de> Visitor<'de> for BeatmapsetSearchParametersVisitor {
     type Value = BeatmapsetSearchParameters;
 
-    fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("a search struct")
     }
 
@@ -879,7 +879,7 @@ struct BeatmapsetSearchResultVisitor;
 impl<'de> Visitor<'de> for BeatmapsetSearchResultVisitor {
     type Value = BeatmapsetSearchResult;
 
-    fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("a BeatmapsetSearchResult struct")
     }
 
@@ -939,7 +939,7 @@ macro_rules! search_sort_enum {
         }
 
         impl fmt::Display for BeatmapsetSearchSort {
-            fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 match self {
                     $(Self::$variant => f.write_str($name),)+
                 }
@@ -1043,7 +1043,7 @@ struct VecOptionVisitor;
 impl<'de> Visitor<'de> for VecOptionVisitor {
     type Value = Option<Vec<u32>>;
 
-    fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "null or a sequence of u32")
     }
 
@@ -1068,7 +1068,7 @@ impl HundredU32Visitor {
 impl<'de> Visitor<'de> for HundredU32Visitor {
     type Value = Vec<u32>;
 
-    fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "a sequence of u32")
     }
 
@@ -1163,7 +1163,7 @@ struct DescriptionVisitor;
 impl<'de> Visitor<'de> for DescriptionVisitor {
     type Value = Option<String>;
 
-    fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "a string or a map containing a 'description' field")
     }
 

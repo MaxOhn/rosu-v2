@@ -16,7 +16,7 @@ pub struct ApiError {
 impl StdError for ApiError {}
 
 impl fmt::Display for ApiError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.error {
             Some(ref msg) => f.write_str(msg),
             None => f.write_str("empty error message"),
@@ -94,7 +94,7 @@ impl StdError for OsuError {
 }
 
 impl fmt::Display for OsuError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::BodyError { .. } => f.write_str("failed to create request body"),
             Self::BuilderMissingId => {
@@ -173,7 +173,7 @@ pub enum ParsingError {
 impl StdError for ParsingError {}
 
 impl fmt::Display for ParsingError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Genre(n) => write!(f, "failed to parse {} into Genre", n),
             Self::Grade(s) => write!(f, "failed to parse `{}` into Grade", s),

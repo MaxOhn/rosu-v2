@@ -145,7 +145,7 @@ macro_rules! def_enum {
         impl<'de> serde::de::Visitor<'de> for super::EnumVisitor<$type> {
             type Value = $type;
 
-            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+            fn expecting(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 write!(f, "{}", concat!(stringify!($($n),*),$(", \"",stringify!($variant),"\"",)*))
             }
 
@@ -171,7 +171,7 @@ macro_rules! def_enum {
         impl<'de> serde::de::Visitor<'de> for super::EnumVisitor<$type> {
             type Value = $type;
 
-            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+            fn expecting(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                  write!(f, "{}", concat!(stringify!($($n),*),", ",stringify!($($alt),*)))
             }
 

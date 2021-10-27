@@ -78,7 +78,7 @@ impl Osu {
     /// have these options filled: `legacy_thread_url`, `ratings`,
     /// `ranked_date` (if not unranked) and `submitted_date` (if submitted).
     #[inline]
-    pub fn beatmap(&self) -> GetBeatmap {
+    pub fn beatmap(&self) -> GetBeatmap<'_> {
         GetBeatmap::new(self)
     }
 
@@ -90,7 +90,7 @@ impl Osu {
     /// The scores' contained [`UserCompact`](crate::model::user::UserCompact)
     /// will have the `country` and `cover` options filled.
     #[inline]
-    pub fn beatmap_scores(&self, map_id: u32) -> GetBeatmapScores {
+    pub fn beatmap_scores(&self, map_id: u32) -> GetBeatmapScores<'_> {
         GetBeatmapScores::new(self, map_id)
     }
 
@@ -100,7 +100,7 @@ impl Osu {
     /// `map` and `user` options filled.
     #[cfg(not(feature = "cache"))]
     #[inline]
-    pub fn beatmap_user_score(&self, map_id: u32, user_id: u32) -> GetBeatmapUserScore {
+    pub fn beatmap_user_score(&self, map_id: u32, user_id: u32) -> GetBeatmapUserScore<'_> {
         GetBeatmapUserScore::new(self, map_id, user_id)
     }
 
@@ -114,7 +114,7 @@ impl Osu {
         &self,
         map_id: u32,
         user_id: impl Into<UserId>,
-    ) -> GetBeatmapUserScore {
+    ) -> GetBeatmapUserScore<'_> {
         GetBeatmapUserScore::new(self, map_id, user_id.into())
     }
 
@@ -129,14 +129,14 @@ impl Osu {
     /// will contain `Some` in `fail_times`, `max_combo`
     /// (if available for mode), and `deleted_at` (if deleted).
     #[inline]
-    pub fn beatmapset(&self, mapset_id: u32) -> GetBeatmapset {
+    pub fn beatmapset(&self, mapset_id: u32) -> GetBeatmapset<'_> {
         GetBeatmapset::new(self, mapset_id)
     }
 
     /// Get a [`BeatmapsetEvents`](crate::model::beatmap::BeatmapsetEvents)
     /// struct containing the most recent mapset events.
     #[inline]
-    pub fn beatmapset_events(&self) -> GetBeatmapsetEvents {
+    pub fn beatmapset_events(&self) -> GetBeatmapsetEvents<'_> {
         GetBeatmapsetEvents::new(self)
     }
 
@@ -170,14 +170,14 @@ impl Osu {
     /// let query = "status=loved artist=camellia stars>8";
     /// ```
     #[inline]
-    pub fn beatmapset_search(&self) -> GetBeatmapsetSearch {
+    pub fn beatmapset_search(&self) -> GetBeatmapsetSearch<'_> {
         GetBeatmapsetSearch::new(self)
     }
 
     /// Get a list of comments and their replies up to two levels deep
     /// in form of a [`CommentBundle`](crate::model::comments::CommentBundle) .
     #[inline]
-    pub fn comments(&self) -> GetComments {
+    pub fn comments(&self) -> GetComments<'_> {
         GetComments::new(self)
     }
 
@@ -193,7 +193,7 @@ impl Osu {
     /// The statistics vector is ordered by `ranked_score`.
     /// The `user` option is filled.
     #[inline]
-    pub fn chart_rankings(&self, mode: GameMode) -> GetChartRankings {
+    pub fn chart_rankings(&self, mode: GameMode) -> GetChartRankings<'_> {
         GetChartRankings::new(self, mode)
     }
 
@@ -201,13 +201,13 @@ impl Osu {
     /// containing a vec of [`CountryRanking`](crate::model::ranking::CountryRanking)s
     /// which will be sorted by the country's total pp.
     #[inline]
-    pub fn country_rankings(&self, mode: GameMode) -> GetCountryRankings {
+    pub fn country_rankings(&self, mode: GameMode) -> GetCountryRankings<'_> {
         GetCountryRankings::new(self, mode)
     }
 
     /// Get a [`ForumPosts`](crate::model::forum::ForumPosts) struct for a forum topic
     #[inline]
-    pub fn forum_posts(&self, topic_id: u64) -> GetForumPosts {
+    pub fn forum_posts(&self, topic_id: u64) -> GetForumPosts<'_> {
         GetForumPosts::new(self, topic_id)
     }
 
@@ -215,7 +215,7 @@ impl Osu {
     /// [`KudosuHistory`](crate::model::kudosu::KudosuHistory).
     #[cfg(not(feature = "cache"))]
     #[inline]
-    pub fn kudosu(&self, user_id: u32) -> GetUserKudosu {
+    pub fn kudosu(&self, user_id: u32) -> GetUserKudosu<'_> {
         GetUserKudosu::new(self, user_id)
     }
 
@@ -223,26 +223,26 @@ impl Osu {
     /// [`KudosuHistory`](crate::model::kudosu::KudosuHistory).
     #[cfg(feature = "cache")]
     #[inline]
-    pub fn kudosu(&self, user_id: impl Into<UserId>) -> GetUserKudosu {
+    pub fn kudosu(&self, user_id: impl Into<UserId>) -> GetUserKudosu<'_> {
         GetUserKudosu::new(self, user_id.into())
     }
 
     /// Get [`News`](crate::model::news::News).
     #[inline]
-    pub fn news(&self) -> GetNews {
+    pub fn news(&self) -> GetNews<'_> {
         GetNews::new(self)
     }
 
     /// Get an [`OsuMatch`](crate::model::matches::OsuMatch).
     #[inline]
-    pub fn osu_match(&self, match_id: u32) -> GetMatch {
+    pub fn osu_match(&self, match_id: u32) -> GetMatch<'_> {
         GetMatch::new(self, match_id)
     }
 
     /// Get a [`MatchList`](crate::model::matches::MatchList) containing all
     /// currently open multiplayer lobbies.
     #[inline]
-    pub fn osu_matches(&self) -> GetMatches {
+    pub fn osu_matches(&self) -> GetMatches<'_> {
         GetMatches::new(self)
     }
 
@@ -253,7 +253,7 @@ impl Osu {
     ///
     /// See [`OsuBuilder::with_authorization`](crate::OsuBuilder::with_authorization).
     #[inline]
-    pub fn own_data(&self) -> GetOwnData {
+    pub fn own_data(&self) -> GetOwnData<'_> {
         GetOwnData::new(self)
     }
 
@@ -261,7 +261,7 @@ impl Osu {
     /// [`UserCompact`](crate::model::user::UserCompact)s are sorted
     /// by their pp, i.e. the current pp leaderboard.
     #[inline]
-    pub fn performance_rankings(&self, mode: GameMode) -> GetPerformanceRankings {
+    pub fn performance_rankings(&self, mode: GameMode) -> GetPerformanceRankings<'_> {
         GetPerformanceRankings::new(self, mode)
     }
 
@@ -269,7 +269,7 @@ impl Osu {
     /// [`RecentEvent`](crate::model::recent_event::RecentEvent)s.
     #[cfg(not(feature = "cache"))]
     #[inline]
-    pub fn recent_events(&self, user_id: u32) -> GetRecentEvents {
+    pub fn recent_events(&self, user_id: u32) -> GetRecentEvents<'_> {
         GetRecentEvents::new(self, user_id)
     }
 
@@ -277,7 +277,7 @@ impl Osu {
     /// [`RecentEvent`](crate::model::recent_event::RecentEvent)s.
     #[cfg(feature = "cache")]
     #[inline]
-    pub fn recent_events(&self, user_id: impl Into<UserId>) -> GetRecentEvents {
+    pub fn recent_events(&self, user_id: impl Into<UserId>) -> GetRecentEvents<'_> {
         GetRecentEvents::new(self, user_id.into())
     }
 
@@ -285,19 +285,19 @@ impl Osu {
     /// [`UserCompact`](crate::model::user::UserCompact)s are sorted
     /// by their ranked score, i.e. the current ranked score leaderboard.
     #[inline]
-    pub fn score_rankings(&self, mode: GameMode) -> GetScoreRankings {
+    pub fn score_rankings(&self, mode: GameMode) -> GetScoreRankings<'_> {
         GetScoreRankings::new(self, mode)
     }
 
     /// Get [`SeasonalBackgrounds`](crate::model::seasonal_backgrounds::SeasonalBackgrounds).
     #[inline]
-    pub fn seasonal_backgrounds(&self) -> GetSeasonalBackgrounds {
+    pub fn seasonal_backgrounds(&self) -> GetSeasonalBackgrounds<'_> {
         GetSeasonalBackgrounds::new(self)
     }
 
     /// Get the vec of [`Spotlight`](crate::model::ranking::Spotlight).
     #[inline]
-    pub fn spotlights(&self) -> GetSpotlights {
+    pub fn spotlights(&self) -> GetSpotlights<'_> {
         GetSpotlights::new(self)
     }
 
@@ -312,7 +312,7 @@ impl Osu {
     ///
     /// All other options will be filled.
     #[inline]
-    pub fn user(&self, user_id: impl Into<UserId>) -> GetUser {
+    pub fn user(&self, user_id: impl Into<UserId>) -> GetUser<'_> {
         GetUser::new(self, user_id)
     }
 
@@ -332,7 +332,7 @@ impl Osu {
     /// All options of the contained [`Beatmap`](crate::model::beatmap::Beatmap)s will be `None`.
     #[cfg(not(feature = "cache"))]
     #[inline]
-    pub fn user_beatmapsets(&self, user_id: u32) -> GetUserBeatmapsets {
+    pub fn user_beatmapsets(&self, user_id: u32) -> GetUserBeatmapsets<'_> {
         GetUserBeatmapsets::new(self, user_id)
     }
 
@@ -343,7 +343,7 @@ impl Osu {
     /// All options of the contained [`Beatmap`](crate::model::beatmap::Beatmap)s will be `None`.
     #[cfg(feature = "cache")]
     #[inline]
-    pub fn user_beatmapsets(&self, user_id: impl Into<UserId>) -> GetUserBeatmapsets {
+    pub fn user_beatmapsets(&self, user_id: impl Into<UserId>) -> GetUserBeatmapsets<'_> {
         GetUserBeatmapsets::new(self, user_id.into())
     }
 
@@ -357,7 +357,7 @@ impl Osu {
     /// The API provides at most 51 results per requests, 100 in total.
     #[cfg(not(feature = "cache"))]
     #[inline]
-    pub fn user_most_played(&self, user_id: u32) -> GetUserMostPlayed {
+    pub fn user_most_played(&self, user_id: u32) -> GetUserMostPlayed<'_> {
         GetUserMostPlayed::new(self, user_id)
     }
 
@@ -371,7 +371,7 @@ impl Osu {
     /// The API provides at most 51 results per requests, 100 in total.
     #[cfg(feature = "cache")]
     #[inline]
-    pub fn user_most_played(&self, user_id: impl Into<UserId>) -> GetUserMostPlayed {
+    pub fn user_most_played(&self, user_id: impl Into<UserId>) -> GetUserMostPlayed<'_> {
         GetUserMostPlayed::new(self, user_id.into())
     }
 
@@ -401,7 +401,7 @@ impl Osu {
     /// is not loved.
     #[cfg(not(feature = "cache"))]
     #[inline]
-    pub fn user_scores(&self, user_id: u32) -> GetUserScores {
+    pub fn user_scores(&self, user_id: u32) -> GetUserScores<'_> {
         GetUserScores::new(self, user_id)
     }
 
@@ -431,14 +431,14 @@ impl Osu {
     /// is not loved.
     #[cfg(feature = "cache")]
     #[inline]
-    pub fn user_scores(&self, user_id: impl Into<UserId>) -> GetUserScores {
+    pub fn user_scores(&self, user_id: impl Into<UserId>) -> GetUserScores<'_> {
         GetUserScores::new(self, user_id.into())
     }
 
     /// Get a vec of [`UserCompact`](crate::model::user::UserCompact).
     #[deprecated = "The API currently doesn't allow this endpoint for public use"]
     #[inline]
-    pub fn users(&self, user_ids: &[u32]) -> GetUsers {
+    pub fn users(&self, user_ids: &[u32]) -> GetUsers<'_> {
         GetUsers::new(self, user_ids)
     }
 
@@ -446,7 +446,7 @@ impl Osu {
     ///
     /// `locale` adjusts the language, e.g. `en` for english, `de` for german, ...
     #[inline]
-    pub fn wiki(&self, locale: impl Into<String>) -> GetWikiPage {
+    pub fn wiki(&self, locale: impl Into<String>) -> GetWikiPage<'_> {
         GetWikiPage::new(self, locale)
     }
 

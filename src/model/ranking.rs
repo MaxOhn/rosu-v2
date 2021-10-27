@@ -101,7 +101,7 @@ struct UserStatsVecVisitor;
 impl<'de> Visitor<'de> for UserStatsVecVisitor {
     type Value = Vec<UserCompact>;
 
-    fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("a vec of UserStatistics structs")
     }
 
@@ -129,7 +129,7 @@ struct UserStatsVisitor;
 impl<'de> Visitor<'de> for UserStatsVisitor {
     type Value = UserCompact;
 
-    fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("a UserStatistics struct")
     }
 
@@ -494,7 +494,7 @@ pub(crate) enum RankingType {
 }
 
 impl fmt::Display for RankingType {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let kind = match self {
             Self::Charts => "charts",
             Self::Country => "country",
@@ -530,7 +530,7 @@ struct RankingsCursorVisitor;
 impl<'de> Visitor<'de> for RankingsCursorVisitor {
     type Value = Option<u32>;
 
-    fn expecting(&self, f: &mut fmt::Formatter) -> std::fmt::Result {
+    fn expecting(&self, f: &mut fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str("a u32, a map containing a `page` field, or null")
     }
 

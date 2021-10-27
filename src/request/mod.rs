@@ -110,7 +110,7 @@ impl Query {
 }
 
 impl Display for Query {
-    fn fmt(&self, f: &mut Formatter) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         if self.query.is_empty() {
             return Ok(());
         }

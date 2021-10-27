@@ -69,7 +69,7 @@ impl From<String> for UserId {
 }
 
 impl fmt::Display for UserId {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Id(id) => write!(f, "{}", id),
             Self::Name(name) => f.write_str(name),
@@ -642,7 +642,7 @@ pub(crate) enum ScoreType {
 }
 
 impl fmt::Display for ScoreType {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let kind = match self {
             Self::Best => "best",
             Self::First => "firsts",

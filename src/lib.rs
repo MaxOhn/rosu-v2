@@ -111,6 +111,7 @@
 //! | `metrics` | Provide a count of all request types the client makes with the function `Osu::metrics` returning a `prometheus::IntCounterVec` | [prometheus](https://github.com/tikv/rust-prometheus)
 
 // #![deny(missing_docs)] // TODO
+#![deny(clippy::all, nonstandard_style, rust_2018_idioms, unused, warnings)]
 
 mod client;
 mod ratelimiter;

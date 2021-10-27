@@ -145,7 +145,7 @@ pub enum Scope {
 }
 
 impl Display for Scope {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
             Scope::ChatWrite => f.write_str("chat.write"),
             Scope::Delegate => f.write_str("delegate"),

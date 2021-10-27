@@ -623,6 +623,22 @@ pub struct UserLevel {
     pub progress: u32,
 }
 
+impl UserLevel {
+    /// Combine `self.current` and `self.progress` into a corresponding f32.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use rosu_v2::model::user::UserLevel;
+    ///
+    /// let level = UserLevel { current: 100, progress: 25 };
+    /// assert_eq!(level.float(), 100.25);
+    /// ```
+    pub fn float(&self) -> f32 {
+        self.current as f32 + self.progress as f32 / 100.0
+    }
+}
+
 /// osu! usernames are at most 15 ASCII characters long
 pub type Username = SmallString<[u8; 15]>;
 

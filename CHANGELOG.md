@@ -22,6 +22,7 @@ Affected fields are:
   - `User::previous_usernames`
   - `UserCompact.username`
   - `UserCompact.previous_usernames`
+- Added `float` method to `UserLevel`
 
 # v0.2.0
 

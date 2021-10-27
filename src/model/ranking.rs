@@ -6,7 +6,10 @@ use super::{
     },
     GameMode,
 };
-use crate::{prelude::Username, Osu, OsuResult};
+use crate::{
+    model::user::{CountryCode, Username},
+    Osu, OsuResult,
+};
 
 use chrono::{DateTime, Utc};
 use serde::{
@@ -39,7 +42,7 @@ pub struct CountryRanking {
     #[serde(deserialize_with = "deserialize_country")]
     pub country: String,
     #[serde(rename = "code")]
-    pub country_code: String,
+    pub country_code: CountryCode,
     /// Summed playcount for all users
     #[serde(rename = "play_count")]
     pub playcount: u64,
@@ -284,7 +287,7 @@ impl<'u> Serialize for UserCompactBorrowed<'u> {
 #[derive(Serialize)]
 struct UserCompactWithoutStats<'u> {
     pub avatar_url: &'u String,
-    pub country_code: &'u String,
+    pub country_code: &'u CountryCode,
     pub default_group: &'u String,
     pub is_active: &'u bool,
     pub is_bot: &'u bool,

@@ -23,6 +23,13 @@ Affected fields are:
   - `UserCompact.username`
   - `UserCompact.previous_usernames`
 - Added `float` method to `UserLevel`
+- [Breaking] All fields representing a country code are no longer `String` but `SmallString<[u8; 2]>` instead.
+Since country codes can't be longer than 2 characters, this type will prevent allocations. It's aliased as `CountryCode`.
+Affected fields are:
+  - `CountryRanking.country_code`
+  - `User.country_code`
+  - `UserCompact.country_code`
+  - `GetPerformanceRankings::country`
 
 # v0.2.0
 

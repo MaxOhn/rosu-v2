@@ -1,6 +1,7 @@
 use crate::{
     model::{
         ranking::{ChartRankings, CountryRankings, RankingType, Rankings, Spotlight},
+        user::CountryCode,
         GameMode,
     },
     request::{Pending, Query, Request},
@@ -134,7 +135,7 @@ pub struct GetPerformanceRankings<'a> {
     fut: Option<Pending<'a, Rankings>>,
     osu: &'a Osu,
     mode: GameMode,
-    country: Option<String>,
+    country: Option<CountryCode>,
     variant: Option<&'static str>,
     page: Option<u32>,
 }
@@ -154,7 +155,7 @@ impl<'a> GetPerformanceRankings<'a> {
 
     /// Specify a country code.
     #[inline]
-    pub fn country(mut self, country: impl Into<String>) -> Self {
+    pub fn country(mut self, country: impl Into<CountryCode>) -> Self {
         self.country.replace(country.into());
 
         self

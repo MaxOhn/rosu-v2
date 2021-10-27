@@ -27,7 +27,7 @@ fn get_country_ranking() -> CountryRanking {
     CountryRanking {
         active_users: 2,
         country: "belgiania".to_owned(),
-        country_code: "be".to_owned(),
+        country_code: "be".into(),
         playcount: 420,
         pp: 123.45,
         ranked_score: 1_000_000_000_000_000,
@@ -560,7 +560,7 @@ fn get_user() -> User {
         avatar_url: String::new(),
         comments_count: 0,
         country: "belgiania".to_owned(),
-        country_code: "be".to_owned(),
+        country_code: "be".into(),
         cover: UserCover {
             custom_url: Some(String::new()),
             url: String::new(),
@@ -665,7 +665,7 @@ fn get_user() -> User {
 fn get_user_compact() -> UserCompact {
     UserCompact {
         avatar_url: String::new(),
-        country_code: "be".to_owned(),
+        country_code: "be".into(),
         default_group: "default".to_owned(),
         is_active: true,
         is_bot: false,

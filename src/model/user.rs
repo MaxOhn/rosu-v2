@@ -37,6 +37,9 @@ pub struct Badge {
     pub url: String,
 }
 
+/// Country codes are at most 2 ASCII characters long
+pub type CountryCode = SmallString<[u8; 2]>;
+
 struct CountryVisitor;
 
 impl<'de> Visitor<'de> for CountryVisitor {
@@ -238,7 +241,7 @@ pub struct User {
     #[serde(deserialize_with = "deserialize_country")]
     pub country: String,
     /// two-letter code representing user's country
-    pub country_code: String,
+    pub country_code: CountryCode,
     /// urls for the profile cover
     pub cover: UserCover,
     /// Identifier of the default [`Group`] the user belongs to.
@@ -415,7 +418,7 @@ pub struct UserCompact {
     /// url of user's avatar
     pub avatar_url: String,
     /// two-letter code representing user's country
-    pub country_code: String,
+    pub country_code: CountryCode,
     /// Identifier of the default [`Group`] the user belongs to.
     pub default_group: String,
     /// has this account been active in the last x months?

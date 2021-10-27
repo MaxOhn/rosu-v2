@@ -149,6 +149,7 @@ pub mod prelude {
     };
 
     pub use hyper::StatusCode;
+    pub use smallstr::SmallString;
 
     #[cfg(feature = "metrics")]
     pub use prometheus::IntCounterVec;

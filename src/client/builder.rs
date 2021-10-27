@@ -16,7 +16,7 @@ use crate::metrics::Metrics;
 ///
 /// `client_id` as well as `client_secret` **must** be specified before building.
 ///
-/// For more info, check out https://osu.ppy.sh/docs/index.html#client-credentials-grant
+/// For more info, check out <https://osu.ppy.sh/docs/index.html#client-credentials-grant>
 pub struct OsuBuilder {
     auth_kind: Option<AuthorizationKind>,
     client_id: Option<u64>,
@@ -101,7 +101,7 @@ impl OsuBuilder {
 
     /// Set the client id of the application.
     ///
-    /// For more info, check out https://osu.ppy.sh/docs/index.html#client-credentials-grant
+    /// For more info, check out <https://osu.ppy.sh/docs/index.html#client-credentials-grant>
     #[inline]
     pub fn client_id(mut self, client_id: u64) -> Self {
         self.client_id.replace(client_id);
@@ -111,7 +111,7 @@ impl OsuBuilder {
 
     /// Set the client secret of the application.
     ///
-    /// For more info, check out https://osu.ppy.sh/docs/index.html#client-credentials-grant
+    /// For more info, check out <https://osu.ppy.sh/docs/index.html#client-credentials-grant>
     #[inline]
     pub fn client_secret(mut self, client_secret: impl Into<String>) -> Self {
         self.client_secret.replace(client_secret.into());
@@ -122,7 +122,7 @@ impl OsuBuilder {
     /// After acquiring the authorization code from a user through OAuth,
     /// use this method to provide the given code, and specified redirect uri.
     ///
-    /// For more info, check out https://osu.ppy.sh/docs/index.html#authorization-code-grant
+    /// For more info, check out <https://osu.ppy.sh/docs/index.html#authorization-code-grant>
     pub fn with_authorization(
         mut self,
         code: impl Into<String>,

@@ -179,7 +179,7 @@ poll_req!(GetUser => User);
 /// Get the [`Beatmapset`](crate::model::beatmap::Beatmapset)s of a user by their id.
 ///
 /// If no map type specified, either manually through
-/// [`map_type`](crate::request::GetUserBeatmapsets::map_type),
+/// [`status`](crate::request::GetUserBeatmapsets::status),
 /// or through any of the methods [`loved`](crate::request::GetUserBeatmapsets::loved),
 /// [`graveyard`](crate::request::GetUserBeatmapsets::graveyard),
 /// [`ranked`](crate::request::GetUserBeatmapsets::ranked),

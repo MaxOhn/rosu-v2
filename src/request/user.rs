@@ -8,6 +8,7 @@ use crate::{
         user::{User, UserCompact},
         GameMode,
     },
+    prelude::Username,
     request::{Pending, Query, Request},
     routing::Route,
     Osu,
@@ -18,9 +19,6 @@ use std::fmt;
 
 #[cfg(feature = "cache")]
 use futures::future::TryFutureExt;
-
-// osu! usernames are at most 15 ASCII characters long
-pub(crate) type Username = SmallString<[u8; 15]>;
 
 /// Either a user id as u32 or a username as String.
 ///

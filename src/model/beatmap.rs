@@ -1,5 +1,5 @@
 use super::{user::UserCompact, Cursor, GameMode};
-use crate::{request::GetUser, Osu, OsuResult};
+use crate::{prelude::Username, request::GetUser, Osu, OsuResult};
 
 use chrono::{DateTime, Utc};
 use serde::{
@@ -134,7 +134,7 @@ pub struct Beatmapset {
     #[serde(default, rename = "user", skip_serializing_if = "Option::is_none")]
     pub creator: Option<UserCompact>,
     #[serde(rename = "creator")]
-    pub creator_name: String,
+    pub creator_name: Username,
     #[serde(rename = "user_id")]
     pub creator_id: u32,
     #[serde(
@@ -282,7 +282,7 @@ pub struct BeatmapsetCommentOwnerChange {
     pub version: String,
     pub new_user_id: u32,
     #[serde(rename = "new_user_username")]
-    pub new_username: String,
+    pub new_username: Username,
 }
 
 /// Represents a beatmapset.
@@ -293,7 +293,7 @@ pub struct BeatmapsetCompact {
     pub artist_unicode: Option<String>,
     pub covers: BeatmapsetCovers,
     #[serde(rename = "creator")]
-    pub creator_name: String,
+    pub creator_name: Username,
     #[serde(rename = "user_id")]
     pub creator_id: u32,
     pub favourite_count: u32,

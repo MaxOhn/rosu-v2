@@ -7,6 +7,21 @@
   - Removed `User::skype`
   - Removed `User::is_restricted` and `UserCompact::is_restricted`
 - [Breaking] Removed `Osu` methods `multiplayer_score`, `multiplayer_scores`, and `multiplayer_user_highscore`
+- [Breaking] All fields representing a username are no longer `String` but `SmallString<[u8; 15]>` instead.
+Since usernames can't be longer than 15 characters, this type will prevent allocations. It's aliased as `Username`.
+Affected fields are:
+  - `Beatmapset.creator_name`
+  - `BeatmapsetCommentOwnerChange.new_username`
+  - `BeatmapsetCompact.creator_name`
+  - `Comment.legacy_name`
+  - `KudosuAction::KudosuGiver.username`
+  - `NewsPost.author`
+  - `EventUser.username`
+  - `EventUser.previous_username`
+  - `User::username`
+  - `User::previous_usernames`
+  - `UserCompact.username`
+  - `UserCompact.previous_usernames`
 
 # v0.2.0
 

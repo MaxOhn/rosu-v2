@@ -1,5 +1,5 @@
 use super::Cursor;
-use crate::{Osu, OsuResult};
+use crate::{prelude::Username, Osu, OsuResult};
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -35,7 +35,7 @@ impl News {
 pub struct NewsPost {
     #[serde(rename = "id")]
     pub post_id: u32,
-    pub author: String,
+    pub author: Username,
     /// Link to the file view on GitHub.
     pub edit_url: String,
     /// Link to the first image in the document.

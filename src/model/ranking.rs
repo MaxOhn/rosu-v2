@@ -6,7 +6,7 @@ use super::{
     },
     GameMode,
 };
-use crate::{Osu, OsuResult};
+use crate::{prelude::Username, Osu, OsuResult};
 
 use chrono::{DateTime, Utc};
 use serde::{
@@ -298,7 +298,7 @@ struct UserCompactWithoutStats<'u> {
     pub profile_color: &'u Option<String>,
     #[serde(rename = "id")]
     pub user_id: &'u u32,
-    pub username: &'u String,
+    pub username: &'u Username,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub account_history: &'u Option<Vec<AccountHistory>>,
@@ -352,7 +352,7 @@ struct UserCompactWithoutStats<'u> {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub page: &'u Option<UserPage>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub previous_usernames: &'u Option<Vec<String>>,
+    pub previous_usernames: &'u Option<Vec<Username>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rank_history: &'u Option<Vec<u32>>,
     #[serde(

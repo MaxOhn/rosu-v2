@@ -6,7 +6,10 @@ use token::{Authorization, AuthorizationKind, Token, TokenResponse};
 pub use builder::OsuBuilder;
 pub use token::Scope;
 
-use crate::{error::OsuError, model::GameMode, ratelimiter::Ratelimiter, request::*, OsuResult};
+use crate::{
+    error::OsuError, model::GameMode, prelude::Username, ratelimiter::Ratelimiter, request::*,
+    OsuResult,
+};
 
 use bytes::Bytes;
 use hyper::{

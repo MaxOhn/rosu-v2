@@ -1,5 +1,5 @@
 use super::{user::UserCompact, Cursor};
-use crate::{request::GetUser, Osu, OsuResult};
+use crate::{prelude::Username, request::GetUser, Osu, OsuResult};
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -28,7 +28,7 @@ pub struct Comment {
     pub edited_by_id: Option<u32>,
     /// username displayed on legacy comments
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub legacy_name: Option<String>,
+    pub legacy_name: Option<Username>,
     /// markdown of the comment's content
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub message: Option<String>,

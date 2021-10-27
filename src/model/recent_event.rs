@@ -1,7 +1,11 @@
-use super::{beatmap::RankStatus, user::Medal, GameMode, Grade};
-
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+
+use super::{
+    beatmap::RankStatus,
+    user::{Medal, Username},
+    GameMode, Grade,
+};
 
 /// The object has different attributes depending on its type.
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -96,7 +100,7 @@ pub enum EventType {
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct EventUser {
-    pub username: String,
+    pub username: Username,
     pub url: String,
     /// Only for UsernameChange events
     #[serde(
@@ -104,5 +108,5 @@ pub struct EventUser {
         rename = "previousUsername",
         skip_serializing_if = "Option::is_none"
     )]
-    pub previous_username: Option<String>,
+    pub previous_username: Option<Username>,
 }

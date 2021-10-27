@@ -5,6 +5,7 @@ use serde::{
     de::{Error, IgnoredAny, MapAccess, SeqAccess, Visitor},
     Deserialize, Deserializer, Serialize, Serializer,
 };
+use smallstr::SmallString;
 use std::fmt;
 
 fn str_to_date<'de, D: Deserializer<'de>>(d: D) -> Result<Date<Utc>, D::Error> {
@@ -310,7 +311,7 @@ pub struct User {
     #[serde(rename = "id")]
     pub user_id: u32,
     /// user's display name
-    pub username: String,
+    pub username: Username,
     /// website, `None` if not specified by the user
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub website: Option<String>,
@@ -368,7 +369,7 @@ pub struct User {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub page: Option<UserPage>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub previous_usernames: Option<Vec<String>>,
+    pub previous_usernames: Option<Vec<Username>>,
     #[serde(
         default,
         deserialize_with = "rank_history_vec",
@@ -443,7 +444,7 @@ pub struct UserCompact {
     #[serde(rename = "id")]
     pub user_id: u32,
     /// user's display name
-    pub username: String,
+    pub username: Username,
 
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub account_history: Option<Vec<AccountHistory>>,
@@ -510,7 +511,7 @@ pub struct UserCompact {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub page: Option<UserPage>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub previous_usernames: Option<Vec<String>>,
+    pub previous_usernames: Option<Vec<Username>>,
     #[serde(
         default,
         deserialize_with = "rank_history_vec",
@@ -621,6 +622,9 @@ pub struct UserLevel {
     /// Percentage to the next level between `0.0` and `100.0`
     pub progress: u32,
 }
+
+/// osu! usernames are at most 15 ASCII characters long
+pub type Username = SmallString<[u8; 15]>;
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct UserPage {

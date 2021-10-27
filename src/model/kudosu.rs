@@ -1,6 +1,8 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+use crate::model::user::Username;
+
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub enum KudosuAction {
     #[serde(rename = "recalculate.reset")]
@@ -16,7 +18,7 @@ pub enum KudosuAction {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct KudosuGiver {
     pub url: String,
-    pub username: String,
+    pub username: Username,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]

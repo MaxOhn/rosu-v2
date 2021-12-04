@@ -17,84 +17,31 @@ default = ["cache"]
 cache = ["dashmap"]
 metrics = ["prometheus"]
 
-# --- Feature dependencies ---
-
-[dependencies.dashmap]
-version = "4.0"
-default-features = false
-optional = true
-
-[dependencies.prometheus]
-version = "0.12"
-optional = true
-
 # --- Dependencies ---
 
-[dependencies.bitflags]
-version = "1.2"
-default-features = false
+[dependencies]
+bitflags = { version = "1.0", default-features = false }
+bytes = { version = "1.0", default-features = false }
+chrono = { version = "0.4", default-features = false, features = ["serde"] }
+futures = { version = "0.3", default-features = false }
+log = { version = "0.4", default-features = false }
+hyper = { version = "0.14", default-features = false, features = ["client", "http2"] }
+hyper-rustls = { version = "0.22", default-features = false, features = ["native-tokio"] }
+serde = { version = "1.0", default-features = false, features = ["derive"] }
+serde_json = { version = "1.0", default-features = false, features = ["std"] }
+smallstr = { version = "0.2", features = ["serde"] }
+tokio = { version = "1.0", default-features = false }
+url = { version = "2.0", default-features = false }
 
-[dependencies.bytes]
-version = "1.0"
-default-features = false
+# --- Feature dependencies ---
 
-[dependencies.chrono]
-version = "0.4"
-default-features = false
-features = ["serde"]
-
-[dependencies.futures]
-version = "0.3"
-default-features = false
-
-[dependencies.log]
-version = "0.4"
-default-features = false
-
-[dependencies.hyper]
-version = "0.14"
-default-features = false
-features = ["client", "http2"]
-
-[dependencies.hyper-rustls]
-version = "0.22"
-default-features = false
-features = ["native-tokio"]
-
-[dependencies.serde]
-version = "1.0"
-default-features = false
-features = ["derive"]
-
-[dependencies.serde_json]
-version = "1.0"
-default-features = false
-features = ["std"]
-
-[dependencies.smallstr]
-version = "0.2"
-features = ["serde"]
-
-[dependencies.tokio]
-version = "1.2"
-default-features = false
-
-[dependencies.url]
-version = "2.2"
-default-features = false
+dashmap = { version = "4.0", default-features = false, optional = true }
+prometheus = { version = "0.12", optional = true }
 
 # --- Dev dependencies ---
 
-[dev-dependencies.dotenv]
-version = "0.15"
-
-[dev-dependencies.env_logger]
-version = "0.9"
-
-[dev-dependencies.once_cell]
-version = "1.7"
-
-[dev-dependencies.tokio]
-version = "1.2"
-default-features = false
-features = ["rt", "macros"]
+[dev-dependencies]
+dotenv = { version = "0.15" }
+env_logger = { version = "0.9" }
+once_cell = { version = "1.7" }
+tokio = { version = "1.0", default-features = false, features = ["rt", "macros"] }

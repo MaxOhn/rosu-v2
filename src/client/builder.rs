@@ -2,7 +2,7 @@ use super::{Authorization, AuthorizationKind, Osu, OsuRef, Token};
 use crate::{error::OsuError, ratelimiter::Ratelimiter, OsuResult};
 
 use hyper::client::Builder;
-use hyper_rustls::HttpsConnector;
+use hyper_rustls::HttpsConnectorBuilder;
 use std::{sync::Arc, time::Duration};
 use tokio::sync::{oneshot, RwLock};
 
@@ -58,7 +58,13 @@ impl OsuBuilder {
         let client_id = self.client_id.ok_or(OsuError::BuilderMissingId)?;
         let client_secret = self.client_secret.ok_or(OsuError::BuilderMissingSecret)?;
 
-        let connector = HttpsConnector::with_native_roots();
+        let connector = HttpsConnectorBuilder::new()
+            .with_native_roots()
+            .https_or_http()
+            .enable_http1()
+            .enable_http2()
+            .build();
+
         let http = Builder::default().build(connector);
 
         let ratelimiter = Ratelimiter::new(15, 1);

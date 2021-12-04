@@ -77,18 +77,9 @@ impl Request {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub(crate) struct Query {
     query: String,
-}
-
-impl Default for Query {
-    #[inline]
-    fn default() -> Self {
-        Self {
-            query: String::new(),
-        }
-    }
 }
 
 impl Query {

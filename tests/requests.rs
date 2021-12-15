@@ -65,29 +65,17 @@ async fn init() {
     }
 }
 
-macro_rules! get_id {
-    ($name:ident, $id:literal) => {
-        fn $name() -> u32 {
-            $id
-        }
-    };
-}
+const ADESSO_BALLA: u32 = 171024;
+const BREEZEBLOCKS: u32 = 3187415;
 
-// Map ids
-get_id!(adesso_balla, 171024);
-get_id!(breezeblocks, 3187415);
+const HIKOUI_GUMO: u32 = 357161;
 
-// Mapset id
-get_id!(hikoui_gumo, 357161);
+const BADEWANNE3: u32 = 2211396;
+const SYLAS: u32 = 3906405;
 
-// Player id
-get_id!(badewanne3, 2211396);
+const DE_VS_CA: u32 = 71028303;
 
-// Mapper id
-get_id!(sylas, 3906405);
-
-// Match id
-get_id!(de_vs_ca, 71028303);
+const COOKIEZI_FREEDOM_DIVE: u64 = 2177560145;
 
 fn osu() -> &'static Osu {
     OSU.get().expect("OSU not initialized")
@@ -98,17 +86,17 @@ fn osu() -> &'static Osu {
 async fn custom() {
     init().await;
 
-    let req_fut = osu().user(sylas());
+    let req_fut = osu().user(SYLAS);
 
     let result = req_fut.await.unwrap();
-    println!("Result 1:\n{:?}", result);
+    println!("Result:\n{:#?}", result);
 }
 
 #[tokio::test]
 async fn beatmap() {
     init().await;
 
-    match osu().beatmap().map_id(adesso_balla()).await {
+    match osu().beatmap().map_id(ADESSO_BALLA).await {
         Ok(map) => println!(
             "Received {} - {}",
             map.mapset.as_ref().unwrap().artist,
@@ -125,7 +113,7 @@ async fn beatmap() {
 async fn beatmaps() {
     init().await;
 
-    match osu().beatmaps([adesso_balla(), breezeblocks()]).await {
+    match osu().beatmaps([ADESSO_BALLA, BREEZEBLOCKS]).await {
         Ok(maps) => println!("Received {} maps", maps.len()),
         Err(why) => {
             unwind_error!(error, why, "Error while requesting beatmap: {}");
@@ -138,7 +126,7 @@ async fn beatmaps() {
 async fn beatmap_scores() {
     init().await;
 
-    match osu().beatmap_scores(adesso_balla()).await {
+    match osu().beatmap_scores(ADESSO_BALLA).await {
         Ok(scores) => println!("Received {} scores", scores.len()),
         Err(why) => {
             unwind_error!(error, why, "Error while requesting beatmap scores: {}");
@@ -153,7 +141,7 @@ async fn beatmap_user_score() {
     init().await;
 
     match osu()
-        .beatmap_user_score(adesso_balla(), badewanne3())
+        .beatmap_user_score(ADESSO_BALLA, BADEWANNE3)
         .mods(GameMods::Hidden | GameMods::HardRock | GameMods::HalfTime)
         .await
     {
@@ -176,7 +164,7 @@ async fn beatmap_user_score() {
 async fn beatmapset() {
     init().await;
 
-    match osu().beatmapset(hikoui_gumo()).await {
+    match osu().beatmapset(HIKOUI_GUMO).await {
         Ok(mapset) => println!("Received mapset with {} maps", mapset.maps.unwrap().len()),
         Err(why) => {
             unwind_error!(println, why, "Error while requesting beatmapset: {}");
@@ -309,7 +297,7 @@ async fn recent_events() {
 async fn kudosu() {
     init().await;
 
-    match osu().kudosu(sylas()).limit(5).offset(1).await {
+    match osu().kudosu(SYLAS).limit(5).offset(1).await {
         Ok(history) => {
             let sum: i32 = history.iter().map(|entry| entry.amount).sum();
 
@@ -339,7 +327,7 @@ async fn news() {
 async fn osu_match() {
     init().await;
 
-    match osu().osu_match(de_vs_ca()).await {
+    match osu().osu_match(DE_VS_CA).await {
         Ok(osu_match) => {
             println!(
                 "Received match, got {} events and {} users",
@@ -402,6 +390,22 @@ async fn performance_rankings() {
         }
         Err(why) => {
             unwind_error!(error, why, "Error while requesting rankings: {}");
+            panic!()
+        }
+    }
+}
+
+#[tokio::test]
+async fn score() {
+    init().await;
+
+    match osu().score(COOKIEZI_FREEDOM_DIVE, GameMode::STD).await {
+        Ok(score) => println!(
+            "Received {}'s FREEDOM DIVE score",
+            score.user.unwrap().username
+        ),
+        Err(why) => {
+            unwind_error!(error, why, "Error while requesting score: {}");
             panic!()
         }
     }
@@ -481,7 +485,7 @@ async fn user_beatmapsets() {
     init().await;
 
     match osu()
-        .user_beatmapsets(sylas())
+        .user_beatmapsets(SYLAS)
         .limit(5)
         .ranked()
         .offset(2)
@@ -499,12 +503,7 @@ async fn user_beatmapsets() {
 async fn user_most_played() {
     init().await;
 
-    match osu()
-        .user_most_played(badewanne3())
-        .limit(5)
-        .offset(2)
-        .await
-    {
+    match osu().user_most_played(BADEWANNE3).limit(5).offset(2).await {
         Ok(scores) => println!(
             "Received {} scores, the first is map id {}",
             scores.len(),
@@ -544,7 +543,7 @@ async fn users() {
     init().await;
 
     #[allow(deprecated)]
-    match osu().users(&[badewanne3(), sylas()]).await {
+    match osu().users(&[BADEWANNE3, SYLAS]).await {
         Ok(users) => println!("Received {} users", users.len()),
         Err(why) => {
             unwind_error!(error, why, "Error while requesting users: {}");

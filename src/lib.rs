@@ -38,6 +38,7 @@
 //! - `news`: Recent news
 //! - `rankings/{mode}/{ranking_type}`: The global leaderboard of either performance points, ranked score, countries, or a spotlight
 //! - `users/{user_id}/{recent_activity}`: List of a user's recent events like achieved medals, ranks on a beatmaps, username changes, supporter status updates, beatmapset status updates, ...
+//! - `scores/{mode}/{score_id}`: A specific score including its beatmap, beatmapset, and user
 //! - `seasonal-backgrounds`: List of seasonal backgrounds i.e. their URL and artists
 //! - `spotlights`: List of overviews of all spotlights
 //! - `users/{user_id}[/{mode}]`: Detailed info about a user [in the specified mode]

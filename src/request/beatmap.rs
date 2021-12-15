@@ -684,3 +684,38 @@ impl<'a> GetBeatmapsetSearch<'a> {
 }
 
 poll_req!(GetBeatmapsetSearch => BeatmapsetSearchResult);
+
+/// Get a [`Score`](crate::model::score::Score) struct.
+#[must_use = "futures do nothing unless you `.await` or poll them"]
+pub struct GetScore<'a> {
+    fut: Option<Pending<'a, Score>>,
+    osu: &'a Osu,
+    mode: GameMode,
+    score_id: u64,
+}
+
+impl<'a> GetScore<'a> {
+    #[inline]
+    pub(crate) fn new(osu: &'a Osu, score_id: u64, mode: GameMode) -> Self {
+        Self {
+            fut: None,
+            osu,
+            mode,
+            score_id,
+        }
+    }
+
+    fn start(&mut self) -> Pending<'a, Score> {
+        #[cfg(feature = "metrics")]
+        self.osu.metrics.score.inc();
+
+        let route = Route::GetScore {
+            mode: self.mode,
+            score_id: self.score_id,
+        };
+
+        Box::pin(self.osu.inner.request(Request::new(route)))
+    }
+}
+
+poll_req!(GetScore => Score);

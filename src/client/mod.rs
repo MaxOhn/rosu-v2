@@ -85,7 +85,7 @@ impl Osu {
     /// Get a vec of at most 50 [`BeatmapCompact`](crate::model::beatmap::BeatmapCompact)s.
     ///
     /// The contained maps will have these options filled: `mapset`,
-    /// `fail_times`, and `max_combo`
+    /// `fail_times`, and `max_combo` (if available for mode).
     #[inline]
     pub fn beatmaps<I>(&self, map_ids: I) -> GetBeatmaps<'_>
     where
@@ -291,6 +291,18 @@ impl Osu {
     #[inline]
     pub fn recent_events(&self, user_id: impl Into<UserId>) -> GetRecentEvents<'_> {
         GetRecentEvents::new(self, user_id.into())
+    }
+
+    /// Get a [`Score`](crate::model::score::Score) struct.
+    ///
+    /// The contained score will have the following options filled:
+    /// `map` (will contain `checksum` and `max_combo`), `mapset`
+    /// (will contain `artist_unicode` and `title_unicode`), `pp`
+    /// (if ranked), `rank_global` (if on leaderboard map) and `user`
+    /// (will contain `last_visited`, `country`, `cover` and `groups`)
+    #[inline]
+    pub fn score(&self, score_id: u64, mode: GameMode) -> GetScore<'_> {
+        GetScore::new(self, score_id, mode)
     }
 
     /// Get a [`Rankings`](crate::model::ranking::Rankings) struct whose

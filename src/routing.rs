@@ -44,6 +44,10 @@ pub(crate) enum Route {
     GetRecentEvents {
         user_id: u32,
     },
+    GetScore {
+        mode: GameMode,
+        score_id: u64,
+    },
     GetSeasonalBackgrounds,
     GetSpotlights,
     GetUser {
@@ -123,6 +127,9 @@ impl Route {
                 Method::GET,
                 format!("users/{}/recent_activity", user_id).into(),
             ),
+            Self::GetScore { mode, score_id } => {
+                (Method::GET, format!("scores/{}/{}", mode, score_id).into())
+            }
             Self::GetSeasonalBackgrounds => (Method::GET, "seasonal-backgrounds".into()),
             Self::GetSpotlights => (Method::GET, "spotlights".into()),
             Self::GetUser { user_id, mode } => {

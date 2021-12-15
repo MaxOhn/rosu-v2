@@ -20,10 +20,6 @@ pub(crate) struct Metrics {
     pub(crate) osu_match: IntCounter,
     pub(crate) match_list: IntCounter,
 
-    pub(crate) multiplayer_score: IntCounter,
-    pub(crate) multiplayer_scores: IntCounter,
-    pub(crate) multiplayer_user_highscore: IntCounter,
-
     pub(crate) news: IntCounter,
 
     pub(crate) chart_rankings: IntCounter,
@@ -69,10 +65,6 @@ impl Metrics {
 
             osu_match: counters.with_label_values(&["Matches"]),
             match_list: counters.with_label_values(&["Match list"]),
-
-            multiplayer_score: counters.with_label_values(&["Multiplayer score"]),
-            multiplayer_scores: counters.with_label_values(&["Multiplayer scores"]),
-            multiplayer_user_highscore: counters.with_label_values(&["Multiplayer user highscore"]),
 
             news: counters.with_label_values(&["News"]),
 

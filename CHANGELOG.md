@@ -1,6 +1,7 @@
 ## Upcoming
 
 - Added method `Osu::beatmaps` to retrieve multiple maps at once (up to 50).
+- Removed metrics for multiplayer endpoints.
 
 # v0.3.0
 

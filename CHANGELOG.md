@@ -1,6 +1,6 @@
 ## Upcoming
 
-- Nothing as of now
+- Added method `Osu::beatmaps` to retrieve multiple maps at once (up to 50).
 
 # v0.3.0
 

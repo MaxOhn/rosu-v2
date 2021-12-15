@@ -82,6 +82,18 @@ impl Osu {
         GetBeatmap::new(self)
     }
 
+    /// Get a vec of at most 50 [`BeatmapCompact`](crate::model::beatmap::BeatmapCompact)s.
+    ///
+    /// The contained maps will have these options filled: `mapset`,
+    /// `fail_times`, and `max_combo`
+    #[inline]
+    pub fn beatmaps<I>(&self, map_ids: I) -> GetBeatmaps<'_>
+    where
+        I: IntoIterator<Item = u32>,
+    {
+        GetBeatmaps::new(self, map_ids)
+    }
+
     /// Get a vec of [`Score`](crate::model::score::Score).
     ///
     /// The contained scores will have the following options filled:

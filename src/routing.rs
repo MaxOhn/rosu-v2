@@ -11,6 +11,7 @@ use std::{borrow::Cow, fmt::Write};
 #[non_exhaustive]
 pub(crate) enum Route {
     GetBeatmap,
+    GetBeatmaps,
     GetBeatmapScores {
         map_id: u32,
     },
@@ -73,6 +74,7 @@ impl Route {
     pub(crate) fn into_parts(self) -> (Method, Cow<'static, str>) {
         match self {
             Self::GetBeatmap => (Method::GET, "beatmaps/lookup".into()),
+            Self::GetBeatmaps => (Method::GET, "beatmaps".into()),
             Self::GetBeatmapScores { map_id } => {
                 (Method::GET, format!("beatmaps/{}/scores", map_id).into())
             }

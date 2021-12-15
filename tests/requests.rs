@@ -73,8 +73,9 @@ macro_rules! get_id {
     };
 }
 
-// Map id
+// Map ids
 get_id!(adesso_balla, 171024);
+get_id!(breezeblocks, 3187415);
 
 // Mapset id
 get_id!(hikoui_gumo, 357161);
@@ -113,6 +114,19 @@ async fn beatmap() {
             map.mapset.as_ref().unwrap().artist,
             map.mapset.as_ref().unwrap().title,
         ),
+        Err(why) => {
+            unwind_error!(error, why, "Error while requesting beatmap: {}");
+            panic!()
+        }
+    }
+}
+
+#[tokio::test]
+async fn beatmaps() {
+    init().await;
+
+    match osu().beatmaps([adesso_balla(), breezeblocks()]).await {
+        Ok(maps) => println!("Received {} maps", maps.len()),
         Err(why) => {
             unwind_error!(error, why, "Error while requesting beatmap: {}");
             panic!()

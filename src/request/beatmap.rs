@@ -7,13 +7,14 @@ use crate::{
         score::{BeatmapScores, BeatmapUserScore, Score},
         Cursor, GameMode, GameMods,
     },
+    prelude::{BeatmapCompact, Beatmaps},
     request::{Pending, Query, Request},
     routing::Route,
     Osu,
 };
 
 use futures::future::TryFutureExt;
-use std::fmt::Write;
+use std::{fmt::Write, mem};
 
 #[cfg(feature = "cache")]
 use super::UserId;
@@ -89,6 +90,52 @@ impl<'a> GetBeatmap<'a> {
 }
 
 poll_req!(GetBeatmap => Beatmap);
+
+/// Get a vec of [`BeatmapCompact`](crate::model::beatmap::BeatmapCompact) by their map ids.
+#[must_use = "futures do nothing unless you `.await` or poll them"]
+pub struct GetBeatmaps<'a> {
+    fut: Option<Pending<'a, Vec<BeatmapCompact>>>,
+    osu: &'a Osu,
+    query: Query,
+}
+
+impl<'a> GetBeatmaps<'a> {
+    #[inline]
+    pub(crate) fn new<I>(osu: &'a Osu, map_ids: I) -> Self
+    where
+        I: IntoIterator<Item = u32>,
+    {
+        let mut query = Query::new();
+
+        for map_id in map_ids.into_iter().take(50) {
+            query.push("ids[]", map_id);
+        }
+
+        Self {
+            fut: None,
+            osu,
+            query,
+        }
+    }
+
+    fn start(&mut self) -> Pending<'a, Vec<BeatmapCompact>> {
+        #[cfg(feature = "metrics")]
+        self.osu.metrics.beatmaps.inc();
+
+        let query = mem::take(&mut self.query);
+        let req = Request::with_query(Route::GetBeatmaps, query);
+
+        let fut = self
+            .osu
+            .inner
+            .request::<Beatmaps>(req)
+            .map_ok(|maps| maps.maps);
+
+        Box::pin(fut)
+    }
+}
+
+poll_req!(GetBeatmaps => Vec<BeatmapCompact>);
 
 /// Get top scores of a beatmap by its id in form of a
 /// vec of [`Score`](crate::model::score::Score)s.

@@ -116,6 +116,12 @@ impl From<Beatmap> for BeatmapCompact {
     }
 }
 
+#[derive(Deserialize)]
+pub(crate) struct Beatmaps {
+    #[serde(rename = "beatmaps")]
+    pub(crate) maps: Vec<BeatmapCompact>,
+}
+
 /// Represents a beatmapset. This extends [`BeatmapsetCompact`] with additional attributes.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Beatmapset {
@@ -310,6 +316,7 @@ pub struct BeatmapsetCompact {
     pub playcount: u32,
     /// Full URL, i.e. `b.ppy.sh/preview/{mapset_id}.mp3`
     pub preview_url: String,
+    // TODO: Add ratings
     pub source: String,
     pub status: RankStatus,
     pub title: String,

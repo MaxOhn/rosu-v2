@@ -32,7 +32,7 @@ use futures::future::TryFutureExt;
 /// let user_id: UserId = 123_456.into();
 /// let user_id: UserId = "my username".into();
 /// ```
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum UserId {
     /// Represents a user through their user id
     Id(u32),

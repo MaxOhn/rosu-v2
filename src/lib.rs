@@ -147,6 +147,7 @@ pub mod prelude {
             recent_event::*, score::*, seasonal_backgrounds::*, user::*, wiki::*, Cursor, GameMode,
             GameMods, Grade,
         },
+        request::UserId,
         Osu, OsuBuilder, OsuResult,
     };
 

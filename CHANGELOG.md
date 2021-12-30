@@ -3,6 +3,8 @@
 - Added method `Osu::beatmaps` to retrieve multiple maps at once (up to 50).
 - Added method `Osu::score` to retrieve a specific score.
 - Removed metrics for multiplayer endpoints.
+- Added `UserId` to the prelude module
+- Added `Clone`, `Eq`, `PartialEq`, and `Hash` impls for `UserId`
 
 # v0.3.0
 

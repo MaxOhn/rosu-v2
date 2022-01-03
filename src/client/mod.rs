@@ -378,7 +378,7 @@ impl Osu {
     ///
     /// ## Limit
     ///
-    /// The API provides at most 51 results per requests, 100 in total.
+    /// The API provides at most 100 results, defaults to 5.
     #[cfg(not(feature = "cache"))]
     #[inline]
     pub fn user_most_played(&self, user_id: u32) -> GetUserMostPlayed<'_> {
@@ -392,7 +392,7 @@ impl Osu {
     ///
     /// ## Limit
     ///
-    /// The API provides at most 51 results per requests, 100 in total.
+    /// The API provides at most 100 results, defaults to 5.
     #[cfg(feature = "cache")]
     #[inline]
     pub fn user_most_played(&self, user_id: impl Into<UserId>) -> GetUserMostPlayed<'_> {

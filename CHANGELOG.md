@@ -5,6 +5,7 @@
 - Removed metrics for multiplayer endpoints.
 - Added `UserId` to the prelude module
 - Added `Clone`, `Eq`, `PartialEq`, and `Hash` impls for `UserId`
+- Improved compile time by removing `build.rs` file
 
 # v0.3.0
 

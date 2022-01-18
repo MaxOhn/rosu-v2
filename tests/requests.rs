@@ -1,5 +1,7 @@
 extern crate rosu_v2;
 
+use std::{env, error::Error, fmt::Write};
+
 use dotenv::dotenv;
 use once_cell::sync::OnceCell;
 use rosu_v2::{
@@ -9,7 +11,6 @@ use rosu_v2::{
     },
     Osu,
 };
-use std::{env, error::Error, fmt::Write};
 
 #[cfg(feature = "cache")]
 use rosu_v2::model::GameMods;
@@ -32,6 +33,7 @@ macro_rules! unwind_error {
 
 static OSU: OnceCell<Osu> = OnceCell::new();
 
+// Be sure you pass `--test-threads=1` to `cargo test` when running
 async fn init() {
     if OSU.get().is_none() {
         let _ = env_logger::builder().is_test(true).try_init();

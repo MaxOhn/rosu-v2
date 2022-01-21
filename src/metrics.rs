@@ -41,6 +41,7 @@ pub(crate) struct Metrics {
     pub(crate) user_top_scores: IntCounter,
     pub(crate) user_recent_scores: IntCounter,
     pub(crate) user_first_scores: IntCounter,
+    pub(crate) user_pinned_scores: IntCounter,
     pub(crate) users: IntCounter,
 
     pub(crate) wiki: IntCounter,
@@ -89,6 +90,7 @@ impl Metrics {
             user_top_scores: counters.with_label_values(&["User top scores"]),
             user_recent_scores: counters.with_label_values(&["User recent scores"]),
             user_first_scores: counters.with_label_values(&["User first scores"]),
+            user_pinned_scores: counters.with_label_values(&["User pinned scores"]),
             users: counters.with_label_values(&["Users"]),
 
             wiki: counters.with_label_values(&["Wiki"]),

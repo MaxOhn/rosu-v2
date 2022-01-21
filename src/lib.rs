@@ -44,7 +44,7 @@
 //! - `users/{user_id}[/{mode}]`: Detailed info about a user [in the specified mode]
 //! - `users/{user_id}/{beatmapsets/{map_type}`: List of beatmapsets either created, favourited, or most played by the user
 //! - `users/{user_id}/kudosu`: A user's recent kudosu transfers
-//! - `users/{user_id}/scores/{score_type}`: Either top scores, recent scores, or global #1 scores of a user
+//! - `users/{user_id}/scores/{score_type}`: Either top, recent, pinned, or global #1 scores of a user
 //! - `wiki/{locale}[/{path}]`: The general wiki page or a specific topic if the path is specified
 //!
 //! The api itself provides a bunch more endpoints which are not yet implemented because they're really niche and/or missing any documentation.

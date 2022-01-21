@@ -6,6 +6,7 @@
 - Added `UserId` to the prelude module
 - Added `Clone`, `Eq`, `PartialEq`, and `Hash` impls for `UserId`
 - Improved compile time by removing `build.rs` file
+- Added method `GetUserScores::pinned` to retrieve the pinned scores of a user
 
 # v0.3.0
 
@@ -17,8 +18,8 @@
   - Removed `User::is_restricted` and `UserCompact::is_restricted`
 - [Breaking] Removed `Osu` methods `multiplayer_score`, `multiplayer_scores`, and `multiplayer_user_highscore`
 - [Breaking] All fields representing a username are no longer `String` but `SmallString<[u8; 15]>` instead.
-Since usernames can't be longer than 15 characters, this type will prevent allocations. It's aliased as `Username`.
-Affected fields are:
+    Since usernames can't be longer than 15 characters, this type will prevent allocations. It's aliased as `Username`.
+    Affected fields are:
   - `Beatmapset.creator_name`
   - `BeatmapsetCommentOwnerChange.new_username`
   - `BeatmapsetCompact.creator_name`
@@ -33,8 +34,8 @@ Affected fields are:
   - `UserCompact.previous_usernames`
 - Added `float` method to `UserLevel`
 - [Breaking] All fields representing a country code are no longer `String` but `SmallString<[u8; 2]>` instead.
-Since country codes can't be longer than 2 characters, this type will prevent allocations. It's aliased as `CountryCode`.
-Affected fields are:
+    Since country codes can't be longer than 2 characters, this type will prevent allocations. It's aliased as `CountryCode`.
+    Affected fields are:
   - `CountryRanking.country_code`
   - `User.country_code`
   - `UserCompact.country_code`

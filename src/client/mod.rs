@@ -399,12 +399,13 @@ impl Osu {
         GetUserMostPlayed::new(self, user_id.into())
     }
 
-    /// Get either top, global firsts, or recent scores of a user,
+    /// Get either top, global firsts, pinned, or recent scores of a user,
     /// i.e. a vec of [`Score`](crate::model::score::Score).
     ///
     /// If no score type is specified by either
     /// [`best`](crate::request::GetUserScores::best),
     /// [`firsts`](crate::request::GetUserScores::firsts),
+    /// [`pinned`](crate::request::GetUserScores::pinned),
     /// or [`recent`](crate::request::GetUserScores::recent), it defaults to `best`.
     ///
     /// The resulting scores will have these options filled: `map`, `mapset`, `pp`, `user`
@@ -417,7 +418,7 @@ impl Osu {
     ///
     /// ## Note
     ///
-    /// - The API provides at most 100 results per requests.
+    /// - The API provides at most 100 results per requests and defaults to 5.
     /// - For the `recent` score type, failed score are excluded by default.
     /// Use [`include_fails`](crate::request::GetUserScores::include_fails)
     /// to include them.
@@ -429,12 +430,13 @@ impl Osu {
         GetUserScores::new(self, user_id)
     }
 
-    /// Get either top, global firsts, or recent scores of a user,
+    /// Get either top, global firsts, pinned, or recent scores of a user,
     /// i.e. a vec of [`Score`](crate::model::score::Score).
     ///
     /// If no score type is specified by either
     /// [`best`](crate::request::GetUserScores::best),
     /// [`firsts`](crate::request::GetUserScores::firsts),
+    /// [`pinned`](crate::request::GetUserScores::pinned),
     /// or [`recent`](crate::request::GetUserScores::recent), it defaults to `best`.
     ///
     /// The resulting scores will have these options filled: `map`, `mapset`, `pp`, `user`
@@ -447,7 +449,7 @@ impl Osu {
     ///
     /// ## Note
     ///
-    /// - The API provides at most 100 results per requests.
+    /// - The API provides at most 100 results per requests and defaults to 5.
     /// - For the `recent` score type, failed score are excluded by default.
     /// Use [`include_fails`](crate::request::GetUserScores::include_fails)
     /// to include them.

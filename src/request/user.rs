@@ -638,6 +638,7 @@ poll_req!(GetRecentEvents => Vec<RecentEvent>);
 pub(crate) enum ScoreType {
     Best,
     First,
+    Pinned,
     Recent,
 }
 
@@ -646,6 +647,7 @@ impl fmt::Display for ScoreType {
         let kind = match self {
             Self::Best => "best",
             Self::First => "firsts",
+            Self::Pinned => "pinned",
             Self::Recent => "recent",
         };
 
@@ -758,6 +760,14 @@ impl<'a> GetUserScores<'a> {
         self
     }
 
+    /// Get the pinned scores of a user.
+    #[inline]
+    pub fn pinned(mut self) -> Self {
+        self.score_type = ScoreType::Pinned;
+
+        self
+    }
+
     /// Get recent scores of a user.
     #[inline]
     pub fn recent(mut self) -> Self {
@@ -771,6 +781,7 @@ impl<'a> GetUserScores<'a> {
         match self.score_type {
             ScoreType::Best => self.osu.metrics.user_top_scores.inc(),
             ScoreType::First => self.osu.metrics.user_first_scores.inc(),
+            ScoreType::Pinned => self.osu.metrics.user_pinned_scores.inc(),
             ScoreType::Recent => self.osu.metrics.user_recent_scores.inc(),
         }
 

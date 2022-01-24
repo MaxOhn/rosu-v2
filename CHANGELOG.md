@@ -1,5 +1,9 @@
 ## Upcoming
 
+- None as of now
+
+# v0.3.1
+
 - Added method `Osu::beatmaps` to retrieve multiple maps at once (up to 50).
 - Added method `Osu::score` to retrieve a specific score.
 - Removed metrics for multiplayer endpoints.
@@ -8,7 +12,7 @@
 - Improved compile time by removing `build.rs` file
 - Added method `GetUserScores::pinned` to retrieve the pinned scores of a user
 
-# v0.3.0
+## v0.3.0
 
 - Added a bunch of documentation
 - [Breaking] Adjusted some struct fields:

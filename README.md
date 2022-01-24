@@ -14,9 +14,9 @@ Feel free to open an issue when things don't work as expected.
 Unlike api v1, api v2 does not require an api key by users. Instead, it requires a client id and a client secret.
 
 To get those, you must register an application [here](https://osu.ppy.sh/home/account/edit#new-oauth-application).
-Since rosu-v2 only supports client credentials and not authorization code, the callback URL here does not matter.
+Unless you're interested in logging into the API through an osu! account, the callback URL here does not matter and can be left blank.
 
-If you went through the OAuth process for a user, you can also provide the redirect url and received code 
+If you went through the OAuth process for a user, you can provide the callback URL and received code 
 when creating the client in order to make requests on behalf of the authenticated user.
 
 ## Endpoints
@@ -44,7 +44,7 @@ The following endpoints are currently supported:
 - `users/{user_id}[/{mode}]`: Detailed info about a user [in the specified mode]
 - `users/{user_id}/{beatmapsets/{map_type}`: List of beatmapsets either created, favourited, or most played by the user
 - `users/{user_id}/kudosu`: A user's recent kudosu transfers
-- `users/{user_id}/scores/{score_type}`: Either top scores, recent scores, or global #1 scores of a user
+- `users/{user_id}/scores/{score_type}`: Either top, recent, pinned, or global #1 scores of a user
 - `wiki/{locale}[/{path}]`: The general wiki page or a specific topic if the path is specified
 
 The api itself provides a bunch more endpoints which are not yet implemented because they're really niche and/or missing any documentation.
@@ -75,7 +75,7 @@ async fn main() {
     // If you are fine with just providing user ids, consider disabling this feature.
     let scores: Vec<Score> = osu.user_scores("peppy")
         .mode(GameMode::STD)
-        .best() // top scores; alternatively .recent() or .firsts()
+        .best() // top scores; alternatively .recent(), .pinned(), or .firsts()
         .offset(10)
         .limit(5)
         .await

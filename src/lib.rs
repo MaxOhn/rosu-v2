@@ -14,9 +14,9 @@
 //! Unlike api v1, api v2 does not require an api key by users. Instead, it requires a client id and a client secret.
 //!
 //! To get those, you must register an application [here](https://osu.ppy.sh/home/account/edit#new-oauth-application).
-//! Since rosu-v2 only supports client credentials and not authorization code, the callback URL here does not matter.
+//! Unless you're interested in logging into the API through an osu! account, the callback URL here does not matter and can be left blank.
 //!
-//! If you went through the OAuth process for a user, you can also provide the redirect url and received code
+//! If you went through the OAuth process for a user, you can provide the callback URL and received code
 //! when creating the client in order to make requests on behalf of the authenticated user.
 //!
 //! ## Endpoints
@@ -79,7 +79,7 @@
 //!     // If you are fine with just providing user ids, consider disabling this feature.
 //!     let scores: Vec<Score> = osu.user_scores("peppy")
 //!         .mode(GameMode::STD)
-//!         .best() // top scores; alternatively .recent() or .firsts()
+//!         .best() // top scores; alternatively .recent(), .pinned(), or .firsts()
 //!         .offset(10)
 //!         .limit(5)
 //!         .await

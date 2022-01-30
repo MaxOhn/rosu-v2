@@ -91,7 +91,7 @@ impl Score {
     /// Calculate the grade of the score.
     /// Should only be used in case the score was modified and the internal `grade` field is no longer correct.
     ///
-    /// The accuracy is only required for non-`GameMode::STD` scores and is
+    /// The accuracy is only required for `GameMode::MNA` and `GameMode::CTB` scores and is
     /// calculated internally if not provided.
     ///
     /// This method assumes the score to be a pass i.e. the amount of passed
@@ -102,7 +102,7 @@ impl Score {
 
         match self.mode {
             GameMode::STD => osu_grade(self, passed_objects),
-            GameMode::TKO => taiko_grade(self, passed_objects, accuracy),
+            GameMode::TKO => taiko_grade(self, passed_objects),
             GameMode::CTB => ctb_grade(self, accuracy),
             GameMode::MNA => mania_grade(self, passed_objects, accuracy),
         }
@@ -248,7 +248,7 @@ fn mania_grade(score: &Score, passed_objects: u32, accuracy: Option<f32>) -> Gra
     }
 }
 
-fn taiko_grade(score: &Score, passed_objects: u32, accuracy: Option<f32>) -> Grade {
+fn taiko_grade(score: &Score, passed_objects: u32) -> Grade {
     if score.statistics.count_300 == passed_objects {
         return if score.mods.intersects(HDFL) {
             Grade::XH
@@ -257,20 +257,23 @@ fn taiko_grade(score: &Score, passed_objects: u32, accuracy: Option<f32>) -> Gra
         };
     }
 
-    let accuracy = accuracy.unwrap_or_else(|| score.accuracy());
+    let stats = &score.statistics;
+    let ratio300 = stats.count_300 as f32 / passed_objects as f32;
 
-    if accuracy > 95.0 {
+    if ratio300 > 0.9 && stats.count_miss == 0 {
         if score.mods.intersects(HDFL) {
             Grade::SH
         } else {
             Grade::S
         }
-    } else if accuracy > 90.0 {
+    } else if ratio300 > 0.9 || (ratio300 > 0.8 && stats.count_miss == 0) {
         Grade::A
-    } else if accuracy > 80.0 {
+    } else if ratio300 > 0.8 || (ratio300 > 0.7 && stats.count_miss == 0) {
         Grade::B
-    } else {
+    } else if ratio300 > 0.6 {
         Grade::C
+    } else {
+        Grade::D
     }
 }
 

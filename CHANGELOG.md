@@ -11,6 +11,7 @@
 - Added `Clone`, `Eq`, `PartialEq`, and `Hash` impls for `UserId`
 - Improved compile time by removing `build.rs` file
 - Added method `GetUserScores::pinned` to retrieve the pinned scores of a user
+- Fixed osu!taiko `Grade` calculation for `Score`s
 
 ## v0.3.0
 

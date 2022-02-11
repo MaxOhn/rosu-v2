@@ -4,7 +4,12 @@ use crate::{prelude::Username, Osu, OsuResult};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "rkyv")]
+use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
+
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+// TODO
+// #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct News {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub(crate) cursor: Option<Cursor>,
@@ -32,16 +37,20 @@ impl News {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct NewsPost {
     #[serde(rename = "id")]
     pub post_id: u32,
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::UsernameWrapper))]
     pub author: Username,
     /// Link to the file view on GitHub.
     pub edit_url: String,
     /// Link to the first image in the document.
     pub first_image: String,
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub published_at: DateTime<Utc>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::OptDateTimeWrapper))]
     pub updated_at: Option<DateTime<Utc>>,
     /// Filename without the extension, used in URLs.
     pub slug: String,
@@ -61,6 +70,8 @@ impl PartialEq for NewsPost {
 impl Eq for NewsPost {}
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+// TODO
+// #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct NewsSearch {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub(crate) cursor: Option<Cursor>,
@@ -68,6 +79,7 @@ pub struct NewsSearch {
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct NewsSidebar {
     pub current_year: u32,
     #[serde(rename = "news_posts")]

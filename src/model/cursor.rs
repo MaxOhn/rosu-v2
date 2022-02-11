@@ -11,6 +11,8 @@ use serde_json::Value;
 ///
 /// Note that sort option should also be specified for it to work.
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq, Serialize)]
+// TODO
+// #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 #[serde(transparent)]
 pub struct Cursor {
     cursor: Value,

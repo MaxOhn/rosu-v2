@@ -1,6 +1,6 @@
 use crate::{
     model::{
-        matches::{MatchList, OsuMatch},
+        matches_::{MatchList, OsuMatch},
         Cursor,
     },
     request::{Pending, Query, Request},

@@ -1,5 +1,5 @@
 use crate::{
-    model::seasonal_backgrounds::SeasonalBackgrounds,
+    model::seasonal_backgrounds_::SeasonalBackgrounds,
     request::{Pending, Request},
     routing::Route,
     Osu,

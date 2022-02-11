@@ -1,4 +1,4 @@
-use super::{user::UserCompact, Cursor, GameMode};
+use super::{user_::UserCompact, Cursor, GameMode};
 use crate::{prelude::Username, request::GetUser, Osu, OsuResult};
 
 use chrono::{DateTime, Utc};
@@ -9,7 +9,11 @@ use serde::{
 };
 use std::{convert::TryFrom, fmt, str::FromStr};
 
+#[cfg(feature = "rkyv")]
+use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
+
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct Beatmap {
     pub ar: f32,
     #[serde(deserialize_with = "deserialize_f32_default")]
@@ -22,12 +26,14 @@ pub struct Beatmap {
     pub count_spinners: u32,
     pub cs: f32,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::OptDateTimeWrapper))]
     pub deleted_at: Option<DateTime<Utc>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub fail_times: Option<FailTimes>,
     #[serde(rename = "drain")]
     pub hp: f32,
     pub is_scoreable: bool,
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub last_updated: DateTime<Utc>,
     #[serde(rename = "id")]
     pub map_id: u32,
@@ -75,6 +81,7 @@ impl PartialEq for Beatmap {
 impl Eq for Beatmap {}
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct BeatmapCompact {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub checksum: Option<String>,
@@ -124,6 +131,11 @@ pub(crate) struct Beatmaps {
 
 /// Represents a beatmapset. This extends [`BeatmapsetCompact`] with additional attributes.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(Archive, RkyvDeserialize, RkyvSerialize),
+    archive(bound(serialize = "__S: rkyv::ser::ScratchSpace + rkyv::ser::Serializer"))
+)]
 pub struct Beatmapset {
     pub artist: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -134,12 +146,14 @@ pub struct Beatmapset {
     pub can_be_hyped: bool,
     /// Each difficulty's converted map for each mode
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", omit_bounds)]
     pub converts: Option<Vec<Beatmap>>,
     pub covers: BeatmapsetCovers,
     /// Username of the mapper at the time of beatmapset creation
     #[serde(default, rename = "user", skip_serializing_if = "Option::is_none")]
     pub creator: Option<UserCompact>,
     #[serde(rename = "creator")]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::UsernameWrapper))]
     pub creator_name: Username,
     #[serde(rename = "user_id")]
     pub creator_id: u32,
@@ -159,11 +173,13 @@ pub struct Beatmapset {
     pub is_scoreable: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub language: Option<Language>,
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub last_updated: DateTime<Utc>,
     /// Full URL, i.e. `https://osu.ppy.sh/community/forums/topics/{thread_id}`
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub legacy_thread_url: Option<String>,
     #[serde(default, rename = "beatmaps", skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", omit_bounds)]
     pub maps: Option<Vec<Beatmap>>,
     #[serde(rename = "id")]
     pub mapset_id: u32,
@@ -176,6 +192,7 @@ pub struct Beatmapset {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ratings: Option<Vec<u32>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::OptDateTimeWrapper))]
     pub ranked_date: Option<DateTime<Utc>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub recent_favourites: Option<Vec<UserCompact>>,
@@ -183,6 +200,7 @@ pub struct Beatmapset {
     pub status: RankStatus,
     pub storyboard: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::OptDateTimeWrapper))]
     pub submitted_date: Option<DateTime<Utc>>,
     pub tags: String,
     pub title: String,
@@ -193,7 +211,7 @@ pub struct Beatmapset {
 
 #[inline]
 fn deserialize_f32_default<'de, D: Deserializer<'de>>(d: D) -> Result<f32, D::Error> {
-    Option::<f32>::deserialize(d).map(Option::unwrap_or_default)
+    <Option<f32> as Deserialize>::deserialize(d).map(Option::unwrap_or_default)
 }
 
 impl Beatmapset {
@@ -213,6 +231,7 @@ impl PartialEq for Beatmapset {
 impl Eq for Beatmapset {}
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct BeatmapsetAvailability {
     pub download_disabled: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -220,6 +239,7 @@ pub struct BeatmapsetAvailability {
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct BeatmapsetCommentEdit<T> {
     #[serde(flatten)]
     pub comment_id: BeatmapsetCommentId,
@@ -228,6 +248,7 @@ pub struct BeatmapsetCommentEdit<T> {
 }
 
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct BeatmapsetCommentId {
     #[serde(
         default,
@@ -256,6 +277,7 @@ pub struct BeatmapsetCommentId {
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct BeatmapsetCommentKudosuGain {
     #[serde(flatten)]
     pub comment_id: BeatmapsetCommentId,
@@ -264,11 +286,13 @@ pub struct BeatmapsetCommentKudosuGain {
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct BeatmapsetCommentNominate {
     pub modes: Vec<GameMode>,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct BeatmapsetCommentOwnerChange {
     #[serde(
         default,
@@ -288,17 +312,20 @@ pub struct BeatmapsetCommentOwnerChange {
     pub version: String,
     pub new_user_id: u32,
     #[serde(rename = "new_user_username")]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::UsernameWrapper))]
     pub new_username: Username,
 }
 
 /// Represents a beatmapset.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct BeatmapsetCompact {
     pub artist: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub artist_unicode: Option<String>,
     pub covers: BeatmapsetCovers,
     #[serde(rename = "creator")]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::UsernameWrapper))]
     pub creator_name: Username,
     #[serde(rename = "user_id")]
     pub creator_id: u32,
@@ -359,6 +386,7 @@ impl From<Beatmapset> for BeatmapsetCompact {
 
 /// URLs to various sizes of (parts of) the background picture
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct BeatmapsetCovers {
     /// Lengthy part of the background
     pub cover: String,
@@ -384,6 +412,7 @@ pub struct BeatmapsetCovers {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct BeatmapsetDiscussion {
     #[serde(rename = "id")]
     pub discussion_id: u64,
@@ -406,11 +435,15 @@ pub struct BeatmapsetDiscussion {
     pub resolved: bool,
     pub can_be_resolved: bool,
     pub can_grant_kudosu: bool,
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub created_at: DateTime<Utc>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::OptDateTimeWrapper))]
     pub updated_at: Option<DateTime<Utc>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::OptDateTimeWrapper))]
     pub deleted_at: Option<DateTime<Utc>>,
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub last_post_at: DateTime<Utc>,
     pub kudosu_denied: bool,
     pub starting_post: BeatmapsetPost,
@@ -426,6 +459,7 @@ impl PartialEq for BeatmapsetDiscussion {
 impl Eq for BeatmapsetDiscussion {}
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 #[serde(rename_all = "snake_case", tag = "type")]
 #[non_exhaustive]
 pub enum BeatmapsetEvent {
@@ -433,6 +467,7 @@ pub enum BeatmapsetEvent {
         #[serde(rename = "id")]
         event_id: u64,
         comment: BeatmapsetCommentId,
+        #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         created_at: DateTime<Utc>,
         user_id: u32,
         #[serde(rename = "beatmapset")]
@@ -443,6 +478,7 @@ pub enum BeatmapsetEvent {
         #[serde(rename = "id")]
         event_id: u64,
         comment: BeatmapsetCommentEdit<Genre>,
+        #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         created_at: DateTime<Utc>,
         user_id: u32,
         #[serde(rename = "beatmapset")]
@@ -452,6 +488,7 @@ pub enum BeatmapsetEvent {
         #[serde(rename = "id")]
         event_id: u64,
         comment: BeatmapsetCommentId,
+        #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         created_at: DateTime<Utc>,
         user_id: u32,
         #[serde(rename = "beatmapset")]
@@ -462,6 +499,7 @@ pub enum BeatmapsetEvent {
         #[serde(rename = "id")]
         event_id: u64,
         comment: BeatmapsetCommentId,
+        #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         created_at: DateTime<Utc>,
         user_id: u32,
         #[serde(rename = "beatmapset")]
@@ -472,6 +510,7 @@ pub enum BeatmapsetEvent {
         #[serde(rename = "id")]
         event_id: u64,
         comment: BeatmapsetCommentId,
+        #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         created_at: DateTime<Utc>,
         #[serde(rename = "beatmapset")]
         mapset: BeatmapsetCompact,
@@ -481,6 +520,7 @@ pub enum BeatmapsetEvent {
         #[serde(rename = "id")]
         event_id: u64,
         comment: BeatmapsetCommentKudosuGain,
+        #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         created_at: DateTime<Utc>,
         user_id: u32,
         #[serde(rename = "beatmapset")]
@@ -491,6 +531,7 @@ pub enum BeatmapsetEvent {
         #[serde(rename = "id")]
         event_id: u64,
         comment: BeatmapsetCommentKudosuGain,
+        #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         created_at: DateTime<Utc>,
         user_id: u32,
         #[serde(rename = "beatmapset")]
@@ -501,6 +542,7 @@ pub enum BeatmapsetEvent {
         #[serde(rename = "id")]
         event_id: u64,
         comment: BeatmapsetCommentEdit<Language>,
+        #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         created_at: DateTime<Utc>,
         user_id: u32,
         #[serde(rename = "beatmapset")]
@@ -509,6 +551,7 @@ pub enum BeatmapsetEvent {
     Love {
         #[serde(rename = "id")]
         event_id: u64,
+        #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         created_at: DateTime<Utc>,
         user_id: u32,
         #[serde(rename = "beatmapset")]
@@ -518,6 +561,7 @@ pub enum BeatmapsetEvent {
         #[serde(rename = "id")]
         event_id: u64,
         comment: BeatmapsetCommentNominate,
+        #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         created_at: DateTime<Utc>,
         user_id: u32,
         #[serde(rename = "beatmapset")]
@@ -527,6 +571,7 @@ pub enum BeatmapsetEvent {
         #[serde(rename = "id")]
         event_id: u64,
         comment: BeatmapsetCommentEdit<bool>,
+        #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         created_at: DateTime<Utc>,
         user_id: u32,
         #[serde(rename = "beatmapset")]
@@ -537,6 +582,7 @@ pub enum BeatmapsetEvent {
         #[serde(rename = "id")]
         event_id: u64,
         comment: BeatmapsetCommentOwnerChange,
+        #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         created_at: DateTime<Utc>,
         user_id: u32,
         #[serde(rename = "beatmapset")]
@@ -545,6 +591,7 @@ pub enum BeatmapsetEvent {
     Rank {
         #[serde(rename = "id")]
         event_id: u64,
+        #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         created_at: DateTime<Utc>,
         #[serde(rename = "beatmapset")]
         mapset: BeatmapsetCompact,
@@ -552,6 +599,7 @@ pub enum BeatmapsetEvent {
     Qualify {
         #[serde(rename = "id")]
         event_id: u64,
+        #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         created_at: DateTime<Utc>,
         #[serde(rename = "beatmapset")]
         mapset: BeatmapsetCompact,
@@ -559,6 +607,7 @@ pub enum BeatmapsetEvent {
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct BeatmapsetEvents {
     pub events: Vec<BeatmapsetEvent>,
     #[serde(rename = "reviewsConfig")]
@@ -567,18 +616,21 @@ pub struct BeatmapsetEvents {
 }
 
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct BeatmapsetHype {
     pub current: u32,
     pub required: u32,
 }
 
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct BeatmapsetNominations {
     pub current: u32,
     pub required: u32,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct BeatmapsetPost {
     #[serde(rename = "id")]
     pub post_id: u64,
@@ -591,14 +643,18 @@ pub struct BeatmapsetPost {
     pub deleted_by_id: Option<u32>,
     pub system: bool,
     pub message: String,
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub created_at: DateTime<Utc>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::OptDateTimeWrapper))]
     pub updated_at: Option<DateTime<Utc>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::OptDateTimeWrapper))]
     pub deleted_at: Option<DateTime<Utc>>,
 }
 
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct BeatmapsetReviewsConfig {
     pub max_blocks: u32,
 }
@@ -821,6 +877,8 @@ impl<'de> Deserialize<'de> for BeatmapsetSearchParameters {
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
+// TODO
+// #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct BeatmapsetSearchResult {
     cursor: Option<Cursor>,
     /// All mapsets of the current page
@@ -1017,6 +1075,7 @@ struct SubSort {
 }
 
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct BeatmapsetVote {
     pub user_id: u32,
     pub score: u32,
@@ -1024,6 +1083,7 @@ pub struct BeatmapsetVote {
 
 /// All fields are optional but there's always at least one field returned.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct FailTimes {
     /// List of length 100
     #[serde(
@@ -1089,6 +1149,7 @@ impl<'de> Visitor<'de> for HundredU32Visitor {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct MostPlayedMap {
     pub count: usize,
     #[serde(rename = "beatmap")]
@@ -1118,6 +1179,9 @@ def_enum!(i8 RankStatus {
     Loved = 4 ("loved"),
 });
 
+#[cfg(feature = "rkyv")]
+pub use super::rkyv_impls::{ArchivedRankStatus, RankStatusResolver};
+
 def_enum!(u8 Genre {
     Any = 0 ("Any"),
     Unspecified = 1 ("Unspecified"),
@@ -1134,6 +1198,9 @@ def_enum!(u8 Genre {
     Folk = 13 ("Folk"),
     Jazz = 14 ("Jazz"),
 });
+
+#[cfg(feature = "rkyv")]
+pub use super::rkyv_impls::{ArchivedGenre, GenreResolver};
 
 impl Default for Genre {
     fn default() -> Self {
@@ -1158,6 +1225,9 @@ def_enum!(u8 Language {
     Polish = 13,
     Unspecified = 14,
 });
+
+#[cfg(feature = "rkyv")]
+pub use super::rkyv_impls::{ArchivedLanguage, LanguageResolver};
 
 impl Default for Language {
     fn default() -> Self {

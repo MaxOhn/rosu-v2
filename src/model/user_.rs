@@ -8,6 +8,9 @@ use serde::{
 use smallstr::SmallString;
 use std::fmt;
 
+#[cfg(feature = "rkyv")]
+use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
+
 fn str_to_date<'de, D: Deserializer<'de>>(d: D) -> Result<Date<Utc>, D::Error> {
     let date: NaiveDate = Deserialize::deserialize(d)?;
 
@@ -19,18 +22,22 @@ fn date_to_str<S: Serializer>(date: &Date<Utc>, s: S) -> Result<S::Ok, S::Error>
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct AccountHistory {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub id: Option<u32>, // TODO: Can be removed?
     #[serde(rename = "type")]
     pub history_type: HistoryType,
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub timestamp: DateTime<Utc>,
     #[serde(rename = "length")]
     pub seconds: u32,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct Badge {
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub awarded_at: DateTime<Utc>,
     pub description: String,
     pub image_url: String,
@@ -98,6 +105,7 @@ where
 
 /// Counts of grades of a [`User`].
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct GradeCounts {
     /// Number of SS ranked scores
     #[serde(deserialize_with = "deserialize_i32_default")]
@@ -118,10 +126,12 @@ pub struct GradeCounts {
 
 #[inline]
 fn deserialize_i32_default<'de, D: Deserializer<'de>>(d: D) -> Result<i32, D::Error> {
-    Option::<i32>::deserialize(d).map(Option::unwrap_or_default)
+    <Option<i32> as Deserialize>::deserialize(d).map(Option::unwrap_or_default)
 }
+
 /// Describes a Group membership of a [`User`].
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct Group {
     #[serde(rename = "colour")]
     pub color: Option<String>,
@@ -143,6 +153,7 @@ pub struct Group {
 }
 
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub enum HistoryType {
     #[serde(rename = "note")]
     Note,
@@ -153,6 +164,7 @@ pub enum HistoryType {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct Medal {
     pub description: String,
     pub grouping: String,
@@ -177,20 +189,25 @@ impl PartialEq for Medal {
 impl Eq for Medal {}
 
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct MedalCompact {
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub achieved_at: DateTime<Utc>,
     #[serde(rename = "achievement_id")]
     pub medal_id: u32,
 }
 
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct MonthlyCount {
     #[serde(deserialize_with = "str_to_date", serialize_with = "date_to_str")]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateWrapper))]
     pub start_date: Date<Utc>,
     pub count: i32,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct ProfileBanner {
     pub id: u32,
     pub tournament_id: u32,
@@ -207,6 +224,7 @@ impl PartialEq for ProfileBanner {
 impl Eq for ProfileBanner {}
 
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub enum Playstyle {
     #[serde(rename = "mouse")]
     Mouse,
@@ -219,6 +237,7 @@ pub enum Playstyle {
 }
 
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 #[serde(rename_all = "snake_case")]
 pub enum ProfilePage {
     Beatmaps,
@@ -232,6 +251,7 @@ pub enum ProfilePage {
 
 /// Represents a User. Extends [`UserCompact`] object with additional attributes.
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct User {
     /// url of user's avatar
     pub avatar_url: String,
@@ -241,6 +261,7 @@ pub struct User {
     #[serde(deserialize_with = "deserialize_country")]
     pub country: String,
     /// two-letter code representing user's country
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::CountryCodeWrapper))]
     pub country_code: CountryCode,
     /// urls for the profile cover
     pub cover: UserCover,
@@ -265,11 +286,13 @@ pub struct User {
     /// does this user have supporter?
     pub is_supporter: bool,
     /// date of account creation
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub join_date: DateTime<Utc>,
     /// current kudosu of the user
     pub kudosu: UserKudosu,
     /// last access time. `None` if the user hides online presence
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::OptDateTimeWrapper))]
     pub last_visit: Option<DateTime<Utc>>,
     /// location of the user, `None` if disabled by the user
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -314,6 +337,7 @@ pub struct User {
     #[serde(rename = "id")]
     pub user_id: u32,
     /// user's display name
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::UsernameWrapper))]
     pub username: Username,
     /// website, `None` if not specified by the user
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -372,6 +396,7 @@ pub struct User {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub page: Option<UserPage>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::OptVecUsernameWrapper))]
     pub previous_usernames: Option<Vec<Username>>,
     #[serde(
         default,
@@ -414,10 +439,12 @@ pub struct User {
 
 /// Mainly used for embedding in certain responses to save additional api lookups.
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct UserCompact {
     /// url of user's avatar
     pub avatar_url: String,
     /// two-letter code representing user's country
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::CountryCodeWrapper))]
     pub country_code: CountryCode,
     /// Identifier of the default [`Group`] the user belongs to.
     pub default_group: String,
@@ -433,6 +460,7 @@ pub struct UserCompact {
     pub is_supporter: bool,
     /// last access time. `None` if the user hides online presence
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::OptDateTimeWrapper))]
     pub last_visit: Option<DateTime<Utc>>,
     /// whether or not the user allows PM from other than friends
     pub pm_friends_only: bool,
@@ -447,6 +475,7 @@ pub struct UserCompact {
     #[serde(rename = "id")]
     pub user_id: u32,
     /// user's display name
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::UsernameWrapper))]
     pub username: Username,
 
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -514,6 +543,7 @@ pub struct UserCompact {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub page: Option<UserPage>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::OptVecUsernameWrapper))]
     pub previous_usernames: Option<Vec<Username>>,
     #[serde(
         default,
@@ -600,6 +630,7 @@ impl From<User> for UserCompact {
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct UserCover {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub custom_url: Option<String>,
@@ -610,6 +641,7 @@ pub struct UserCover {
 
 /// Kudosu of a [`User`]
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct UserKudosu {
     /// Currently available kudosu
     pub available: i32,
@@ -619,6 +651,7 @@ pub struct UserKudosu {
 
 /// Level progression of a [`User`].
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct UserLevel {
     /// The current level
     pub current: u32,
@@ -646,6 +679,7 @@ impl UserLevel {
 pub type Username = SmallString<[u8; 15]>;
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct UserPage {
     pub html: String,
     pub raw: String,
@@ -653,6 +687,7 @@ pub struct UserPage {
 
 /// A summary of various gameplay statistics for a [`User`]. Specific to a [`GameMode`]
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct UserStatistics {
     /// Hit accuracy percentage
     #[serde(rename = "hit_accuracy")]
@@ -693,12 +728,12 @@ pub struct UserStatistics {
 
 #[inline]
 fn deserialize_f32_default<'de, D: Deserializer<'de>>(d: D) -> Result<f32, D::Error> {
-    Option::<f32>::deserialize(d).map(Option::unwrap_or_default)
+    <Option<f32> as Deserialize>::deserialize(d).map(Option::unwrap_or_default)
 }
 
 #[inline]
 fn maybe_u32<'de, D: Deserializer<'de>>(d: D) -> Result<u32, D::Error> {
-    Option::<u32>::deserialize(d).map(Option::unwrap_or_default)
+    <Option<u32> as Deserialize>::deserialize(d).map(Option::unwrap_or_default)
 }
 
 #[inline]

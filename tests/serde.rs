@@ -5,14 +5,17 @@ use rosu_v2::prelude::*;
 use serde::{de::DeserializeOwned, Serialize};
 use std::{collections::HashMap, fmt::Debug};
 
-fn ser_de<T: DeserializeOwned + Serialize + PartialEq + Debug>(val: T) {
+fn ser_de<T>(val: &T)
+where
+    T: DeserializeOwned + Serialize + PartialEq + Debug,
+{
     let serialized =
-        serde_json::to_string(&val).unwrap_or_else(|e| panic!("Failed to serialize: {}", e));
+        serde_json::to_string(val).unwrap_or_else(|e| panic!("Failed to serialize: {}", e));
 
     let deserialized: T = serde_json::from_str(&serialized)
         .unwrap_or_else(|e| panic!("Failed to deserialize: {}", e));
 
-    assert_eq!(val, deserialized);
+    assert_eq!(val, &deserialized);
 }
 
 fn get_chart_rankings() -> ChartRankings {
@@ -777,45 +780,118 @@ fn get_user_stats() -> UserStatistics {
 
 #[test]
 fn serde_beatmap() {
-    ser_de(get_map());
+    ser_de(&get_map());
 }
 
 #[test]
 fn serde_beatmapset_events() {
-    ser_de(get_mapset_events());
+    ser_de(&get_mapset_events());
 }
 
 #[test]
 fn serde_chart_rankings() {
-    ser_de(get_chart_rankings());
+    ser_de(&get_chart_rankings());
 }
 
 #[test]
 fn serde_country_ranking() {
-    ser_de(get_country_ranking());
+    ser_de(&get_country_ranking());
 }
 
 #[test]
 fn serde_forum_posts() {
-    ser_de(get_forum_posts());
+    ser_de(&get_forum_posts());
 }
 
 #[test]
 fn serde_match() {
-    ser_de(get_match());
+    ser_de(&get_match());
 }
 
 #[test]
 fn serde_score() {
-    ser_de(get_score());
+    ser_de(&get_score());
 }
 
 #[test]
 fn serde_seasonal_backgrounds() {
-    ser_de(get_seasonal_backgrounds());
+    ser_de(&get_seasonal_backgrounds());
 }
 
 #[test]
 fn serde_user() {
-    ser_de(get_user());
+    ser_de(&get_user());
+}
+
+#[cfg(feature = "rkyv")]
+mod rkyv_tests {
+    use std::fmt::Debug;
+
+    use ::rkyv::{
+        archived_root, ser::serializers::AllocSerializer, to_bytes, Archive, Deserialize,
+        Infallible, Serialize,
+    };
+
+    use super::*;
+
+    fn ser_de<T>(val: &T)
+    where
+        T: PartialEq + Debug + Archive + Serialize<AllocSerializer<512>>,
+        <T as Archive>::Archived: Deserialize<T, Infallible>,
+    {
+        let bytes =
+            to_bytes::<_, 512>(val).unwrap_or_else(|e| panic!("Failed to serialize: {}", e));
+        let archived = unsafe { archived_root::<T>(&bytes) };
+        let deserialized =
+            <<T as Archive>::Archived as Deserialize<T, _>>::deserialize(archived, &mut Infallible)
+                .unwrap_or_else(|e| panic!("Failed to deserialize: {}", e));
+
+        assert_eq!(val, &deserialized);
+    }
+
+    #[test]
+    fn serde_beatmap() {
+        ser_de(&get_map());
+    }
+
+    #[test]
+    fn serde_beatmapset_events() {
+        ser_de(&get_mapset_events());
+    }
+
+    #[test]
+    fn serde_chart_rankings() {
+        ser_de(&get_chart_rankings());
+    }
+
+    #[test]
+    fn serde_country_ranking() {
+        ser_de(&get_country_ranking());
+    }
+
+    // TODO
+    // #[test]
+    // fn serde_forum_posts() {
+    //     ser_de(&get_forum_posts());
+    // }
+
+    #[test]
+    fn serde_match() {
+        ser_de(&get_match());
+    }
+
+    #[test]
+    fn serde_score() {
+        ser_de(&get_score());
+    }
+
+    #[test]
+    fn serde_seasonal_backgrounds() {
+        ser_de(&get_seasonal_backgrounds());
+    }
+
+    #[test]
+    fn serde_user() {
+        ser_de(&get_user());
+    }
 }

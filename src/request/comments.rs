@@ -1,6 +1,6 @@
 use crate::{
     model::{
-        comments::{CommentBundle, CommentSort},
+        comments_::{CommentBundle, CommentSort},
         Cursor,
     },
     request::{Pending, Query, Request},

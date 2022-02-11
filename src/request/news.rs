@@ -1,5 +1,5 @@
 use crate::{
-    model::{news::News, Cursor},
+    model::{news_::News, Cursor},
     request::{Pending, Query, Request},
     routing::Route,
     Osu,

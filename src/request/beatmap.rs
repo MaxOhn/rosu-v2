@@ -2,12 +2,13 @@ use crate::{
     model::{
         beatmap::{
             Beatmap, Beatmapset, BeatmapsetEvents, BeatmapsetSearchResult, BeatmapsetSearchSort,
-            Genre, Language, RankStatus, SearchRankStatus,
+            Genre, Language, RankStatus,
         },
-        score::{BeatmapScores, BeatmapUserScore, Score},
+        beatmap_::{Beatmaps, SearchRankStatus},
+        score_::{BeatmapScores, BeatmapUserScore, Score},
         Cursor, GameMode, GameMods,
     },
-    prelude::{BeatmapCompact, Beatmaps},
+    prelude::BeatmapCompact,
     request::{Pending, Query, Request},
     routing::Route,
     Osu,

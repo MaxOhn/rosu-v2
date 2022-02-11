@@ -1,7 +1,7 @@
 use super::{
     beatmap::{Beatmap, BeatmapsetCompact},
     deflate_acc, inflate_acc,
-    user::UserCompact,
+    user_::UserCompact,
     GameMode, GameMods, Grade,
 };
 use crate::{request::GetUser, Osu};
@@ -9,12 +9,16 @@ use crate::{request::GetUser, Osu};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "rkyv")]
+use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
+
 #[derive(Debug, Deserialize)]
 pub(crate) struct BeatmapScores {
     pub(crate) scores: Vec<Score>,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct BeatmapUserScore {
     /// The position of the score within the requested beatmap ranking
     #[serde(rename = "position")]
@@ -32,9 +36,11 @@ impl BeatmapUserScore {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct Score {
     #[serde(deserialize_with = "inflate_acc", serialize_with = "deflate_acc")]
     pub accuracy: f32,
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub created_at: DateTime<Utc>,
     #[serde(rename = "rank")]
     pub grade: Grade,
@@ -121,6 +127,7 @@ impl PartialEq for Score {
 impl Eq for Score {}
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct ScoreStatistics {
     pub count_geki: u32,
     pub count_300: u32,
@@ -178,6 +185,7 @@ impl ScoreStatistics {
 }
 
 #[derive(Copy, Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct ScoreWeight {
     /// Percentage of the score's pp that will be added to the user's total pp between 0 and 100
     pub percentage: f32,

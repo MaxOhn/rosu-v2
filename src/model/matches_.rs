@@ -1,8 +1,11 @@
 use super::{
-    beatmap::BeatmapCompact, deflate_acc, score::ScoreStatistics, user::UserCompact, Cursor,
+    beatmap::BeatmapCompact, deflate_acc, score_::ScoreStatistics, user_::UserCompact, Cursor,
     GameMode, GameMods,
 };
 use crate::{Osu, OsuResult};
+
+#[cfg(feature = "rkyv")]
+use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
 
 use chrono::{DateTime, Utc};
 use serde::{
@@ -13,6 +16,7 @@ use serde::{
 use std::{collections::HashMap, fmt, slice::Iter, vec::Drain};
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 #[serde(tag = "type")]
 pub enum MatchEvent {
     /// The match was created
@@ -20,6 +24,7 @@ pub enum MatchEvent {
     Create {
         #[serde(rename(serialize = "id"))]
         event_id: u64,
+        #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         timestamp: DateTime<Utc>,
         user_id: u32,
     },
@@ -28,6 +33,7 @@ pub enum MatchEvent {
     Disbanded {
         #[serde(rename(serialize = "id"))]
         event_id: u64,
+        #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         timestamp: DateTime<Utc>,
     },
     /// A map is / was being played
@@ -40,6 +46,7 @@ pub enum MatchEvent {
         game: Box<MatchGame>,
         #[serde(default)]
         match_name: String,
+        #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         timestamp: DateTime<Utc>,
     },
     /// The match host changed
@@ -47,6 +54,7 @@ pub enum MatchEvent {
     HostChanged {
         #[serde(rename(serialize = "id"))]
         event_id: u64,
+        #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         timestamp: DateTime<Utc>,
         user_id: u32,
     },
@@ -55,6 +63,7 @@ pub enum MatchEvent {
     Joined {
         #[serde(rename(serialize = "id"))]
         event_id: u64,
+        #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         timestamp: DateTime<Utc>,
         user_id: u32,
     },
@@ -63,6 +72,7 @@ pub enum MatchEvent {
     Kicked {
         #[serde(rename(serialize = "id"))]
         event_id: u64,
+        #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         timestamp: DateTime<Utc>,
         user_id: u32,
     },
@@ -71,6 +81,7 @@ pub enum MatchEvent {
     Left {
         #[serde(rename(serialize = "id"))]
         event_id: u64,
+        #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         timestamp: DateTime<Utc>,
         user_id: u32,
     },
@@ -285,11 +296,14 @@ impl<'de> Deserialize<'de> for MatchEvent {
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct MatchGame {
     #[serde(rename = "id")]
     pub game_id: u64,
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub start_time: DateTime<Utc>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::OptDateTimeWrapper))]
     pub end_time: Option<DateTime<Utc>>,
     pub mode: GameMode,
     pub scoring_type: ScoringType,
@@ -399,12 +413,15 @@ impl<'m> DoubleEndedIterator for MatchGameDrain<'m> {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct MatchInfo {
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::OptDateTimeWrapper))]
     pub end_time: Option<DateTime<Utc>>,
     #[serde(rename = "id")]
     pub match_id: u32,
     pub name: String,
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub start_time: DateTime<Utc>,
 }
 
@@ -418,6 +435,8 @@ impl PartialEq for MatchInfo {
 impl Eq for MatchInfo {}
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+// TODO
+// #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct MatchList {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub(crate) cursor: Option<Cursor>,
@@ -442,12 +461,14 @@ impl MatchList {
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct MatchListParams {
     pub limit: u32,
     pub sort: String,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct MatchScore {
     /// Accuracy between `0.0` and `100.0`
     #[serde(serialize_with = "deflate_acc")]
@@ -598,16 +619,19 @@ impl<'de> Deserialize<'de> for MatchUsers {
 }
 
 #[derive(Clone, Debug, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct OsuMatch {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub current_game_id: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::OptDateTimeWrapper))]
     pub end_time: Option<DateTime<Utc>>,
     pub events: Vec<MatchEvent>,
     pub first_event_id: u64,
     pub latest_event_id: u64,
     pub match_id: u32,
     pub name: String,
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub start_time: DateTime<Utc>,
     /// Maps user ids to users
     #[serde(serialize_with = "serialize_match_users")]
@@ -916,6 +940,9 @@ def_enum!(u8 ScoringType {
     ScoreV2 = 3 ("scorev2"),
 });
 
+#[cfg(feature = "rkyv")]
+pub use super::rkyv_impls::{ArchivedScoringType, ScoringTypeResolver};
+
 impl Default for ScoringType {
     fn default() -> Self {
         Self::Score
@@ -927,6 +954,9 @@ def_enum!(u8 Team {
     Blue = 1 ("blue"),
     Red = 2 ("red"),
 });
+
+#[cfg(feature = "rkyv")]
+pub use super::rkyv_impls::{ArchivedTeam, TeamResolver};
 
 impl Default for Team {
     fn default() -> Self {
@@ -940,6 +970,9 @@ def_enum!(u8 TeamType {
     TeamVS = 2 ("team-vs"),
     TagTeamVS = 3 ("tag-team-vs"),
 });
+
+#[cfg(feature = "rkyv")]
+pub use super::rkyv_impls::{ArchivedTeamType, TeamTypeResolver};
 
 impl Default for TeamType {
     fn default() -> Self {

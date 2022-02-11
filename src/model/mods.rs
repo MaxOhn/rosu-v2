@@ -16,6 +16,9 @@ use std::{
     str::FromStr,
 };
 
+#[cfg(feature = "rkyv")]
+pub use rkyv_impls::{ArchivedGameMods, GameModsResolver};
+
 bitflags! {
     /// Enum for all game modifications.
     /// Implemented as [bitflags](https://crates.io/crates/bitflags).
@@ -614,4 +617,69 @@ mod tests {
         assert_eq!(util::parse_u32("5123456789"), None);
         assert_eq!(util::parse_u32("00123"), Some(123));
     }
+}
+
+#[cfg(feature = "rkyv")]
+mod rkyv_impls {
+    use rkyv::{Archive, Archived, Deserialize, Fallible, Resolver, Serialize};
+
+    use super::GameMods;
+
+    ///An archived [`GameMods`]
+    pub struct ArchivedGameMods {
+        ///The archived counterpart of [`GameMods::bits`]
+        bits: Archived<u32>,
+    }
+
+    ///The resolver for an archived [`GameMods`]
+    pub struct GameModsResolver {
+        bits: Resolver<u32>,
+    }
+
+    const _: () = {
+        impl Archive for GameMods {
+            type Archived = ArchivedGameMods;
+            type Resolver = GameModsResolver;
+
+            #[inline]
+            unsafe fn resolve(
+                &self,
+                pos: usize,
+                resolver: Self::Resolver,
+                out: *mut Self::Archived,
+            ) {
+                let (fp, fo) = {
+                    #[allow(unused_unsafe)]
+                    unsafe {
+                        let fo = (&mut (*out).bits) as *mut u32;
+                        (fo.cast::<u8>().offset_from(out.cast::<u8>()) as usize, fo)
+                    }
+                };
+                #[allow(clippy::unit_arg)]
+                self.bits.resolve(pos + fp, resolver.bits, fo);
+            }
+        }
+    };
+
+    const _: () = {
+        impl<D: Fallible + ?Sized> Deserialize<GameMods, D> for Archived<GameMods> {
+            #[inline]
+            fn deserialize(&self, deserializer: &mut D) -> Result<GameMods, D::Error> {
+                Ok(GameMods {
+                    bits: Deserialize::<u32, D>::deserialize(&self.bits, deserializer)?,
+                })
+            }
+        }
+    };
+
+    const _: () = {
+        impl<S: Fallible + ?Sized> Serialize<S> for GameMods {
+            #[inline]
+            fn serialize(&self, serializer: &mut S) -> Result<Self::Resolver, S::Error> {
+                Ok(GameModsResolver {
+                    bits: Serialize::<S>::serialize(&self.bits, serializer)?,
+                })
+            }
+        }
+    };
 }

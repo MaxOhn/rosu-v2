@@ -1,7 +1,7 @@
 use crate::{
     model::{
-        ranking::{ChartRankings, CountryRankings, RankingType, Rankings, Spotlight},
-        user::CountryCode,
+        ranking_::{ChartRankings, CountryRankings, RankingType, Rankings, Spotlight},
+        user_::CountryCode,
         GameMode,
     },
     request::{Pending, Query, Request},
@@ -218,6 +218,7 @@ impl<'a> GetPerformanceRankings<'a> {
             .request(req)
             .map_ok(move |mut rankings: Rankings| {
                 rankings.mode.replace(mode);
+                #[cfg(not(feature = "rkyv"))]
                 rankings.ranking_type.replace(RankingType::Performance);
 
                 rankings
@@ -283,6 +284,7 @@ impl<'a> GetScoreRankings<'a> {
             .request(req)
             .map_ok(move |mut rankings: Rankings| {
                 rankings.mode.replace(mode);
+                #[cfg(not(feature = "rkyv"))]
                 rankings.ranking_type.replace(RankingType::Score);
 
                 rankings

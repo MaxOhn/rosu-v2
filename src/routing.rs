@@ -1,5 +1,5 @@
 use crate::{
-    model::{ranking::RankingType, GameMode},
+    model::{ranking_::RankingType, GameMode},
     request::{ScoreType, UserId},
 };
 

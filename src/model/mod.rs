@@ -3,6 +3,7 @@ macro_rules! def_enum {
     (@BASE $type:tt { $($variant:ident = $n:literal,)* }) => {
         #[allow(clippy::upper_case_acronyms, missing_docs)]
         #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
+        #[cfg_attr(feature = "rkyv", derive(rkyv::Deserialize, rkyv::Serialize))]
         pub enum $type {
             $($variant = $n,)*
         }
@@ -195,30 +196,183 @@ mod grade;
 mod mode;
 mod mods;
 
+#[cfg(feature = "rkyv")]
+mod rkyv_impls;
+
+pub(crate) mod beatmap_;
+pub(crate) mod comments_;
+pub(crate) mod forum_;
+pub(crate) mod kudosu_;
+pub(crate) mod matches_;
+pub(crate) mod news_;
+pub(crate) mod ranking_;
+pub(crate) mod recent_event_;
+pub(crate) mod score_;
+pub(crate) mod seasonal_backgrounds_;
+pub(crate) mod user_;
+pub(crate) mod wiki_;
+
 /// Beatmap(set) related types
-pub mod beatmap;
+pub mod beatmap {
+    pub use super::beatmap_::{
+        Beatmap, BeatmapCompact, Beatmapset, BeatmapsetAvailability, BeatmapsetCommentEdit,
+        BeatmapsetCommentId, BeatmapsetCommentKudosuGain, BeatmapsetCommentNominate,
+        BeatmapsetCommentOwnerChange, BeatmapsetCompact, BeatmapsetCovers, BeatmapsetDiscussion,
+        BeatmapsetEvent, BeatmapsetEvents, BeatmapsetHype, BeatmapsetNominations, BeatmapsetPost,
+        BeatmapsetReviewsConfig, BeatmapsetSearchResult, BeatmapsetSearchSort, BeatmapsetVote,
+        FailTimes, Genre, Language, MostPlayedMap, RankStatus,
+    };
+}
+
 /// Comment related types
-pub mod comments;
+pub mod comments {
+    pub use super::comments_::{Comment, CommentBundle, CommentSort, CommentableMeta};
+}
+
 /// Forum post related types
-pub mod forum;
+pub mod forum {
+    pub use super::forum_::{ForumPost, ForumPosts, ForumPostsSearch, ForumTopic};
+}
+
 /// User kudosu related types
-pub mod kudosu;
+pub mod kudosu {
+    pub use super::kudosu_::{KudosuAction, KudosuGiver, KudosuHistory, KudosuPost};
+}
+
 /// Multiplayer match related types
-pub mod matches;
+pub mod matches {
+    pub use super::matches_::{
+        MatchEvent, MatchGame, MatchGameDrain, MatchGameIter, MatchInfo, MatchList,
+        MatchListParams, MatchScore, OsuMatch, ScoringType, Team, TeamType,
+    };
+}
+
 /// News related types
-pub mod news;
+pub mod news {
+    pub use super::news_::{News, NewsPost, NewsSearch, NewsSidebar};
+}
+
 /// Ranking related types
-pub mod ranking;
+pub mod ranking {
+    pub use super::ranking_::{
+        ChartRankings, CountryRanking, CountryRankings, Rankings, Spotlight,
+    };
+}
+
 /// User event related types
-pub mod recent_event;
+pub mod recent_event {
+    pub use super::recent_event_::{
+        EventBeatmap, EventBeatmapset, EventType, EventUser, RecentEvent,
+    };
+}
+
 /// Score related types
-pub mod score;
+pub mod score {
+    pub use super::score_::{BeatmapUserScore, Score, ScoreStatistics, ScoreWeight};
+}
+
 /// Seasonal background related types
-pub mod seasonal_backgrounds;
+pub mod seasonal_backgrounds {
+    pub use super::seasonal_backgrounds_::{SeasonalBackground, SeasonalBackgrounds};
+}
+
 /// User related types
-pub mod user;
+pub mod user {
+    pub use super::user_::{
+        AccountHistory, Badge, CountryCode, GradeCounts, Group, HistoryType, Medal, MedalCompact,
+        MonthlyCount, Playstyle, ProfileBanner, ProfilePage, User, UserCompact, UserCover,
+        UserKudosu, UserLevel, UserPage, UserStatistics, Username,
+    };
+}
+
 /// Wiki related types
-pub mod wiki;
+pub mod wiki {
+    pub use super::wiki_::WikiPage;
+}
+
+/// Archived types and Resolvers for all types
+#[cfg(feature = "rkyv")]
+pub mod rkyv {
+    pub use super::beatmap_::{
+        ArchivedBeatmap, ArchivedBeatmapCompact, ArchivedBeatmapset,
+        ArchivedBeatmapsetAvailability, ArchivedBeatmapsetCommentEdit, ArchivedBeatmapsetCommentId,
+        ArchivedBeatmapsetCommentKudosuGain, ArchivedBeatmapsetCommentNominate,
+        ArchivedBeatmapsetCommentOwnerChange, ArchivedBeatmapsetCompact, ArchivedBeatmapsetCovers,
+        ArchivedBeatmapsetDiscussion, ArchivedBeatmapsetEvent, ArchivedBeatmapsetEvents,
+        ArchivedBeatmapsetHype, ArchivedBeatmapsetNominations, ArchivedBeatmapsetPost,
+        ArchivedBeatmapsetReviewsConfig, ArchivedBeatmapsetVote, ArchivedFailTimes, ArchivedGenre,
+        ArchivedLanguage, ArchivedMostPlayedMap, ArchivedRankStatus, BeatmapCompactResolver,
+        BeatmapResolver, BeatmapsetAvailabilityResolver, BeatmapsetCommentEditResolver,
+        BeatmapsetCommentIdResolver, BeatmapsetCommentKudosuGainResolver,
+        BeatmapsetCommentNominateResolver, BeatmapsetCommentOwnerChangeResolver,
+        BeatmapsetCoversResolver, BeatmapsetDiscussionResolver, BeatmapsetEventResolver,
+        BeatmapsetEventsResolver, BeatmapsetHypeResolver, BeatmapsetNominationsResolver,
+        BeatmapsetPostResolver, BeatmapsetResolver, BeatmapsetReviewsConfigResolver,
+        BeatmapsetVoteResolver, FailTimesResolver, GenreResolver, LanguageResolver,
+        MostPlayedMapResolver, RankStatusResolver,
+    };
+
+    pub use super::comments_::{
+        ArchivedComment, ArchivedCommentSort, ArchivedCommentableMeta, CommentResolver,
+        CommentSortResolver, CommentableMetaResolver,
+    };
+
+    pub use super::forum_::{
+        ArchivedForumPost, ArchivedForumPostsSearch, ArchivedForumTopic, ForumPostResolver,
+        ForumPostsSearchResolver, ForumTopicResolver,
+    };
+
+    pub use super::grade::{ArchivedGrade, GradeResolver};
+
+    pub use super::kudosu_::{
+        ArchivedKudosuAction, ArchivedKudosuGiver, ArchivedKudosuHistory, ArchivedKudosuPost,
+        KudosuActionResolver, KudosuGiverResolver, KudosuHistoryResolver, KudosuPostResolver,
+    };
+
+    pub use super::mode::{ArchivedGameMode, GameModeResolver};
+
+    pub use super::mods::{ArchivedGameMods, GameModsResolver};
+
+    pub use super::news_::{
+        ArchivedNewsPost, ArchivedNewsSidebar, NewsPostResolver, NewsSidebarResolver,
+    };
+
+    pub use super::ranking_::{
+        ArchivedChartRankings, ArchivedCountryRanking, ArchivedCountryRankings, ArchivedRankings,
+        ArchivedSpotlight, ChartRankingsResolver, CountryRankingResolver, CountryRankingsResolver,
+        RankingsResolver, SpotlightResolver,
+    };
+
+    pub use super::recent_event_::{
+        ArchivedEventBeatmap, ArchivedEventBeatmapset, ArchivedEventType, ArchivedEventUser,
+        ArchivedRecentEvent, EventBeatmapResolver, EventBeatmapsetResolver, EventTypeResolver,
+        EventUserResolver, RecentEventResolver,
+    };
+
+    pub use super::score_::{
+        ArchivedBeatmapUserScore, ArchivedScore, ArchivedScoreStatistics, ArchivedScoreWeight,
+        BeatmapUserScoreResolver, ScoreResolver, ScoreStatisticsResolver, ScoreWeightResolver,
+    };
+
+    pub use super::seasonal_backgrounds_::{
+        ArchivedSeasonalBackground, ArchivedSeasonalBackgrounds, SeasonalBackgroundResolver,
+        SeasonalBackgroundsResolver,
+    };
+
+    pub use super::user_::{
+        AccountHistoryResolver, ArchivedAccountHistory, ArchivedBadge, ArchivedGradeCounts,
+        ArchivedGroup, ArchivedHistoryType, ArchivedMedal, ArchivedMedalCompact,
+        ArchivedMonthlyCount, ArchivedPlaystyle, ArchivedProfileBanner, ArchivedProfilePage,
+        ArchivedUser, ArchivedUserCompact, ArchivedUserCover, ArchivedUserKudosu,
+        ArchivedUserLevel, ArchivedUserPage, ArchivedUserStatistics, BadgeResolver,
+        GradeCountsResolver, GroupResolver, HistoryTypeResolver, MedalCompactResolver,
+        MedalResolver, MonthlyCountResolver, PlaystyleResolver, ProfileBannerResolver,
+        ProfilePageResolver, UserCompactResolver, UserCoverResolver, UserKudosuResolver,
+        UserLevelResolver, UserPageResolver, UserResolver, UserStatisticsResolver,
+    };
+
+    pub use super::wiki_::{ArchivedWikiPage, WikiPageResolver};
+}
 
 pub use cursor::Cursor;
 pub use grade::Grade;
@@ -228,15 +382,11 @@ pub use mods::GameMods;
 use serde::{Deserialize, Deserializer, Serializer};
 use std::marker::PhantomData;
 
-struct EnumVisitor<T> {
-    phantom: PhantomData<T>,
-}
+struct EnumVisitor<T>(PhantomData<T>);
 
 impl<T> EnumVisitor<T> {
     fn new() -> Self {
-        Self {
-            phantom: PhantomData,
-        }
+        Self(PhantomData)
     }
 }
 

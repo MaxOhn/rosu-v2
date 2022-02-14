@@ -10,7 +10,7 @@ use rkyv::{
     string::{ArchivedString, StringResolver},
     vec::{ArchivedVec, VecResolver},
     with::{ArchiveWith, DeserializeWith, SerializeWith},
-    Archive, Archived, Fallible, Resolver, Serialize,
+    Archive, Archived, Fallible, Serialize,
 };
 
 use crate::prelude::{CountryCode, Username};
@@ -243,7 +243,7 @@ pub struct DateTimeWrapper;
 
 impl ArchiveWith<DateTime<Utc>> for DateTimeWrapper {
     type Archived = Archived<i64>;
-    type Resolver = Resolver<i64>;
+    type Resolver = ();
 
     #[inline]
     unsafe fn resolve_with(
@@ -279,20 +279,15 @@ pub struct ArchivedDateUtc {
     ordinal: Archived<u32>,
 }
 
-pub struct DateUtcResolver {
-    year: Resolver<i32>,
-    ordinal: Resolver<u32>,
-}
-
 impl ArchiveWith<Date<Utc>> for DateWrapper {
     type Archived = ArchivedDateUtc;
-    type Resolver = DateUtcResolver;
+    type Resolver = ();
 
     #[inline]
     unsafe fn resolve_with(
         field: &Date<Utc>,
         pos: usize,
-        resolver: Self::Resolver,
+        _: Self::Resolver,
         out: *mut Self::Archived,
     ) {
         let (fp, fo) = {
@@ -300,24 +295,21 @@ impl ArchiveWith<Date<Utc>> for DateWrapper {
             (fo.cast::<u8>().offset_from(out.cast::<u8>()) as usize, fo)
         };
         #[allow(clippy::unit_arg)]
-        field.year().resolve(pos + fp, resolver.year, fo);
+        field.year().resolve(pos + fp, (), fo);
 
         let (fp, fo) = {
             let fo = (&mut (*out).ordinal) as *mut u32;
             (fo.cast::<u8>().offset_from(out.cast::<u8>()) as usize, fo)
         };
         #[allow(clippy::unit_arg)]
-        field.ordinal().resolve(pos + fp, resolver.ordinal, fo);
+        field.ordinal().resolve(pos + fp, (), fo);
     }
 }
 
 impl<S: Fallible> SerializeWith<Date<Utc>, S> for DateWrapper {
     #[inline]
-    fn serialize_with(field: &Date<Utc>, s: &mut S) -> Result<Self::Resolver, S::Error> {
-        Ok(DateUtcResolver {
-            year: Serialize::<S>::serialize(&field.year(), s)?,
-            ordinal: Serialize::<S>::serialize(&field.ordinal(), s)?,
-        })
+    fn serialize_with(_: &Date<Utc>, _: &mut S) -> Result<Self::Resolver, S::Error> {
+        Ok(())
     }
 }
 

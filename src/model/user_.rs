@@ -105,7 +105,11 @@ where
 
 /// Counts of grades of a [`User`].
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(Archive, RkyvDeserialize, RkyvSerialize),
+    archive(as = "Self")
+)]
 pub struct GradeCounts {
     /// Number of SS ranked scores
     #[serde(deserialize_with = "deserialize_i32_default")]
@@ -292,7 +296,7 @@ pub struct User {
     pub kudosu: UserKudosu,
     /// last access time. `None` if the user hides online presence
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::OptDateTimeWrapper))]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub last_visit: Option<DateTime<Utc>>,
     /// location of the user, `None` if disabled by the user
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -396,7 +400,7 @@ pub struct User {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub page: Option<UserPage>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::OptVecUsernameWrapper))]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::UsernameMapMap))]
     pub previous_usernames: Option<Vec<Username>>,
     #[serde(
         default,
@@ -460,7 +464,7 @@ pub struct UserCompact {
     pub is_supporter: bool,
     /// last access time. `None` if the user hides online presence
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::OptDateTimeWrapper))]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub last_visit: Option<DateTime<Utc>>,
     /// whether or not the user allows PM from other than friends
     pub pm_friends_only: bool,
@@ -543,7 +547,7 @@ pub struct UserCompact {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub page: Option<UserPage>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::OptVecUsernameWrapper))]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::UsernameMapMap))]
     pub previous_usernames: Option<Vec<Username>>,
     #[serde(
         default,
@@ -641,7 +645,11 @@ pub struct UserCover {
 
 /// Kudosu of a [`User`]
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(Archive, RkyvDeserialize, RkyvSerialize),
+    archive(as = "Self")
+)]
 pub struct UserKudosu {
     /// Currently available kudosu
     pub available: i32,
@@ -651,7 +659,11 @@ pub struct UserKudosu {
 
 /// Level progression of a [`User`].
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(Archive, RkyvDeserialize, RkyvSerialize),
+    archive(as = "Self")
+)]
 pub struct UserLevel {
     /// The current level
     pub current: u32,

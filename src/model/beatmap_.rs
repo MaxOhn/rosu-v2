@@ -26,7 +26,7 @@ pub struct Beatmap {
     pub count_spinners: u32,
     pub cs: f32,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::OptDateTimeWrapper))]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub deleted_at: Option<DateTime<Utc>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub fail_times: Option<FailTimes>,
@@ -192,7 +192,7 @@ pub struct Beatmapset {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ratings: Option<Vec<u32>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::OptDateTimeWrapper))]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub ranked_date: Option<DateTime<Utc>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub recent_favourites: Option<Vec<UserCompact>>,
@@ -200,7 +200,7 @@ pub struct Beatmapset {
     pub status: RankStatus,
     pub storyboard: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::OptDateTimeWrapper))]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub submitted_date: Option<DateTime<Utc>>,
     pub tags: String,
     pub title: String,
@@ -438,10 +438,10 @@ pub struct BeatmapsetDiscussion {
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub created_at: DateTime<Utc>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::OptDateTimeWrapper))]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub updated_at: Option<DateTime<Utc>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::OptDateTimeWrapper))]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub deleted_at: Option<DateTime<Utc>>,
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub last_post_at: DateTime<Utc>,
@@ -616,14 +616,22 @@ pub struct BeatmapsetEvents {
 }
 
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(Archive, RkyvDeserialize, RkyvSerialize),
+    archive(as = "Self")
+)]
 pub struct BeatmapsetHype {
     pub current: u32,
     pub required: u32,
 }
 
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(Archive, RkyvDeserialize, RkyvSerialize),
+    archive(as = "Self")
+)]
 pub struct BeatmapsetNominations {
     pub current: u32,
     pub required: u32,
@@ -646,15 +654,19 @@ pub struct BeatmapsetPost {
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub created_at: DateTime<Utc>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::OptDateTimeWrapper))]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub updated_at: Option<DateTime<Utc>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::OptDateTimeWrapper))]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub deleted_at: Option<DateTime<Utc>>,
 }
 
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(Archive, RkyvDeserialize, RkyvSerialize),
+    archive(as = "Self")
+)]
 pub struct BeatmapsetReviewsConfig {
     pub max_blocks: u32,
 }
@@ -1008,8 +1020,6 @@ macro_rules! search_sort_enum {
                 match self {
                     $(Self::$variant => f.write_str($name),)+
                 }
-
-
             }
         }
 
@@ -1075,7 +1085,11 @@ struct SubSort {
 }
 
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(Archive, RkyvDeserialize, RkyvSerialize),
+    archive(as = "Self")
+)]
 pub struct BeatmapsetVote {
     pub user_id: u32,
     pub score: u32,

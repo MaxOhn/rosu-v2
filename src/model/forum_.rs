@@ -40,10 +40,10 @@ pub struct ForumPost {
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub created_at: DateTime<Utc>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::OptDateTimeWrapper))]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub deleted_at: Option<DateTime<Utc>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::OptDateTimeWrapper))]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub edited_at: Option<DateTime<Utc>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub edited_by_id: Option<u32>,
@@ -173,7 +173,7 @@ pub struct ForumTopic {
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub created_at: DateTime<Utc>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::OptDateTimeWrapper))]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub deleted_at: Option<DateTime<Utc>>,
     pub first_post_id: u64,
     pub forum_id: u32,
@@ -186,7 +186,7 @@ pub struct ForumTopic {
     #[serde(rename = "id")]
     pub topic_id: u64,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::OptDateTimeWrapper))]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub updated_at: Option<DateTime<Utc>>,
     pub user_id: u32,
 }

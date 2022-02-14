@@ -303,7 +303,7 @@ pub struct MatchGame {
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub start_time: DateTime<Utc>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::OptDateTimeWrapper))]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub end_time: Option<DateTime<Utc>>,
     pub mode: GameMode,
     pub scoring_type: ScoringType,
@@ -416,7 +416,7 @@ impl<'m> DoubleEndedIterator for MatchGameDrain<'m> {
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct MatchInfo {
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::OptDateTimeWrapper))]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub end_time: Option<DateTime<Utc>>,
     #[serde(rename = "id")]
     pub match_id: u32,
@@ -624,7 +624,7 @@ pub struct OsuMatch {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub current_game_id: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::OptDateTimeWrapper))]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub end_time: Option<DateTime<Utc>>,
     pub events: Vec<MatchEvent>,
     pub first_event_id: u64,

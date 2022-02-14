@@ -50,7 +50,7 @@ pub struct NewsPost {
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub published_at: DateTime<Utc>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::OptDateTimeWrapper))]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub updated_at: Option<DateTime<Utc>>,
     /// Filename without the extension, used in URLs.
     pub slug: String,

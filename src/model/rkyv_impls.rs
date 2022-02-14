@@ -640,16 +640,17 @@ const _: () = {
     }
 };
 
-pub struct VecWrapper<Archivable, Original>(PhantomData<(Archivable, Original)>);
+pub struct Map<Archivable> {
+    phantom: PhantomData<Archivable>,
+}
 
-impl<A, O> ArchiveWith<Vec<O>> for VecWrapper<A, O>
+impl<A, O> ArchiveWith<Vec<O>> for Map<A>
 where
     A: ArchiveWith<O>,
 {
     type Archived = ArchivedVec<<A as ArchiveWith<O>>::Archived>;
     type Resolver = VecResolver;
 
-    #[inline]
     unsafe fn resolve_with(
         field: &Vec<O>,
         pos: usize,
@@ -660,22 +661,20 @@ where
     }
 }
 
-impl<A, O, S> SerializeWith<Vec<O>, S> for VecWrapper<A, O>
+impl<A, O, S> SerializeWith<Vec<O>, S> for Map<A>
 where
     S: Fallible + ScratchSpace + Serializer,
     A: ArchiveWith<O> + SerializeWith<O, S>,
 {
-    #[inline]
     fn serialize_with(field: &Vec<O>, s: &mut S) -> Result<Self::Resolver, S::Error> {
         // Wrapper for O so that we have an Archive and Serialize implementation
         // and ArchivedVec::serialize_from_* is happy about the bound constraints
-        struct RefWrapper<'o, O>(&'o O);
+        struct RefWrapper<'o, A, O>(&'o O, PhantomData<A>);
 
-        impl<A: ArchiveWith<O>, O> Archive for RefWrapper<'_, O> {
+        impl<A: ArchiveWith<O>, O> Archive for RefWrapper<'_, A, O> {
             type Archived = <A as ArchiveWith<O>>::Archived;
             type Resolver = <A as ArchiveWith<O>>::Resolver;
 
-            #[inline]
             unsafe fn resolve(
                 &self,
                 pos: usize,
@@ -686,12 +685,11 @@ where
             }
         }
 
-        impl<A, O, S> Serialize<S> for RefWrapper<'_, O>
+        impl<A, O, S> Serialize<S> for RefWrapper<'_, A, O>
         where
             A: ArchiveWith<O> + SerializeWith<O, S>,
             S: Fallible + Serializer,
         {
-            #[inline]
             fn serialize(&self, s: &mut S) -> Result<Self::Resolver, S::Error> {
                 A::serialize_with(self.0, s)
             }
@@ -705,13 +703,11 @@ where
     }
 }
 
-impl<A, O, D> DeserializeWith<ArchivedVec<<A as ArchiveWith<O>>::Archived>, Vec<O>, D>
-    for VecWrapper<A, O>
+impl<A, O, D> DeserializeWith<ArchivedVec<<A as ArchiveWith<O>>::Archived>, Vec<O>, D> for Map<A>
 where
     A: ArchiveWith<O> + DeserializeWith<<A as ArchiveWith<O>>::Archived, O, D>,
     D: Fallible,
 {
-    #[inline]
     fn deserialize_with(
         field: &ArchivedVec<<A as ArchiveWith<O>>::Archived>,
         d: &mut D,
@@ -723,17 +719,16 @@ where
     }
 }
 
-pub struct OptWrapper<Archivable, Original>(PhantomData<(Archivable, Original)>);
+// ##### wrapper for Options #####
 
-// Copy-paste from Option's original impls for the most part
-impl<A, O> ArchiveWith<Option<O>> for OptWrapper<A, O>
+// Copy-paste from Option's impls for the most part
+impl<A, O> ArchiveWith<Option<O>> for Map<A>
 where
     A: ArchiveWith<O>,
 {
     type Archived = ArchivedOption<<A as ArchiveWith<O>>::Archived>;
     type Resolver = Option<<A as ArchiveWith<O>>::Resolver>;
 
-    #[inline]
     unsafe fn resolve_with(
         field: &Option<O>,
         pos: usize,
@@ -762,12 +757,11 @@ where
     }
 }
 
-impl<A, O, S> SerializeWith<Option<O>, S> for OptWrapper<A, O>
+impl<A, O, S> SerializeWith<Option<O>, S> for Map<A>
 where
     S: Fallible,
     A: ArchiveWith<O> + SerializeWith<O, S>,
 {
-    #[inline]
     fn serialize_with(field: &Option<O>, s: &mut S) -> Result<Self::Resolver, S::Error> {
         field
             .as_ref()
@@ -777,12 +771,11 @@ where
 }
 
 impl<A, O, D> DeserializeWith<ArchivedOption<<A as ArchiveWith<O>>::Archived>, Option<O>, D>
-    for OptWrapper<A, O>
+    for Map<A>
 where
     D: Fallible,
     A: ArchiveWith<O> + DeserializeWith<<A as ArchiveWith<O>>::Archived, O, D>,
 {
-    #[inline]
     fn deserialize_with(
         field: &ArchivedOption<<A as ArchiveWith<O>>::Archived>,
         d: &mut D,
@@ -868,8 +861,8 @@ impl<D: Fallible> DeserializeWith<ArchivedString, Username, D> for UsernameWrapp
     }
 }
 
-pub type OptUsernameWrapper = OptWrapper<UsernameWrapper, Username>;
-pub type OptVecUsernameWrapper = OptWrapper<VecWrapper<UsernameWrapper, Username>, Vec<Username>>;
+pub type UsernameMap = Map<UsernameWrapper>;
+pub type UsernameMapMap = Map<Map<UsernameWrapper>>;
 
 pub struct DateTimeWrapper;
 
@@ -902,7 +895,7 @@ impl<S: Fallible> SerializeWith<DateTime<Utc>, S> for DateTimeWrapper {
     }
 }
 
-pub type OptDateTimeWrapper = OptWrapper<DateTimeWrapper, DateTime<Utc>>;
+pub type DateTimeMap = Map<DateTimeWrapper>;
 
 pub struct DateWrapper;
 

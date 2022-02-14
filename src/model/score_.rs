@@ -127,7 +127,11 @@ impl PartialEq for Score {
 impl Eq for Score {}
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(Archive, RkyvDeserialize, RkyvSerialize),
+    archive(as = "Self")
+)]
 pub struct ScoreStatistics {
     pub count_geki: u32,
     pub count_300: u32,
@@ -185,7 +189,11 @@ impl ScoreStatistics {
 }
 
 #[derive(Copy, Clone, Debug, Deserialize, PartialEq, Serialize)]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(Archive, RkyvDeserialize, RkyvSerialize),
+    archive(as = "Self")
+)]
 pub struct ScoreWeight {
     /// Percentage of the score's pp that will be added to the user's total pp between 0 and 100
     pub percentage: f32,

@@ -299,17 +299,16 @@ pub mod rkyv {
         ArchivedBeatmapsetCommentKudosuGain, ArchivedBeatmapsetCommentNominate,
         ArchivedBeatmapsetCommentOwnerChange, ArchivedBeatmapsetCompact, ArchivedBeatmapsetCovers,
         ArchivedBeatmapsetDiscussion, ArchivedBeatmapsetEvent, ArchivedBeatmapsetEvents,
-        ArchivedBeatmapsetHype, ArchivedBeatmapsetNominations, ArchivedBeatmapsetPost,
-        ArchivedBeatmapsetReviewsConfig, ArchivedBeatmapsetVote, ArchivedFailTimes, ArchivedGenre,
-        ArchivedLanguage, ArchivedMostPlayedMap, ArchivedRankStatus, BeatmapCompactResolver,
-        BeatmapResolver, BeatmapsetAvailabilityResolver, BeatmapsetCommentEditResolver,
-        BeatmapsetCommentIdResolver, BeatmapsetCommentKudosuGainResolver,
-        BeatmapsetCommentNominateResolver, BeatmapsetCommentOwnerChangeResolver,
-        BeatmapsetCoversResolver, BeatmapsetDiscussionResolver, BeatmapsetEventResolver,
-        BeatmapsetEventsResolver, BeatmapsetHypeResolver, BeatmapsetNominationsResolver,
-        BeatmapsetPostResolver, BeatmapsetResolver, BeatmapsetReviewsConfigResolver,
-        BeatmapsetVoteResolver, FailTimesResolver, GenreResolver, LanguageResolver,
-        MostPlayedMapResolver, RankStatusResolver,
+        ArchivedBeatmapsetPost, ArchivedFailTimes, ArchivedGenre, ArchivedLanguage,
+        ArchivedMostPlayedMap, ArchivedRankStatus, BeatmapCompactResolver, BeatmapResolver,
+        BeatmapsetAvailabilityResolver, BeatmapsetCommentEditResolver, BeatmapsetCommentIdResolver,
+        BeatmapsetCommentKudosuGainResolver, BeatmapsetCommentNominateResolver,
+        BeatmapsetCommentOwnerChangeResolver, BeatmapsetCoversResolver,
+        BeatmapsetDiscussionResolver, BeatmapsetEventResolver, BeatmapsetEventsResolver,
+        BeatmapsetHypeResolver, BeatmapsetNominationsResolver, BeatmapsetPostResolver,
+        BeatmapsetResolver, BeatmapsetReviewsConfigResolver, BeatmapsetVoteResolver,
+        FailTimesResolver, GenreResolver, LanguageResolver, MostPlayedMapResolver,
+        RankStatusResolver,
     };
 
     pub use super::comments_::{
@@ -331,8 +330,6 @@ pub mod rkyv {
 
     pub use super::mode::{ArchivedGameMode, GameModeResolver};
 
-    pub use super::mods::{ArchivedGameMods, GameModsResolver};
-
     pub use super::news_::{
         ArchivedNewsPost, ArchivedNewsSidebar, NewsPostResolver, NewsSidebarResolver,
     };
@@ -350,8 +347,8 @@ pub mod rkyv {
     };
 
     pub use super::score_::{
-        ArchivedBeatmapUserScore, ArchivedScore, ArchivedScoreStatistics, ArchivedScoreWeight,
-        BeatmapUserScoreResolver, ScoreResolver, ScoreStatisticsResolver, ScoreWeightResolver,
+        ArchivedBeatmapUserScore, ArchivedScore, BeatmapUserScoreResolver, ScoreResolver,
+        ScoreStatisticsResolver, ScoreWeightResolver,
     };
 
     pub use super::seasonal_backgrounds_::{
@@ -360,15 +357,15 @@ pub mod rkyv {
     };
 
     pub use super::user_::{
-        AccountHistoryResolver, ArchivedAccountHistory, ArchivedBadge, ArchivedGradeCounts,
-        ArchivedGroup, ArchivedHistoryType, ArchivedMedal, ArchivedMedalCompact,
-        ArchivedMonthlyCount, ArchivedPlaystyle, ArchivedProfileBanner, ArchivedProfilePage,
-        ArchivedUser, ArchivedUserCompact, ArchivedUserCover, ArchivedUserKudosu,
-        ArchivedUserLevel, ArchivedUserPage, ArchivedUserStatistics, BadgeResolver,
-        GradeCountsResolver, GroupResolver, HistoryTypeResolver, MedalCompactResolver,
-        MedalResolver, MonthlyCountResolver, PlaystyleResolver, ProfileBannerResolver,
-        ProfilePageResolver, UserCompactResolver, UserCoverResolver, UserKudosuResolver,
-        UserLevelResolver, UserPageResolver, UserResolver, UserStatisticsResolver,
+        AccountHistoryResolver, ArchivedAccountHistory, ArchivedBadge, ArchivedGroup,
+        ArchivedHistoryType, ArchivedMedal, ArchivedMedalCompact, ArchivedMonthlyCount,
+        ArchivedPlaystyle, ArchivedProfileBanner, ArchivedProfilePage, ArchivedUser,
+        ArchivedUserCompact, ArchivedUserCover, ArchivedUserPage, ArchivedUserStatistics,
+        BadgeResolver, GradeCountsResolver, GroupResolver, HistoryTypeResolver,
+        MedalCompactResolver, MedalResolver, MonthlyCountResolver, PlaystyleResolver,
+        ProfileBannerResolver, ProfilePageResolver, UserCompactResolver, UserCoverResolver,
+        UserKudosuResolver, UserLevelResolver, UserPageResolver, UserResolver,
+        UserStatisticsResolver,
     };
 
     pub use super::wiki_::{ArchivedWikiPage, WikiPageResolver};

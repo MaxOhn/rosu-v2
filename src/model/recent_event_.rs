@@ -118,6 +118,6 @@ pub struct EventUser {
         rename = "previousUsername",
         skip_serializing_if = "Option::is_none"
     )]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::OptUsernameWrapper))]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::UsernameMap))]
     pub previous_username: Option<Username>,
 }

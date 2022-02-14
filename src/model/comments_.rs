@@ -24,18 +24,18 @@ pub struct Comment {
     pub created_at: DateTime<Utc>,
     /// ISO 8601 date if the comment was deleted; `None`, otherwise
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::OptDateTimeWrapper))]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub deleted_at: Option<DateTime<Utc>>,
     /// ISO 8601 date if the comment was edited; `None`, otherwise
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::OptDateTimeWrapper))]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub edited_at: Option<DateTime<Utc>>,
     /// user id of the user that edited the post; `None`, otherwise
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub edited_by_id: Option<u32>,
     /// username displayed on legacy comments
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::OptUsernameWrapper))]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::UsernameMap))]
     pub legacy_name: Option<Username>,
     /// markdown of the comment's content
     #[serde(default, skip_serializing_if = "Option::is_none")]

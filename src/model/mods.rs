@@ -646,8 +646,8 @@ mod rkyv_impls {
     const _: () = {
         impl<D: Fallible + ?Sized> Deserialize<GameMods, D> for Archived<GameMods> {
             #[inline]
-            fn deserialize(&self, deserializer: &mut D) -> Result<GameMods, D::Error> {
-                let bits = Deserialize::<u32, D>::deserialize(self, deserializer)?;
+            fn deserialize(&self, d: &mut D) -> Result<GameMods, D::Error> {
+                let bits = Deserialize::<u32, D>::deserialize(self, d)?;
 
                 Ok(GameMods::from_bits_truncate(bits))
             }

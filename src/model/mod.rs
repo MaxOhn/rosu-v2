@@ -293,7 +293,7 @@ pub mod rkyv {
         KudosuActionResolver, KudosuGiverResolver, KudosuHistoryResolver, KudosuPostResolver,
     };
 
-    pub use super::mode::{ArchivedGameMode, GameModeResolver};
+    pub use super::mode::GameModeResolver;
 
     pub use super::news_::{
         ArchivedNewsPost, ArchivedNewsSidebar, NewsPostResolver, NewsSidebarResolver,

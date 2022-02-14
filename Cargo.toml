@@ -13,7 +13,7 @@ documentation = "https://docs.rs/rosu-v2/"
 # --- Features ---
 
 [features]
-default = ["cache", "rkyv"]
+default = ["cache"]
 cache = ["dashmap"]
 metrics = ["prometheus"]
 

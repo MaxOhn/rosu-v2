@@ -1,5 +1,10 @@
 use super::{user_::UserCompact, Cursor, GameMode};
-use crate::{prelude::Username, request::GetUser, Osu, OsuResult};
+use crate::{
+    error::ParsingError,
+    prelude::{OsuError, Username},
+    request::GetUser,
+    Osu, OsuResult,
+};
 
 use chrono::{DateTime, Utc};
 use serde::{
@@ -685,7 +690,7 @@ impl<'de> Visitor<'de> for SearchRankStatusVisitor {
     type Value = SearchRankStatus;
 
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("a rank status, `any`, or 9")
+        f.write_str("a rank status, \"any\", or `9`")
     }
 
     fn visit_str<E: Error>(self, s: &str) -> Result<Self::Value, E> {
@@ -698,7 +703,7 @@ impl<'de> Visitor<'de> for SearchRankStatusVisitor {
         } else {
             Err(Error::invalid_value(
                 Unexpected::Str(s),
-                &"a rank status or `any`",
+                &"a rank status or \"any\"",
             ))
         }
     }
@@ -713,7 +718,7 @@ impl<'de> Visitor<'de> for SearchRankStatusVisitor {
         } else {
             Err(Error::invalid_value(
                 Unexpected::Unsigned(u),
-                &"a rank status or 9",
+                &"a RankStatus i8 or `9`",
             ))
         }
     }
@@ -728,7 +733,7 @@ impl<'de> Visitor<'de> for SearchRankStatusVisitor {
         } else {
             Err(Error::invalid_value(
                 Unexpected::Signed(i),
-                &"a rank status or 9",
+                &"a RankStatus i8 or `9`",
             ))
         }
     }
@@ -1183,20 +1188,120 @@ impl PartialEq for MostPlayedMap {
 
 impl Eq for MostPlayedMap {}
 
-def_enum!(i8 RankStatus {
-    Graveyard = -2 ("graveyard"),
-    WIP = -1 ("wip"),
-    Pending = 0 ("pending"),
-    Ranked = 1 ("ranked"),
-    Approved = 2 ("approved"),
-    Qualified = 3 ("qualified"),
-    Loved = 4 ("loved"),
-});
+#[allow(clippy::upper_case_acronyms, missing_docs)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
+pub enum RankStatus {
+    Graveyard = -2,
+    WIP = -1,
+    Pending = 0,
+    Ranked = 1,
+    Approved = 2,
+    Qualified = 3,
+    Loved = 4,
+}
 
-#[cfg(feature = "rkyv")]
-pub use super::rkyv_impls::{ArchivedRankStatus, RankStatusResolver};
+impl<'de> serde::Deserialize<'de> for RankStatus {
+    fn deserialize<D: serde::Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        d.deserialize_option(super::EnumVisitor::<RankStatus>::new())
+    }
+}
+impl From<RankStatus> for i8 {
+    fn from(v: RankStatus) -> Self {
+        v as i8
+    }
+}
 
-def_enum!(u8 Genre {
+impl TryFrom<i8> for RankStatus {
+    type Error = OsuError;
+
+    fn try_from(value: i8) -> Result<Self, Self::Error> {
+        match value {
+            -2 => Ok(Self::Graveyard),
+            -1 => Ok(Self::WIP),
+            0 => Ok(Self::Pending),
+            1 => Ok(Self::Ranked),
+            2 => Ok(Self::Approved),
+            3 => Ok(Self::Qualified),
+            4 => Ok(Self::Loved),
+            _ => Err(ParsingError::RankStatus(value).into()),
+        }
+    }
+}
+
+impl Serialize for RankStatus {
+    fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        s.serialize_i8(*self as i8)
+    }
+}
+
+impl<'de> Visitor<'de> for super::EnumVisitor<RankStatus> {
+    type Value = RankStatus;
+
+    fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("an optional RankStatus i8")
+    }
+
+    fn visit_str<E: Error>(self, s: &str) -> Result<Self::Value, E> {
+        match s {
+            "graveyard" => Ok(RankStatus::Graveyard),
+            "wip" => Ok(RankStatus::WIP),
+            "pending" => Ok(RankStatus::Pending),
+            "ranked" => Ok(RankStatus::Ranked),
+            "approved" => Ok(RankStatus::Approved),
+            "qualified" => Ok(RankStatus::Qualified),
+            "loved" => Ok(RankStatus::Loved),
+            _ => Err(Error::unknown_variant(
+                s,
+                &[
+                    "graveyard",
+                    "wip",
+                    "pending",
+                    "ranked",
+                    "approved",
+                    "qualified",
+                    "loved",
+                ],
+            )),
+        }
+    }
+
+    fn visit_i64<E: Error>(self, v: i64) -> Result<Self::Value, E> {
+        match v {
+            -2 => Ok(RankStatus::Graveyard),
+            -1 => Ok(RankStatus::WIP),
+            0 => Ok(RankStatus::Pending),
+            1 => Ok(RankStatus::Ranked),
+            2 => Ok(RankStatus::Approved),
+            3 => Ok(RankStatus::Qualified),
+            4 => Ok(RankStatus::Loved),
+            _ => Err(Error::invalid_value(
+                Unexpected::Signed(v),
+                &"-2, -1, 0, 1, 2, 3 or 4",
+            )),
+        }
+    }
+
+    fn visit_u64<E: Error>(self, v: u64) -> Result<Self::Value, E> {
+        match v {
+            0 => Ok(RankStatus::Pending),
+            1 => Ok(RankStatus::Ranked),
+            2 => Ok(RankStatus::Approved),
+            3 => Ok(RankStatus::Qualified),
+            4 => Ok(RankStatus::Loved),
+            _ => Err(Error::invalid_value(
+                Unexpected::Unsigned(v),
+                &"-2, -1, 0, 1, 2, 3 or 4",
+            )),
+        }
+    }
+
+    fn visit_some<D: Deserializer<'de>>(self, d: D) -> Result<Self::Value, D::Error> {
+        d.deserialize_any(self)
+    }
+}
+
+def_enum!(Genre {
     Any = 0 ("Any"),
     Unspecified = 1 ("Unspecified"),
     VideoGame = 2 ("Video Game"),
@@ -1213,16 +1318,13 @@ def_enum!(u8 Genre {
     Jazz = 14 ("Jazz"),
 });
 
-#[cfg(feature = "rkyv")]
-pub use super::rkyv_impls::{ArchivedGenre, GenreResolver};
-
 impl Default for Genre {
     fn default() -> Self {
         Self::Any
     }
 }
 
-def_enum!(u8 Language {
+def_enum!(Language {
     Any = 0,
     Other = 1,
     English = 2,
@@ -1239,9 +1341,6 @@ def_enum!(u8 Language {
     Polish = 13,
     Unspecified = 14,
 });
-
-#[cfg(feature = "rkyv")]
-pub use super::rkyv_impls::{ArchivedLanguage, LanguageResolver};
 
 impl Default for Language {
     fn default() -> Self {

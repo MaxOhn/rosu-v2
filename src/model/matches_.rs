@@ -933,15 +933,12 @@ impl PartialEq for OsuMatch {
 
 impl Eq for OsuMatch {}
 
-def_enum!(u8 ScoringType {
+def_enum!(ScoringType {
     Score = 0 ("score"),
     Accuracy = 1 ("accuracy"),
     Combo = 2 ("combo"),
     ScoreV2 = 3 ("scorev2"),
 });
-
-#[cfg(feature = "rkyv")]
-pub use super::rkyv_impls::{ArchivedScoringType, ScoringTypeResolver};
 
 impl Default for ScoringType {
     fn default() -> Self {
@@ -949,14 +946,11 @@ impl Default for ScoringType {
     }
 }
 
-def_enum!(u8 Team {
+def_enum!(Team {
     None = 0 ("none"),
     Blue = 1 ("blue"),
     Red = 2 ("red"),
 });
-
-#[cfg(feature = "rkyv")]
-pub use super::rkyv_impls::{ArchivedTeam, TeamResolver};
 
 impl Default for Team {
     fn default() -> Self {
@@ -964,15 +958,12 @@ impl Default for Team {
     }
 }
 
-def_enum!(u8 TeamType {
+def_enum!(TeamType {
     HeadToHead = 0 ("head-to-head"),
     TagCoop = 1 ("tag-coop"),
     TeamVS = 2 ("team-vs"),
     TagTeamVS = 3 ("tag-team-vs"),
 });
-
-#[cfg(feature = "rkyv")]
-pub use super::rkyv_impls::{ArchivedTeamType, TeamTypeResolver};
 
 impl Default for TeamType {
     fn default() -> Self {

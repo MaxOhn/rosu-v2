@@ -1,6 +1,7 @@
 ## Upcoming
 
-- None as of now
+- Fixed `Grade` calculation for taiko `Score`s
+- Added feature `rkyv` to provide `Archive`, `Deserialize`, and `Serialize` impls of rkyv for insanely fast (de)serialization
 
 # v0.3.1
 
@@ -11,8 +12,6 @@
 - Added `Clone`, `Eq`, `PartialEq`, and `Hash` impls for `UserId`
 - Improved compile time by removing `build.rs` file
 - Added method `GetUserScores::pinned` to retrieve the pinned scores of a user
-- Fixed osu!taiko `Grade` calculation for `Score`s
-- Added feature `rkyv` to provide `Archive`, `Deserialize`, and `Serialize` impls of rkyv for insanely fast (de)serialization
 
 ## v0.3.0
 

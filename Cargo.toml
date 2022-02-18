@@ -35,7 +35,7 @@ url = { version = "2.0", default-features = false }
 
 # --- Feature dependencies ---
 
-dashmap = { version = "4.0", default-features = false, optional = true }
+dashmap = { version = "5.1", default-features = false, optional = true }
 prometheus = { version = "0.13", optional = true }
 rkyv = { version = "0.7", optional = true }
 

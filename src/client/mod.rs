@@ -116,6 +116,16 @@ impl Osu {
         GetBeatmapUserScore::new(self, map_id, user_id)
     }
 
+    /// Get a vec of [`BeatmapUserScore`](crate::model::score::BeatmapUserScore).
+    ///
+    /// The contained [`Score`](crate::model::score::Score)s will have the
+    /// `map` and `user` options filled.
+    #[cfg(not(feature = "cache"))]
+    #[inline]
+    pub fn beatmap_user_scores(&self, map_id: u32, user_id: u32) -> GetBeatmapUserScores<'_> {
+        GetBeatmapUserScores::new(self, map_id, user_id)
+    }
+
     /// Get a [`BeatmapUserScore`](crate::model::score::BeatmapUserScore).
     ///
     /// The contained [`Score`](crate::model::score::Score) will have the
@@ -128,6 +138,20 @@ impl Osu {
         user_id: impl Into<UserId>,
     ) -> GetBeatmapUserScore<'_> {
         GetBeatmapUserScore::new(self, map_id, user_id.into())
+    }
+
+    /// Get a vec of [`BeatmapUserScore`](crate::model::score::BeatmapUserScore).
+    ///
+    /// The contained [`Score`](crate::model::score::Score)s will have the
+    /// `map` and `user` options filled.
+    #[cfg(feature = "cache")]
+    #[inline]
+    pub fn beatmap_user_scores(
+        &self,
+        map_id: u32,
+        user_id: impl Into<UserId>,
+    ) -> GetBeatmapUserScores<'_> {
+        GetBeatmapUserScores::new(self, map_id, user_id.into())
     }
 
     /// Get a [`Beatmapset`](crate::model::beatmap::Beatmapset).

@@ -365,6 +365,97 @@ impl<'a> GetBeatmapUserScore<'a> {
 
 poll_req!(GetBeatmapUserScore => BeatmapUserScore);
 
+/// Get the top score with each mod combination of a user on
+/// a map in the form of a vec of [`BeatmapUserScore`]s.
+#[must_use = "futures do nothing unless you `.await` or poll them"]
+pub struct GetBeatmapUserScores<'a> {
+    fut: Option<Pending<'a, Vec<BeatmapUserScore>>>,
+    osu: &'a Osu,
+    map_id: u32,
+    mode: Option<GameMode>,
+
+    #[cfg(not(feature = "cache"))]
+    user_id: u32,
+
+    #[cfg(feature = "cache")]
+    user_id: Option<UserId>,
+}
+
+impl<'a> GetBeatmapUserScores<'a> {
+    #[cfg(not(feature = "cache"))]
+    #[inline]
+    pub(crate) fn new(osu: &'a Osu, map_id: u32, user_id: u32) -> Self {
+        Self {
+            fut: None,
+            osu,
+            map_id,
+            user_id,
+            mode: None,
+        }
+    }
+
+    #[cfg(feature = "cache")]
+    #[inline]
+    pub(crate) fn new(osu: &'a Osu, map_id: u32, user_id: UserId) -> Self {
+        Self {
+            fut: None,
+            osu,
+            map_id,
+            user_id: Some(user_id),
+            mode: None,
+        }
+    }
+
+    /// Specify the mode
+    #[inline]
+    pub fn mode(mut self, mode: GameMode) -> Self {
+        self.mode.replace(mode);
+
+        self
+    }
+
+    fn start(&mut self) -> Pending<'a, Vec<BeatmapUserScore>> {
+        #[cfg(feature = "metrics")]
+        self.osu.metrics.beatmap_user_score.inc();
+
+        let mut query = Query::new();
+
+        if let Some(mode) = self.mode {
+            query.push("mode", &mode.to_string());
+        }
+
+        #[cfg(not(feature = "cache"))]
+        {
+            let route = Route::GetBeatmapUserScores {
+                user_id: self.user_id,
+                map_id: self.map_id,
+            };
+
+            let req = Request::with_query(route, query);
+
+            Box::pin(self.osu.inner.request(req))
+        }
+
+        #[cfg(feature = "cache")]
+        {
+            let map_id = self.map_id;
+            let osu = &self.osu.inner;
+
+            let fut = self
+                .osu
+                .cache_user(self.user_id.take().unwrap())
+                .map_ok(move |user_id| {
+                    Request::with_query(Route::GetBeatmapUserScores { user_id, map_id }, query)
+                })
+                .and_then(move |req| osu.request(req));
+
+            Box::pin(fut)
+        }
+    }
+}
+
+poll_req!(GetBeatmapUserScores => Vec<BeatmapUserScore>);
+
 /// Get a [`Beatmapset`](crate::model::beatmap::Beatmapset).
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetBeatmapset<'a> {

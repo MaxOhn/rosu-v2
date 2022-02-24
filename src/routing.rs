@@ -19,6 +19,10 @@ pub(crate) enum Route {
         user_id: u32,
         map_id: u32,
     },
+    GetBeatmapUserScores {
+        user_id: u32,
+        map_id: u32,
+    },
     GetBeatmapset {
         mapset_id: u32,
     },
@@ -85,6 +89,10 @@ impl Route {
             Self::GetBeatmapUserScore { map_id, user_id } => (
                 Method::GET,
                 format!("beatmaps/{}/scores/users/{}", map_id, user_id).into(),
+            ),
+            Self::GetBeatmapUserScores { map_id, user_id } => (
+                Method::GET,
+                format!("beatmaps/{}/scores/users/{}/all", map_id, user_id).into(),
             ),
             Self::GetBeatmapset { mapset_id } => {
                 (Method::GET, format!("beatmapsets/{}", mapset_id).into())

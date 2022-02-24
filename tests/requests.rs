@@ -88,7 +88,7 @@ fn osu() -> &'static Osu {
 async fn custom() {
     init().await;
 
-    let req_fut = osu().user(SYLAS);
+    let req_fut = osu().beatmap_user_scores(ADESSO_BALLA, BADEWANNE3);
 
     let result = req_fut.await.unwrap();
     println!("Result:\n{:#?}", result);
@@ -151,6 +151,24 @@ async fn beatmap_user_score() {
             "Received score, pos={} | mods={}",
             score.pos, score.score.mods,
         ),
+        Err(why) => {
+            unwind_error!(
+                println,
+                why,
+                "Error while requesting beatmap user score: {}"
+            );
+            panic!()
+        }
+    }
+}
+
+#[cfg(feature = "cache")]
+#[tokio::test]
+async fn beatmap_user_scores() {
+    init().await;
+
+    match osu().beatmap_user_scores(ADESSO_BALLA, BADEWANNE3).await {
+        Ok(scores) => println!("Received {} scores", scores.len(),),
         Err(why) => {
             unwind_error!(
                 println,

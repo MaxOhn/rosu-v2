@@ -2,6 +2,8 @@
 
 - Fixed `Grade` calculation for taiko `Score`s
 - Added feature `rkyv` to provide `Archive`, `Deserialize`, and `Serialize` impls of rkyv for insanely fast (de)serialization
+- Bumped dashmap to v5.1.0
+- Added `Osu::beatmap_user_scores` to get scores for all mod combinations of a user on a map
 
 # v0.3.1
 
@@ -12,7 +14,6 @@
 - Added `Clone`, `Eq`, `PartialEq`, and `Hash` impls for `UserId`
 - Improved compile time by removing `build.rs` file
 - Added method `GetUserScores::pinned` to retrieve the pinned scores of a user
-- Bumped dashmap to v5.1.0
 
 ## v0.3.0
 

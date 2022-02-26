@@ -1,11 +1,15 @@
 ## Upcoming
 
+- Nothing as of now
+
+# v0.3.2
+
 - Fixed `Grade` calculation for taiko `Score`s
 - Added feature `rkyv` to provide `Archive`, `Deserialize`, and `Serialize` impls of rkyv for insanely fast (de)serialization
 - Bumped dashmap to v5.1.0
 - Added `Osu::beatmap_user_scores` to get scores for all mod combinations of a user on a map
 
-# v0.3.1
+## v0.3.1
 
 - Added method `Osu::beatmaps` to retrieve multiple maps at once (up to 50).
 - Added method `Osu::score` to retrieve a specific score.

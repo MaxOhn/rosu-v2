@@ -116,7 +116,8 @@ impl Osu {
         GetBeatmapUserScore::new(self, map_id, user_id)
     }
 
-    /// Get a vec of [`Score`](crate::model::score::Score).
+    /// Get the top score for each mod combination a user has on a
+    /// map in form of a vec of [`Score`](crate::model::score::Score)s.
     ///
     /// The contained scores won't have any Options filled except
     /// for `pp` in case of a ranked map.
@@ -140,7 +141,8 @@ impl Osu {
         GetBeatmapUserScore::new(self, map_id, user_id.into())
     }
 
-    /// Get a vec of [`Score`](crate::model::score::Score).
+    /// Get the top score for each mod combination a user has on a
+    /// map in form of a vec of [`Score`](crate::model::score::Score)s.
     ///
     /// The contained scores won't have any Options filled except
     /// for `pp` in case of a ranked map.

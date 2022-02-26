@@ -26,7 +26,7 @@
 //! - `beatmaps/lookup`: A specific beatmap including its beatmapset
 //! - `beatmaps`: Up to 50 beatmaps at once including their beatmapsets.
 //! - `beatmaps/{map_id}/scores`: The global score leaderboard for a beatmap
-//! - `beatmaps/{map_id}/scores/users/{user_id}`: The single top score of a user on a beatmap. Defaults to the play with the __max score__, not pp
+//! - `beatmaps/{map_id}/scores/users/{user_id}[/all]`: Get (all) top score(s) of a user on a beatmap. Defaults to the play with the __max score__, not pp
 //! - `beatmapsets/{mapset_id}`: The beatmapset including all of its difficulty beatmaps
 //! - `beatmapsets/events`: Various events around a beatmapset such as status, genre, or language updates, kudosu transfers, or new issues
 //! - `beatmapsets/search`: Search for beatmapsets; the same search as on the osu! website

@@ -126,6 +126,11 @@ impl PartialEq for Score {
 
 impl Eq for Score {}
 
+#[derive(Deserialize)]
+pub(crate) struct Scores {
+    pub(crate) scores: Vec<Score>,
+}
+
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[cfg_attr(
     feature = "rkyv",

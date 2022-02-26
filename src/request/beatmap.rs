@@ -5,7 +5,7 @@ use crate::{
             Genre, Language, RankStatus,
         },
         beatmap_::{Beatmaps, SearchRankStatus},
-        score_::{BeatmapScores, BeatmapUserScore, Score},
+        score_::{BeatmapScores, BeatmapUserScore, Score, Scores},
         Cursor, GameMode, GameMods,
     },
     prelude::BeatmapCompact,
@@ -366,10 +366,10 @@ impl<'a> GetBeatmapUserScore<'a> {
 poll_req!(GetBeatmapUserScore => BeatmapUserScore);
 
 /// Get the top score with each mod combination of a user on
-/// a map in the form of a vec of [`BeatmapUserScore`]s.
+/// a map in the form of a vec of [`Score`]s.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetBeatmapUserScores<'a> {
-    fut: Option<Pending<'a, Vec<BeatmapUserScore>>>,
+    fut: Option<Pending<'a, Vec<Score>>>,
     osu: &'a Osu,
     map_id: u32,
     mode: Option<GameMode>,
@@ -414,7 +414,7 @@ impl<'a> GetBeatmapUserScores<'a> {
         self
     }
 
-    fn start(&mut self) -> Pending<'a, Vec<BeatmapUserScore>> {
+    fn start(&mut self) -> Pending<'a, Vec<Score>> {
         #[cfg(feature = "metrics")]
         self.osu.metrics.beatmap_user_score.inc();
 
@@ -433,7 +433,13 @@ impl<'a> GetBeatmapUserScores<'a> {
 
             let req = Request::with_query(route, query);
 
-            Box::pin(self.osu.inner.request(req))
+            let fut = self
+                .osu
+                .inner
+                .request::<Scores>(req)
+                .map_ok(|scores| scores.scores);
+
+            Box::pin(fut)
         }
 
         #[cfg(feature = "cache")]
@@ -447,14 +453,15 @@ impl<'a> GetBeatmapUserScores<'a> {
                 .map_ok(move |user_id| {
                     Request::with_query(Route::GetBeatmapUserScores { user_id, map_id }, query)
                 })
-                .and_then(move |req| osu.request(req));
+                .and_then(move |req| osu.request::<Scores>(req))
+                .map_ok(|scores| scores.scores);
 
             Box::pin(fut)
         }
     }
 }
 
-poll_req!(GetBeatmapUserScores => Vec<BeatmapUserScore>);
+poll_req!(GetBeatmapUserScores => Vec<Score>);
 
 /// Get a [`Beatmapset`](crate::model::beatmap::Beatmapset).
 #[must_use = "futures do nothing unless you `.await` or poll them"]

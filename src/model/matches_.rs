@@ -26,7 +26,7 @@ pub enum MatchEvent {
         event_id: u64,
         #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         timestamp: DateTime<Utc>,
-        user_id: u32,
+        user_id: Option<u32>,
     },
     /// The match was closed
     #[serde(rename(serialize = "match-disbanded"))]
@@ -117,7 +117,7 @@ impl MatchEvent {
     /// Return the user id of the user associated with the event
     pub fn user_id(&self) -> Option<u32> {
         match self {
-            Self::Create { user_id, .. } => Some(*user_id),
+            Self::Create { user_id, .. } => *user_id,
             Self::Disbanded { .. } => None,
             Self::Game { .. } => None,
             Self::HostChanged { user_id, .. } => Some(*user_id),
@@ -211,31 +211,20 @@ impl<'de> Visitor<'de> for MatchEventVisitor {
 
         while let Some(key) = map.next_key()? {
             match key {
-                "id" => {
-                    id.replace(map.next_value()?);
-                }
-                "timestamp" => {
-                    timestamp.replace(map.next_value()?);
-                }
+                "id" => id = Some(map.next_value()?),
+                "timestamp" => timestamp = Some(map.next_value()?),
                 "detail" => {
                     let detail: Detail = map.next_value()?;
-
-                    kind.replace(detail.kind);
+                    kind = Some(detail.kind);
 
                     if !detail.match_name.is_empty() {
                         match_name.replace(detail.match_name);
                     }
                 }
                 "user_id" => user_id = map.next_value()?,
-                "game" => {
-                    game.replace(map.next_value()?);
-                }
-                "type" => {
-                    kind.replace(map.next_value()?);
-                }
-                "match_name" => {
-                    match_name.replace(map.next_value()?);
-                }
+                "game" => game = Some(map.next_value()?),
+                "type" => kind = Some(map.next_value()?),
+                "match_name" => match_name = Some(map.next_value()?),
                 _ => {
                     let _: IgnoredAny = map.next_value()?;
                 }
@@ -272,7 +261,7 @@ impl<'de> Visitor<'de> for MatchEventVisitor {
             MatchEventType::Create => MatchEvent::Create {
                 event_id,
                 timestamp,
-                user_id: user_id.ok_or_else(|| Error::missing_field("user_id"))?,
+                user_id,
             },
             MatchEventType::Disbanded => MatchEvent::Disbanded {
                 event_id,

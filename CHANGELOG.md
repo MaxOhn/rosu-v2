@@ -1,6 +1,6 @@
 ## Upcoming
 
-- Nothing as of now
+- [Breaking] `MatchEvent::Create`'s `user_id` field is now of type `Option<u32>` (previously just `u32`)
 
 # v0.3.2
 

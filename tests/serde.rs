@@ -428,7 +428,7 @@ fn get_match() -> OsuMatch {
             MatchEvent::Create {
                 event_id: 0,
                 timestamp: get_date(),
-                user_id: 0,
+                user_id: Some(0),
             },
             MatchEvent::Joined {
                 event_id: 1,

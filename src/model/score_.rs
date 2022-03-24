@@ -62,7 +62,7 @@ pub struct Score {
     pub rank_country: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub rank_global: Option<u32>,
-    pub replay: bool,
+    pub replay: Option<bool>,
     pub score: u32,
     #[serde(rename = "id")]
     pub score_id: u64,

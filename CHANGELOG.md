@@ -1,6 +1,7 @@
 ## Upcoming
 
 - [Breaking] `MatchEvent::Create`'s `user_id` field is now of type `Option<u32>` (previously just `u32`)
+- [Breaking] `Score::replay` is now of type `Option<bool>` (previously just `bool`)
 
 # v0.3.2
 

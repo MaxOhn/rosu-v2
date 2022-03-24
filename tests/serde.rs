@@ -516,7 +516,7 @@ fn get_score() -> Score {
         pp: Some(456.78),
         rank_country: Some(1),
         rank_global: Some(10),
-        replay: true,
+        replay: Some(true),
         score: 12_345_678,
         score_id: 123_456_789_000,
         statistics: ScoreStatistics {

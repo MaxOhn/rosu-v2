@@ -671,7 +671,7 @@ impl OsuMatch {
     ///         # MatchEvent::Create {
     ///         #     event_id: 0,
     ///         #     timestamp: date,
-    ///         #     user_id: None,
+    ///         #     user_id: Some(0),
     ///         # },
     ///         MatchEvent::Game {
     ///             # /*

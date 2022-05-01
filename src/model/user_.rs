@@ -371,6 +371,12 @@ pub struct User {
     pub graveyard_mapset_count: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub groups: Option<Vec<Group>>,
+    #[serde(
+        default,
+        rename = "guest_beatmapset_count",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub guest_mapset_count: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub is_admin: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -514,6 +520,12 @@ pub struct UserCompact {
     pub graveyard_mapset_count: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub groups: Option<Vec<Group>>,
+    #[serde(
+        default,
+        rename = "guest_beatmapset_count",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub guest_mapset_count: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub is_admin: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -607,6 +619,7 @@ impl From<User> for UserCompact {
             follower_count: user.follower_count,
             graveyard_mapset_count: user.graveyard_mapset_count,
             groups: user.groups,
+            guest_mapset_count: user.guest_mapset_count,
             is_admin: user.is_admin,
             is_bng: user.is_bng,
             is_full_bn: user.is_full_bn,

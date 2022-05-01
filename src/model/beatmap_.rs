@@ -29,6 +29,8 @@ pub struct Beatmap {
     pub count_circles: u32,
     pub count_sliders: u32,
     pub count_spinners: u32,
+    #[serde(rename = "user_id")]
+    pub creator_id: u32,
     pub cs: f32,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
@@ -90,6 +92,8 @@ impl Eq for Beatmap {}
 pub struct BeatmapCompact {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub checksum: Option<String>,
+    #[serde(rename = "user_id")]
+    pub creator_id: u32,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub fail_times: Option<FailTimes>,
     #[serde(rename = "id")]
@@ -115,6 +119,7 @@ impl From<Beatmap> for BeatmapCompact {
     fn from(map: Beatmap) -> Self {
         Self {
             checksum: map.checksum,
+            creator_id: map.creator_id,
             fail_times: map.fail_times,
             map_id: map.map_id,
             mapset: map.mapset.map(|ms| ms.into()),

@@ -4,6 +4,7 @@
   - `MatchEvent::Create`'s `user_id` field is now of type `Option<u32>` (previously just `u32`)
   - `Score::replay` is now of type `Option<bool>` (previously just `bool`)
   - Added the field `guest_mapset_count` to `User` and `UserCompact`
+  - Added the field `creator_id` to `Beatmap` and `BeatmapCompact`
 
 # v0.3.2
 

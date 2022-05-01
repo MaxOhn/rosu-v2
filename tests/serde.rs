@@ -156,6 +156,7 @@ fn get_map() -> Beatmap {
         count_circles: 1234,
         count_sliders: 123,
         count_spinners: 1,
+        creator_id: 456,
         cs: 4.1,
         deleted_at: Some(get_date()),
         fail_times: Some(FailTimes {
@@ -185,6 +186,7 @@ fn get_map() -> Beatmap {
 fn get_map_compact() -> BeatmapCompact {
     BeatmapCompact {
         checksum: Some("ABC123".to_owned()),
+        creator_id: 456,
         fail_times: None,
         map_id: 123456,
         mapset: Some(get_mapset_compact()),

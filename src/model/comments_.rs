@@ -54,16 +54,18 @@ pub struct Comment {
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub updated_at: DateTime<Utc>,
     /// user ID of the poster
-    pub user_id: u32,
+    pub user_id: Option<u32>,
     /// number of votes
     pub votes_count: u32,
 }
 
 impl Comment {
-    /// Request the [`User`](crate::model::user::User) of a comment
+    /// Request the [`User`](crate::model::user::User) of a comment.
+    ///
+    /// Only works if `user_id` is Some.
     #[inline]
-    pub fn get_user<'o>(&self, osu: &'o Osu) -> GetUser<'o> {
-        osu.user(self.user_id)
+    pub fn get_user<'o>(&self, osu: &'o Osu) -> Option<GetUser<'o>> {
+        self.user_id.map(|id| osu.user(id))
     }
 }
 

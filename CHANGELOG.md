@@ -5,6 +5,8 @@
   - `Score::replay` is now of type `Option<bool>` (previously just `bool`)
   - Added the field `guest_mapset_count` to `User` and `UserCompact`
   - Added the field `creator_id` to `Beatmap` and `BeatmapCompact`
+  - The field `user_id` of `Comment` is now an `Option<u32>` instead of just `u32`.
+  - The method `get_user` of `Comment` now returns `Option<GetUser<'_>>` instead of `GetUser<'_>`
 
 # v0.3.2
 

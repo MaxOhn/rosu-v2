@@ -7,7 +7,7 @@ use crate::{
 
 use bitflags::bitflags;
 use serde::{
-    de::{Error, SeqAccess, Unexpected, Visitor},
+    de::{Error, IgnoredAny, MapAccess, SeqAccess, Unexpected, Visitor},
     Deserialize, Deserializer, Serialize, Serializer,
 };
 use std::{
@@ -489,6 +489,21 @@ impl<'de> Visitor<'de> for ModsVisitor {
         }
 
         Ok(mods)
+    }
+
+    fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
+        let mut mods = None;
+
+        while let Some(key) = map.next_key()? {
+            match key {
+                "acronym" => mods = Some(map.next_value()?),
+                _ => {
+                    let _: IgnoredAny = map.next_value()?;
+                }
+            }
+        }
+
+        mods.ok_or_else(|| Error::missing_field("acronym"))
     }
 }
 

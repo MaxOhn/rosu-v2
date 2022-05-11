@@ -8,6 +8,10 @@
   - The field `user_id` of `Comment` is now an `Option<u32>` instead of just `u32`.
   - The method `get_user` of `Comment` now returns `Option<GetUser<'_>>` instead of `GetUser<'_>`
 
+- __Fixes:__
+  - Now deserializing `medal` recent events properly
+  - Added deserialization for mods in form of objects
+
 # v0.3.2
 
 - Fixed `Grade` calculation for taiko `Score`s

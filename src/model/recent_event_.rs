@@ -71,7 +71,11 @@ pub enum EventType {
     },
     /// When a user obtained a medal
     #[serde(rename = "achievement")]
-    Medal { medal: Medal, user: EventUser },
+    Medal {
+        #[serde(rename = "achievement")]
+        medal: Medal,
+        user: EventUser,
+    },
     /// When a user achieves a certain rank on a beatmap
     Rank {
         #[serde(rename = "scoreRank")]

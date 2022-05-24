@@ -1,5 +1,9 @@
 ## Upcoming
 
+Nothing as of now
+
+# v0.4.0
+
 - __Breaking:__
   - `MatchEvent::Create`'s `user_id` field is now of type `Option<u32>` (previously just `u32`)
   - `Score::replay` is now of type `Option<bool>` (previously just `bool`)
@@ -12,7 +16,7 @@
   - Now deserializing `medal` recent events properly
   - Added deserialization for mods in form of objects
 
-# v0.3.2
+## v0.3.2
 
 - Fixed `Grade` calculation for taiko `Score`s
 - Added feature `rkyv` to provide `Archive`, `Deserialize`, and `Serialize` impls of rkyv for insanely fast (de)serialization

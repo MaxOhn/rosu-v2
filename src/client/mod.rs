@@ -97,7 +97,7 @@ impl Osu {
     /// Get a vec of [`Score`](crate::model::score::Score).
     ///
     /// The contained scores will have the following options filled:
-    /// `map`, `pp` (if ranked or approved), and `user`.
+    /// `pp` (if ranked or approved), and `user`.
     ///
     /// The scores' contained [`UserCompact`](crate::model::user::UserCompact)
     /// will have the `country` and `cover` options filled.

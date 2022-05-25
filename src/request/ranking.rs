@@ -67,8 +67,21 @@ impl<'a> GetChartRankings<'a> {
         };
 
         let req = Request::with_query(route, query);
+        let osu = self.osu;
+        let fut = osu.request::<ChartRankings>(req);
 
-        Box::pin(self.osu.inner.request(req))
+        #[cfg(feature = "cache")]
+        let fut = fut.inspect_ok(move |chart| {
+            for mapset in chart.mapsets.iter() {
+                osu.update_cache(mapset.creator_id, &mapset.creator_name);
+            }
+
+            for user in chart.ranking.iter() {
+                osu.update_cache(user.user_id, &user.username);
+            }
+        });
+
+        Box::pin(fut)
     }
 }
 
@@ -121,7 +134,7 @@ impl<'a> GetCountryRankings<'a> {
 
         let req = Request::with_query(route, query);
 
-        Box::pin(self.osu.inner.request(req))
+        Box::pin(self.osu.request(req))
     }
 }
 
@@ -211,15 +224,20 @@ impl<'a> GetPerformanceRankings<'a> {
         };
 
         let req = Request::with_query(route, query);
+        let osu = self.osu;
 
-        let fut = self
-            .osu
-            .inner
-            .request(req)
+        let fut = osu
+            .request::<Rankings>(req)
             .map_ok(move |mut rankings: Rankings| {
                 rankings.mode.replace(mode);
+
                 #[cfg(not(feature = "rkyv"))]
                 rankings.ranking_type.replace(RankingType::Performance);
+
+                #[cfg(feature = "cache")]
+                for user in rankings.ranking.iter() {
+                    osu.update_cache(user.user_id, &user.username);
+                }
 
                 rankings
             });
@@ -277,15 +295,20 @@ impl<'a> GetScoreRankings<'a> {
         };
 
         let req = Request::with_query(route, query);
+        let osu = self.osu;
 
-        let fut = self
-            .osu
-            .inner
-            .request(req)
+        let fut = osu
+            .request::<Rankings>(req)
             .map_ok(move |mut rankings: Rankings| {
                 rankings.mode.replace(mode);
+
                 #[cfg(not(feature = "rkyv"))]
                 rankings.ranking_type.replace(RankingType::Score);
+
+                #[cfg(feature = "cache")]
+                for user in rankings.ranking.iter() {
+                    osu.update_cache(user.user_id, &user.username);
+                }
 
                 rankings
             });
@@ -314,12 +337,7 @@ impl<'a> GetSpotlights<'a> {
         self.osu.metrics.spotlights.inc();
 
         let req = Request::new(Route::GetSpotlights);
-
-        let fut = self
-            .osu
-            .inner
-            .request(req)
-            .map_ok(|s: Spotlights| s.spotlights);
+        let fut = self.osu.request::<Spotlights>(req).map_ok(|s| s.spotlights);
 
         Box::pin(fut)
     }

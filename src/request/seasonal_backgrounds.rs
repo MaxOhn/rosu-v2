@@ -24,7 +24,7 @@ impl<'a> GetSeasonalBackgrounds<'a> {
 
         let req = Request::new(Route::GetSeasonalBackgrounds);
 
-        Box::pin(self.osu.inner.request(req))
+        Box::pin(self.osu.request(req))
     }
 }
 

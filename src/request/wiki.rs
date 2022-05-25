@@ -42,7 +42,7 @@ impl<'a> GetWikiPage<'a> {
             page: self.page.take(),
         });
 
-        Box::pin(self.osu.inner.request(req))
+        Box::pin(self.osu.request(req))
     }
 }
 

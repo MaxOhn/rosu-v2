@@ -8,6 +8,9 @@ use crate::{
     Osu,
 };
 
+#[cfg(feature = "cache")]
+use futures::TryFutureExt;
+
 /// Get an [`OsuMatch`](crate::model::matches::OsuMatch) by its id
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetMatch<'a> {
@@ -83,8 +86,17 @@ impl<'a> GetMatch<'a> {
         };
 
         let req = Request::with_query(route, query);
+        let osu = self.osu;
+        let fut = osu.request::<OsuMatch>(req);
 
-        Box::pin(self.osu.inner.request(req))
+        #[cfg(feature = "cache")]
+        let fut = fut.inspect_ok(move |osu_match| {
+            for user in osu_match.users.values() {
+                osu.update_cache(user.user_id, &user.username);
+            }
+        });
+
+        Box::pin(fut)
     }
 }
 
@@ -128,7 +140,7 @@ impl<'a> GetMatches<'a> {
 
         let req = Request::with_query(Route::GetMatch { match_id: None }, query);
 
-        Box::pin(self.osu.inner.request(req))
+        Box::pin(self.osu.request(req))
     }
 }
 

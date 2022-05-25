@@ -18,7 +18,7 @@ use smallstr::SmallString;
 use std::fmt;
 
 #[cfg(feature = "cache")]
-use futures::future::TryFutureExt;
+use {futures::future::TryFutureExt, std::mem};
 
 /// Either a user id as u32 or a username as String.
 ///
@@ -113,8 +113,13 @@ impl<'a> GetOwnData<'a> {
         self.osu.metrics.own_data.inc();
 
         let req = Request::new(Route::GetOwnData { mode: self.mode });
+        let osu = self.osu;
+        let fut = osu.request::<User>(req);
 
-        Box::pin(self.osu.inner.request(req))
+        #[cfg(feature = "cache")]
+        let fut = fut.inspect_ok(move |user| osu.update_cache(user.user_id, &user.username));
+
+        Box::pin(fut)
     }
 }
 
@@ -169,8 +174,13 @@ impl<'a> GetUser<'a> {
         };
 
         let req = Request::with_query(route, query);
+        let osu = self.osu;
+        let fut = osu.request::<User>(req);
 
-        Box::pin(self.osu.inner.request(req))
+        #[cfg(feature = "cache")]
+        let fut = fut.inspect_ok(move |user| osu.update_cache(user.user_id, &user.username));
+
+        Box::pin(fut)
     }
 }
 
@@ -197,7 +207,7 @@ pub struct GetUserBeatmapsets<'a> {
     user_id: u32,
 
     #[cfg(feature = "cache")]
-    user_id: Option<UserId>,
+    user_id: UserId,
 }
 
 impl<'a> GetUserBeatmapsets<'a> {
@@ -220,7 +230,7 @@ impl<'a> GetUserBeatmapsets<'a> {
         Self {
             fut: None,
             osu,
-            user_id: Some(user_id),
+            user_id,
             map_type: "ranked",
             limit: None,
             offset: None,
@@ -304,21 +314,22 @@ impl<'a> GetUserBeatmapsets<'a> {
             query.push("offset", &offset);
         }
 
+        let osu = self.osu;
+
         #[cfg(not(feature = "cache"))]
         {
             let user_id = self.user_id;
             let req = Request::with_query(Route::GetUserBeatmapsets { user_id, map_type }, query);
 
-            Box::pin(self.osu.inner.request(req))
+            Box::pin(osu.request(req))
         }
 
         #[cfg(feature = "cache")]
         {
-            let osu = &self.osu.inner;
+            let user_id = mem::replace(&mut self.user_id, UserId::Id(0));
 
-            let fut = self
-                .osu
-                .cache_user(self.user_id.take().unwrap())
+            let fut = osu
+                .cache_user(user_id)
                 .map_ok(move |user_id| {
                     Request::with_query(Route::GetUserBeatmapsets { user_id, map_type }, query)
                 })
@@ -344,7 +355,7 @@ pub struct GetUserKudosu<'a> {
     user_id: u32,
 
     #[cfg(feature = "cache")]
-    user_id: Option<UserId>,
+    user_id: UserId,
 }
 
 impl<'a> GetUserKudosu<'a> {
@@ -366,7 +377,7 @@ impl<'a> GetUserKudosu<'a> {
         Self {
             fut: None,
             osu,
-            user_id: Some(user_id),
+            user_id,
             limit: None,
             offset: None,
         }
@@ -403,21 +414,22 @@ impl<'a> GetUserKudosu<'a> {
             query.push("offset", &offset);
         }
 
+        let osu = self.osu;
+
         #[cfg(not(feature = "cache"))]
         {
             let user_id = self.user_id;
             let req = Request::with_query(Route::GetUserKudosu { user_id }, query);
 
-            Box::pin(self.osu.inner.request(req))
+            Box::pin(osu.request(req))
         }
 
         #[cfg(feature = "cache")]
         {
-            let osu = &self.osu.inner;
+            let user_id = mem::replace(&mut self.user_id, UserId::Id(0));
 
-            let fut = self
-                .osu
-                .cache_user(self.user_id.take().unwrap())
+            let fut = osu
+                .cache_user(user_id)
                 .map_ok(move |user_id| Request::with_query(Route::GetUserKudosu { user_id }, query))
                 .and_then(move |req| osu.request(req));
 
@@ -441,7 +453,7 @@ pub struct GetUserMostPlayed<'a> {
     user_id: u32,
 
     #[cfg(feature = "cache")]
-    user_id: Option<UserId>,
+    user_id: UserId,
 }
 
 impl<'a> GetUserMostPlayed<'a> {
@@ -463,7 +475,7 @@ impl<'a> GetUserMostPlayed<'a> {
         Self {
             fut: None,
             osu,
-            user_id: Some(user_id),
+            user_id,
             limit: None,
             offset: None,
         }
@@ -500,6 +512,8 @@ impl<'a> GetUserMostPlayed<'a> {
             query.push("offset", &offset);
         }
 
+        let osu = self.osu;
+
         #[cfg(not(feature = "cache"))]
         {
             let route = Route::GetUserBeatmapsets {
@@ -509,16 +523,15 @@ impl<'a> GetUserMostPlayed<'a> {
 
             let req = Request::with_query(route, query);
 
-            Box::pin(self.osu.inner.request(req))
+            Box::pin(osu.request(req))
         }
 
         #[cfg(feature = "cache")]
         {
-            let osu = &self.osu.inner;
+            let user_id = mem::replace(&mut self.user_id, UserId::Id(0));
 
-            let fut = self
-                .osu
-                .cache_user(self.user_id.take().unwrap())
+            let fut = osu
+                .cache_user(user_id)
                 .map_ok(move |user_id| {
                     let route = Route::GetUserBeatmapsets {
                         user_id,
@@ -527,7 +540,12 @@ impl<'a> GetUserMostPlayed<'a> {
 
                     Request::with_query(route, query)
                 })
-                .and_then(move |req| osu.request(req));
+                .and_then(move |req| osu.request::<Vec<MostPlayedMap>>(req))
+                .inspect_ok(move |maps| {
+                    for map in maps.iter() {
+                        osu.update_cache(map.mapset.creator_id, &map.mapset.creator_name);
+                    }
+                });
 
             Box::pin(fut)
         }
@@ -548,7 +566,7 @@ pub struct GetRecentEvents<'a> {
     user_id: u32,
 
     #[cfg(feature = "cache")]
-    user_id: Option<UserId>,
+    user_id: UserId,
 }
 
 impl<'a> GetRecentEvents<'a> {
@@ -570,7 +588,7 @@ impl<'a> GetRecentEvents<'a> {
         Self {
             fut: None,
             osu,
-            user_id: Some(user_id),
+            user_id,
             limit: None,
             offset: None,
         }
@@ -607,21 +625,22 @@ impl<'a> GetRecentEvents<'a> {
             query.push("offset", &offset);
         }
 
+        let osu = self.osu;
+
         #[cfg(not(feature = "cache"))]
         {
             let user_id = self.user_id;
             let req = Request::with_query(Route::GetRecentEvents { user_id }, query);
 
-            Box::pin(self.osu.inner.request(req))
+            Box::pin(osu.request(req))
         }
 
         #[cfg(feature = "cache")]
         {
-            let osu = &self.osu.inner;
+            let user_id = mem::replace(&mut self.user_id, UserId::Id(0));
 
-            let fut = self
-                .osu
-                .cache_user(self.user_id.take().unwrap())
+            let fut = osu
+                .cache_user(user_id)
                 .map_ok(move |user_id| {
                     Request::with_query(Route::GetRecentEvents { user_id }, query)
                 })
@@ -675,7 +694,7 @@ pub struct GetUserScores<'a> {
     user_id: u32,
 
     #[cfg(feature = "cache")]
-    user_id: Option<UserId>,
+    user_id: UserId,
 }
 
 impl<'a> GetUserScores<'a> {
@@ -700,7 +719,7 @@ impl<'a> GetUserScores<'a> {
         Self {
             fut: None,
             osu,
-            user_id: Some(user_id),
+            user_id,
             score_type: ScoreType::Best,
             limit: None,
             offset: None,
@@ -803,6 +822,8 @@ impl<'a> GetUserScores<'a> {
             query.push("include_fails", &(include_fails as u8));
         }
 
+        let osu = self.osu;
+
         #[cfg(not(feature = "cache"))]
         {
             let route = Route::GetUserScores {
@@ -812,17 +833,16 @@ impl<'a> GetUserScores<'a> {
 
             let req = Request::with_query(route, query);
 
-            Box::pin(self.osu.inner.request(req))
+            Box::pin(osu.request(req))
         }
 
         #[cfg(feature = "cache")]
         {
             let score_type = self.score_type;
-            let osu = &self.osu.inner;
+            let user_id = mem::replace(&mut self.user_id, UserId::Id(0));
 
-            let fut = self
-                .osu
-                .cache_user(self.user_id.take().unwrap())
+            let fut = osu
+                .cache_user(user_id)
                 .map_ok(move |user_id| {
                     let route = Route::GetUserScores {
                         user_id,
@@ -831,7 +851,14 @@ impl<'a> GetUserScores<'a> {
 
                     Request::with_query(route, query)
                 })
-                .and_then(move |req| osu.request(req));
+                .and_then(move |req| osu.request::<Vec<Score>>(req))
+                .inspect_ok(move |scores| {
+                    for score in scores.iter() {
+                        if let Some(ref mapset) = score.mapset {
+                            osu.update_cache(mapset.creator_id, &mapset.creator_name);
+                        }
+                    }
+                });
 
             Box::pin(fut)
         }
@@ -874,7 +901,8 @@ impl<'a> GetUsers<'a> {
         // let query = self.query.take().unwrap();
         // let req = Request::from((query, Route::GetUsers));
 
-        // Box::pin(self.osu.inner.request(req))
+        // // TODO: cache users
+        // Box::pin(self.osu.request(req))
     }
 }
 

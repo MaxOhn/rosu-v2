@@ -52,7 +52,7 @@ impl<'a> GetNews<'a> {
 
         let req = Request::with_query(Route::GetNews { news: self.news }, query);
 
-        Box::pin(self.osu.inner.request(req))
+        Box::pin(self.osu.request(req))
     }
 }
 

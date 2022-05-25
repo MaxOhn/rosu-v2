@@ -118,7 +118,7 @@ impl<'a> GetComments<'a> {
 
         let req = Request::with_query(Route::GetComments, query);
 
-        Box::pin(self.osu.inner.request(req))
+        Box::pin(self.osu.request(req))
     }
 }
 

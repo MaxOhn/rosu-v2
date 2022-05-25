@@ -50,7 +50,7 @@ use std::{
     pin::Pin,
 };
 
-type Pending<'a, T> = Pin<Box<dyn Future<Output = OsuResult<T>> + Send + 'a>>;
+type Pending<'a, T> = Pin<Box<dyn Future<Output = OsuResult<T>> + Send + Sync + 'a>>;
 
 #[derive(Debug)]
 pub(crate) struct Request {

@@ -6,10 +6,7 @@ use token::{Authorization, AuthorizationKind, Token, TokenResponse};
 pub use builder::OsuBuilder;
 pub use token::Scope;
 
-use crate::{
-    error::OsuError, model::GameMode, prelude::Username, ratelimiter::Ratelimiter, request::*,
-    OsuResult,
-};
+use crate::{error::OsuError, model::GameMode, ratelimiter::Ratelimiter, request::*, OsuResult};
 
 use bytes::Bytes;
 use hyper::{
@@ -24,13 +21,10 @@ use tokio::sync::{oneshot::Sender, RwLock};
 use url::Url;
 
 #[cfg(feature = "cache")]
-use dashmap::DashMap;
+use {crate::prelude::Username, dashmap::DashMap};
 
 #[cfg(feature = "metrics")]
-use crate::metrics::Metrics;
-
-#[cfg(feature = "metrics")]
-use prometheus::IntCounterVec;
+use {crate::metrics::Metrics, prometheus::IntCounterVec};
 
 /// The main osu client.
 /// Cheap to clone.
@@ -521,6 +515,17 @@ impl Osu {
             }
         }
     }
+
+    #[cfg(feature = "cache")]
+    pub(crate) fn update_cache(&self, user_id: u32, username: &Username) {
+        let mut name = username.to_owned();
+        name.make_ascii_lowercase();
+        self.cache.insert(name, user_id);
+    }
+
+    pub(crate) async fn request<T: DeserializeOwned>(&self, req: Request) -> OsuResult<T> {
+        self.inner.request(req).await
+    }
 }
 
 impl Drop for Osu {
@@ -594,7 +599,7 @@ impl OsuRef {
         parse_bytes(bytes)
     }
 
-    pub(crate) async fn request<T: DeserializeOwned>(&self, req: Request) -> OsuResult<T> {
+    async fn request<T: DeserializeOwned>(&self, req: Request) -> OsuResult<T> {
         let resp = self.raw(req).await?;
         let bytes = self.handle_status(resp).await?;
 

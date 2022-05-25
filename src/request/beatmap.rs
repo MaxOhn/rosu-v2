@@ -86,7 +86,17 @@ impl<'a> GetBeatmap<'a> {
 
         let req = Request::with_query(Route::GetBeatmap, query);
 
-        Box::pin(self.osu.inner.request(req))
+        let osu = self.osu;
+        let fut = osu.request::<Beatmap>(req);
+
+        #[cfg(feature = "cache")]
+        let fut = fut.inspect_ok(move |map| {
+            if let Some(ref mapset) = map.mapset {
+                osu.update_cache(mapset.creator_id, &mapset.creator_name);
+            }
+        });
+
+        Box::pin(fut)
     }
 }
 
@@ -125,12 +135,18 @@ impl<'a> GetBeatmaps<'a> {
 
         let query = mem::take(&mut self.query);
         let req = Request::with_query(Route::GetBeatmaps, query);
+        let osu = self.osu;
 
-        let fut = self
-            .osu
-            .inner
-            .request::<Beatmaps>(req)
-            .map_ok(|maps| maps.maps);
+        let fut = osu.request::<Beatmaps>(req).map_ok(|maps| maps.maps);
+
+        #[cfg(feature = "cache")]
+        let fut = fut.inspect_ok(move |maps| {
+            for map in maps.iter() {
+                if let Some(ref mapset) = map.mapset {
+                    osu.update_cache(mapset.creator_id, &mapset.creator_name);
+                }
+            }
+        });
 
         Box::pin(fut)
     }
@@ -241,12 +257,17 @@ impl<'a> GetBeatmapScores<'a> {
         };
 
         let req = Request::with_query(route, query);
+        let osu = self.osu;
+        let fut = osu.request::<BeatmapScores>(req).map_ok(|s| s.scores);
 
-        let fut = self
-            .osu
-            .inner
-            .request(req)
-            .map_ok(|s: BeatmapScores| s.scores);
+        #[cfg(feature = "cache")]
+        let fut = fut.inspect_ok(move |scores| {
+            for score in scores.iter() {
+                if let Some(ref user) = score.user {
+                    osu.update_cache(user.user_id, &user.username);
+                }
+            }
+        });
 
         Box::pin(fut)
     }
@@ -271,7 +292,7 @@ pub struct GetBeatmapUserScore<'a> {
     user_id: u32,
 
     #[cfg(feature = "cache")]
-    user_id: Option<UserId>,
+    user_id: UserId,
 }
 
 impl<'a> GetBeatmapUserScore<'a> {
@@ -295,7 +316,7 @@ impl<'a> GetBeatmapUserScore<'a> {
             fut: None,
             osu,
             map_id,
-            user_id: Some(user_id),
+            user_id,
             mode: None,
             mods: None,
         }
@@ -333,6 +354,8 @@ impl<'a> GetBeatmapUserScore<'a> {
             }
         }
 
+        let osu = self.osu;
+
         #[cfg(not(feature = "cache"))]
         {
             let route = Route::GetBeatmapUserScore {
@@ -342,21 +365,26 @@ impl<'a> GetBeatmapUserScore<'a> {
 
             let req = Request::with_query(route, query);
 
-            Box::pin(self.osu.inner.request(req))
+            Box::pin(osu.request(req))
         }
 
         #[cfg(feature = "cache")]
         {
             let map_id = self.map_id;
-            let osu = &self.osu.inner;
+            let user_id = mem::replace(&mut self.user_id, UserId::Id(0));
 
             let fut = self
                 .osu
-                .cache_user(self.user_id.take().unwrap())
+                .cache_user(user_id)
                 .map_ok(move |user_id| {
                     Request::with_query(Route::GetBeatmapUserScore { user_id, map_id }, query)
                 })
-                .and_then(move |req| osu.request(req));
+                .and_then(move |req| osu.request::<BeatmapUserScore>(req))
+                .inspect_ok(move |score| {
+                    if let Some(ref user) = score.score.user {
+                        osu.update_cache(user.user_id, &user.username);
+                    }
+                });
 
             Box::pin(fut)
         }
@@ -378,7 +406,7 @@ pub struct GetBeatmapUserScores<'a> {
     user_id: u32,
 
     #[cfg(feature = "cache")]
-    user_id: Option<UserId>,
+    user_id: UserId,
 }
 
 impl<'a> GetBeatmapUserScores<'a> {
@@ -401,7 +429,7 @@ impl<'a> GetBeatmapUserScores<'a> {
             fut: None,
             osu,
             map_id,
-            user_id: Some(user_id),
+            user_id,
             mode: None,
         }
     }
@@ -424,6 +452,8 @@ impl<'a> GetBeatmapUserScores<'a> {
             query.push("mode", &mode.to_string());
         }
 
+        let osu = self.osu;
+
         #[cfg(not(feature = "cache"))]
         {
             let route = Route::GetBeatmapUserScores {
@@ -432,12 +462,7 @@ impl<'a> GetBeatmapUserScores<'a> {
             };
 
             let req = Request::with_query(route, query);
-
-            let fut = self
-                .osu
-                .inner
-                .request::<Scores>(req)
-                .map_ok(|scores| scores.scores);
+            let fut = osu.request::<Scores>(req).map_ok(|scores| scores.scores);
 
             Box::pin(fut)
         }
@@ -445,16 +470,23 @@ impl<'a> GetBeatmapUserScores<'a> {
         #[cfg(feature = "cache")]
         {
             let map_id = self.map_id;
-            let osu = &self.osu.inner;
+            let user_id = mem::replace(&mut self.user_id, UserId::Id(0));
 
             let fut = self
                 .osu
-                .cache_user(self.user_id.take().unwrap())
+                .cache_user(user_id)
                 .map_ok(move |user_id| {
                     Request::with_query(Route::GetBeatmapUserScores { user_id, map_id }, query)
                 })
                 .and_then(move |req| osu.request::<Scores>(req))
-                .map_ok(|scores| scores.scores);
+                .map_ok(|scores| scores.scores)
+                .inspect_ok(move |scores| {
+                    for score in scores.iter() {
+                        if let Some(ref user) = score.user {
+                            osu.update_cache(user.user_id, &user.username);
+                        }
+                    }
+                });
 
             Box::pin(fut)
         }
@@ -489,7 +521,15 @@ impl<'a> GetBeatmapset<'a> {
             mapset_id: self.mapset_id,
         });
 
-        Box::pin(self.osu.inner.request(req))
+        let osu = self.osu;
+        let fut = osu.request::<Beatmapset>(req);
+
+        #[cfg(feature = "cache")]
+        let fut = fut.inspect_ok(move |mapset| {
+            osu.update_cache(mapset.creator_id, &mapset.creator_name);
+        });
+
+        Box::pin(fut)
     }
 }
 
@@ -514,7 +554,7 @@ impl<'a> GetBeatmapsetEvents<'a> {
 
         let req = Request::new(Route::GetBeatmapsetEvents);
 
-        Box::pin(self.osu.inner.request(req))
+        Box::pin(self.osu.request(req))
     }
 }
 
@@ -759,24 +799,30 @@ impl<'a> GetBeatmapsetSearch<'a> {
         }
 
         let req = Request::with_query(Route::GetBeatmapsetSearch, query);
+        let osu = self.osu;
 
-        let fut =
-            self.osu
-                .inner
-                .request(req)
-                .map_ok(move |mut search_result: BeatmapsetSearchResult| {
-                    let params = &mut search_result.params;
-                    params.query = q;
-                    params.mode = mode;
-                    params.status = status;
-                    params.genre = genre;
-                    params.language = language;
-                    params.video = video;
-                    params.storyboard = storyboard;
-                    params.nsfw = nsfw;
+        let fut = osu
+            .request::<BeatmapsetSearchResult>(req)
+            .map_ok(move |mut search_result| {
+                let params = &mut search_result.params;
+                params.query = q;
+                params.mode = mode;
+                params.status = status;
+                params.genre = genre;
+                params.language = language;
+                params.video = video;
+                params.storyboard = storyboard;
+                params.nsfw = nsfw;
 
-                    search_result
-                });
+                search_result
+            });
+
+        #[cfg(feature = "cache")]
+        let fut = fut.inspect_ok(move |res| {
+            for mapset in res.mapsets.iter() {
+                osu.update_cache(mapset.creator_id, &mapset.creator_name);
+            }
+        });
 
         Box::pin(fut)
     }
@@ -813,7 +859,17 @@ impl<'a> GetScore<'a> {
             score_id: self.score_id,
         };
 
-        Box::pin(self.osu.inner.request(Request::new(route)))
+        let osu = self.osu;
+        let fut = osu.request::<Score>(Request::new(route));
+
+        #[cfg(feature = "cache")]
+        let fut = fut.inspect_ok(move |score| {
+            if let Some(ref user) = score.user {
+                osu.update_cache(user.user_id, &user.username);
+            }
+        });
+
+        Box::pin(fut)
     }
 }
 

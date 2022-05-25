@@ -1,6 +1,7 @@
 ## Upcoming
 
-Nothing as of now
+- __Adjustments:__
+  - If the `cache` feature is enabled, the cache now fills proactively and also updates with respect to username changes
 
 # v0.4.0
 

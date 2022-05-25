@@ -115,7 +115,7 @@ impl<'a> GetForumPosts<'a> {
 
         let req = Request::with_query(route, query);
 
-        Box::pin(self.osu.inner.request(req))
+        Box::pin(self.osu.request(req))
     }
 }
 

@@ -1,25 +1,15 @@
-use super::GameMode;
+use super::{serde_, GameMode};
 
-use chrono::{Date, DateTime, NaiveDate, Utc};
 use serde::{
     de::{Error, IgnoredAny, MapAccess, SeqAccess, Visitor},
-    Deserialize, Deserializer, Serialize, Serializer,
+    Deserialize, Deserializer, Serialize,
 };
 use smallstr::SmallString;
 use std::fmt;
+use time::{Date, OffsetDateTime};
 
 #[cfg(feature = "rkyv")]
 use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
-
-fn str_to_date<'de, D: Deserializer<'de>>(d: D) -> Result<Date<Utc>, D::Error> {
-    let date: NaiveDate = Deserialize::deserialize(d)?;
-
-    Ok(Date::from_utc(date, Utc))
-}
-
-fn date_to_str<S: Serializer>(date: &Date<Utc>, s: S) -> Result<S::Ok, S::Error> {
-    s.collect_str(&date.naive_utc())
-}
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
@@ -28,8 +18,9 @@ pub struct AccountHistory {
     pub id: Option<u32>, // TODO: Can be removed?
     #[serde(rename = "type")]
     pub history_type: HistoryType,
+    #[serde(with = "serde_::datetime")]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
-    pub timestamp: DateTime<Utc>,
+    pub timestamp: OffsetDateTime,
     #[serde(rename = "length")]
     pub seconds: u32,
 }
@@ -37,8 +28,9 @@ pub struct AccountHistory {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct Badge {
+    #[serde(with = "serde_::datetime")]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
-    pub awarded_at: DateTime<Utc>,
+    pub awarded_at: OffsetDateTime,
     pub description: String,
     pub image_url: String,
     pub url: String,
@@ -195,8 +187,9 @@ impl Eq for Medal {}
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct MedalCompact {
+    #[serde(with = "serde_::datetime")]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
-    pub achieved_at: DateTime<Utc>,
+    pub achieved_at: OffsetDateTime,
     #[serde(rename = "achievement_id")]
     pub medal_id: u32,
 }
@@ -204,9 +197,9 @@ pub struct MedalCompact {
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct MonthlyCount {
-    #[serde(deserialize_with = "str_to_date", serialize_with = "date_to_str")]
+    #[serde(with = "serde_::date")]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateWrapper))]
-    pub start_date: Date<Utc>,
+    pub start_date: Date,
     pub count: i32,
 }
 
@@ -290,14 +283,19 @@ pub struct User {
     /// does this user have supporter?
     pub is_supporter: bool,
     /// date of account creation
+    #[serde(with = "serde_::datetime")]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
-    pub join_date: DateTime<Utc>,
+    pub join_date: OffsetDateTime,
     /// current kudosu of the user
     pub kudosu: UserKudosu,
     /// last access time. `None` if the user hides online presence
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "serde_::option_datetime"
+    )]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
-    pub last_visit: Option<DateTime<Utc>>,
+    pub last_visit: Option<OffsetDateTime>,
     /// location of the user, `None` if disabled by the user
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub location: Option<String>,
@@ -469,9 +467,13 @@ pub struct UserCompact {
     /// does this user have supporter?
     pub is_supporter: bool,
     /// last access time. `None` if the user hides online presence
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "serde_::option_datetime"
+    )]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
-    pub last_visit: Option<DateTime<Utc>>,
+    pub last_visit: Option<OffsetDateTime>,
     /// whether or not the user allows PM from other than friends
     pub pm_friends_only: bool,
     /// colour of username/profile highlight, hex code (e.g. `"#333333"`)

@@ -161,6 +161,7 @@ mod cursor;
 mod grade;
 mod mode;
 mod mods;
+mod serde_;
 
 #[cfg(feature = "rkyv")]
 mod rkyv_impls;

@@ -1,11 +1,11 @@
-use super::Cursor;
+use super::{serde_, Cursor};
 use crate::{prelude::Username, Osu, OsuResult};
 
-use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "rkyv")]
 use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
+use time::OffsetDateTime;
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 // TODO
@@ -47,11 +47,16 @@ pub struct NewsPost {
     pub edit_url: String,
     /// Link to the first image in the document.
     pub first_image: String,
+    #[serde(with = "serde_::datetime")]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
-    pub published_at: DateTime<Utc>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub published_at: OffsetDateTime,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "serde_::option_datetime"
+    )]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
-    pub updated_at: Option<DateTime<Utc>>,
+    pub updated_at: Option<OffsetDateTime>,
     /// Filename without the extension, used in URLs.
     pub slug: String,
     pub title: String,

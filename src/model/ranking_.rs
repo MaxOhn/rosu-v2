@@ -1,5 +1,6 @@
 use super::{
     beatmap::Beatmapset,
+    serde_,
     user_::{
         deserialize_country, AccountHistory, Badge, Group, MedalCompact, MonthlyCount, UserCompact,
         UserCover, UserPage, UserStatistics,
@@ -11,13 +12,13 @@ use crate::{
     Osu, OsuResult,
 };
 
-use chrono::{DateTime, Utc};
 use serde::{
     de::{Deserializer, Error, IgnoredAny, MapAccess, SeqAccess, Visitor},
     ser::{SerializeSeq, SerializeStruct, Serializer},
     Deserialize, Serialize,
 };
 use std::fmt;
+use time::OffsetDateTime;
 
 #[cfg(feature = "rkyv")]
 use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
@@ -303,8 +304,11 @@ struct UserCompactWithoutStats<'u> {
     pub is_deleted: &'u bool,
     pub is_online: &'u bool,
     pub is_supporter: &'u bool,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_visit: &'u Option<DateTime<Utc>>,
+    #[serde(
+        skip_serializing_if = "Option::is_none",
+        with = "serde_::option_datetime"
+    )]
+    pub last_visit: &'u Option<OffsetDateTime>,
     pub pm_friends_only: &'u bool,
     #[serde(rename = "profile_colour", skip_serializing_if = "Option::is_none")]
     pub profile_color: &'u Option<String>,
@@ -594,8 +598,9 @@ fn deserialize_rankings_cursor<'de, D: Deserializer<'de>>(d: D) -> Result<Option
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct Spotlight {
     /// The end date of the spotlight.
+    #[serde(with = "serde_::datetime")]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
-    pub end_date: DateTime<Utc>,
+    pub end_date: OffsetDateTime,
     /// If the spotlight has different mades specific to each [`GameMode`](crate::model::GameMode).
     pub mode_specific: bool,
     /// The name of the spotlight.
@@ -610,8 +615,9 @@ pub struct Spotlight {
     #[serde(rename = "type")]
     pub spotlight_type: String,
     /// The starting date of the spotlight.
+    #[serde(with = "serde_::datetime")]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
-    pub start_date: DateTime<Utc>,
+    pub start_date: OffsetDateTime,
 }
 
 impl PartialEq for Spotlight {

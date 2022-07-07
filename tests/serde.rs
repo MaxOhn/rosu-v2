@@ -1,9 +1,9 @@
 extern crate rosu_v2;
 
-use chrono::{DateTime, TimeZone, Utc};
 use rosu_v2::prelude::*;
 use serde::{de::DeserializeOwned, Serialize};
 use std::{collections::HashMap, fmt::Debug};
+use time::{Date, OffsetDateTime};
 
 fn ser_de<T>(val: &T)
 where
@@ -13,7 +13,7 @@ where
         serde_json::to_string(val).unwrap_or_else(|e| panic!("Failed to serialize: {}", e));
 
     let deserialized: T = serde_json::from_str(&serialized)
-        .unwrap_or_else(|e| panic!("Failed to deserialize: {}", e));
+        .unwrap_or_else(|e| panic!("Failed to deserialize: {}\n{serialized}", e));
 
     assert_eq!(val, &deserialized);
 }
@@ -43,8 +43,8 @@ fn get_cursor() -> Cursor {
     serde_json::from_str(json).unwrap()
 }
 
-fn get_date() -> DateTime<Utc> {
-    Utc.timestamp(1_500_000_000, 0)
+fn get_date() -> OffsetDateTime {
+    OffsetDateTime::now_utc()
 }
 
 fn get_forum_posts() -> ForumPosts {
@@ -641,7 +641,7 @@ fn get_user() -> User {
         loved_mapset_count: Some(3),
         mapping_follower_count: Some(5),
         monthly_playcounts: Some(vec![MonthlyCount {
-            start_date: Utc.ymd(2017, 01, 01),
+            start_date: Date::from_ordinal_date(2017, 1).unwrap(),
             count: 42,
         }]),
         page: Some(UserPage {
@@ -652,7 +652,7 @@ fn get_user() -> User {
         rank_history: Some(vec![50, 40, 30, 35]),
         ranked_mapset_count: Some(800),
         replays_watched_counts: Some(vec![MonthlyCount {
-            start_date: Utc.ymd(2017, 01, 01),
+            start_date: Date::from_ordinal_date(2017, 1).unwrap(),
             count: 42,
         }]),
         scores_best_count: Some(13),
@@ -731,7 +731,7 @@ fn get_user_compact() -> UserCompact {
             medal_id: 1,
         }]),
         monthly_playcounts: Some(vec![MonthlyCount {
-            start_date: Utc.ymd(2017, 01, 01),
+            start_date: Date::from_ordinal_date(2017, 1).unwrap(),
             count: 42,
         }]),
         page: Some(UserPage {
@@ -742,7 +742,7 @@ fn get_user_compact() -> UserCompact {
         rank_history: Some(vec![50, 40, 30, 35]),
         ranked_mapset_count: Some(34),
         replays_watched_counts: Some(vec![MonthlyCount {
-            start_date: Utc.ymd(2017, 01, 01),
+            start_date: Date::from_ordinal_date(2017, 1).unwrap(),
             count: 42,
         }]),
         scores_best_count: Some(34),

@@ -1,9 +1,9 @@
-use super::{user_::UserCompact, Cursor};
+use super::{serde_, user_::UserCompact, Cursor};
 use crate::{prelude::Username, request::GetUser, Osu, OsuResult};
 
-use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::fmt;
+use time::OffsetDateTime;
 
 #[cfg(feature = "rkyv")]
 use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
@@ -20,16 +20,25 @@ pub struct Comment {
     /// type of object the comment is attached to
     pub commentable_type: String,
     /// ISO 8601 date
+    #[serde(with = "serde_::datetime")]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
-    pub created_at: DateTime<Utc>,
+    pub created_at: OffsetDateTime,
     /// ISO 8601 date if the comment was deleted; `None`, otherwise
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "serde_::option_datetime"
+    )]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
-    pub deleted_at: Option<DateTime<Utc>>,
+    pub deleted_at: Option<OffsetDateTime>,
     /// ISO 8601 date if the comment was edited; `None`, otherwise
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "serde_::option_datetime"
+    )]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
-    pub edited_at: Option<DateTime<Utc>>,
+    pub edited_at: Option<OffsetDateTime>,
     /// user id of the user that edited the post; `None`, otherwise
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub edited_by_id: Option<u32>,
@@ -51,8 +60,9 @@ pub struct Comment {
     /// number of replies to the comment
     pub replies_count: u32,
     /// ISO 8601 date
+    #[serde(with = "serde_::datetime")]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
-    pub updated_at: DateTime<Utc>,
+    pub updated_at: OffsetDateTime,
     /// user ID of the poster
     pub user_id: Option<u32>,
     /// number of votes

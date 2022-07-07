@@ -1,5 +1,5 @@
-use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use time::OffsetDateTime;
 
 use crate::model::user_::Username;
 
@@ -37,8 +37,9 @@ pub struct KudosuHistory {
     // pub details: _; // TODO
     /// Object type which the exchange happened on (forum_post, etc).
     pub model: String,
+    #[serde(with = "super::serde_::datetime")]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
-    pub created_at: DateTime<Utc>,
+    pub created_at: OffsetDateTime,
     /// Simple detail of the user who started the exchange.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub giver: Option<KudosuGiver>,

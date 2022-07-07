@@ -576,7 +576,11 @@ async fn users() {
 async fn wiki() {
     init().await;
 
-    match osu().wiki("de").page("Hit_object").await {
+    match osu()
+        .wiki("fr")
+        .page("Client/File_formats/Osu_%28file_format%29")
+        .await
+    {
         Ok(page) => println!(
             "Received page {}/{}: {}",
             page.locale, page.path, page.title

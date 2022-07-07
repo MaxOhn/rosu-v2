@@ -1,7 +1,8 @@
+use super::serde_;
 use crate::model::user_::UserCompact;
 
-use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use time::OffsetDateTime;
 
 #[cfg(feature = "rkyv")]
 use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
@@ -22,8 +23,9 @@ pub struct SeasonalBackground {
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct SeasonalBackgrounds {
     /// End date of the backgrounds
+    #[serde(with = "serde_::datetime")]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
-    pub ends_at: DateTime<Utc>,
+    pub ends_at: OffsetDateTime,
     /// List of backgrounds
     pub backgrounds: Vec<SeasonalBackground>,
 }

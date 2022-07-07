@@ -2,7 +2,6 @@
 
 use std::{hint::unreachable_unchecked, marker::PhantomData, ptr};
 
-use chrono::{Date, DateTime, Datelike, TimeZone, Utc};
 use rkyv::{
     option::ArchivedOption,
     out_field,
@@ -12,6 +11,7 @@ use rkyv::{
     with::{ArchiveWith, DeserializeWith, SerializeWith},
     Archive, Archived, Fallible, Serialize,
 };
+use time::{Date, OffsetDateTime};
 
 use crate::prelude::{CountryCode, Username};
 
@@ -241,31 +241,31 @@ pub type UsernameMapMap = Map<Map<UsernameWrapper>>;
 
 pub struct DateTimeWrapper;
 
-impl ArchiveWith<DateTime<Utc>> for DateTimeWrapper {
-    type Archived = Archived<i64>;
+impl ArchiveWith<OffsetDateTime> for DateTimeWrapper {
+    type Archived = Archived<i128>;
     type Resolver = ();
 
     #[inline]
     unsafe fn resolve_with(
-        field: &DateTime<Utc>,
+        field: &OffsetDateTime,
         pos: usize,
         resolver: Self::Resolver,
         out: *mut Self::Archived,
     ) {
-        Archive::resolve(&field.timestamp_millis(), pos, resolver, out);
+        Archive::resolve(&field.unix_timestamp_nanos(), pos, resolver, out);
     }
 }
 
-impl<D: Fallible> DeserializeWith<i64, DateTime<Utc>, D> for DateTimeWrapper {
+impl<D: Fallible> DeserializeWith<i128, OffsetDateTime, D> for DateTimeWrapper {
     #[inline]
-    fn deserialize_with(field: &Archived<i64>, _: &mut D) -> Result<DateTime<Utc>, D::Error> {
-        Ok(Utc.timestamp_millis(*field))
+    fn deserialize_with(field: &Archived<i128>, _: &mut D) -> Result<OffsetDateTime, D::Error> {
+        Ok(OffsetDateTime::from_unix_timestamp_nanos(*field).unwrap())
     }
 }
 
-impl<S: Fallible> SerializeWith<DateTime<Utc>, S> for DateTimeWrapper {
+impl<S: Fallible> SerializeWith<OffsetDateTime, S> for DateTimeWrapper {
     #[inline]
-    fn serialize_with(_: &DateTime<Utc>, _: &mut S) -> Result<Self::Resolver, S::Error> {
+    fn serialize_with(_: &OffsetDateTime, _: &mut S) -> Result<Self::Resolver, S::Error> {
         Ok(())
     }
 }
@@ -275,47 +275,42 @@ pub type DateTimeMap = Map<DateTimeWrapper>;
 pub struct DateWrapper;
 
 pub struct ArchivedDateUtc {
-    year: Archived<i32>,
-    ordinal: Archived<u32>,
+    value: Archived<i32>,
 }
 
-impl ArchiveWith<Date<Utc>> for DateWrapper {
+impl ArchiveWith<Date> for DateWrapper {
     type Archived = ArchivedDateUtc;
     type Resolver = ();
 
     #[inline]
-    unsafe fn resolve_with(
-        field: &Date<Utc>,
-        pos: usize,
-        _: Self::Resolver,
-        out: *mut Self::Archived,
-    ) {
+    unsafe fn resolve_with(field: &Date, pos: usize, _: Self::Resolver, out: *mut Self::Archived) {
         let (fp, fo) = {
-            let fo = (&mut (*out).year) as *mut i32;
+            let fo = (&mut (*out).value) as *mut i32;
             (fo.cast::<u8>().offset_from(out.cast::<u8>()) as usize, fo)
         };
-        #[allow(clippy::unit_arg)]
-        field.year().resolve(pos + fp, (), fo);
 
-        let (fp, fo) = {
-            let fo = (&mut (*out).ordinal) as *mut u32;
-            (fo.cast::<u8>().offset_from(out.cast::<u8>()) as usize, fo)
-        };
+        let year = field.year();
+        let ordinal = field.ordinal();
+        let value = (year << 9) | ordinal as i32;
+
         #[allow(clippy::unit_arg)]
-        field.ordinal().resolve(pos + fp, (), fo);
+        value.resolve(pos + fp, (), fo);
     }
 }
 
-impl<S: Fallible> SerializeWith<Date<Utc>, S> for DateWrapper {
+impl<S: Fallible> SerializeWith<Date, S> for DateWrapper {
     #[inline]
-    fn serialize_with(_: &Date<Utc>, _: &mut S) -> Result<Self::Resolver, S::Error> {
+    fn serialize_with(_: &Date, _: &mut S) -> Result<Self::Resolver, S::Error> {
         Ok(())
     }
 }
 
-impl<D: Fallible> DeserializeWith<ArchivedDateUtc, Date<Utc>, D> for DateWrapper {
+impl<D: Fallible> DeserializeWith<ArchivedDateUtc, Date, D> for DateWrapper {
     #[inline]
-    fn deserialize_with(field: &ArchivedDateUtc, _: &mut D) -> Result<Date<Utc>, D::Error> {
-        Ok(Utc.yo(field.year, field.ordinal))
+    fn deserialize_with(field: &ArchivedDateUtc, _: &mut D) -> Result<Date, D::Error> {
+        let year = field.value >> 9;
+        let ordinal = (field.value & 0x1FF) as _;
+
+        Ok(Date::from_ordinal_date(year, ordinal).unwrap())
     }
 }

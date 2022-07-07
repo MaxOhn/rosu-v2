@@ -22,7 +22,6 @@ metrics = ["prometheus"]
 [dependencies]
 bitflags = { version = "1.0", default-features = false }
 bytes = { version = "1.0", default-features = false }
-chrono = { version = "0.4", default-features = false, features = ["serde"] }
 futures = { version = "0.3", default-features = false }
 log = { version = "0.4", default-features = false }
 hyper = { version = "0.14", default-features = false, features = ["client"] }
@@ -30,6 +29,7 @@ hyper-rustls = { version = "0.23", default-features = false, features = ["http1"
 serde = { version = "1.0", default-features = false, features = ["derive"] }
 serde_json = { version = "1.0", default-features = false, features = ["std"] }
 smallstr = { version = "0.2", features = ["serde"] }
+time = { version = "0.3", features = ["parsing"] }
 tokio = { version = "1.0", default-features = false, features = ["macros"] }
 url = { version = "2.0", default-features = false }
 

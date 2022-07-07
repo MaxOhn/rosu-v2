@@ -1,16 +1,16 @@
 use super::{
     beatmap::{Beatmap, BeatmapsetCompact},
-    deflate_acc, inflate_acc,
+    deflate_acc, inflate_acc, serde_,
     user_::UserCompact,
     GameMode, GameMods, Grade,
 };
 use crate::{request::GetUser, Osu};
 
-use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "rkyv")]
 use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
+use time::OffsetDateTime;
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct BeatmapScores {
@@ -40,8 +40,9 @@ impl BeatmapUserScore {
 pub struct Score {
     #[serde(deserialize_with = "inflate_acc", serialize_with = "deflate_acc")]
     pub accuracy: f32,
+    #[serde(with = "serde_::datetime")]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
-    pub created_at: DateTime<Utc>,
+    pub created_at: OffsetDateTime,
     #[serde(rename = "rank")]
     pub grade: Grade,
     pub max_combo: u32,
@@ -119,7 +120,7 @@ impl PartialEq for Score {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
         self.user_id == other.user_id
-            && (self.created_at.timestamp() - other.created_at.timestamp()).abs() <= 2
+            && (self.created_at.unix_timestamp() - other.created_at.unix_timestamp()).abs() <= 2
             && self.score == other.score
     }
 }

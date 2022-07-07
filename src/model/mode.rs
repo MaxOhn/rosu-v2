@@ -10,7 +10,11 @@ use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
 /// Available game modes
 #[allow(clippy::upper_case_acronyms)]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize), archive(as = "Self"))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(Archive, RkyvDeserialize, RkyvSerialize),
+    archive(as = "Self")
+)]
 #[repr(u8)]
 pub enum GameMode {
     /// osu!standard
@@ -24,6 +28,7 @@ pub enum GameMode {
 }
 
 impl From<u8> for GameMode {
+    #[inline]
     fn from(mode: u8) -> Self {
         match mode {
             0 => GameMode::STD,
@@ -43,6 +48,7 @@ impl Default for GameMode {
 }
 
 impl fmt::Display for GameMode {
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::STD => f.write_str("osu"),
@@ -58,6 +64,7 @@ struct ModeVisitor;
 impl<'de> Visitor<'de> for ModeVisitor {
     type Value = GameMode;
 
+    #[inline]
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("a u8 or a string")
     }
@@ -79,6 +86,7 @@ impl<'de> Visitor<'de> for ModeVisitor {
         Ok(mode)
     }
 
+    #[inline]
     fn visit_u64<E: Error>(self, v: u64) -> Result<Self::Value, E> {
         match v {
             0 => Ok(GameMode::STD),
@@ -94,12 +102,14 @@ impl<'de> Visitor<'de> for ModeVisitor {
 }
 
 impl<'de> Deserialize<'de> for GameMode {
+    #[inline]
     fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
         d.deserialize_any(ModeVisitor)
     }
 }
 
 impl Serialize for GameMode {
+    #[inline]
     fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
         s.serialize_u8(*self as u8)
     }

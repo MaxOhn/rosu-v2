@@ -741,6 +741,7 @@ struct SearchRankStatusVisitor;
 impl<'de> Visitor<'de> for SearchRankStatusVisitor {
     type Value = SearchRankStatus;
 
+    #[inline]
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("a rank status, \"any\", or `9`")
     }
@@ -792,12 +793,14 @@ impl<'de> Visitor<'de> for SearchRankStatusVisitor {
 }
 
 impl<'de> Deserialize<'de> for SearchRankStatus {
+    #[inline]
     fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
         d.deserialize_any(SearchRankStatusVisitor)
     }
 }
 
 impl Serialize for SearchRankStatus {
+    #[inline]
     fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
         match self {
             Self::Any => s.serialize_i8(SEARCH_RANK_STATUS_ANY),
@@ -849,6 +852,7 @@ struct BeatmapsetSearchParametersVisitor;
 impl<'de> Visitor<'de> for BeatmapsetSearchParametersVisitor {
     type Value = BeatmapsetSearchParameters;
 
+    #[inline]
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("a search struct")
     }
@@ -872,40 +876,22 @@ impl<'de> Visitor<'de> for BeatmapsetSearchParametersVisitor {
                 "sort" => {
                     let SubSort { sort, descending } = map.next_value()?;
 
-                    params.replace(BeatmapsetSearchParameters {
+                    params = Some(BeatmapsetSearchParameters {
                         sort,
                         descending,
                         ..Default::default()
                     });
                 }
                 "query" => query = map.next_value()?,
-                "mode" => {
-                    mode.replace(map.next_value()?);
-                }
-                "status" => {
-                    status.replace(map.next_value()?);
-                }
-                "genre" => {
-                    genre.replace(map.next_value()?);
-                }
-                "language" => {
-                    language.replace(map.next_value()?);
-                }
-                "video" => {
-                    video.replace(map.next_value()?);
-                }
-                "storyboard" => {
-                    storyboard.replace(map.next_value()?);
-                }
-                "nsfw" => {
-                    nsfw.replace(map.next_value()?);
-                }
-                "_sort" => {
-                    sort.replace(map.next_value()?);
-                }
-                "descending" => {
-                    descending.replace(map.next_value()?);
-                }
+                "mode" => mode = Some(map.next_value()?),
+                "status" => status = Some(map.next_value()?),
+                "genre" => genre = Some(map.next_value()?),
+                "language" => language = Some(map.next_value()?),
+                "video" => video = Some(map.next_value()?),
+                "storyboard" => storyboard = Some(map.next_value()?),
+                "nsfw" => nsfw = Some(map.next_value()?),
+                "_sort" => sort = Some(map.next_value()?),
+                "descending" => descending = Some(map.next_value()?),
                 _ => {
                     let _: IgnoredAny = map.next_value()?;
                 }
@@ -940,6 +926,7 @@ impl<'de> Visitor<'de> for BeatmapsetSearchParametersVisitor {
 }
 
 impl<'de> Deserialize<'de> for BeatmapsetSearchParameters {
+    #[inline]
     fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
         d.deserialize_map(BeatmapsetSearchParametersVisitor)
     }
@@ -1013,6 +1000,7 @@ struct BeatmapsetSearchResultVisitor;
 impl<'de> Visitor<'de> for BeatmapsetSearchResultVisitor {
     type Value = BeatmapsetSearchResult;
 
+    #[inline]
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("a BeatmapsetSearchResult struct")
     }
@@ -1025,16 +1013,10 @@ impl<'de> Visitor<'de> for BeatmapsetSearchResultVisitor {
 
         while let Some(key) = map.next_key()? {
             match key {
-                "beatmapsets" => {
-                    mapsets.replace(map.next_value()?);
-                }
+                "beatmapsets" => mapsets = Some(map.next_value()?),
                 "cursor" => cursor = map.next_value()?,
-                "search" => {
-                    params.replace(map.next_value()?);
-                }
-                "total" => {
-                    total.replace(map.next_value()?);
-                }
+                "search" => params = Some(map.next_value()?),
+                "total" => total = Some(map.next_value()?),
                 _ => {
                     let _: IgnoredAny = map.next_value()?;
                 }
@@ -1055,6 +1037,7 @@ impl<'de> Visitor<'de> for BeatmapsetSearchResultVisitor {
 }
 
 impl<'de> Deserialize<'de> for BeatmapsetSearchResult {
+    #[inline]
     fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
         d.deserialize_map(BeatmapsetSearchResultVisitor)
     }
@@ -1073,6 +1056,7 @@ macro_rules! search_sort_enum {
         }
 
         impl fmt::Display for BeatmapsetSearchSort {
+            #[inline]
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 match self {
                     $(Self::$variant => f.write_str($name),)+
@@ -1083,6 +1067,7 @@ macro_rules! search_sort_enum {
         impl FromStr for BeatmapsetSearchSort {
             type Err = ();
 
+            #[inline]
             fn from_str(s: &str) -> Result<Self, Self::Err> {
                 match s {
                     $($name => Ok(Self::$variant),)+
@@ -1181,15 +1166,23 @@ struct VecOptionVisitor;
 impl<'de> Visitor<'de> for VecOptionVisitor {
     type Value = Option<Vec<u32>>;
 
+    #[inline]
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("null or a sequence of u32")
     }
 
+    #[inline]
     fn visit_some<D: Deserializer<'de>>(self, d: D) -> Result<Self::Value, D::Error> {
         d.deserialize_seq(HundredU32Visitor::new()).map(Some)
     }
 
-    fn visit_none<E>(self) -> Result<Self::Value, E> {
+    #[inline]
+    fn visit_none<E: Error>(self) -> Result<Self::Value, E> {
+        self.visit_unit()
+    }
+
+    #[inline]
+    fn visit_unit<E: Error>(self) -> Result<Self::Value, E> {
         Ok(None)
     }
 }
@@ -1197,7 +1190,6 @@ impl<'de> Visitor<'de> for VecOptionVisitor {
 struct HundredU32Visitor(Vec<u32>);
 
 impl HundredU32Visitor {
-    #[inline]
     fn new() -> Self {
         Self(Vec::with_capacity(100))
     }
@@ -1206,10 +1198,12 @@ impl HundredU32Visitor {
 impl<'de> Visitor<'de> for HundredU32Visitor {
     type Value = Vec<u32>;
 
+    #[inline]
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("a sequence of u32")
     }
 
+    #[inline]
     fn visit_seq<A: SeqAccess<'de>>(mut self, mut seq: A) -> Result<Self::Value, A::Error> {
         while let Some(n) = seq.next_element()? {
             self.0.push(n);
@@ -1254,11 +1248,13 @@ pub enum RankStatus {
 }
 
 impl<'de> serde::Deserialize<'de> for RankStatus {
+    #[inline]
     fn deserialize<D: serde::Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
         d.deserialize_option(super::EnumVisitor::<RankStatus>::new())
     }
 }
 impl From<RankStatus> for i8 {
+    #[inline]
     fn from(v: RankStatus) -> Self {
         v as i8
     }
@@ -1267,6 +1263,7 @@ impl From<RankStatus> for i8 {
 impl TryFrom<i8> for RankStatus {
     type Error = OsuError;
 
+    #[inline]
     fn try_from(value: i8) -> Result<Self, Self::Error> {
         match value {
             -2 => Ok(Self::Graveyard),
@@ -1282,6 +1279,7 @@ impl TryFrom<i8> for RankStatus {
 }
 
 impl Serialize for RankStatus {
+    #[inline]
     fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
         s.serialize_i8(*self as i8)
     }
@@ -1290,6 +1288,7 @@ impl Serialize for RankStatus {
 impl<'de> Visitor<'de> for super::EnumVisitor<RankStatus> {
     type Value = RankStatus;
 
+    #[inline]
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("an optional RankStatus i8")
     }
@@ -1348,6 +1347,7 @@ impl<'de> Visitor<'de> for super::EnumVisitor<RankStatus> {
         }
     }
 
+    #[inline]
     fn visit_some<D: Deserializer<'de>>(self, d: D) -> Result<Self::Value, D::Error> {
         d.deserialize_any(self)
     }
@@ -1371,6 +1371,7 @@ def_enum!(Genre {
 });
 
 impl Default for Genre {
+    #[inline]
     fn default() -> Self {
         Self::Any
     }
@@ -1395,6 +1396,7 @@ def_enum!(Language {
 });
 
 impl Default for Language {
+    #[inline]
     fn default() -> Self {
         Self::Any
     }
@@ -1405,14 +1407,17 @@ struct DescriptionVisitor;
 impl<'de> Visitor<'de> for DescriptionVisitor {
     type Value = Option<String>;
 
+    #[inline]
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("a string or a map containing a 'description' field")
     }
 
+    #[inline]
     fn visit_str<E: Error>(self, v: &str) -> Result<Self::Value, E> {
         Ok(Some(v.to_owned()))
     }
 
+    #[inline]
     fn visit_string<E: Error>(self, v: String) -> Result<Self::Value, E> {
         Ok(Some(v))
     }
@@ -1432,11 +1437,18 @@ impl<'de> Visitor<'de> for DescriptionVisitor {
         Ok(description)
     }
 
+    #[inline]
     fn visit_some<D: Deserializer<'de>>(self, d: D) -> Result<Self::Value, D::Error> {
         d.deserialize_any(self)
     }
 
+    #[inline]
     fn visit_none<E: Error>(self) -> Result<Self::Value, E> {
+        self.visit_unit()
+    }
+
+    #[inline]
+    fn visit_unit<E: Error>(self) -> Result<Self::Value, E> {
         Ok(None)
     }
 }

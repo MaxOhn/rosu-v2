@@ -158,6 +158,7 @@ pub enum CommentSort {
 }
 
 impl fmt::Display for CommentSort {
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let sort = match self {
             Self::New => "new",

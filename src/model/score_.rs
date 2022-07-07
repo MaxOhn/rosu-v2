@@ -1,6 +1,6 @@
 use super::{
     beatmap::{Beatmap, BeatmapsetCompact},
-    deflate_acc, inflate_acc, serde_,
+    serde_,
     user_::UserCompact,
     GameMode, GameMods, Grade,
 };
@@ -38,7 +38,7 @@ impl BeatmapUserScore {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct Score {
-    #[serde(deserialize_with = "inflate_acc", serialize_with = "deflate_acc")]
+    #[serde(with = "serde_::adjust_acc")]
     pub accuracy: f32,
     #[serde(with = "serde_::datetime")]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]

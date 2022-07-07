@@ -114,10 +114,12 @@ struct UserStatsVecVisitor;
 impl<'de> Visitor<'de> for UserStatsVecVisitor {
     type Value = Vec<UserCompact>;
 
+    #[inline]
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("a vec of UserStatistics structs")
     }
 
+    #[inline]
     fn visit_seq<A: SeqAccess<'de>>(self, mut seq: A) -> Result<Self::Value, A::Error> {
         let mut users = Vec::with_capacity(seq.size_hint().unwrap_or_default());
 
@@ -132,6 +134,7 @@ impl<'de> Visitor<'de> for UserStatsVecVisitor {
 struct UserCompactWrapper(UserCompact);
 
 impl<'de> Deserialize<'de> for UserCompactWrapper {
+    #[inline]
     fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
         d.deserialize_map(UserStatsVisitor).map(UserCompactWrapper)
     }
@@ -142,6 +145,7 @@ struct UserStatsVisitor;
 impl<'de> Visitor<'de> for UserStatsVisitor {
     type Value = UserCompact;
 
+    #[inline]
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("a UserStatistics struct")
     }
@@ -166,44 +170,22 @@ impl<'de> Visitor<'de> for UserStatsVisitor {
 
         while let Some(key) = map.next_key()? {
             match key {
-                "hit_accuracy" => {
-                    accuracy.replace(map.next_value()?);
-                }
+                "hit_accuracy" => accuracy = Some(map.next_value()?),
                 "country_rank" => country_rank = map.next_value()?,
                 "global_rank" => global_rank = map.next_value()?,
-                "grade_counts" => {
-                    grade_counts.replace(map.next_value()?);
-                }
-                "is_ranked" => {
-                    is_ranked.replace(map.next_value()?);
-                }
-                "level" => {
-                    level.replace(map.next_value()?);
-                }
-                "maximum_combo" => {
-                    max_combo.replace(map.next_value()?);
-                }
-                "play_count" => {
-                    playcount.replace(map.next_value()?);
-                }
+                "grade_counts" => grade_counts = Some(map.next_value()?),
+                "is_ranked" => is_ranked = Some(map.next_value()?),
+                "level" => level = Some(map.next_value()?),
+                "maximum_combo" => max_combo = Some(map.next_value()?),
+                "play_count" => playcount = Some(map.next_value()?),
                 "play_time" => {
-                    playtime.replace(map.next_value::<Option<u32>>()?.unwrap_or_default());
+                    playtime = Some(map.next_value::<Option<u32>>()?.unwrap_or_default())
                 }
-                "pp" => {
-                    pp.replace(map.next_value::<Option<f32>>()?.unwrap_or_default());
-                }
-                "ranked_score" => {
-                    ranked_score.replace(map.next_value()?);
-                }
-                "replays_watched_by_others" => {
-                    replays_watched.replace(map.next_value()?);
-                }
-                "total_hits" => {
-                    total_hits.replace(map.next_value()?);
-                }
-                "total_score" => {
-                    total_score.replace(map.next_value()?);
-                }
+                "pp" => pp = Some(map.next_value::<Option<f32>>()?.unwrap_or_default()),
+                "ranked_score" => ranked_score = Some(map.next_value()?),
+                "replays_watched_by_others" => replays_watched = Some(map.next_value()?),
+                "total_hits" => total_hits = Some(map.next_value()?),
+                "total_score" => total_score = Some(map.next_value()?),
                 "user" => user = map.next_value()?,
                 _ => {
                     let _: IgnoredAny = map.next_value()?;
@@ -518,6 +500,7 @@ pub(crate) enum RankingType {
 }
 
 impl fmt::Display for RankingType {
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let kind = match self {
             Self::Charts => "charts",
@@ -555,18 +538,22 @@ struct RankingsCursorVisitor;
 impl<'de> Visitor<'de> for RankingsCursorVisitor {
     type Value = Option<u32>;
 
+    #[inline]
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str("a u32, a map containing a `page` field, or null")
     }
 
+    #[inline]
     fn visit_u64<E: Error>(self, v: u64) -> Result<Self::Value, E> {
         Ok(Some(v as u32))
     }
 
+    #[inline]
     fn visit_some<D: Deserializer<'de>>(self, d: D) -> Result<Self::Value, D::Error> {
         d.deserialize_any(Self)
     }
 
+    #[inline]
     fn visit_none<E: Error>(self) -> Result<Self::Value, E> {
         Ok(None)
     }

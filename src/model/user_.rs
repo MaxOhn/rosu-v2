@@ -42,18 +42,21 @@ pub type CountryCode = SmallString<[u8; 2]>;
 struct CountryVisitor;
 
 impl<'de> Visitor<'de> for CountryVisitor {
-    type Value = Option<String>;
+    type Value = String;
 
+    #[inline]
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("a string, a map containing a `name` field, or null")
+        f.write_str("a string or a map containing a `name` field")
     }
 
+    #[inline]
     fn visit_str<E: Error>(self, v: &str) -> Result<Self::Value, E> {
-        Ok(Some(v.to_owned()))
+        Ok(v.to_owned())
     }
 
+    #[inline]
     fn visit_string<E: Error>(self, v: String) -> Result<Self::Value, E> {
-        Ok(Some(v))
+        Ok(v)
     }
 
     fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
@@ -61,38 +64,52 @@ impl<'de> Visitor<'de> for CountryVisitor {
 
         while let Some(key) = map.next_key()? {
             match key {
-                "name" => {
-                    country.replace(map.next_value()?);
-                }
+                "name" => country = Some(map.next_value()?),
                 _ => {
                     let _: IgnoredAny = map.next_value()?;
                 }
             }
         }
 
-        country
-            .ok_or_else(|| Error::missing_field("name"))
-            .map(Some)
+        country.ok_or_else(|| Error::missing_field("name"))
+    }
+}
+
+struct OptionCountryVisitor;
+
+impl<'de> Visitor<'de> for OptionCountryVisitor {
+    type Value = Option<String>;
+
+    #[inline]
+    fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("a string, a map containing a `name` field, or null")
     }
 
+    #[inline]
     fn visit_some<D: Deserializer<'de>>(self, d: D) -> Result<Self::Value, D::Error> {
-        d.deserialize_any(Self)
+        d.deserialize_any(CountryVisitor).map(Some)
     }
 
+    #[inline]
     fn visit_none<E: Error>(self) -> Result<Self::Value, E> {
+        self.visit_unit()
+    }
+
+    #[inline]
+    fn visit_unit<E: Error>(self) -> Result<Self::Value, E> {
         Ok(None)
     }
 }
 
 pub(crate) fn deserialize_country<'de, D: Deserializer<'de>>(d: D) -> Result<String, D::Error> {
-    d.deserialize_any(CountryVisitor).map(Option::unwrap)
+    d.deserialize_any(CountryVisitor)
 }
 
 pub(crate) fn deserialize_maybe_country<'de, D>(d: D) -> Result<Option<String>, D::Error>
 where
     D: Deserializer<'de>,
 {
-    d.deserialize_option(CountryVisitor)
+    d.deserialize_option(OptionCountryVisitor)
 }
 
 /// Counts of grades of a [`User`].
@@ -697,6 +714,7 @@ impl UserLevel {
     /// let level = UserLevel { current: 100, progress: 25 };
     /// assert_eq!(level.float(), 100.25);
     /// ```
+    #[inline]
     pub fn float(&self) -> f32 {
         self.current as f32 + self.progress as f32 / 100.0
     }
@@ -773,10 +791,12 @@ struct RankHistoryVisitor;
 impl<'de> Visitor<'de> for RankHistoryVisitor {
     type Value = Option<Vec<u32>>;
 
+    #[inline]
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("a map containing the field `data`, or a list of u32")
     }
 
+    #[inline]
     fn visit_seq<A: SeqAccess<'de>>(self, mut seq: A) -> Result<Self::Value, A::Error> {
         let capacity = seq.size_hint().unwrap_or(0);
         let mut rank_history_vec = Vec::with_capacity(capacity);
@@ -802,11 +822,18 @@ impl<'de> Visitor<'de> for RankHistoryVisitor {
         rank_history_vec.ok_or_else(|| Error::missing_field("data"))
     }
 
+    #[inline]
     fn visit_some<D: Deserializer<'de>>(self, d: D) -> Result<Self::Value, D::Error> {
         d.deserialize_any(RankHistoryVisitor)
     }
 
+    #[inline]
     fn visit_none<E: Error>(self) -> Result<Self::Value, E> {
+        self.visit_unit()
+    }
+
+    #[inline]
+    fn visit_unit<E: Error>(self) -> Result<Self::Value, E> {
         Ok(None)
     }
 }

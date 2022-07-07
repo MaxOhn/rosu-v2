@@ -76,6 +76,7 @@ struct ForumPostBody {
 impl<'de> Visitor<'de> for ForumPostVisitor {
     type Value = ForumPost;
 
+    #[inline]
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("a ForumPost struct")
     }
@@ -163,12 +164,14 @@ impl<'de> Visitor<'de> for ForumPostVisitor {
 }
 
 impl<'de> Deserialize<'de> for ForumPost {
+    #[inline]
     fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
         d.deserialize_map(ForumPostVisitor)
     }
 }
 
 impl PartialEq for ForumPost {
+    #[inline]
     fn eq(&self, other: &Self) -> bool {
         self.post_id == other.post_id && self.edited_at == other.edited_at
     }
@@ -217,6 +220,7 @@ pub struct ForumTopic {
 }
 
 impl PartialEq for ForumTopic {
+    #[inline]
     fn eq(&self, other: &Self) -> bool {
         self.topic_id == other.topic_id && self.updated_at == other.updated_at
     }

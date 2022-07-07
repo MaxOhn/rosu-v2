@@ -342,7 +342,6 @@ pub use grade::Grade;
 pub use mode::GameMode;
 pub use mods::GameMods;
 
-use serde::{Deserialize, Deserializer, Serializer};
 use std::marker::PhantomData;
 
 struct EnumVisitor<T>(PhantomData<T>);
@@ -351,14 +350,4 @@ impl<T> EnumVisitor<T> {
     fn new() -> Self {
         Self(PhantomData)
     }
-}
-
-fn inflate_acc<'de, D: Deserializer<'de>>(d: D) -> Result<f32, D::Error> {
-    let acc: f32 = Deserialize::deserialize(d)?;
-
-    Ok(100.0 * acc)
-}
-
-fn deflate_acc<S: Serializer>(f: &f32, s: S) -> Result<S::Ok, S::Error> {
-    s.serialize_f32(*f / 100.0)
 }

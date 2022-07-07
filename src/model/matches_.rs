@@ -1,6 +1,6 @@
 use super::{
-    beatmap::BeatmapCompact, deflate_acc, score_::ScoreStatistics, serde_, user_::UserCompact,
-    Cursor, GameMode, GameMods,
+    beatmap::BeatmapCompact, score_::ScoreStatistics, serde_, user_::UserCompact, Cursor, GameMode,
+    GameMods,
 };
 use crate::{Osu, OsuResult};
 
@@ -150,6 +150,7 @@ struct MatchEventTypeVisitor;
 impl<'de> Visitor<'de> for MatchEventTypeVisitor {
     type Value = MatchEventType;
 
+    #[inline]
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(
             r#""match-created", "player-joined", "player-left", "match-disbanded", "host-changed", or "other""#
@@ -186,6 +187,7 @@ impl<'de> Visitor<'de> for MatchEventTypeVisitor {
 }
 
 impl<'de> Deserialize<'de> for MatchEventType {
+    #[inline]
     fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
         d.deserialize_str(MatchEventTypeVisitor)
     }
@@ -204,6 +206,7 @@ struct MatchEventVisitor;
 impl<'de> Visitor<'de> for MatchEventVisitor {
     type Value = MatchEvent;
 
+    #[inline]
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("MatchEvent enum")
     }
@@ -290,6 +293,7 @@ impl<'de> Visitor<'de> for MatchEventVisitor {
 }
 
 impl<'de> Deserialize<'de> for MatchEvent {
+    #[inline]
     fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
         d.deserialize_map(MatchEventVisitor)
     }
@@ -337,6 +341,7 @@ macro_rules! mvp_fold {
 
 impl MatchGame {
     /// Get the user id of the user that performed the best this game.
+    #[inline]
     pub fn mvp_user_id(&self) -> Option<u32> {
         match self.scoring_type {
             ScoringType::Score | ScoringType::ScoreV2 => mvp_fold!(self => score),
@@ -354,7 +359,6 @@ pub struct MatchGameIter<'m> {
 }
 
 impl<'m> MatchGameIter<'m> {
-    #[inline]
     fn new(iter: Iter<'m, MatchEvent>) -> Self {
         Self { iter }
     }
@@ -363,6 +367,7 @@ impl<'m> MatchGameIter<'m> {
 impl<'m> Iterator for MatchGameIter<'m> {
     type Item = &'m MatchGame;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         loop {
             if let MatchEvent::Game { game, .. } = self.iter.next()? {
@@ -373,6 +378,7 @@ impl<'m> Iterator for MatchGameIter<'m> {
 }
 
 impl<'m> DoubleEndedIterator for MatchGameIter<'m> {
+    #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
         loop {
             if let MatchEvent::Game { game, .. } = self.iter.next_back()? {
@@ -389,7 +395,6 @@ pub struct MatchGameDrain<'m> {
 }
 
 impl<'m> MatchGameDrain<'m> {
-    #[inline]
     fn new(drain: Drain<'m, MatchEvent>) -> Self {
         Self { drain }
     }
@@ -398,6 +403,7 @@ impl<'m> MatchGameDrain<'m> {
 impl<'m> Iterator for MatchGameDrain<'m> {
     type Item = MatchGame;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         loop {
             if let MatchEvent::Game { game, .. } = self.drain.next()? {
@@ -408,6 +414,7 @@ impl<'m> Iterator for MatchGameDrain<'m> {
 }
 
 impl<'m> DoubleEndedIterator for MatchGameDrain<'m> {
+    #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
         loop {
             if let MatchEvent::Game { game, .. } = self.drain.next_back()? {
@@ -481,7 +488,7 @@ pub struct MatchListParams {
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct MatchScore {
     /// Accuracy between `0.0` and `100.0`
-    #[serde(serialize_with = "deflate_acc")]
+    #[serde(with = "serde_::adjust_acc")]
     pub accuracy: f32,
     pub max_combo: u32,
     pub mods: GameMods,
@@ -499,6 +506,7 @@ struct MatchScoreVisitor;
 impl<'de> Visitor<'de> for MatchScoreVisitor {
     type Value = MatchScore;
 
+    #[inline]
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("a MatchScore struct")
     }
@@ -588,6 +596,7 @@ struct MatchUsersVisitor;
 impl<'de> Visitor<'de> for MatchUsersVisitor {
     type Value = MatchUsers;
 
+    #[inline]
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("a sequence containing UserCompact")
     }
@@ -789,6 +798,7 @@ impl OsuMatch {
 
     /// The API sends only up to 100 events per request.
     /// This method checks whether there are events before the currently first event.
+    #[inline]
     pub fn has_previous(&self) -> bool {
         self.events
             .first()
@@ -821,6 +831,7 @@ struct OsuMatchVisitor;
 impl<'de> Visitor<'de> for OsuMatchVisitor {
     type Value = OsuMatch;
 
+    #[inline]
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("an OsuMatch struct")
     }
@@ -974,6 +985,7 @@ struct BoolVisitor;
 impl<'de> Visitor<'de> for BoolVisitor {
     type Value = Bool;
 
+    #[inline]
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("a bool, a stringified bool, or 0 or 1 in either number, string or char format")
     }

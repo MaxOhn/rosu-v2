@@ -67,6 +67,7 @@ impl FromStr for Grade {
 }
 
 impl fmt::Display for Grade {
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::Debug::fmt(self, f)
     }
@@ -77,16 +78,19 @@ struct GradeVisitor;
 impl<'de> Visitor<'de> for GradeVisitor {
     type Value = Grade;
 
+    #[inline]
     fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.write_str("a string")
     }
 
+    #[inline]
     fn visit_str<E: Error>(self, v: &str) -> Result<Self::Value, E> {
         Grade::from_str(v).map_err(|_| Error::invalid_value(Unexpected::Str(v), &"a grade string"))
     }
 }
 
 impl<'de> Deserialize<'de> for Grade {
+    #[inline]
     fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
         d.deserialize_any(GradeVisitor)
     }

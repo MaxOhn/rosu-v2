@@ -449,6 +449,7 @@ struct ModsVisitor;
 impl<'de> Visitor<'de> for ModsVisitor {
     type Value = GameMods;
 
+    #[inline]
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("a u32, a stringified number, or a sequence")
     }
@@ -508,12 +509,14 @@ impl<'de> Visitor<'de> for ModsVisitor {
 }
 
 impl<'de> Deserialize<'de> for GameMods {
+    #[inline]
     fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
         d.deserialize_any(ModsVisitor)
     }
 }
 
 impl Serialize for GameMods {
+    #[inline]
     fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
         s.serialize_u32(self.bits)
     }

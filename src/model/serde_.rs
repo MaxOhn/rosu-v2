@@ -136,6 +136,20 @@ pub(super) mod option_datetime {
     }
 }
 
+pub(super) mod adjust_acc {
+    use serde::{Deserialize, Deserializer, Serializer};
+
+    pub fn deserialize<'de, D: Deserializer<'de>>(d: D) -> Result<f32, D::Error> {
+        let acc = <f32 as Deserialize>::deserialize(d)?;
+
+        Ok(100.0 * acc)
+    }
+
+    pub fn serialize<S: Serializer>(f: &f32, s: S) -> Result<S::Ok, S::Error> {
+        s.serialize_f32(*f / 100.0)
+    }
+}
+
 pub(super) mod date {
     use std::fmt;
 

@@ -13,6 +13,9 @@ pub(crate) struct Metrics {
     pub(crate) beatmapset_events: IntCounter,
     pub(crate) beatmapset_search: IntCounter,
 
+    #[cfg(feature = "cache")]
+    pub(crate) cache_size: IntCounter,
+
     pub(crate) comments: IntCounter,
 
     pub(crate) forum_posts: IntCounter,
@@ -61,6 +64,9 @@ impl Metrics {
             beatmapset: counters.with_label_values(&["Beatmapset"]),
             beatmapset_events: counters.with_label_values(&["Beatmapset events"]),
             beatmapset_search: counters.with_label_values(&["Beatmapset search"]),
+
+            #[cfg(feature = "cache")]
+            cache_size: counters.with_label_values(&["Cached Username-UserId pairs"]),
 
             comments: counters.with_label_values(&["Comments"]),
 

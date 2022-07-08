@@ -511,6 +511,13 @@ impl Osu {
                 let user = self.user(UserId::Name(name.clone())).await?;
                 self.cache.insert(name, user.user_id);
 
+                #[cfg(feature = "metrics")]
+                // ! BUG: It's possible to increment twice for the same name due to
+                // ! concurrent function calls but since `DashMap::len` is a non-trivial
+                // ! method to call and `cache_user` is called frequently, it's hopefully
+                // ! fine to just naively increment here and ignore double-countings.
+                self.metrics.cache_size.inc();
+
                 Ok(user.user_id)
             }
         }

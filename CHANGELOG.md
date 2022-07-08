@@ -2,6 +2,8 @@
 
 - __Adjustments:__
   - If the `cache` feature is enabled, the cache now fills proactively and also updates with respect to username changes
+- __Additions:__
+  - Added a metric for the amount of Username-UserId pairs that are currently cached
 - __Breaking changes:__
   - Renamed the `GameMode` variants to make them more idiomatic
   - Replaced the `chrono` dependency with `time` so all datetime fields now come from the `time` crate. This includes fields being (de)serialized differently.

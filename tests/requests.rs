@@ -218,7 +218,7 @@ async fn beatmapset_search() {
         .beatmapset_search()
         .query("artist=camellia stars>8 ar>9 length<400")
         .status(RankStatus::Graveyard)
-        .mode(GameMode::STD)
+        .mode(GameMode::Osu)
         .nsfw(false)
         .sort(BeatmapsetSearchSort::Favourites, false);
 
@@ -256,7 +256,7 @@ async fn comments() {
 async fn chart_rankings() {
     init().await;
 
-    match osu().chart_rankings(GameMode::STD).await {
+    match osu().chart_rankings(GameMode::Osu).await {
         Ok(rankings) => println!(
             "Received a spotlight with {} mapsets and {} statistics",
             rankings.mapsets.len(),
@@ -273,7 +273,7 @@ async fn chart_rankings() {
 async fn country_rankings() {
     init().await;
 
-    match osu().country_rankings(GameMode::STD).await {
+    match osu().country_rankings(GameMode::Osu).await {
         Ok(countries) => println!(
             "Received the first {} out of {} countries",
             countries.ranking.len(),
@@ -380,7 +380,7 @@ async fn osu_matches() {
 async fn own_data() {
     init().await;
 
-    match osu().own_data().mode(GameMode::TKO).await {
+    match osu().own_data().mode(GameMode::Taiko).await {
         Ok(user) => println!(
             "Received own data showing a last activity of {:?}",
             user.last_visit
@@ -397,7 +397,7 @@ async fn performance_rankings() {
     init().await;
 
     match osu()
-        .performance_rankings(GameMode::STD)
+        .performance_rankings(GameMode::Osu)
         .country("be")
         .await
     {
@@ -419,7 +419,7 @@ async fn performance_rankings() {
 async fn score() {
     init().await;
 
-    match osu().score(COOKIEZI_FREEDOM_DIVE, GameMode::STD).await {
+    match osu().score(COOKIEZI_FREEDOM_DIVE, GameMode::Osu).await {
         Ok(score) => println!(
             "Received {}'s FREEDOM DIVE score",
             score.user.unwrap().username
@@ -435,7 +435,7 @@ async fn score() {
 async fn score_rankings() {
     init().await;
 
-    match osu().score_rankings(GameMode::STD).await {
+    match osu().score_rankings(GameMode::Osu).await {
         Ok(rankings) => {
             println!(
                 "Received score rankings with {} out of {} users",
@@ -491,7 +491,7 @@ async fn spotlights() {
 async fn user() {
     init().await;
 
-    match osu().user("freddie benson").mode(GameMode::TKO).await {
+    match osu().user("freddie benson").mode(GameMode::Taiko).await {
         Ok(user) => println!("Received user who was last active {:?}", user.last_visit),
         Err(why) => {
             unwind_error!(error, why, "Error while requesting user: {}");
@@ -543,7 +543,7 @@ async fn user_scores() {
 
     match osu()
         .user_scores("Badewanne3")
-        .mode(GameMode::CTB)
+        .mode(GameMode::Catch)
         .limit(99)
         .offset(1)
         .best()

@@ -136,13 +136,13 @@ impl GameMods {
     /// use rosu_v2::model::{GameMods, GameMode};
     ///
     /// let ezhd = GameMods::from_bits(2 + 8).unwrap();
-    /// assert_eq!(ezhd.score_multiplier(GameMode::STD), 0.53);
-    /// assert_eq!(ezhd.score_multiplier(GameMode::MNA), 0.5);
+    /// assert_eq!(ezhd.score_multiplier(GameMode::Osu), 0.53);
+    /// assert_eq!(ezhd.score_multiplier(GameMode::Mania), 0.5);
     /// ```
     pub fn score_multiplier(self, mode: GameMode) -> f32 {
         self.into_iter()
             .map(|m| match mode {
-                GameMode::STD => match m {
+                GameMode::Osu => match m {
                     GameMods::HalfTime => 0.3,
                     GameMods::Easy | GameMods::NoFail => 0.5,
                     GameMods::SpunOut => 0.9,
@@ -150,21 +150,21 @@ impl GameMods {
                     GameMods::DoubleTime | GameMods::NightCore | GameMods::Flashlight => 1.12,
                     _ => 1.0,
                 },
-                GameMode::TKO => match m {
+                GameMode::Taiko => match m {
                     GameMods::HalfTime => 0.3,
                     GameMods::Easy | GameMods::NoFail => 0.5,
                     GameMods::HardRock | GameMods::Hidden => 1.06,
                     GameMods::DoubleTime | GameMods::NightCore | GameMods::Flashlight => 1.12,
                     _ => 1.0,
                 },
-                GameMode::CTB => match m {
+                GameMode::Catch => match m {
                     GameMods::HalfTime => 0.3,
                     GameMods::Easy | GameMods::NoFail => 0.5,
                     GameMods::DoubleTime | GameMods::NightCore | GameMods::Hidden => 1.06,
                     GameMods::HardRock | GameMods::Flashlight => 1.12,
                     _ => 1.0,
                 },
-                GameMode::MNA => match m {
+                GameMode::Mania => match m {
                     GameMods::Easy | GameMods::NoFail | GameMods::HalfTime => 0.5,
                     _ => 1.0,
                 },
@@ -179,8 +179,8 @@ impl GameMods {
     /// use rosu_v2::model::{GameMods, GameMode};
     ///
     /// let hrso = GameMods::HardRock | GameMods::SpunOut;
-    /// assert!(!hrso.increases_score(GameMode::STD));
-    /// assert!(GameMods::DoubleTime.increases_score(GameMode::TKO));
+    /// assert!(!hrso.increases_score(GameMode::Osu));
+    /// assert!(GameMods::DoubleTime.increases_score(GameMode::Taiko));
     /// ```
     #[inline]
     pub fn increases_score(self, mode: GameMode) -> bool {
@@ -194,8 +194,8 @@ impl GameMods {
     /// use rosu_v2::model::{GameMods, GameMode};
     ///
     /// let hrso = GameMods::HardRock | GameMods::SpunOut;
-    /// assert!(hrso.decreases_score(GameMode::STD));
-    /// assert!(!GameMods::DoubleTime.decreases_score(GameMode::TKO));
+    /// assert!(hrso.decreases_score(GameMode::Osu));
+    /// assert!(!GameMods::DoubleTime.decreases_score(GameMode::Taiko));
     /// ```
     #[inline]
     pub fn decreases_score(self, mode: GameMode) -> bool {
@@ -209,17 +209,17 @@ impl GameMods {
     /// use rosu_v2::model::{GameMode, GameMods};
     ///
     /// let hdhr = GameMods::Hidden | GameMods::HardRock;
-    /// assert!(hdhr.changes_stars(GameMode::STD));
-    /// assert!(!hdhr.changes_stars(GameMode::MNA));
+    /// assert!(hdhr.changes_stars(GameMode::Osu));
+    /// assert!(!hdhr.changes_stars(GameMode::Mania));
     /// let nc = GameMods::NightCore;
-    /// assert!(nc.changes_stars(GameMode::MNA));
+    /// assert!(nc.changes_stars(GameMode::Mania));
     /// ```
     #[inline]
     pub fn changes_stars(self, mode: GameMode) -> bool {
         if self.intersects(GameMods::DoubleTime | GameMods::HalfTime) {
             true
         } else if self.intersects(GameMods::HardRock | GameMods::Easy) {
-            matches!(mode, GameMode::STD | GameMode::CTB)
+            matches!(mode, GameMode::Osu | GameMode::Catch)
         } else {
             false
         }

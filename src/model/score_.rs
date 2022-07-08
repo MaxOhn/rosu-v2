@@ -84,9 +84,9 @@ impl Score {
         osu.user(self.user_id)
     }
 
-    /// Count all hitobjects of the score i.e. for `GameMode::STD` the amount 300s, 100s, 50s, and misses.
+    /// Count all hitobjects of the score i.e. for `GameMode::Osu` the amount 300s, 100s, 50s, and misses.
     ///
-    /// Note: Includes tiny droplet (misses) for `GameMode::CTB`
+    /// Note: Includes tiny droplet (misses) for `GameMode::Catch`
     #[inline]
     pub fn total_hits(&self) -> u32 {
         self.statistics.total_hits(self.mode)
@@ -101,7 +101,7 @@ impl Score {
     /// Calculate the grade of the score.
     /// Should only be used in case the score was modified and the internal `grade` field is no longer correct.
     ///
-    /// The accuracy is only required for `GameMode::MNA` and `GameMode::CTB` scores and is
+    /// The accuracy is only required for `GameMode::Mania` and `GameMode::Catch` scores and is
     /// calculated internally if not provided.
     ///
     /// This method assumes the score to be a pass i.e. the amount of passed
@@ -111,10 +111,10 @@ impl Score {
         let passed_objects = self.total_hits();
 
         match self.mode {
-            GameMode::STD => osu_grade(self, passed_objects),
-            GameMode::TKO => taiko_grade(self, passed_objects),
-            GameMode::CTB => ctb_grade(self, accuracy),
-            GameMode::MNA => mania_grade(self, passed_objects, accuracy),
+            GameMode::Osu => osu_grade(self, passed_objects),
+            GameMode::Taiko => taiko_grade(self, passed_objects),
+            GameMode::Catch => ctb_grade(self, accuracy),
+            GameMode::Mania => mania_grade(self, passed_objects, accuracy),
         }
     }
 }
@@ -157,18 +157,18 @@ pub struct ScoreStatistics {
 }
 
 impl ScoreStatistics {
-    /// Count all hitobjects of the score i.e. for `GameMode::STD` the amount 300s, 100s, 50s, and misses.
+    /// Count all hitobjects of the score i.e. for `GameMode::Osu` the amount 300s, 100s, 50s, and misses.
     ///
-    /// Note: Includes tiny droplet (misses) for `GameMode::CTB`
+    /// Note: Includes tiny droplet (misses) for `GameMode::Catch`
     pub fn total_hits(&self, mode: GameMode) -> u32 {
         let mut amount = self.count_300 + self.count_100 + self.count_miss;
 
-        if mode != GameMode::TKO {
+        if mode != GameMode::Taiko {
             amount += self.count_50;
 
-            if mode != GameMode::STD {
+            if mode != GameMode::Osu {
                 amount += self.count_katu;
-                amount += (mode != GameMode::CTB) as u32 * self.count_geki;
+                amount += (mode != GameMode::Catch) as u32 * self.count_geki;
             }
         }
 
@@ -180,19 +180,19 @@ impl ScoreStatistics {
         let amount_objects = self.total_hits(mode) as f32;
 
         let (numerator, denumerator) = match mode {
-            GameMode::TKO => (
+            GameMode::Taiko => (
                 0.5 * self.count_100 as f32 + self.count_300 as f32,
                 amount_objects,
             ),
-            GameMode::CTB => (
+            GameMode::Catch => (
                 (self.count_300 + self.count_100 + self.count_50) as f32,
                 amount_objects,
             ),
-            GameMode::STD | GameMode::MNA => {
+            GameMode::Osu | GameMode::Mania => {
                 let mut n =
                     (self.count_50 * 50 + self.count_100 * 100 + self.count_300 * 300) as f32;
 
-                n += ((mode == GameMode::MNA) as u32
+                n += ((mode == GameMode::Mania) as u32
                     * (self.count_katu * 200 + self.count_geki * 300)) as f32;
 
                 (n, amount_objects * 300.0)

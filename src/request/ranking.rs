@@ -210,7 +210,7 @@ impl<'a> GetPerformanceRankings<'a> {
         }
 
         // ! Adjust filter once there are non-mania variants
-        if let Some(variant) = self.variant.filter(|_| mode == GameMode::MNA) {
+        if let Some(variant) = self.variant.filter(|_| mode == GameMode::Mania) {
             query.push("variant", &variant);
         }
 

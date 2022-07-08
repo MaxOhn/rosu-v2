@@ -8,7 +8,6 @@ use std::fmt;
 use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
 
 /// Available game modes
-#[allow(clippy::upper_case_acronyms)]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 #[cfg_attr(
     feature = "rkyv",
@@ -18,24 +17,24 @@ use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
 #[repr(u8)]
 pub enum GameMode {
     /// osu!standard
-    STD = 0,
+    Osu = 0,
     /// osu!taiko
-    TKO = 1,
+    Taiko = 1,
     /// osu!catch
-    CTB = 2,
+    Catch = 2,
     /// osu!mania
-    MNA = 3,
+    Mania = 3,
 }
 
 impl From<u8> for GameMode {
     #[inline]
     fn from(mode: u8) -> Self {
         match mode {
-            0 => GameMode::STD,
-            1 => GameMode::TKO,
-            2 => GameMode::CTB,
-            3 => GameMode::MNA,
-            _ => GameMode::STD,
+            0 => GameMode::Osu,
+            1 => GameMode::Taiko,
+            2 => GameMode::Catch,
+            3 => GameMode::Mania,
+            _ => GameMode::Osu,
         }
     }
 }
@@ -43,7 +42,7 @@ impl From<u8> for GameMode {
 impl Default for GameMode {
     #[inline]
     fn default() -> Self {
-        Self::STD
+        Self::Osu
     }
 }
 
@@ -51,10 +50,10 @@ impl fmt::Display for GameMode {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::STD => f.write_str("osu"),
-            Self::TKO => f.write_str("taiko"),
-            Self::CTB => f.write_str("fruits"),
-            Self::MNA => f.write_str("mania"),
+            Self::Osu => f.write_str("osu"),
+            Self::Taiko => f.write_str("taiko"),
+            Self::Catch => f.write_str("fruits"),
+            Self::Mania => f.write_str("mania"),
         }
     }
 }
@@ -71,10 +70,10 @@ impl<'de> Visitor<'de> for ModeVisitor {
 
     fn visit_str<E: Error>(self, v: &str) -> Result<Self::Value, E> {
         let mode = match v {
-            "0" | "osu" | "osu!" => GameMode::STD,
-            "1" | "taiko" | "tko" => GameMode::TKO,
-            "2" | "ctb" | "fruits" => GameMode::CTB,
-            "3" | "mania" | "mna" => GameMode::MNA,
+            "0" | "osu" | "osu!" => GameMode::Osu,
+            "1" | "taiko" | "tko" => GameMode::Taiko,
+            "2" | "ctb" | "fruits" => GameMode::Catch,
+            "3" | "mania" | "mna" => GameMode::Mania,
             _ => {
                 return Err(Error::invalid_value(
                     Unexpected::Str(v),
@@ -89,10 +88,10 @@ impl<'de> Visitor<'de> for ModeVisitor {
     #[inline]
     fn visit_u64<E: Error>(self, v: u64) -> Result<Self::Value, E> {
         match v {
-            0 => Ok(GameMode::STD),
-            1 => Ok(GameMode::TKO),
-            2 => Ok(GameMode::CTB),
-            3 => Ok(GameMode::MNA),
+            0 => Ok(GameMode::Osu),
+            1 => Ok(GameMode::Taiko),
+            2 => Ok(GameMode::Catch),
+            3 => Ok(GameMode::Mania),
             _ => Err(Error::invalid_value(
                 Unexpected::Unsigned(v),
                 &"0, 1, 2, or 3",

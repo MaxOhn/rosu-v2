@@ -74,7 +74,7 @@ async fn main() {
     // Note that the username here can only be used because of the `cache` feature.
     // If you are fine with just providing user ids, consider disabling this feature.
     let scores: Vec<Score> = osu.user_scores("peppy")
-        .mode(GameMode::STD)
+        .mode(GameMode::Osu)
         .best() // top scores; alternatively .recent(), .pinned(), or .firsts()
         .offset(10)
         .limit(5)
@@ -86,7 +86,7 @@ async fn main() {
     let search_result: BeatmapsetSearchResult = osu.beatmapset_search()
         .nsfw(false)
         .status(RankStatus::Loved)
-        .mode(GameMode::MNA)
+        .mode(GameMode::Mania)
         .query("blue army stars>3")
         .await
         .unwrap_or_else(|why| panic!("Failed to search mapsets: {}", why));

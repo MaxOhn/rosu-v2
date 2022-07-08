@@ -4,6 +4,7 @@
   - If the `cache` feature is enabled, the cache now fills proactively and also updates with respect to username changes
 - __Breaking changes:__
   - Replaced the `chrono` dependency with `time` so all fields now come from the `time` crate. This includes fields being serialized differently.
+  - Now using the specific api version 20220705 which renamed a few fields but only one of those made it through to the interface: `Score::created_at` is now called `Score::ended_at`
 
 # v0.4.0
 

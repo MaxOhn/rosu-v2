@@ -555,6 +555,9 @@ static MY_USER_AGENT: &str = concat!(
 );
 
 const APPLICATION_JSON: &str = "application/json";
+const X_API_VERSION: &str = "x-api-version";
+
+const API_VERSION: u32 = 20220705;
 
 impl OsuRef {
     async fn request_token(&self) -> OsuResult<TokenResponse> {
@@ -629,6 +632,7 @@ impl OsuRef {
                 .uri(url.as_str())
                 .header(AUTHORIZATION, value)
                 .header(USER_AGENT, MY_USER_AGENT)
+                .header(X_API_VERSION, API_VERSION)
                 .header(ACCEPT, APPLICATION_JSON)
                 .header(CONTENT_LENGTH, 0)
                 .body(Body::empty())?;

@@ -42,7 +42,7 @@ pub struct Score {
     pub accuracy: f32,
     #[serde(with = "serde_::datetime")]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
-    pub created_at: OffsetDateTime,
+    pub ended_at: OffsetDateTime,
     #[serde(rename = "rank")]
     pub grade: Grade,
     pub max_combo: u32,
@@ -54,8 +54,10 @@ pub struct Score {
         skip_serializing_if = "Option::is_none"
     )]
     pub mapset: Option<BeatmapsetCompact>,
+    #[serde(alias = "ruleset_id")]
     pub mode: GameMode,
     pub mods: GameMods,
+    #[serde(alias = "legacy_perfect")]
     pub perfect: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub pp: Option<f32>,
@@ -64,6 +66,7 @@ pub struct Score {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub rank_global: Option<u32>,
     pub replay: Option<bool>,
+    #[serde(alias = "total_score")]
     pub score: u32,
     #[serde(rename = "id")]
     pub score_id: u64,
@@ -120,7 +123,7 @@ impl PartialEq for Score {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
         self.user_id == other.user_id
-            && (self.created_at.unix_timestamp() - other.created_at.unix_timestamp()).abs() <= 2
+            && (self.ended_at.unix_timestamp() - other.ended_at.unix_timestamp()).abs() <= 2
             && self.score == other.score
     }
 }
@@ -139,11 +142,17 @@ pub(crate) struct Scores {
     archive(as = "Self")
 )]
 pub struct ScoreStatistics {
+    #[serde(alias = "perfect", default)]
     pub count_geki: u32,
+    #[serde(alias = "great", default)]
     pub count_300: u32,
+    #[serde(alias = "good", alias = "small_tick_miss", default)]
     pub count_katu: u32,
+    #[serde(alias = "ok", alias = "large_tick_hit", default)]
     pub count_100: u32,
+    #[serde(alias = "meh", alias = "small_tick_hit", default)]
     pub count_50: u32,
+    #[serde(alias = "miss", default)]
     pub count_miss: u32,
 }
 

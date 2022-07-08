@@ -507,7 +507,7 @@ fn get_match_score() -> MatchScore {
 fn get_score() -> Score {
     Score {
         accuracy: 98.76,
-        created_at: get_date(),
+        ended_at: get_date(),
         grade: Grade::A,
         max_combo: 1234,
         map: Some(get_map()),

@@ -540,12 +540,7 @@ impl<'a> GetUserMostPlayed<'a> {
 
                     Request::with_query(route, query)
                 })
-                .and_then(move |req| osu.request::<Vec<MostPlayedMap>>(req))
-                .inspect_ok(move |maps| {
-                    for map in maps.iter() {
-                        osu.update_cache(map.mapset.creator_id, &map.mapset.creator_name);
-                    }
-                });
+                .and_then(move |req| osu.request::<Vec<MostPlayedMap>>(req));
 
             Box::pin(fut)
         }
@@ -851,14 +846,7 @@ impl<'a> GetUserScores<'a> {
 
                     Request::with_query(route, query)
                 })
-                .and_then(move |req| osu.request::<Vec<Score>>(req))
-                .inspect_ok(move |scores| {
-                    for score in scores.iter() {
-                        if let Some(ref mapset) = score.mapset {
-                            osu.update_cache(mapset.creator_id, &mapset.creator_name);
-                        }
-                    }
-                });
+                .and_then(move |req| osu.request::<Vec<Score>>(req));
 
             Box::pin(fut)
         }

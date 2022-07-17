@@ -72,10 +72,6 @@ impl<'a> GetChartRankings<'a> {
 
         #[cfg(feature = "cache")]
         let fut = fut.inspect_ok(move |chart| {
-            for mapset in chart.mapsets.iter() {
-                osu.update_cache(mapset.creator_id, &mapset.creator_name);
-            }
-
             for user in chart.ranking.iter() {
                 osu.update_cache(user.user_id, &user.username);
             }

@@ -89,13 +89,6 @@ impl<'a> GetBeatmap<'a> {
         let osu = self.osu;
         let fut = osu.request::<Beatmap>(req);
 
-        #[cfg(feature = "cache")]
-        let fut = fut.inspect_ok(move |map| {
-            if let Some(ref mapset) = map.mapset {
-                osu.update_cache(mapset.creator_id, &mapset.creator_name);
-            }
-        });
-
         Box::pin(fut)
     }
 }
@@ -138,15 +131,6 @@ impl<'a> GetBeatmaps<'a> {
         let osu = self.osu;
 
         let fut = osu.request::<Beatmaps>(req).map_ok(|maps| maps.maps);
-
-        #[cfg(feature = "cache")]
-        let fut = fut.inspect_ok(move |maps| {
-            for map in maps.iter() {
-                if let Some(ref mapset) = map.mapset {
-                    osu.update_cache(mapset.creator_id, &mapset.creator_name);
-                }
-            }
-        });
 
         Box::pin(fut)
     }
@@ -524,11 +508,6 @@ impl<'a> GetBeatmapset<'a> {
         let osu = self.osu;
         let fut = osu.request::<Beatmapset>(req);
 
-        #[cfg(feature = "cache")]
-        let fut = fut.inspect_ok(move |mapset| {
-            osu.update_cache(mapset.creator_id, &mapset.creator_name);
-        });
-
         Box::pin(fut)
     }
 }
@@ -816,13 +795,6 @@ impl<'a> GetBeatmapsetSearch<'a> {
 
                 search_result
             });
-
-        #[cfg(feature = "cache")]
-        let fut = fut.inspect_ok(move |res| {
-            for mapset in res.mapsets.iter() {
-                osu.update_cache(mapset.creator_id, &mapset.creator_name);
-            }
-        });
 
         Box::pin(fut)
     }

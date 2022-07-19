@@ -161,7 +161,6 @@ macro_rules! def_enum {
 mod cursor;
 mod grade;
 mod mode;
-mod mods;
 mod serde_;
 
 #[cfg(feature = "rkyv")]
@@ -215,6 +214,9 @@ pub mod matches {
         MatchListParams, MatchScore, OsuMatch, ScoringType, Team, TeamType,
     };
 }
+
+/// Game mods related types
+pub mod mods;
 
 /// News related types
 pub mod news {
@@ -341,7 +343,6 @@ pub mod rkyv {
 pub use cursor::Cursor;
 pub use grade::Grade;
 pub use mode::GameMode;
-pub use mods::GameMods;
 
 use std::marker::PhantomData;
 

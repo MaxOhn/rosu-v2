@@ -18,7 +18,7 @@ use rosu_v2::{
 use tokio::sync::{Mutex, MutexGuard};
 
 #[cfg(feature = "cache")]
-use rosu_v2::model::GameMods;
+use rosu_v2::mods;
 
 struct OsuSingleton {
     initialized: AtomicBool,
@@ -146,7 +146,7 @@ async fn beatmap_user_score() -> Result<()> {
         .get()
         .await?
         .beatmap_user_score(ADESSO_BALLA, BADEWANNE3)
-        .mods(GameMods::Hidden | GameMods::HardRock | GameMods::HalfTime)
+        .mods(mods!(HD HR HT))
         .await?;
 
     println!(

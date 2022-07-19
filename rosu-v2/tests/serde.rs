@@ -3,8 +3,9 @@ extern crate rosu_v2;
 mod types {
     #![allow(unused)]
 
-    use rosu_v2::prelude::*;
-    use std::collections::HashMap;
+    use rosu_v2::{mods, prelude::*};
+    use serde::{de::DeserializeOwned, Serialize};
+    use std::{collections::HashMap, fmt::Debug};
     use time::{Date, Duration, OffsetDateTime};
 
     pub(super) fn get_chart_rankings() -> ChartRankings {
@@ -453,7 +454,14 @@ mod types {
                         mode: GameMode::Osu,
                         scoring_type: ScoringType::Score,
                         team_type: TeamType::HeadToHead,
-                        mods: GameMods::Hidden | GameMods::HardRock,
+                        mods: [
+                            GameMod::HiddenOsu(HiddenOsu {
+                                only_fade_approach_circles: Some(true),
+                            }),
+                            GameMod::HardRockOsu(HardRockOsu {}),
+                        ]
+                        .into_iter()
+                        .collect(),
                         map: Some(get_map_compact()),
                         scores: vec![get_match_score()],
                     }),
@@ -483,7 +491,7 @@ mod types {
         MatchScore {
             user_id: 123456,
             accuracy: 99.5,
-            mods: GameMods::ScoreV2 | GameMods::Relax,
+            mods: mods!(V2 RX),
             score: 12_345_678,
             max_combo: 1000,
             perfect: false,
@@ -512,7 +520,19 @@ mod types {
             map: Some(get_map()),
             mapset: Some(get_mapset_compact()),
             mode: GameMode::Catch,
-            mods: GameMods::Hidden | GameMods::DoubleTime,
+            mods: [
+                GameMod::DifficultyAdjustCatch(DifficultyAdjustCatch {
+                    circle_size: Some(1.0),
+                    approach_rate: None,
+                    hard_rock_offsets: Some(false),
+                    drain_rate: None,
+                    overall_difficulty: Some(10.0),
+                    extended_limits: None,
+                }),
+                GameMod::HardRockCatch(HardRockCatch {}),
+            ]
+            .into_iter()
+            .collect(),
             perfect: false,
             pp: Some(456.78),
             rank_country: Some(1),

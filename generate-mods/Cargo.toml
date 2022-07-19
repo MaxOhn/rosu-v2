@@ -1,0 +1,12 @@
+[package]
+name = "generate-mods"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+itoa = { version = "1.0" }
+reqwest = { version = "0.11", default-features = false, features = ["rustls-tls"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0", features = ["raw_value"] }
+thiserror = { version = "1.0" }
+tokio = { version = "1.0", default-features = false, features = ["rt"] }

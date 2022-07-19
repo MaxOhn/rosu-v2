@@ -109,9 +109,12 @@
 //!
 //! | Flag | Description | deps
 //! |-----|-----|-----|
-//! | `default` | Enable the `cache` feature |
+//! | `default` | Enable the `cache` and `macros` features |
 //! | `cache` | Cache username-user_id pairs so that usernames can be used on all user endpoints instead of only user ids | [dashmap](https://github.com/xacrimon/dashmap)
+//! | `macros` | Extends the capabilities of the `mods!` macro to create mods for a given mode | [paste](https://github.com/dtolnay/paste) |
+//! | `serialize` | Implement `serde::Serialize` for most types, allowing for manual serialization |
 //! | `metrics` | Provide a count of all request types the client makes with the function `Osu::metrics` returning a `prometheus::IntCounterVec` | [prometheus](https://github.com/tikv/rust-prometheus)
+//! | `replay` | Enables the method `Osu::replay` to parse a replay. Note that `Osu::replay_raw` is available without this feature but provides raw bytes instead of a parsed replay | [osu-db](https://github.com/negamartin/osu-db) |
 //! | `rkyv` | Implement rkyv's `Archive`, `Deserialize`, and `Serialize` for most types, allowing for insanely fast (de)serializing. | [rkyv](https://github.com/rkyv/rkyv)
 //!
 
@@ -145,10 +148,11 @@ pub mod prelude {
         client::Scope,
         error::OsuError,
         model::{
-            beatmap::*, comments::*, forum::*, kudosu::*, matches::*, news::*, ranking::*,
+            beatmap::*, comments::*, forum::*, kudosu::*, matches::*, mods::*, news::*, ranking::*,
             recent_event::*, score::*, seasonal_backgrounds::*, user::*, wiki::*, Cursor, GameMode,
-            GameMods, Grade,
+            Grade,
         },
+        mods,
         request::UserId,
         Osu, OsuBuilder, OsuResult,
     };

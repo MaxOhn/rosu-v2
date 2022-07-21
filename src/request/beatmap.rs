@@ -4,7 +4,10 @@ use crate::{
             Beatmap, Beatmapset, BeatmapsetEvents, BeatmapsetSearchResult, BeatmapsetSearchSort,
             Genre, Language, RankStatus,
         },
-        beatmap_::{Beatmaps, SearchRankStatus},
+        beatmap_::{
+            BeatmapDifficultyAttributes, BeatmapDifficultyAttributesWrapper, Beatmaps,
+            SearchRankStatus,
+        },
         score_::{BeatmapScores, BeatmapUserScore, Score, Scores},
         Cursor, GameMode, GameMods,
     },
@@ -17,6 +20,7 @@ use crate::{
 use futures::future::TryFutureExt;
 use std::{fmt::Write, mem};
 
+use super::Body;
 #[cfg(feature = "cache")]
 use super::UserId;
 
@@ -137,6 +141,74 @@ impl<'a> GetBeatmaps<'a> {
 }
 
 poll_req!(GetBeatmaps => Vec<BeatmapCompact>);
+
+/// Get [`BeatmapDifficultyAttributes`] of a map by its map id.
+#[must_use = "futures do nothing unless you `.await` or poll them"]
+pub struct GetBeatmapDifficultyAttributes<'a> {
+    fut: Option<Pending<'a, BeatmapDifficultyAttributes>>,
+    osu: &'a Osu,
+    map_id: u32,
+    mode: Option<GameMode>,
+    mods: Option<GameMods>,
+}
+
+impl<'a> GetBeatmapDifficultyAttributes<'a> {
+    pub(crate) fn new(osu: &'a Osu, map_id: u32) -> Self {
+        Self {
+            fut: None,
+            osu,
+            map_id,
+            mode: None,
+            mods: None,
+        }
+    }
+
+    /// Specify the mode
+    #[inline]
+    pub fn mode(mut self, mode: GameMode) -> Self {
+        self.mode = Some(mode);
+
+        self
+    }
+
+    /// Specify the mods
+    #[inline]
+    pub fn mods(mut self, mods: GameMods) -> Self {
+        self.mods = Some(mods);
+
+        self
+    }
+
+    fn start(&mut self) -> Pending<'a, BeatmapDifficultyAttributes> {
+        #[cfg(feature = "metrics")]
+        self.osu.metrics.beatmap_difficulty_attributes.inc();
+
+        let route = Route::GetBeatmapDifficultyAttributes {
+            map_id: self.map_id,
+        };
+
+        let mut body = Body::default();
+
+        if let Some(mods) = self.mods {
+            body.push_without_quotes("mods", mods.bits());
+        }
+
+        if let Some(mode) = self.mode {
+            body.push_without_quotes("ruleset_id", mode as u32);
+        }
+
+        let req = Request::with_body(route, body);
+
+        let fut = self
+            .osu
+            .request::<BeatmapDifficultyAttributesWrapper>(req)
+            .map_ok(|a| a.attributes);
+
+        Box::pin(fut)
+    }
+}
+
+poll_req!(GetBeatmapDifficultyAttributes => BeatmapDifficultyAttributes);
 
 /// Get top scores of a beatmap by its id in form of a
 /// vec of [`Score`](crate::model::score::Score)s.

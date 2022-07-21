@@ -2,7 +2,7 @@ use super::{serde_, user_::UserCompact, Cursor, GameMode};
 use crate::{
     error::ParsingError,
     prelude::{OsuError, Username},
-    request::GetUser,
+    request::{GetBeatmapDifficultyAttributes, GetUser},
     Osu, OsuResult,
 };
 
@@ -77,9 +77,16 @@ pub struct Beatmap {
 }
 
 impl Beatmap {
+    /// Return the amount of hit objects in this map.
     #[inline]
     pub fn count_objects(&self) -> u32 {
         self.count_circles + self.count_sliders + self.count_spinners
+    }
+
+    /// Request the [`BeatmapDifficultyAttributes`] for this map.
+    #[inline]
+    pub fn difficulty_attributes<'o>(&self, osu: &'o Osu) -> GetBeatmapDifficultyAttributes<'o> {
+        GetBeatmapDifficultyAttributes::new(osu, self.map_id)
     }
 }
 
@@ -120,7 +127,16 @@ pub struct BeatmapCompact {
     pub version: String,
 }
 
+impl BeatmapCompact {
+    /// Request the [`BeatmapDifficultyAttributes`] for this map.
+    #[inline]
+    pub fn difficulty_attributes<'o>(&self, osu: &'o Osu) -> GetBeatmapDifficultyAttributes<'o> {
+        GetBeatmapDifficultyAttributes::new(osu, self.map_id)
+    }
+}
+
 impl From<Beatmap> for BeatmapCompact {
+    #[inline]
     fn from(map: Beatmap) -> Self {
         Self {
             checksum: map.checksum,
@@ -142,6 +158,53 @@ impl From<Beatmap> for BeatmapCompact {
 pub(crate) struct Beatmaps {
     #[serde(rename = "beatmaps")]
     pub(crate) maps: Vec<BeatmapCompact>,
+}
+
+#[derive(Deserialize)]
+pub(crate) struct BeatmapDifficultyAttributesWrapper {
+    pub attributes: BeatmapDifficultyAttributes,
+}
+
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
+pub struct BeatmapDifficultyAttributes {
+    pub max_combo: u32,
+    #[serde(rename = "star_rating")]
+    pub stars: f32,
+    #[serde(flatten)]
+    pub attrs: GameModeAttributes,
+}
+
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
+#[serde(untagged)]
+pub enum GameModeAttributes {
+    Osu {
+        #[serde(rename = "approach_rate")]
+        ar: f32,
+        #[serde(rename = "overall_difficulty")]
+        od: f32,
+        aim_difficulty: f32,
+        flashlight_difficulty: f32,
+        slider_factor: f32,
+        speed_difficulty: f32,
+    },
+    Taiko {
+        stamina_difficulty: f32,
+        rhythm_difficulty: f32,
+        colour_difficulty: f32,
+        #[serde(rename = "approach_rate")]
+        ar: f32,
+        great_hit_window: f32,
+    },
+    Catch {
+        #[serde(rename = "approach_rate")]
+        ar: f32,
+    },
+    Mania {
+        great_hit_window: f32,
+        score_multiplier: f32,
+    },
 }
 
 /// Represents a beatmapset. This extends [`BeatmapsetCompact`] with additional attributes.

@@ -8,6 +8,7 @@ pub(crate) struct Metrics {
     pub(crate) beatmap: IntCounter,
     pub(crate) beatmap_scores: IntCounter,
     pub(crate) beatmap_user_score: IntCounter,
+    pub(crate) beatmap_difficulty_attributes: IntCounter,
     pub(crate) beatmaps: IntCounter,
     pub(crate) beatmapset: IntCounter,
     pub(crate) beatmapset_events: IntCounter,
@@ -60,6 +61,8 @@ impl Metrics {
             beatmap: counters.with_label_values(&["Beatmap"]),
             beatmap_scores: counters.with_label_values(&["Beatmap scores"]),
             beatmap_user_score: counters.with_label_values(&["Beatmap user scores"]),
+            beatmap_difficulty_attributes: counters
+                .with_label_values(&["Beatmap difficulty attributes"]),
             beatmaps: counters.with_label_values(&["Beatmaps"]),
             beatmapset: counters.with_label_values(&["Beatmapset"]),
             beatmapset_events: counters.with_label_values(&["Beatmapset events"]),

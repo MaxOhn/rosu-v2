@@ -25,6 +25,7 @@
 //!
 //! - `beatmaps/lookup`: A specific beatmap including its beatmapset
 //! - `beatmaps`: Up to 50 beatmaps at once including their beatmapsets.
+//! - `beatmaps/{map_id}/attributes`: The difficulty attributes of a beatmap
 //! - `beatmaps/{map_id}/scores`: The global score leaderboard for a beatmap
 //! - `beatmaps/{map_id}/scores/users/{user_id}[/all]`: Get (all) top score(s) of a user on a beatmap. Defaults to the play with the __max score__, not pp
 //! - `beatmapsets/{mapset_id}`: The beatmapset including all of its difficulty beatmaps

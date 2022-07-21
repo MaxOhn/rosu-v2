@@ -12,6 +12,9 @@ use std::{borrow::Cow, fmt::Write};
 pub(crate) enum Route {
     GetBeatmap,
     GetBeatmaps,
+    GetBeatmapDifficultyAttributes {
+        map_id: u32,
+    },
     GetBeatmapScores {
         map_id: u32,
     },
@@ -83,6 +86,9 @@ impl Route {
         match self {
             Self::GetBeatmap => (Method::GET, "beatmaps/lookup".into()),
             Self::GetBeatmaps => (Method::GET, "beatmaps".into()),
+            Self::GetBeatmapDifficultyAttributes { map_id } => {
+                (Method::POST, format!("beatmaps/{map_id}/attributes").into())
+            }
             Self::GetBeatmapScores { map_id } => {
                 (Method::GET, format!("beatmaps/{}/scores", map_id).into())
             }

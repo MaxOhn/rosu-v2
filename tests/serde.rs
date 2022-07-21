@@ -787,9 +787,50 @@ fn get_user_stats() -> UserStatistics {
     }
 }
 
+fn get_map_attributes() -> Vec<BeatmapDifficultyAttributes> {
+    vec![
+        BeatmapDifficultyAttributes {
+            max_combo: 1,
+            stars: 2.0,
+            attrs: GameModeAttributes::Osu {
+                ar: 5.55,
+                od: 6.66,
+                aim_difficulty: 4.44,
+                flashlight_difficulty: 3.33,
+                slider_factor: 2.22,
+                speed_difficulty: 1.11,
+            },
+        },
+        BeatmapDifficultyAttributes {
+            max_combo: 3,
+            stars: 4.0,
+            attrs: GameModeAttributes::Taiko {
+                stamina_difficulty: 7.89,
+                rhythm_difficulty: 4.56,
+                colour_difficulty: 1.23,
+                ar: 0.0,
+                great_hit_window: 10.0,
+            },
+        },
+        BeatmapDifficultyAttributes {
+            max_combo: 5,
+            stars: 6.0,
+            attrs: GameModeAttributes::Mania {
+                great_hit_window: 1.0,
+                score_multiplier: 3.0,
+            },
+        },
+    ]
+}
+
 #[test]
 fn serde_beatmap() {
     ser_de(&get_map());
+}
+
+#[test]
+fn serde_beatmap_attributes() {
+    ser_de(&get_map_attributes());
 }
 
 #[test]
@@ -861,6 +902,11 @@ mod rkyv_tests {
     #[test]
     fn serde_beatmap() {
         ser_de(&get_map());
+    }
+
+    #[test]
+    fn serde_beatmap_attributes() {
+        ser_de(&get_map_attributes());
     }
 
     #[test]

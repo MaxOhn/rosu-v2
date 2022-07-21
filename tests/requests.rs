@@ -112,6 +112,27 @@ async fn beatmap() {
 }
 
 #[tokio::test]
+async fn beatmap_difficulty_attributes() {
+    init().await;
+
+    match osu()
+        .beatmap_difficulty_attributes(ADESSO_BALLA)
+        .mode(GameMode::Taiko)
+        .await
+    {
+        Ok(attrs) => println!("{:?}", attrs.attrs),
+        Err(why) => {
+            unwind_error!(
+                error,
+                why,
+                "Error while requesting beatmap difficulty attributes: {}"
+            );
+            panic!()
+        }
+    }
+}
+
+#[tokio::test]
 async fn beatmaps() {
     init().await;
 

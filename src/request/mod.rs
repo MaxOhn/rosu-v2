@@ -57,23 +57,71 @@ pub(crate) struct Request {
     pub query: Query,
     pub method: Method,
     pub path: Cow<'static, str>,
+    pub body: Body,
 }
 
 impl Request {
-    #[inline]
     fn new(route: Route) -> Self {
-        Self::with_query(route, Query::default())
+        Self::with_query_and_body(route, Query::default(), Body::default())
     }
 
-    #[inline]
     fn with_query(route: Route, query: Query) -> Self {
+        Self::with_query_and_body(route, query, Body::default())
+    }
+
+    fn with_body(route: Route, body: Body) -> Self {
+        Self::with_query_and_body(route, Query::default(), body)
+    }
+
+    fn with_query_and_body(route: Route, query: Query, body: Body) -> Self {
         let (method, path) = route.into_parts();
 
         Self {
             query,
             method,
             path,
+            body,
         }
+    }
+}
+
+#[derive(Debug, Default)]
+pub(crate) struct Body {
+    inner: String,
+}
+
+impl Body {
+    fn push_prefix(&mut self) {
+        if self.inner.is_empty() {
+            self.inner.push('{');
+        } else {
+            self.inner.push(',');
+        }
+    }
+
+    fn push_key(&mut self, key: &str) {
+        self.push_prefix();
+        self.inner.push('"');
+        self.inner.push_str(key);
+        self.inner.push_str("\":");
+    }
+
+    pub(crate) fn push_with_quotes(&mut self, key: &str, value: impl Display) {
+        self.push_key(key);
+        let _ = write!(self.inner, r#""{value}""#);
+    }
+
+    pub(crate) fn push_without_quotes(&mut self, key: &str, value: impl Display) {
+        self.push_key(key);
+        let _ = write!(self.inner, "{value}");
+    }
+
+    pub(crate) fn into_bytes(mut self) -> Vec<u8> {
+        if !self.inner.is_empty() {
+            self.inner.push('}');
+        }
+
+        self.inner.into_bytes()
     }
 }
 
@@ -83,24 +131,20 @@ pub(crate) struct Query {
 }
 
 impl Query {
-    #[inline]
     pub(crate) fn new() -> Self {
         Self::default()
     }
 
-    #[inline]
     pub(crate) fn push(&mut self, key: &str, value: impl Display) {
-        self.query.reserve(2 + key.len());
-
         self.query.push_str(key);
         self.query.push('=');
         let _ = write!(self.query, "{}", value);
-
         self.query.push('&');
     }
 }
 
 impl Display for Query {
+    #[inline]
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         if self.query.is_empty() {
             return Ok(());

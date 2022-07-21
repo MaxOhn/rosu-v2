@@ -16,7 +16,7 @@ use hyper::{
 };
 use hyper_rustls::HttpsConnector;
 use serde::de::DeserializeOwned;
-use std::{fmt::Write, ops::Drop, sync::Arc, time::Duration};
+use std::{ops::Drop, sync::Arc, time::Duration};
 use tokio::sync::{oneshot::Sender, RwLock};
 use url::Url;
 
@@ -98,6 +98,12 @@ impl Osu {
     #[inline]
     pub fn beatmap_scores(&self, map_id: u32) -> GetBeatmapScores<'_> {
         GetBeatmapScores::new(self, map_id)
+    }
+
+    /// Get the [`BeatmapDifficultyAttributes`](crate::model::beatmap::BeatmapDifficultyAttributes) for a map.
+    #[inline]
+    pub fn beatmap_difficulty_attributes(&self, map_id: u32) -> GetBeatmapDifficultyAttributes<'_> {
+        GetBeatmapDifficultyAttributes::new(self, map_id)
     }
 
     /// Get a [`BeatmapUserScore`](crate::model::score::BeatmapUserScore).
@@ -536,6 +542,7 @@ impl Osu {
 }
 
 impl Drop for Osu {
+    #[inline]
     fn drop(&mut self) {
         if let Some(tx) = self.token_loop_tx.take() {
             let _ = tx.send(());
@@ -568,30 +575,29 @@ const API_VERSION: u32 = 20220705;
 
 impl OsuRef {
     async fn request_token(&self) -> OsuResult<TokenResponse> {
-        let mut data = format!(
-            r#"{{"client_id":{},"client_secret":"{}","grant_type":""#,
-            self.client_id, self.client_secret,
-        );
+        let mut body = crate::request::Body::default();
+        body.push_without_quotes("client_id", self.client_id);
+        body.push_with_quotes("client_secret", &self.client_secret);
 
-        let _ = match &self.auth_kind {
+        match &self.auth_kind {
             AuthorizationKind::Client(scope) => {
-                write!(data, r#"client_credentials","scope":"{}"}}"#, scope)
+                body.push_with_quotes("grant_type", "client_credentials");
+                body.push_with_quotes("scope", scope);
             }
             AuthorizationKind::User(auth) => match &self.token.read().await.refresh {
                 Some(refresh) => {
-                    write!(data, r#"refresh_token","refresh_token":"{}"}}"#, refresh)
+                    body.push_with_quotes("grant_type", "refresh_token");
+                    body.push_with_quotes("refresh_token", refresh);
                 }
                 None => {
-                    write!(
-                        data,
-                        r#"authorization_code","redirect_uri":"{}","code":"{}"}}"#,
-                        auth.redirect_uri, auth.code,
-                    )
+                    body.push_with_quotes("grant_type", "authorization_code");
+                    body.push_with_quotes("redirect_uri", &auth.redirect_uri);
+                    body.push_with_quotes("code", &auth.code);
                 }
             },
         };
 
-        let bytes = data.into_bytes();
+        let bytes = body.into_bytes();
         let url = "https://osu.ppy.sh/oauth/token";
 
         let req = HyperRequest::builder()
@@ -624,25 +630,33 @@ impl OsuRef {
             query,
             method,
             path,
+            body,
         } = req;
 
         let url = format!("https://osu.ppy.sh/api/v2/{}{}", path, query);
         let url = Url::parse(&url).map_err(|source| OsuError::Url { source, url })?;
         debug!("URL: {}", url);
 
-        if let Some(token) = self.token.read().await.access.as_ref() {
+        if let Some(ref token) = self.token.read().await.access {
             let value = HeaderValue::from_str(token)
                 .map_err(|source| OsuError::CreatingTokenHeader { source })?;
 
-            let req = HyperRequest::builder()
+            let bytes = body.into_bytes();
+
+            let mut req_builder = HyperRequest::builder()
                 .method(method)
                 .uri(url.as_str())
                 .header(AUTHORIZATION, value)
                 .header(USER_AGENT, MY_USER_AGENT)
                 .header(X_API_VERSION, API_VERSION)
                 .header(ACCEPT, APPLICATION_JSON)
-                .header(CONTENT_LENGTH, 0)
-                .body(Body::empty())?;
+                .header(CONTENT_LENGTH, bytes.len());
+
+            if !bytes.is_empty() {
+                req_builder = req_builder.header(CONTENT_TYPE, APPLICATION_JSON);
+            }
+
+            let req = req_builder.body(Body::from(bytes))?;
 
             self.send_request(req).await
         } else {

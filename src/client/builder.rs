@@ -21,15 +21,18 @@ pub struct OsuBuilder {
     auth_kind: Option<AuthorizationKind>,
     client_id: Option<u64>,
     client_secret: Option<String>,
+    retries: usize,
     timeout: Duration,
 }
 
 impl Default for OsuBuilder {
+    #[inline]
     fn default() -> Self {
         Self {
             auth_kind: None,
             client_id: None,
             client_secret: None,
+            retries: 2,
             timeout: Duration::from_secs(10),
         }
     }
@@ -78,6 +81,7 @@ impl OsuBuilder {
             timeout: self.timeout,
             auth_kind: self.auth_kind.unwrap_or_default(),
             token: RwLock::new(Token::default()),
+            retries: self.retries,
         });
 
         // Acquire the initial API token
@@ -144,7 +148,15 @@ impl OsuBuilder {
         self
     }
 
-    /// Set the timeout for HTTP requests, defaults to 10 seconds.
+    /// In case the request times out, retry up to this many times, defaults to 2.
+    #[inline]
+    pub fn retries(mut self, retries: usize) -> Self {
+        self.retries = retries;
+
+        self
+    }
+
+    /// Set the timeout for requests, defaults to 10 seconds.
     #[inline]
     pub fn timeout(mut self, duration: Duration) -> Self {
         self.timeout = duration;

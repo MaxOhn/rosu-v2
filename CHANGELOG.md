@@ -5,6 +5,7 @@
 - __Additions:__
   - Added a metric for the amount of Username-UserId pairs that are currently cached
   - Added method `Osu::beatmap_difficulty_attributes` to retrieve the `BeatmapDifficultyAttributes` of a beatmap.
+  - Added method `OsuBuilder::retries` to specify how often requests should be retried in case they timeout. Defaults to 2 i.e. 3 attempts in total.
 - __Breaking changes:__
   - Renamed the `GameMode` variants to make them more idiomatic
   - Replaced the `chrono` dependency with `time` so all datetime fields now come from the `time` crate. This includes fields being (de)serialized differently.

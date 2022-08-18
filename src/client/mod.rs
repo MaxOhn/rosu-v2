@@ -747,11 +747,11 @@ fn clone_req(req: &HyperRequest<BodyBytes>) -> HyperRequest<BodyBytes> {
 }
 
 /// `hyper` requires the `HttpBody` trait to be implemented for the type that
-/// requests are generic over. Since that trait is not implemented for `Vec<u8>`
+/// requests are generic over. Since that trait is not implemented for `Bytes`
 /// in hyper itself, we define a simple wrapper for which we implement the trait
 /// the same way it is implemented for `String` in hyper.
 #[derive(Clone, Default)]
-struct BodyBytes(Vec<u8>);
+struct BodyBytes(Bytes);
 
 impl BodyBytes {
     fn is_empty(&self) -> bool {
@@ -775,7 +775,7 @@ impl HttpBody for BodyBytes {
         if !self.is_empty() {
             let bytes = mem::take(&mut self.0);
 
-            Poll::Ready(Some(Ok(bytes.into())))
+            Poll::Ready(Some(Ok(bytes)))
         } else {
             Poll::Ready(None)
         }
@@ -803,6 +803,6 @@ impl HttpBody for BodyBytes {
 impl From<Body> for BodyBytes {
     #[inline]
     fn from(body: Body) -> Self {
-        Self(body.into_bytes())
+        Self(body.into_bytes().into())
     }
 }

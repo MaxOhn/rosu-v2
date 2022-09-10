@@ -23,6 +23,7 @@ metrics = ["prometheus"]
 bitflags = { version = "1.0", default-features = false }
 bytes = { version = "1.0", default-features = false }
 futures = { version = "0.3", default-features = false }
+leaky-bucket-lite = { version = "0.5" }
 log = { version = "0.4", default-features = false }
 hyper = { version = "0.14", default-features = false, features = ["client"] }
 hyper-rustls = { version = "0.23", default-features = false, features = ["http1", "http2", "native-tokio"] }

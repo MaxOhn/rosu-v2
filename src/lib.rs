@@ -119,7 +119,6 @@
 #![deny(clippy::all, nonstandard_style, rust_2018_idioms, unused, warnings)]
 
 mod client;
-mod ratelimiter;
 mod routing;
 
 /// rosu-specific errors

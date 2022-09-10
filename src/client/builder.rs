@@ -1,8 +1,9 @@
 use super::{Authorization, AuthorizationKind, Osu, OsuRef, Token};
-use crate::{error::OsuError, ratelimiter::Ratelimiter, OsuResult};
+use crate::{error::OsuError, OsuResult};
 
 use hyper::client::Builder;
 use hyper_rustls::HttpsConnectorBuilder;
+use leaky_bucket_lite::LeakyBucket;
 use std::{sync::Arc, time::Duration};
 use tokio::sync::{oneshot, RwLock};
 
@@ -23,6 +24,7 @@ pub struct OsuBuilder {
     client_secret: Option<String>,
     retries: usize,
     timeout: Duration,
+    per_second: u32,
 }
 
 impl Default for OsuBuilder {
@@ -34,6 +36,7 @@ impl Default for OsuBuilder {
             client_secret: None,
             retries: 2,
             timeout: Duration::from_secs(10),
+            per_second: 15,
         }
     }
 }
@@ -70,7 +73,13 @@ impl OsuBuilder {
 
         let http = Builder::default().build(connector);
 
-        let ratelimiter = Ratelimiter::new(15, 1);
+        let ratelimiter = LeakyBucket::builder()
+            .max(self.per_second)
+            .tokens(self.per_second)
+            .refill_interval(Duration::from_millis(1000 / self.per_second as u64))
+            .refill_amount(1)
+            .build();
+
         let (tx, dropped_rx) = oneshot::channel();
 
         let inner = Arc::new(OsuRef {

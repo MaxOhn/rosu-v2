@@ -7,7 +7,7 @@ use token::{Authorization, AuthorizationKind, Token, TokenResponse};
 pub use builder::OsuBuilder;
 pub use token::Scope;
 
-use crate::{error::OsuError, model::GameMode, ratelimiter::Ratelimiter, request::*, OsuResult};
+use crate::{error::OsuError, model::GameMode, request::*, OsuResult};
 
 use hyper::{
     body::{Body as HyperBody, HttpBody, SizeHint},
@@ -16,6 +16,7 @@ use hyper::{
     HeaderMap, Method, Request as HyperRequest, Response, StatusCode,
 };
 use hyper_rustls::HttpsConnector;
+use leaky_bucket_lite::LeakyBucket;
 use serde::de::DeserializeOwned;
 use std::{
     convert::Infallible,
@@ -564,7 +565,7 @@ pub(crate) struct OsuRef {
     client_secret: String,
     http: HyperClient<HttpsConnector<HttpConnector>, BodyBytes>,
     timeout: Duration,
-    ratelimiter: Ratelimiter,
+    ratelimiter: LeakyBucket,
     auth_kind: AuthorizationKind,
     token: RwLock<Token>,
     retries: usize,
@@ -675,7 +676,7 @@ impl OsuRef {
     }
 
     async fn send_request(&self, req: HyperRequest<BodyBytes>) -> OsuResult<Response<HyperBody>> {
-        self.ratelimiter.await_access().await;
+        self.ratelimiter.acquire_one().await;
 
         let mut attempt = 0;
 

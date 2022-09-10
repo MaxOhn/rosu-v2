@@ -172,4 +172,18 @@ impl OsuBuilder {
 
         self
     }
+
+    /// Set the amount of requests that can be made in one second, defaults to 15.
+    /// The given value will be clamped between 1 and 20.
+    ///
+    /// Check out the osu!api's [terms of use] for acceptable values.
+    ///
+    /// [terms of use]: https://osu.ppy.sh/docs/index.html#terms-of-use
+
+    #[inline]
+    pub fn ratelimit(mut self, reqs_per_sec: u32) -> Self {
+        self.per_second = reqs_per_sec.clamp(1, 20);
+
+        self
+    }
 }

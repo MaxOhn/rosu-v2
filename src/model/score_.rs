@@ -68,8 +68,8 @@ pub struct Score {
     pub replay: Option<bool>,
     #[serde(alias = "total_score")]
     pub score: u32,
-    #[serde(rename = "id")]
-    pub score_id: u64,
+    #[serde(rename = "best_id")]
+    pub score_id: Option<u64>,
     pub statistics: ScoreStatistics,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub user: Option<UserCompact>,

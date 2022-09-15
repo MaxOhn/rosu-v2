@@ -525,7 +525,7 @@ fn get_score() -> Score {
         rank_global: Some(10),
         replay: Some(true),
         score: 12_345_678,
-        score_id: 123_456_789_000,
+        score_id: Some(123_456_789_000),
         statistics: ScoreStatistics {
             count_geki: 1,
             count_300: 1000,

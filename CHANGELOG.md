@@ -11,6 +11,7 @@
   - Renamed the `GameMode` variants to make them more idiomatic
   - Replaced the `chrono` dependency with `time` so all datetime fields now come from the `time` crate. This includes fields being (de)serialized differently.
   - Now using the specific api version 20220705 which renamed a few fields but only one of those made it through to the interface: `Score::created_at` is now called `Score::ended_at`
+  - The `Score::score_id` field is now of type `Option<u64>` instead of `u64`
 
 # v0.4.0
 

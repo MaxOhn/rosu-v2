@@ -37,18 +37,18 @@ impl ForumPosts {
 #[derive(Clone, Debug, Serialize)]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct ForumPost {
-    #[serde(with = "serde_::datetime")]
+    #[serde(with = "serde_::datetime_full")]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub created_at: OffsetDateTime,
     #[serde(
         skip_serializing_if = "Option::is_none",
-        with = "serde_::option_datetime"
+        with = "serde_::option_datetime_full"
     )]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub deleted_at: Option<OffsetDateTime>,
     #[serde(
         skip_serializing_if = "Option::is_none",
-        with = "serde_::option_datetime"
+        with = "serde_::option_datetime_full"
     )]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub edited_at: Option<OffsetDateTime>,
@@ -83,11 +83,11 @@ impl<'de> Visitor<'de> for ForumPostVisitor {
 
     fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
         #[derive(Deserialize)]
-        struct DateTimeWrapper(#[serde(with = "serde_::datetime")] OffsetDateTime);
+        struct DateTimeWrapper(#[serde(with = "serde_::datetime_full")] OffsetDateTime);
 
         #[derive(Deserialize)]
         struct OptionDateTimeWrapper(
-            #[serde(with = "serde_::option_datetime")] Option<OffsetDateTime>,
+            #[serde(with = "serde_::option_datetime_full")] Option<OffsetDateTime>,
         );
 
         let mut created_at: Option<DateTimeWrapper> = None;
@@ -109,30 +109,16 @@ impl<'de> Visitor<'de> for ForumPostVisitor {
                     html.replace(body.html);
                     raw.replace(body.raw);
                 }
-                "created_at" => {
-                    created_at = Some(map.next_value()?);
-                }
+                "created_at" => created_at = Some(map.next_value()?),
                 "deleted_at" => deleted_at = Some(map.next_value()?),
                 "edited_at" => edited_at = Some(map.next_value()?),
                 "edited_by_id" => edited_by_id = map.next_value()?,
-                "forum_id" => {
-                    forum_id.replace(map.next_value()?);
-                }
-                "html" => {
-                    html.replace(map.next_value()?);
-                }
-                "id" => {
-                    post_id.replace(map.next_value()?);
-                }
-                "raw" => {
-                    raw.replace(map.next_value()?);
-                }
-                "topic_id" => {
-                    topic_id.replace(map.next_value()?);
-                }
-                "user_id" => {
-                    user_id.replace(map.next_value()?);
-                }
+                "forum_id" => forum_id = Some(map.next_value()?),
+                "html" => html = Some(map.next_value()?),
+                "id" => post_id = Some(map.next_value()?),
+                "raw" => raw = Some(map.next_value()?),
+                "topic_id" => topic_id = Some(map.next_value()?),
+                "user_id" => user_id = Some(map.next_value()?),
                 _ => {
                     let _: IgnoredAny = map.next_value()?;
                 }
@@ -189,13 +175,13 @@ pub struct ForumPostsSearch {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct ForumTopic {
-    #[serde(with = "serde_::datetime")]
+    #[serde(with = "serde_::datetime_full")]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub created_at: OffsetDateTime,
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
-        with = "serde_::option_datetime"
+        with = "serde_::option_datetime_full"
     )]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub deleted_at: Option<OffsetDateTime>,
@@ -212,7 +198,7 @@ pub struct ForumTopic {
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
-        with = "serde_::option_datetime"
+        with = "serde_::option_datetime_full"
     )]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub updated_at: Option<OffsetDateTime>,

@@ -23,7 +23,7 @@ pub struct SeasonalBackground {
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct SeasonalBackgrounds {
     /// End date of the backgrounds
-    #[serde(with = "serde_::datetime")]
+    #[serde(with = "serde_::datetime_full")]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub ends_at: OffsetDateTime,
     /// List of backgrounds

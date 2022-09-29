@@ -40,7 +40,7 @@ impl BeatmapUserScore {
 pub struct Score {
     #[serde(with = "serde_::adjust_acc")]
     pub accuracy: f32,
-    #[serde(with = "serde_::datetime")]
+    #[serde(with = "serde_::datetime_full")]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub ended_at: OffsetDateTime,
     #[serde(rename = "rank")]

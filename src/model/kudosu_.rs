@@ -37,7 +37,7 @@ pub struct KudosuHistory {
     // pub details: _; // TODO
     /// Object type which the exchange happened on (forum_post, etc).
     pub model: String,
-    #[serde(with = "super::serde_::datetime")]
+    #[serde(with = "super::serde_::datetime_full")]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub created_at: OffsetDateTime,
     /// Simple detail of the user who started the exchange.

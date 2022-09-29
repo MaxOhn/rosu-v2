@@ -585,7 +585,7 @@ fn deserialize_rankings_cursor<'de, D: Deserializer<'de>>(d: D) -> Result<Option
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct Spotlight {
     /// The end date of the spotlight.
-    #[serde(with = "serde_::datetime")]
+    #[serde(with = "serde_::datetime_full")]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub end_date: OffsetDateTime,
     /// If the spotlight has different mades specific to each [`GameMode`](crate::model::GameMode).
@@ -602,7 +602,7 @@ pub struct Spotlight {
     #[serde(rename = "type")]
     pub spotlight_type: String,
     /// The starting date of the spotlight.
-    #[serde(with = "serde_::datetime")]
+    #[serde(with = "serde_::datetime_full")]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub start_date: OffsetDateTime,
 }

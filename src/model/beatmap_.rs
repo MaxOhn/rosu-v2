@@ -263,7 +263,6 @@ pub struct Beatmapset {
     #[serde(rename = "id")]
     pub mapset_id: u32,
     pub nominations_summary: BeatmapsetNominations,
-    #[serde(with = "serde_::int_as_bool")]
     pub nsfw: bool,
     #[serde(rename = "play_count")]
     pub playcount: u32,
@@ -321,7 +320,6 @@ impl Eq for Beatmapset {}
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct BeatmapsetAvailability {
-    #[serde(with = "serde_::int_as_bool")]
     pub download_disabled: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub more_information: Option<String>,
@@ -427,7 +425,6 @@ pub struct BeatmapsetCompact {
     pub language: Option<Language>,
     #[serde(rename = "id")]
     pub mapset_id: u32,
-    #[serde(with = "serde_::int_as_bool")]
     pub nsfw: bool,
     #[serde(rename = "play_count")]
     pub playcount: u32,

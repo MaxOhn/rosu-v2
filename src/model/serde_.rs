@@ -249,18 +249,6 @@ pub(super) mod option_datetime_full {
     }
 }
 
-pub(super) mod int_as_bool {
-    use serde::{Deserialize, Deserializer, Serializer};
-
-    pub fn deserialize<'de, D: Deserializer<'de>>(d: D) -> Result<bool, D::Error> {
-        <i32 as Deserialize>::deserialize(d).map(|n| n != 0)
-    }
-
-    pub fn serialize<S: Serializer>(b: &bool, s: S) -> Result<S::Ok, S::Error> {
-        s.serialize_u8(*b as u8)
-    }
-}
-
 pub(super) mod adjust_acc {
     use serde::{Deserialize, Deserializer, Serializer};
 

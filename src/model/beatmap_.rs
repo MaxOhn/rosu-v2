@@ -995,7 +995,7 @@ impl<'de> Deserialize<'de> for BeatmapsetSearchParameters {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 // TODO
 // #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct BeatmapsetSearchResult {

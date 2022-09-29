@@ -808,10 +808,10 @@ impl<'a> GetBeatmapsetSearch<'a> {
                 // to only contain ASCII chars and have a length >= 1.
                 unsafe { buf.as_bytes_mut()[0].make_ascii_lowercase() }
 
-                let _ = query.push("s", buf);
+                query.push("s", buf);
             }
             Some(SearchRankStatus::Any) => {
-                let _ = query.push("s", "any");
+                query.push("s", "any");
             }
         }
 

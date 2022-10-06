@@ -193,8 +193,7 @@ pub enum GameModeAttributes {
         stamina_difficulty: f32,
         rhythm_difficulty: f32,
         colour_difficulty: f32,
-        #[serde(rename = "approach_rate")]
-        ar: f32,
+        peak_difficulty: f32,
         great_hit_window: f32,
     },
     Catch {

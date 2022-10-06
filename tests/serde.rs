@@ -808,7 +808,7 @@ fn get_map_attributes() -> Vec<BeatmapDifficultyAttributes> {
                 stamina_difficulty: 7.89,
                 rhythm_difficulty: 4.56,
                 colour_difficulty: 1.23,
-                ar: 0.0,
+                peak_difficulty: 999.99,
                 great_hit_window: 10.0,
             },
         },

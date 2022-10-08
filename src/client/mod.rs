@@ -181,6 +181,21 @@ impl Osu {
         GetBeatmapset::new(self, mapset_id)
     }
 
+    /// Get a [`Beatmapset`](crate::model::beatmap::Beatmapset) from a map ID.
+    ///
+    /// Filled options will be: `artist_unicode`, `converts`, `description`,
+    /// `genre`, `language`, `legacy_thread_url`, `maps`, `ratings`,
+    /// `ranked_date` (if not unranked), `recent_favourites`,
+    /// `submitted_date` (if submitted), and `title_unicode`.
+    ///
+    /// The contained [`Beatmap`](crate::model::beatmap::Beatmap)s
+    /// will contain `Some` in `fail_times`, `max_combo`
+    /// (if available for mode), and `deleted_at` (if deleted).
+    #[inline]
+    pub fn beatmapset_from_map_id(&self, map_id: u32) -> GetBeatmapsetFromMapId<'_> {
+        GetBeatmapsetFromMapId::new(self, map_id)
+    }
+
     /// Get a [`BeatmapsetEvents`](crate::model::beatmap::BeatmapsetEvents)
     /// struct containing the most recent mapset events.
     #[inline]

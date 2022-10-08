@@ -11,6 +11,7 @@ pub(crate) struct Metrics {
     pub(crate) beatmap_difficulty_attributes: IntCounter,
     pub(crate) beatmaps: IntCounter,
     pub(crate) beatmapset: IntCounter,
+    pub(crate) beatmapset_from_map_id: IntCounter,
     pub(crate) beatmapset_events: IntCounter,
     pub(crate) beatmapset_search: IntCounter,
 

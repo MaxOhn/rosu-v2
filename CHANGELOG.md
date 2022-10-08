@@ -13,6 +13,7 @@
   - Now using the specific api version 20220705 which renamed a few fields but only one of those made it through to the interface: `Score::created_at` is now called `Score::ended_at`
   - The `Score::score_id` field is now of type `Option<u64>` instead of `u64`
   - `GameModeAttributes::Taiko` now has an additional field `peak_difficulty` and no longer has the field `ar`
+  - Added method `Osu::beatmapset_from_map_id` to retrieve a mapset using a map ID.
 
 # v0.4.0
 

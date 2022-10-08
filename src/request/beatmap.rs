@@ -586,6 +586,43 @@ impl<'a> GetBeatmapset<'a> {
 
 poll_req!(GetBeatmapset => Beatmapset);
 
+/// Get a [`Beatmapset`](crate::model::beatmap::Beatmapset) from a beatmap ID.
+#[must_use = "futures do nothing unless you `.await` or poll them"]
+pub struct GetBeatmapsetFromMapId<'a> {
+    fut: Option<Pending<'a, Beatmapset>>,
+    osu: &'a Osu,
+    map_id: u32,
+}
+
+impl<'a> GetBeatmapsetFromMapId<'a> {
+    #[inline]
+    pub(crate) fn new(osu: &'a Osu, map_id: u32) -> Self {
+        Self {
+            fut: None,
+            osu,
+            map_id,
+        }
+    }
+
+    fn start(&mut self) -> Pending<'a, Beatmapset> {
+        #[cfg(feature = "metrics")]
+        self.osu.metrics.beatmapset_from_map_id.inc();
+
+        let mut query = Query::new();
+
+        query.push("beatmap_id", self.map_id);
+
+        let req = Request::with_query(Route::GetBeatmapsetFromMapId, query);
+
+        let osu = self.osu;
+        let fut = osu.request::<Beatmapset>(req);
+
+        Box::pin(fut)
+    }
+}
+
+poll_req!(GetBeatmapsetFromMapId => Beatmapset);
+
 /// Get a [`BeatmapsetEvents`](crate::model::beatmap::BeatmapsetEvents) struct.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetBeatmapsetEvents<'a> {

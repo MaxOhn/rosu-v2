@@ -215,6 +215,19 @@ async fn beatmapset() {
 }
 
 #[tokio::test]
+async fn beatmapset_from_map_id() {
+    init().await;
+
+    match osu().beatmapset_from_map_id(ADESSO_BALLA).await {
+        Ok(mapset) => println!("Received mapset with {} maps", mapset.maps.unwrap().len()),
+        Err(why) => {
+            unwind_error!(println, why, "Error while requesting beatmapset: {}");
+            panic!()
+        }
+    }
+}
+
+#[tokio::test]
 async fn beatmapset_events() {
     init().await;
 

@@ -29,6 +29,7 @@ pub(crate) enum Route {
     GetBeatmapset {
         mapset_id: u32,
     },
+    GetBeatmapsetFromMapId,
     GetBeatmapsetEvents,
     GetBeatmapsetSearch,
     GetComments,
@@ -103,6 +104,7 @@ impl Route {
             Self::GetBeatmapset { mapset_id } => {
                 (Method::GET, format!("beatmapsets/{}", mapset_id).into())
             }
+            Self::GetBeatmapsetFromMapId => (Method::GET, "beatmapsets/lookup".into()),
             Self::GetBeatmapsetEvents => (Method::GET, "beatmapsets/events".into()),
             Self::GetBeatmapsetSearch => (Method::GET, "beatmapsets/search".into()),
             Self::GetComments => (Method::GET, "comments".into()),

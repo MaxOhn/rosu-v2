@@ -1,6 +1,6 @@
 [package]
 name          = "rosu-v2"
-version       = "0.4.0"
+version       = "0.5.0"
 authors       = ["MaxOhn <ohn.m@hotmail.de>"]
 edition       = "2018"
 description   = "An osu! API v2 wrapper"

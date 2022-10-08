@@ -1,5 +1,9 @@
 ## Upcoming
 
+- Nothing as of now
+
+# v0.5.0 (2022-10-08)
+
 - __Adjustments:__
   - If the `cache` feature is enabled, the cache now fills proactively and also updates with respect to username changes
 - __Additions:__
@@ -7,15 +11,15 @@
   - Added method `Osu::beatmap_difficulty_attributes` to retrieve the `BeatmapDifficultyAttributes` of a beatmap.
   - Added method `OsuBuilder::retries` to specify how often requests should be retried in case they timeout. Defaults to 2 i.e. 3 attempts in total.
   - Added method `OsuBuilder::ratelimit` to specify how many requests per seconds can be made. Value will be clamped between 1 and 20 and defaults to 15.
+  - Added method `Osu::beatmapset_from_map_id` to retrieve a mapset using a map ID.
 - __Breaking changes:__
   - Renamed the `GameMode` variants to make them more idiomatic
   - Replaced the `chrono` dependency with `time` so all datetime fields now come from the `time` crate. This includes fields being (de)serialized differently.
   - Now using the specific api version 20220705 which renamed a few fields but only one of those made it through to the interface: `Score::created_at` is now called `Score::ended_at`
   - The `Score::score_id` field is now of type `Option<u64>` instead of `u64`
   - `GameModeAttributes::Taiko` now has an additional field `peak_difficulty` and no longer has the field `ar`
-  - Added method `Osu::beatmapset_from_map_id` to retrieve a mapset using a map ID.
 
-# v0.4.0
+## v0.4.0
 
 - __Breaking:__
   - `MatchEvent::Create`'s `user_id` field is now of type `Option<u32>` (previously just `u32`)

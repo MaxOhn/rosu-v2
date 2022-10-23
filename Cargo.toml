@@ -30,7 +30,7 @@ hyper-rustls = { version = "0.23", default-features = false, features = ["http1"
 serde = { version = "1.0", default-features = false, features = ["derive"] }
 serde_json = { version = "1.0", default-features = false, features = ["std"] }
 smallstr = { version = "0.2", features = ["serde"] }
-time = { version = "0.3", features = ["parsing"] }
+time = { version = "0.3", features = ["formatting", "parsing"] }
 tokio = { version = "1.0", default-features = false, features = ["macros"] }
 url = { version = "2.0", default-features = false }
 

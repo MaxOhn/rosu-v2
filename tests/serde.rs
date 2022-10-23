@@ -3,7 +3,7 @@ extern crate rosu_v2;
 use rosu_v2::prelude::*;
 use serde::{de::DeserializeOwned, Serialize};
 use std::{collections::HashMap, fmt::Debug};
-use time::{Date, OffsetDateTime};
+use time::{Date, Duration, OffsetDateTime};
 
 fn ser_de<T>(val: &T)
 where
@@ -44,7 +44,10 @@ fn get_cursor() -> Cursor {
 }
 
 fn get_date() -> OffsetDateTime {
-    OffsetDateTime::now_utc()
+    let mut now = OffsetDateTime::now_utc();
+    now -= Duration::nanoseconds(now.nanosecond() as i64);
+
+    now
 }
 
 fn get_forum_posts() -> ForumPosts {

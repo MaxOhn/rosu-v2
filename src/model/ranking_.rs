@@ -114,7 +114,6 @@ struct UserStatsVecVisitor;
 impl<'de> Visitor<'de> for UserStatsVecVisitor {
     type Value = Vec<UserCompact>;
 
-    #[inline]
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("a vec of UserStatistics structs")
     }
@@ -288,7 +287,7 @@ struct UserCompactWithoutStats<'u> {
     pub is_supporter: &'u bool,
     #[serde(
         skip_serializing_if = "Option::is_none",
-        with = "serde_::option_datetime"
+        with = "serde_::option_datetime_full"
     )]
     pub last_visit: &'u Option<OffsetDateTime>,
     pub pm_friends_only: &'u bool,

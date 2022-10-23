@@ -55,7 +55,10 @@ pub(super) mod datetime {
     }
 
     pub fn serialize<S: Serializer>(datetime: &OffsetDateTime, s: S) -> Result<S::Ok, S::Error> {
-        datetime.unix_timestamp_nanos().serialize(s)
+        datetime
+            .format(&OFFSET_DATE_TIME_FORMAT)
+            .expect("incorrect format")
+            .serialize(s)
     }
 
     pub(super) struct DateTimeVisitor;
@@ -63,7 +66,6 @@ pub(super) mod datetime {
     impl<'de> Visitor<'de> for DateTimeVisitor {
         type Value = OffsetDateTime;
 
-        #[inline]
         fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
             f.write_str("a `PrimitiveDateTime`")
         }
@@ -73,21 +75,6 @@ pub(super) mod datetime {
             PrimitiveDateTime::parse(v, OFFSET_DATE_TIME_FORMAT)
                 .map(PrimitiveDateTime::assume_utc)
                 .map_err(Error::custom)
-        }
-
-        #[inline]
-        fn visit_i64<E: Error>(self, v: i64) -> Result<Self::Value, E> {
-            self.visit_i128(v as i128)
-        }
-
-        #[inline]
-        fn visit_u64<E: Error>(self, v: u64) -> Result<Self::Value, E> {
-            self.visit_i128(v as i128)
-        }
-
-        #[inline]
-        fn visit_i128<E: Error>(self, v: i128) -> Result<Self::Value, E> {
-            OffsetDateTime::from_unix_timestamp_nanos(v).map_err(Error::custom)
         }
     }
 }
@@ -108,7 +95,10 @@ pub(super) mod datetime_full {
     }
 
     pub fn serialize<S: Serializer>(datetime: &OffsetDateTime, s: S) -> Result<S::Ok, S::Error> {
-        datetime.unix_timestamp_nanos().serialize(s)
+        datetime
+            .format(&OFFSET_DATE_TIME_FORMAT_FULL)
+            .expect("incorrect format")
+            .serialize(s)
     }
 
     pub(super) struct DateTimeVisitor;
@@ -116,7 +106,6 @@ pub(super) mod datetime_full {
     impl<'de> Visitor<'de> for DateTimeVisitor {
         type Value = OffsetDateTime;
 
-        #[inline]
         fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
             f.write_str("an `OffsetDateTime`")
         }
@@ -124,21 +113,6 @@ pub(super) mod datetime_full {
         #[inline]
         fn visit_str<E: Error>(self, v: &str) -> Result<Self::Value, E> {
             OffsetDateTime::parse(v, OFFSET_DATE_TIME_FORMAT_FULL).map_err(Error::custom)
-        }
-
-        #[inline]
-        fn visit_i64<E: Error>(self, v: i64) -> Result<Self::Value, E> {
-            self.visit_i128(v as i128)
-        }
-
-        #[inline]
-        fn visit_u64<E: Error>(self, v: u64) -> Result<Self::Value, E> {
-            self.visit_i128(v as i128)
-        }
-
-        #[inline]
-        fn visit_i128<E: Error>(self, v: i128) -> Result<Self::Value, E> {
-            OffsetDateTime::from_unix_timestamp_nanos(v).map_err(Error::custom)
         }
     }
 }
@@ -152,7 +126,7 @@ pub(super) mod option_datetime {
     };
     use time::OffsetDateTime;
 
-    use super::datetime::DateTimeVisitor;
+    use super::{datetime::DateTimeVisitor, OFFSET_DATE_TIME_FORMAT};
 
     pub fn deserialize<'de, D: Deserializer<'de>>(
         d: D,
@@ -165,7 +139,11 @@ pub(super) mod option_datetime {
         s: S,
     ) -> Result<S::Ok, S::Error> {
         datetime
-            .map(OffsetDateTime::unix_timestamp_nanos)
+            .map(|datetime| {
+                datetime
+                    .format(&OFFSET_DATE_TIME_FORMAT)
+                    .expect("incorrect format")
+            })
             .serialize(s)
     }
 
@@ -174,7 +152,6 @@ pub(super) mod option_datetime {
     impl<'de> Visitor<'de> for OptionDateTimeVisitor {
         type Value = Option<OffsetDateTime>;
 
-        #[inline]
         fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
             f.write_str("an optional `PrimitiveDateTime`")
         }
@@ -205,7 +182,7 @@ pub(super) mod option_datetime_full {
     };
     use time::OffsetDateTime;
 
-    use super::datetime_full::DateTimeVisitor;
+    use super::{datetime_full::DateTimeVisitor, OFFSET_DATE_TIME_FORMAT_FULL};
 
     pub fn deserialize<'de, D: Deserializer<'de>>(
         d: D,
@@ -218,7 +195,11 @@ pub(super) mod option_datetime_full {
         s: S,
     ) -> Result<S::Ok, S::Error> {
         datetime
-            .map(OffsetDateTime::unix_timestamp_nanos)
+            .map(|datetime| {
+                datetime
+                    .format(&OFFSET_DATE_TIME_FORMAT_FULL)
+                    .expect("incorrect format")
+            })
             .serialize(s)
     }
 
@@ -227,7 +208,6 @@ pub(super) mod option_datetime_full {
     impl<'de> Visitor<'de> for OptionDateTimeVisitor {
         type Value = Option<OffsetDateTime>;
 
-        #[inline]
         fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
             f.write_str("an optional `OffsetDateTime`")
         }
@@ -287,7 +267,6 @@ pub(super) mod date {
     impl<'de> Visitor<'de> for DateVisitor {
         type Value = Date;
 
-        #[inline]
         fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
             f.write_str("a `Date`")
         }

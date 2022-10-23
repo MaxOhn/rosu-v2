@@ -16,7 +16,7 @@ __Breaking changes:__
   - Added method `Osu::beatmap_difficulty_attributes` to retrieve the `BeatmapDifficultyAttributes` of a beatmap.
   - Added method `OsuBuilder::retries` to specify how often requests should be retried in case they timeout. Defaults to 2 i.e. 3 attempts in total.
   - Added method `OsuBuilder::ratelimit` to specify how many requests per seconds can be made. Value will be clamped between 1 and 20 and defaults to 15.
-  - Added method `Osu::beatmapset_from_map_id` to retrieve a mapset using a map ID.
+  - Added method `Osu::beatmapset_from_map_id` to retrieve a mapset using a map ID. ([#1] - [@Jeglerjeg])
 - __Breaking changes:__
   - Renamed the `GameMode` variants to make them more idiomatic
   - Replaced the `chrono` dependency with `time` so all datetime fields now come from the `time` crate. This includes fields being (de)serialized differently.
@@ -106,3 +106,7 @@ __Breaking changes:__
 ## v0.1.0
 
 - Initial release
+
+[@Jeglerjeg]: https://github.com/Jeglerjeg
+
+[#1]: https://github.com/MaxOhn/rosu-v2/pull/1

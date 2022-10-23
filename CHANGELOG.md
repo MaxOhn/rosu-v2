@@ -4,7 +4,7 @@
   - Fixed deserialization when requesting mapset id 3
   - Fixed deserialization of datetimes in comments
 
-__Breaking changes:__
+- __Breaking changes:__
   - The serialization of all `OffsetDateTime` was changed. They used to be serialized into the amount of unix timestamp nanoseconds which was an i128. Since those could not be serialized into a `serde_json::Value` without significant performance loss, all datetimes are now serialized into a string of the same format given by the osu!api.
 
 # v0.5.0 (2022-10-08)

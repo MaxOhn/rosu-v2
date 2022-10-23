@@ -1,6 +1,9 @@
 extern crate rosu_v2;
 
-use std::env;
+use std::{
+    env,
+    sync::atomic::{AtomicBool, Ordering::SeqCst},
+};
 
 use dotenv::dotenv;
 use eyre::{Result, WrapErr};
@@ -12,39 +15,59 @@ use rosu_v2::{
     },
     Osu,
 };
+use tokio::sync::{Mutex, MutexGuard};
 
 #[cfg(feature = "cache")]
 use rosu_v2::model::GameMods;
 
-static OSU: OnceCell<Osu> = OnceCell::new();
+struct OsuSingleton {
+    initialized: AtomicBool,
+    // The mutex is necessary since each test spawns its own async executor and hyper's Client
+    // does not like that, see https://github.com/hyperium/hyper/issues/2112
+    inner: OnceCell<Mutex<Osu>>,
+}
 
-// Be sure you pass `--test-threads=1` to `cargo test` when running
-async fn osu() -> Result<&'static Osu> {
-    if OSU.get().is_none() {
-        let _ = env_logger::builder().is_test(true).try_init();
-        dotenv().ok();
-
-        let client_id = env::var("CLIENT_ID")
-            .expect("missing CLIENT_ID")
-            .parse()
-            .wrap_err("failed to parse client id as u64")?;
-
-        let client_secret = env::var("CLIENT_SECRET").wrap_err("missing CLIENT_SECRET")?;
-
-        let osu = Osu::builder()
-            .client_id(client_id)
-            .client_secret(client_secret)
-            .build()
-            .await
-            .wrap_err("failed to build osu! client")?;
-
-        if OSU.set(osu).is_err() {
-            eyre::bail!("Failed to set OSU cell");
+impl OsuSingleton {
+    const fn new() -> Self {
+        Self {
+            initialized: AtomicBool::new(false),
+            inner: OnceCell::new(),
         }
     }
 
-    Ok(OSU.wait())
+    async fn get(&self) -> Result<MutexGuard<'_, Osu>> {
+        let cmp_res = self
+            .initialized
+            .compare_exchange(false, true, SeqCst, SeqCst);
+
+        if cmp_res.is_ok() {
+            let _ = env_logger::builder().is_test(true).try_init();
+            dotenv().ok();
+
+            let client_id = env::var("CLIENT_ID")
+                .expect("missing CLIENT_ID")
+                .parse()
+                .wrap_err("failed to parse client id as u64")?;
+
+            let client_secret = env::var("CLIENT_SECRET").wrap_err("missing CLIENT_SECRET")?;
+
+            let osu = Osu::builder()
+                .client_id(client_id)
+                .client_secret(client_secret)
+                .build()
+                .await
+                .wrap_err("failed to build osu! client")?;
+
+            if self.inner.set(Mutex::new(osu)).is_err() {
+                eyre::bail!("Failed to set inner cell");
+            }
+        }
+
+        Ok(self.inner.wait().lock().await)
+    }
 }
+
+static OSU: OsuSingleton = OsuSingleton::new();
 
 const ADESSO_BALLA: u32 = 171024;
 const BREEZEBLOCKS: u32 = 3187415;
@@ -61,9 +84,8 @@ const COOKIEZI_FREEDOM_DIVE: u64 = 2177560145;
 #[tokio::test]
 #[ignore = "specific testing"]
 async fn custom() -> Result<()> {
-    let req_fut = osu().await?.beatmapset(3);
+    let result = OSU.get().await?.beatmapset(3).await?;
 
-    let result = req_fut.await?;
     println!("Result:\n{:#?}", result.creator);
 
     Ok(())
@@ -71,7 +93,8 @@ async fn custom() -> Result<()> {
 
 #[tokio::test]
 async fn beatmap() -> Result<()> {
-    let map = osu().await?.beatmap().map_id(ADESSO_BALLA).await?;
+    let map = OSU.get().await?.beatmap().map_id(ADESSO_BALLA).await?;
+
     println!(
         "Received {} - {}",
         map.mapset.as_ref().unwrap().artist,
@@ -83,7 +106,8 @@ async fn beatmap() -> Result<()> {
 
 #[tokio::test]
 async fn beatmap_difficulty_attributes() -> Result<()> {
-    let attrs = osu()
+    let attrs = OSU
+        .get()
         .await?
         .beatmap_difficulty_attributes(ADESSO_BALLA)
         .mode(GameMode::Taiko)
@@ -96,7 +120,12 @@ async fn beatmap_difficulty_attributes() -> Result<()> {
 
 #[tokio::test]
 async fn beatmaps() -> Result<()> {
-    let maps = osu().await?.beatmaps([ADESSO_BALLA, BREEZEBLOCKS]).await?;
+    let maps = OSU
+        .get()
+        .await?
+        .beatmaps([ADESSO_BALLA, BREEZEBLOCKS])
+        .await?;
+
     println!("Received {} maps", maps.len());
 
     Ok(())
@@ -104,7 +133,7 @@ async fn beatmaps() -> Result<()> {
 
 #[tokio::test]
 async fn beatmap_scores() -> Result<()> {
-    let scores = osu().await?.beatmap_scores(ADESSO_BALLA).await?;
+    let scores = OSU.get().await?.beatmap_scores(ADESSO_BALLA).await?;
     println!("Received {} scores", scores.len());
 
     Ok(())
@@ -113,7 +142,8 @@ async fn beatmap_scores() -> Result<()> {
 #[cfg(feature = "cache")]
 #[tokio::test]
 async fn beatmap_user_score() -> Result<()> {
-    let score = osu()
+    let score = OSU
+        .get()
         .await?
         .beatmap_user_score(ADESSO_BALLA, BADEWANNE3)
         .mods(GameMods::Hidden | GameMods::HardRock | GameMods::HalfTime)
@@ -130,7 +160,8 @@ async fn beatmap_user_score() -> Result<()> {
 #[cfg(feature = "cache")]
 #[tokio::test]
 async fn beatmap_user_scores() -> Result<()> {
-    let scores = osu()
+    let scores = OSU
+        .get()
         .await?
         .beatmap_user_scores(ADESSO_BALLA, BADEWANNE3)
         .await?;
@@ -142,7 +173,7 @@ async fn beatmap_user_scores() -> Result<()> {
 
 #[tokio::test]
 async fn beatmapset() -> Result<()> {
-    let mapset = osu().await?.beatmapset(HIKOUI_GUMO).await?;
+    let mapset = OSU.get().await?.beatmapset(HIKOUI_GUMO).await?;
     println!("Received mapset with {} maps", mapset.maps.unwrap().len());
 
     Ok(())
@@ -150,7 +181,12 @@ async fn beatmapset() -> Result<()> {
 
 #[tokio::test]
 async fn beatmapset_from_map_id() -> Result<()> {
-    let mapset = osu().await?.beatmapset_from_map_id(ADESSO_BALLA).await?;
+    let mapset = OSU
+        .get()
+        .await?
+        .beatmapset_from_map_id(ADESSO_BALLA)
+        .await?;
+
     println!("Received mapset with {} maps", mapset.maps.unwrap().len());
 
     Ok(())
@@ -158,7 +194,7 @@ async fn beatmapset_from_map_id() -> Result<()> {
 
 #[tokio::test]
 async fn beatmapset_events() -> Result<()> {
-    let events = osu().await?.beatmapset_events().await?;
+    let events = OSU.get().await?.beatmapset_events().await?;
     println!(
         "Received {} events, {} users",
         events.events.len(),
@@ -170,7 +206,8 @@ async fn beatmapset_events() -> Result<()> {
 
 #[tokio::test]
 async fn beatmapset_search() -> Result<()> {
-    let search_result = osu()
+    let search_result = OSU
+        .get()
         .await?
         .beatmapset_search()
         .query("artist=camellia stars>8 ar>9 length<400")
@@ -191,7 +228,7 @@ async fn beatmapset_search() -> Result<()> {
 
 #[tokio::test]
 async fn comments() -> Result<()> {
-    let bundle = osu().await?.comments().sort_new().await?;
+    let bundle = OSU.get().await?.comments().sort_new().await?;
     println!(
         "Received bundle, {} comments | {} users",
         bundle.comments.len(),
@@ -203,7 +240,8 @@ async fn comments() -> Result<()> {
 
 #[tokio::test]
 async fn chart_rankings() -> Result<()> {
-    let rankings = osu().await?.chart_rankings(GameMode::Osu).await?;
+    let rankings = OSU.get().await?.chart_rankings(GameMode::Osu).await?;
+
     println!(
         "Received a spotlight with {} mapsets and {} statistics",
         rankings.mapsets.len(),
@@ -215,7 +253,8 @@ async fn chart_rankings() -> Result<()> {
 
 #[tokio::test]
 async fn country_rankings() -> Result<()> {
-    let countries = osu().await?.country_rankings(GameMode::Osu).await?;
+    let countries = OSU.get().await?.country_rankings(GameMode::Osu).await?;
+
     println!(
         "Received the first {} out of {} countries",
         countries.ranking.len(),
@@ -227,7 +266,8 @@ async fn country_rankings() -> Result<()> {
 
 #[tokio::test]
 async fn forum_posts() -> Result<()> {
-    let posts = osu()
+    let posts = OSU
+        .get()
         .await?
         .forum_posts(1265690)
         .sort_descending()
@@ -242,7 +282,8 @@ async fn forum_posts() -> Result<()> {
 #[cfg(feature = "cache")]
 #[tokio::test]
 async fn recent_events() -> Result<()> {
-    let events = osu()
+    let events = OSU
+        .get()
         .await?
         .recent_events("badewanne3")
         .limit(10)
@@ -256,7 +297,7 @@ async fn recent_events() -> Result<()> {
 
 #[tokio::test]
 async fn kudosu() -> Result<()> {
-    let history = osu().await?.kudosu(SYLAS).limit(5).offset(1).await?;
+    let history = OSU.get().await?.kudosu(SYLAS).limit(5).offset(1).await?;
     let sum: i32 = history.iter().map(|entry| entry.amount).sum();
 
     println!("Received {} entries amounting to {}", history.len(), sum);
@@ -266,7 +307,7 @@ async fn kudosu() -> Result<()> {
 
 #[tokio::test]
 async fn news() -> Result<()> {
-    let news = osu().await?.news().await?;
+    let news = OSU.get().await?.news().await?;
     println!("Received news, got {} posts", news.posts.len());
 
     Ok(())
@@ -274,7 +315,7 @@ async fn news() -> Result<()> {
 
 #[tokio::test]
 async fn osu_match() -> Result<()> {
-    let osu_match = osu().await?.osu_match(DE_VS_CA).await?;
+    let osu_match = OSU.get().await?.osu_match(DE_VS_CA).await?;
     println!(
         "Received match, got {} events and {} users",
         osu_match.events.len(),
@@ -286,7 +327,7 @@ async fn osu_match() -> Result<()> {
 
 #[tokio::test]
 async fn osu_matches() -> Result<()> {
-    let osu_matches = osu().await?.osu_matches().await?;
+    let osu_matches = OSU.get().await?.osu_matches().await?;
     println!("Received {} matches", osu_matches.matches.len());
 
     Ok(())
@@ -295,7 +336,8 @@ async fn osu_matches() -> Result<()> {
 #[tokio::test]
 #[ignore = "requires OAuth to not throw an error"]
 async fn own_data() -> Result<()> {
-    let user = osu().await?.own_data().mode(GameMode::Taiko).await?;
+    let user = OSU.get().await?.own_data().mode(GameMode::Taiko).await?;
+
     println!(
         "Received own data showing a last activity of {:?}",
         user.last_visit
@@ -306,7 +348,8 @@ async fn own_data() -> Result<()> {
 
 #[tokio::test]
 async fn performance_rankings() -> Result<()> {
-    let rankings = osu()
+    let rankings = OSU
+        .get()
         .await?
         .performance_rankings(GameMode::Osu)
         .country("be")
@@ -323,7 +366,8 @@ async fn performance_rankings() -> Result<()> {
 
 #[tokio::test]
 async fn score() -> Result<()> {
-    let score = osu()
+    let score = OSU
+        .get()
         .await?
         .score(COOKIEZI_FREEDOM_DIVE, GameMode::Osu)
         .await?;
@@ -338,7 +382,8 @@ async fn score() -> Result<()> {
 
 #[tokio::test]
 async fn score_rankings() -> Result<()> {
-    let rankings = osu().await?.score_rankings(GameMode::Osu).await?;
+    let rankings = OSU.get().await?.score_rankings(GameMode::Osu).await?;
+
     println!(
         "Received score rankings with {} out of {} users",
         rankings.ranking.len(),
@@ -350,7 +395,7 @@ async fn score_rankings() -> Result<()> {
 
 #[tokio::test]
 async fn seasonal_backgrounds() -> Result<()> {
-    let backgrounds = osu().await?.seasonal_backgrounds().await?;
+    let backgrounds = OSU.get().await?.seasonal_backgrounds().await?;
     println!("Received {} backgrounds", backgrounds.backgrounds.len());
 
     Ok(())
@@ -358,7 +403,8 @@ async fn seasonal_backgrounds() -> Result<()> {
 
 #[tokio::test]
 async fn spotlights() -> Result<()> {
-    let spotlights = osu().await?.spotlights().await?;
+    let spotlights = OSU.get().await?.spotlights().await?;
+
     let participants: u32 = spotlights
         .iter()
         .map(|s| s.participant_count.unwrap_or(0))
@@ -375,7 +421,8 @@ async fn spotlights() -> Result<()> {
 
 #[tokio::test]
 async fn user() -> Result<()> {
-    let user = osu()
+    let user = OSU
+        .get()
         .await?
         .user("freddie benson")
         .mode(GameMode::Taiko)
@@ -388,7 +435,8 @@ async fn user() -> Result<()> {
 
 #[tokio::test]
 async fn user_beatmapsets() -> Result<()> {
-    let mapsets = osu()
+    let mapsets = OSU
+        .get()
         .await?
         .user_beatmapsets(SYLAS)
         .limit(5)
@@ -403,7 +451,8 @@ async fn user_beatmapsets() -> Result<()> {
 
 #[tokio::test]
 async fn user_most_played() -> Result<()> {
-    let scores = osu()
+    let scores = OSU
+        .get()
         .await?
         .user_most_played(BADEWANNE3)
         .limit(5)
@@ -422,7 +471,8 @@ async fn user_most_played() -> Result<()> {
 #[cfg(feature = "cache")]
 #[tokio::test]
 async fn user_scores() -> Result<()> {
-    let scores = osu()
+    let scores = OSU
+        .get()
         .await?
         .user_scores("Badewanne3")
         .mode(GameMode::Catch)
@@ -440,7 +490,7 @@ async fn user_scores() -> Result<()> {
 #[ignore = "currently unavailable"]
 async fn users() -> Result<()> {
     #[allow(deprecated)]
-    let users = osu().await?.users(&[BADEWANNE3, SYLAS]).await?;
+    let users = OSU.get().await?.users(&[BADEWANNE3, SYLAS]).await?;
     println!("Received {} users", users.len());
 
     Ok(())
@@ -448,7 +498,8 @@ async fn users() -> Result<()> {
 
 #[tokio::test]
 async fn wiki() -> Result<()> {
-    let page = osu()
+    let page = OSU
+        .get()
         .await?
         .wiki("fr")
         .page("Client/File_formats/Osu_%28file_format%29")

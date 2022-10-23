@@ -2,6 +2,7 @@
 
 - __Fixes:__
   - Fixed deserialization when requesting mapset id 3
+  - Fixed deserialization of datetimes in comments
 
 # v0.5.0 (2022-10-08)
 

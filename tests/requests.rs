@@ -59,12 +59,12 @@ const DE_VS_CA: u32 = 71028303;
 const COOKIEZI_FREEDOM_DIVE: u64 = 2177560145;
 
 #[tokio::test]
-// #[ignore = "specific testing"]
+#[ignore = "specific testing"]
 async fn custom() -> Result<()> {
     let req_fut = osu().await?.beatmapset(3);
 
     let result = req_fut.await?;
-    println!("Result:\n{:#?}", result);
+    println!("Result:\n{:#?}", result.creator);
 
     Ok(())
 }

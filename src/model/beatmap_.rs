@@ -1,17 +1,23 @@
 use super::{serde_, user_::UserCompact, Cursor, GameMode};
 use crate::{
     error::ParsingError,
-    prelude::{OsuError, Username},
+    prelude::{CountryCode, OsuError, Username},
     request::{GetBeatmapDifficultyAttributes, GetUser},
     Osu, OsuResult,
 };
 
 use serde::{
-    de::{Deserializer, Error, IgnoredAny, MapAccess, SeqAccess, Unexpected, Visitor},
+    de::{
+        DeserializeSeed, Deserializer, Error, IgnoredAny, MapAccess, SeqAccess, Unexpected, Visitor,
+    },
     ser::Serializer,
     Deserialize, Serialize,
 };
-use std::{convert::TryFrom, fmt, str::FromStr};
+use std::{
+    convert::TryFrom,
+    fmt::{Display, Formatter, Result as FmtResult},
+    str::FromStr,
+};
 use time::OffsetDateTime;
 
 #[cfg(feature = "rkyv")]
@@ -227,7 +233,12 @@ pub struct Beatmapset {
     pub converts: Option<Vec<Beatmap>>,
     pub covers: BeatmapsetCovers,
     /// Username of the mapper at the time of beatmapset creation
-    #[serde(default, rename = "user", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        default,
+        rename = "user",
+        deserialize_with = "deser_mapset_user",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub creator: Option<UserCompact>,
     #[serde(rename = "creator")]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::UsernameWrapper))]
@@ -293,6 +304,155 @@ pub struct Beatmapset {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub title_unicode: Option<String>,
     pub video: bool,
+}
+
+// Deserialize the creator's `UserCompact` manually for edge cases
+// like mapset /s/3 where the user was deleted
+fn deser_mapset_user<'de, D: Deserializer<'de>>(d: D) -> Result<Option<UserCompact>, D::Error> {
+    struct MapsetUserVisitor;
+
+    impl<'de> Visitor<'de> for MapsetUserVisitor {
+        type Value = Option<UserCompact>;
+
+        fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+            f.write_str("an optional UserCompact")
+        }
+
+        fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
+            struct DateSeed;
+
+            impl<'de> DeserializeSeed<'de> for DateSeed {
+                type Value = Option<OffsetDateTime>;
+
+                #[inline]
+                fn deserialize<D: Deserializer<'de>>(self, d: D) -> Result<Self::Value, D::Error> {
+                    serde_::option_datetime_full::deserialize(d)
+                }
+            }
+
+            let mut avatar_url: Option<Option<String>> = None;
+            let mut country_code: Option<Option<CountryCode>> = None;
+            let mut default_group = None;
+            let mut is_active = None;
+            let mut is_bot = None;
+            let mut is_deleted = None;
+            let mut is_online = None;
+            let mut is_supporter = None;
+            let mut last_visit = None;
+            let mut pm_friends_only = None;
+            let mut profile_color = None;
+            let mut user_id: Option<Option<u32>> = None;
+            let mut username = None;
+
+            while let Some(key) = map.next_key()? {
+                match key {
+                    "avatar_url" => avatar_url = Some(map.next_value()?),
+                    "country_code" => country_code = Some(map.next_value()?),
+                    "default_group" => default_group = Some(map.next_value()?),
+                    "id" => user_id = Some(map.next_value()?),
+                    "is_active" => is_active = Some(map.next_value()?),
+                    "is_bot" => is_bot = Some(map.next_value()?),
+                    "is_deleted" => is_deleted = Some(map.next_value()?),
+                    "is_online" => is_online = Some(map.next_value()?),
+                    "is_supporter" => is_supporter = Some(map.next_value()?),
+                    "last_visit" => last_visit = Some(map.next_value_seed(DateSeed)?),
+                    "pm_friends_only" => pm_friends_only = Some(map.next_value()?),
+                    "profile_colour" => profile_color = Some(map.next_value()?),
+                    "username" => username = Some(map.next_value()?),
+                    _ => {
+                        let _: IgnoredAny = map.next_value()?;
+                    }
+                }
+            }
+
+            let avatar_url = avatar_url
+                .ok_or_else(|| Error::missing_field("avatar_url"))?
+                .unwrap_or_else(|| "[deleted user]".to_owned());
+
+            let country_code = country_code
+                .ok_or_else(|| Error::missing_field("country_code"))?
+                .unwrap_or_else(|| "??".into());
+
+            let default_group =
+                default_group.ok_or_else(|| Error::missing_field("default_group"))?;
+
+            let user_id = user_id
+                .ok_or_else(|| Error::missing_field("user_id"))?
+                .unwrap_or(0);
+
+            let is_active = is_active.ok_or_else(|| Error::missing_field("is_active"))?;
+            let is_bot = is_bot.ok_or_else(|| Error::missing_field("is_bot"))?;
+            let is_deleted = is_deleted.ok_or_else(|| Error::missing_field("is_deleted"))?;
+            let is_online = is_online.ok_or_else(|| Error::missing_field("is_online"))?;
+            let is_supporter = is_supporter.ok_or_else(|| Error::missing_field("is_supporter"))?;
+            let last_visit = last_visit.ok_or_else(|| Error::missing_field("last_visit"))?;
+            let pm_friends_only =
+                pm_friends_only.ok_or_else(|| Error::missing_field("pm_friends_only"))?;
+            let profile_color =
+                profile_color.ok_or_else(|| Error::missing_field("profile_color"))?;
+            let username = username.ok_or_else(|| Error::missing_field("username"))?;
+
+            Ok(Some(UserCompact {
+                avatar_url,
+                country_code,
+                default_group,
+                is_active,
+                is_bot,
+                is_deleted,
+                is_online,
+                is_supporter,
+                last_visit,
+                pm_friends_only,
+                profile_color,
+                user_id,
+                username,
+                account_history: None,
+                badges: None,
+                beatmap_playcounts_count: None,
+                country: None,
+                cover: None,
+                favourite_mapset_count: None,
+                follower_count: None,
+                graveyard_mapset_count: None,
+                groups: None,
+                guest_mapset_count: None,
+                is_admin: None,
+                is_bng: None,
+                is_full_bn: None,
+                is_gmt: None,
+                is_limited_bn: None,
+                is_moderator: None,
+                is_nat: None,
+                is_silenced: None,
+                loved_mapset_count: None,
+                medals: None,
+                monthly_playcounts: None,
+                page: None,
+                previous_usernames: None,
+                rank_history: None,
+                ranked_mapset_count: None,
+                replays_watched_counts: None,
+                scores_best_count: None,
+                scores_first_count: None,
+                scores_recent_count: None,
+                statistics: None,
+                support_level: None,
+                pending_mapset_count: None,
+            }))
+        }
+
+        #[inline]
+        fn visit_some<D: Deserializer<'de>>(self, d: D) -> Result<Self::Value, D::Error> {
+            d.deserialize_map(self)
+        }
+
+        #[inline]
+        fn visit_none<E: Error>(self) -> Result<Self::Value, E> {
+            Ok(None)
+        }
+    }
+
+    d.deserialize_option(MapsetUserVisitor)
 }
 
 #[inline]
@@ -803,8 +963,7 @@ struct SearchRankStatusVisitor;
 impl<'de> Visitor<'de> for SearchRankStatusVisitor {
     type Value = SearchRankStatus;
 
-    #[inline]
-    fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.write_str("a rank status, \"any\", or `9`")
     }
 
@@ -914,8 +1073,7 @@ struct BeatmapsetSearchParametersVisitor;
 impl<'de> Visitor<'de> for BeatmapsetSearchParametersVisitor {
     type Value = BeatmapsetSearchParameters;
 
-    #[inline]
-    fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.write_str("a search struct")
     }
 
@@ -1062,8 +1220,7 @@ struct BeatmapsetSearchResultVisitor;
 impl<'de> Visitor<'de> for BeatmapsetSearchResultVisitor {
     type Value = BeatmapsetSearchResult;
 
-    #[inline]
-    fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.write_str("a BeatmapsetSearchResult struct")
     }
 
@@ -1117,9 +1274,9 @@ macro_rules! search_sort_enum {
             )+
         }
 
-        impl fmt::Display for BeatmapsetSearchSort {
+        impl Display for BeatmapsetSearchSort {
             #[inline]
-            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
                 match self {
                     $(Self::$variant => f.write_str($name),)+
                 }
@@ -1228,8 +1385,7 @@ struct VecOptionVisitor;
 impl<'de> Visitor<'de> for VecOptionVisitor {
     type Value = Option<Vec<u32>>;
 
-    #[inline]
-    fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.write_str("null or a sequence of u32")
     }
 
@@ -1260,8 +1416,7 @@ impl HundredU32Visitor {
 impl<'de> Visitor<'de> for HundredU32Visitor {
     type Value = Vec<u32>;
 
-    #[inline]
-    fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.write_str("a sequence of u32")
     }
 
@@ -1350,8 +1505,7 @@ impl Serialize for RankStatus {
 impl<'de> Visitor<'de> for super::EnumVisitor<RankStatus> {
     type Value = RankStatus;
 
-    #[inline]
-    fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.write_str("an optional RankStatus i8")
     }
 
@@ -1469,8 +1623,7 @@ struct DescriptionVisitor;
 impl<'de> Visitor<'de> for DescriptionVisitor {
     type Value = Option<String>;
 
-    #[inline]
-    fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.write_str("a string or a map containing a 'description' field")
     }
 

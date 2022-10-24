@@ -367,7 +367,7 @@ fn deser_mapset_user<'de, D: Deserializer<'de>>(d: D) -> Result<Option<UserCompa
 
             let avatar_url = avatar_url
                 .ok_or_else(|| Error::missing_field("avatar_url"))?
-                .unwrap_or_else(|| "[deleted user]".to_owned());
+                .unwrap_or_default();
 
             let country_code = country_code
                 .ok_or_else(|| Error::missing_field("country_code"))?

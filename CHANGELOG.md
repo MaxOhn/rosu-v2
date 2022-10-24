@@ -2,7 +2,7 @@
 
 Nothing as of now
 
-# v0.6.0 (2022-10-24)
+# v0.6.1 (2022-10-24)
 
 - __Fixes:__
   - Fixed deserialization when requesting mapset id 3

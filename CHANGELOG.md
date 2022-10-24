@@ -1,5 +1,9 @@
 ## Upcoming
 
+Nothing as of now
+
+# v0.6.0 (2022-10-24)
+
 - __Fixes:__
   - Fixed deserialization when requesting mapset id 3
   - Fixed deserialization of datetimes in comments
@@ -7,7 +11,7 @@
 - __Breaking changes:__
   - The serialization of all `OffsetDateTime` was changed. They used to be serialized into the amount of unix timestamp nanoseconds which was an i128. Since those could not be serialized into a `serde_json::Value` without significant performance loss, all datetimes are now serialized into a string of the same format given by the osu!api.
 
-# v0.5.0 (2022-10-08)
+## v0.5.0 (2022-10-08)
 
 - __Adjustments:__
   - If the `cache` feature is enabled, the cache now fills proactively and also updates with respect to username changes

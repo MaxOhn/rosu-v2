@@ -67,6 +67,7 @@ impl Metrics {
             beatmaps: counters.with_label_values(&["Beatmaps"]),
             beatmapset: counters.with_label_values(&["Beatmapset"]),
             beatmapset_events: counters.with_label_values(&["Beatmapset events"]),
+            beatmapset_from_map_id: counters.with_label_values(&["Beatmapset from Beatmap ID"]),
             beatmapset_search: counters.with_label_values(&["Beatmapset search"]),
 
             #[cfg(feature = "cache")]

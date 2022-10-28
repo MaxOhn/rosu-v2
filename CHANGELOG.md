@@ -1,12 +1,16 @@
 ## Upcoming
 
+Nothing as of now
+
+# v0.6.2 (2022-10-28)
+
 - __Fixes:__
   - Fixed deserialization of datetimes and made them mode robust against future changes
 
 - __Additions:__
   - Added the field `highest_rank` to `User` and `UserCompact`
 
-# v0.6.1 (2022-10-24)
+## v0.6.1 (2022-10-24)
 
 - __Fixes:__
   - Fixed deserialization when requesting mapset id 3

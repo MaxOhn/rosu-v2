@@ -8,7 +8,7 @@ use super::{
     GameMode,
 };
 use crate::{
-    model::user_::{CountryCode, Username},
+    model::user_::{CountryCode, UserHighestRank, Username},
     Osu, OsuResult,
 };
 
@@ -326,6 +326,12 @@ struct UserCompactWithoutStats<'u> {
         skip_serializing_if = "Option::is_none"
     )]
     pub guest_mapset_count: &'u Option<u32>,
+    #[serde(
+        default,
+        rename = "rank_highest",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub highest_rank: &'u Option<UserHighestRank>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_admin: &'u Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -405,6 +411,7 @@ impl<'u> UserCompactWithoutStats<'u> {
             graveyard_mapset_count,
             groups,
             guest_mapset_count,
+            highest_rank,
             is_admin,
             is_bng,
             is_full_bn,
@@ -453,6 +460,7 @@ impl<'u> UserCompactWithoutStats<'u> {
             graveyard_mapset_count,
             groups,
             guest_mapset_count,
+            highest_rank,
             is_admin,
             is_bng,
             is_full_bn,

@@ -638,6 +638,7 @@ fn get_user() -> User {
             short_name: "g".to_owned(),
         }]),
         guest_mapset_count: Some(3),
+        highest_rank: Some(get_highest_rank()),
         is_admin: Some(true),
         is_bng: Some(false),
         is_full_bn: Some(true),
@@ -725,6 +726,7 @@ fn get_user_compact() -> UserCompact {
             short_name: "g".to_owned(),
         }]),
         guest_mapset_count: Some(3),
+        highest_rank: Some(get_highest_rank()),
         is_admin: Some(true),
         is_bng: Some(false),
         is_full_bn: Some(true),
@@ -759,6 +761,13 @@ fn get_user_compact() -> UserCompact {
         statistics: Some(get_user_stats()),
         support_level: Some(1),
         pending_mapset_count: Some(34),
+    }
+}
+
+fn get_highest_rank() -> UserHighestRank {
+    UserHighestRank {
+        rank: 123,
+        updated_at: get_date(),
     }
 }
 

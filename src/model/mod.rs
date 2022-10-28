@@ -249,7 +249,7 @@ pub mod user {
     pub use super::user_::{
         AccountHistory, Badge, CountryCode, GradeCounts, Group, HistoryType, Medal, MedalCompact,
         MonthlyCount, Playstyle, ProfileBanner, ProfilePage, User, UserCompact, UserCover,
-        UserKudosu, UserLevel, UserPage, UserStatistics, Username,
+        UserHighestRank, UserKudosu, UserLevel, UserPage, UserStatistics, Username,
     };
 }
 
@@ -328,12 +328,12 @@ pub mod rkyv {
         AccountHistoryResolver, ArchivedAccountHistory, ArchivedBadge, ArchivedGroup,
         ArchivedHistoryType, ArchivedMedal, ArchivedMedalCompact, ArchivedMonthlyCount,
         ArchivedPlaystyle, ArchivedProfileBanner, ArchivedProfilePage, ArchivedUser,
-        ArchivedUserCompact, ArchivedUserCover, ArchivedUserPage, ArchivedUserStatistics,
-        BadgeResolver, GradeCountsResolver, GroupResolver, HistoryTypeResolver,
-        MedalCompactResolver, MedalResolver, MonthlyCountResolver, PlaystyleResolver,
-        ProfileBannerResolver, ProfilePageResolver, UserCompactResolver, UserCoverResolver,
-        UserKudosuResolver, UserLevelResolver, UserPageResolver, UserResolver,
-        UserStatisticsResolver,
+        ArchivedUserCompact, ArchivedUserCover, ArchivedUserHighestRank, ArchivedUserPage,
+        ArchivedUserStatistics, BadgeResolver, GradeCountsResolver, GroupResolver,
+        HistoryTypeResolver, MedalCompactResolver, MedalResolver, MonthlyCountResolver,
+        PlaystyleResolver, ProfileBannerResolver, ProfilePageResolver, UserCompactResolver,
+        UserCoverResolver, UserHighestRankResolver, UserKudosuResolver, UserLevelResolver,
+        UserPageResolver, UserResolver, UserStatisticsResolver,
     };
 
     pub use super::wiki_::{ArchivedWikiPage, WikiPageResolver};

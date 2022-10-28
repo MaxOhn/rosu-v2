@@ -416,6 +416,7 @@ fn deser_mapset_user<'de, D: Deserializer<'de>>(d: D) -> Result<Option<UserCompa
                 graveyard_mapset_count: None,
                 groups: None,
                 guest_mapset_count: None,
+                highest_rank: None,
                 is_admin: None,
                 is_bng: None,
                 is_full_bn: None,

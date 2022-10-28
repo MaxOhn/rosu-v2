@@ -392,6 +392,12 @@ pub struct User {
         skip_serializing_if = "Option::is_none"
     )]
     pub guest_mapset_count: Option<u32>,
+    #[serde(
+        default,
+        rename = "rank_highest",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub highest_rank: Option<UserHighestRank>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub is_admin: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -545,6 +551,12 @@ pub struct UserCompact {
         skip_serializing_if = "Option::is_none"
     )]
     pub guest_mapset_count: Option<u32>,
+    #[serde(
+        default,
+        rename = "rank_highest",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub highest_rank: Option<UserHighestRank>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub is_admin: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -639,6 +651,7 @@ impl From<User> for UserCompact {
             graveyard_mapset_count: user.graveyard_mapset_count,
             groups: user.groups,
             guest_mapset_count: user.guest_mapset_count,
+            highest_rank: user.highest_rank,
             is_admin: user.is_admin,
             is_bng: user.is_bng,
             is_full_bn: user.is_full_bn,
@@ -673,6 +686,15 @@ pub struct UserCover {
     pub url: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
+pub struct UserHighestRank {
+    pub rank: u32,
+    #[serde(with = "serde_::datetime")]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
+    pub updated_at: OffsetDateTime,
 }
 
 /// Kudosu of a [`User`]

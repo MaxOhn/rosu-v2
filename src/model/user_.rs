@@ -18,7 +18,7 @@ pub struct AccountHistory {
     pub id: Option<u32>, // TODO: Can be removed?
     #[serde(rename = "type")]
     pub history_type: HistoryType,
-    #[serde(with = "serde_::datetime_full")]
+    #[serde(with = "serde_::datetime")]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub timestamp: OffsetDateTime,
     #[serde(rename = "length")]
@@ -28,7 +28,7 @@ pub struct AccountHistory {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct Badge {
-    #[serde(with = "serde_::datetime_full")]
+    #[serde(with = "serde_::datetime")]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub awarded_at: OffsetDateTime,
     pub description: String,
@@ -300,7 +300,7 @@ pub struct User {
     /// does this user have supporter?
     pub is_supporter: bool,
     /// date of account creation
-    #[serde(with = "serde_::datetime_full")]
+    #[serde(with = "serde_::datetime")]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub join_date: OffsetDateTime,
     /// current kudosu of the user
@@ -309,7 +309,7 @@ pub struct User {
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
-        with = "serde_::option_datetime_full"
+        with = "serde_::option_datetime"
     )]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub last_visit: Option<OffsetDateTime>,
@@ -487,7 +487,7 @@ pub struct UserCompact {
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
-        with = "serde_::option_datetime_full"
+        with = "serde_::option_datetime"
     )]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub last_visit: Option<OffsetDateTime>,

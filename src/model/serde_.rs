@@ -19,24 +19,21 @@ const TIME_FORMAT: &[FormatItem<'_>] = &[
     FormatItem::Component(Component::Second(<Second>::default())),
 ];
 
-const OFFSET_DATE_TIME_FORMAT: &[FormatItem<'_>] = &[
+const PRIMITIVE_FORMAT: &[FormatItem<'_>] = &[
     FormatItem::Compound(DATE_FORMAT),
     FormatItem::Literal(b"T"),
     FormatItem::Compound(TIME_FORMAT),
-    FormatItem::Literal(b"Z"),
 ];
 
-const UTC_OFFSET_FORMAT: &[FormatItem<'_>] = &[
+const OFFSET_FORMAT: &[FormatItem<'_>] = &[
     FormatItem::Component(Component::OffsetHour(OffsetHour::default())),
     FormatItem::Literal(b":"),
     FormatItem::Component(Component::OffsetMinute(OffsetMinute::default())),
 ];
 
-const OFFSET_DATE_TIME_FORMAT_FULL: &[FormatItem<'_>] = &[
-    FormatItem::Compound(DATE_FORMAT),
-    FormatItem::Literal(b"T"),
-    FormatItem::Compound(TIME_FORMAT),
-    FormatItem::Compound(UTC_OFFSET_FORMAT),
+const OFFSET_DATETIME_FORMAT: &[FormatItem<'_>] = &[
+    FormatItem::Compound(PRIMITIVE_FORMAT),
+    FormatItem::Compound(OFFSET_FORMAT),
 ];
 
 pub(super) mod datetime {
@@ -46,17 +43,17 @@ pub(super) mod datetime {
         de::{Error, Visitor},
         Deserializer, Serialize, Serializer,
     };
-    use time::{OffsetDateTime, PrimitiveDateTime};
+    use time::{OffsetDateTime, PrimitiveDateTime, UtcOffset};
 
-    use super::OFFSET_DATE_TIME_FORMAT;
+    use super::{OFFSET_DATETIME_FORMAT, OFFSET_FORMAT, PRIMITIVE_FORMAT};
 
     pub fn deserialize<'de, D: Deserializer<'de>>(d: D) -> Result<OffsetDateTime, D::Error> {
-        d.deserialize_any(DateTimeVisitor)
+        d.deserialize_str(DateTimeVisitor)
     }
 
     pub fn serialize<S: Serializer>(datetime: &OffsetDateTime, s: S) -> Result<S::Ok, S::Error> {
         datetime
-            .format(&OFFSET_DATE_TIME_FORMAT)
+            .format(&OFFSET_DATETIME_FORMAT)
             .expect("incorrect format")
             .serialize(s)
     }
@@ -67,52 +64,29 @@ pub(super) mod datetime {
         type Value = OffsetDateTime;
 
         fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            f.write_str("a `PrimitiveDateTime`")
+            f.write_str("a datetime string")
         }
 
         #[inline]
         fn visit_str<E: Error>(self, v: &str) -> Result<Self::Value, E> {
-            PrimitiveDateTime::parse(v, OFFSET_DATE_TIME_FORMAT)
-                .map(PrimitiveDateTime::assume_utc)
-                .map_err(Error::custom)
-        }
-    }
-}
+            if v.len() < 19 {
+                return Err(Error::custom(format!(
+                    "string too short for a datetime: `{v}`"
+                )));
+            }
 
-pub(super) mod datetime_full {
-    use std::fmt;
+            let (prefix, suffix) = v.split_at(19);
 
-    use serde::{
-        de::{Error, Visitor},
-        Deserializer, Serialize, Serializer,
-    };
-    use time::OffsetDateTime;
+            let primitive =
+                PrimitiveDateTime::parse(prefix, PRIMITIVE_FORMAT).map_err(Error::custom)?;
 
-    use super::OFFSET_DATE_TIME_FORMAT_FULL;
+            let offset = if suffix == "Z" {
+                UtcOffset::UTC
+            } else {
+                UtcOffset::parse(suffix, OFFSET_FORMAT).map_err(Error::custom)?
+            };
 
-    pub fn deserialize<'de, D: Deserializer<'de>>(d: D) -> Result<OffsetDateTime, D::Error> {
-        d.deserialize_any(DateTimeVisitor)
-    }
-
-    pub fn serialize<S: Serializer>(datetime: &OffsetDateTime, s: S) -> Result<S::Ok, S::Error> {
-        datetime
-            .format(&OFFSET_DATE_TIME_FORMAT_FULL)
-            .expect("incorrect format")
-            .serialize(s)
-    }
-
-    pub(super) struct DateTimeVisitor;
-
-    impl<'de> Visitor<'de> for DateTimeVisitor {
-        type Value = OffsetDateTime;
-
-        fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            f.write_str("an `OffsetDateTime`")
-        }
-
-        #[inline]
-        fn visit_str<E: Error>(self, v: &str) -> Result<Self::Value, E> {
-            OffsetDateTime::parse(v, OFFSET_DATE_TIME_FORMAT_FULL).map_err(Error::custom)
+            Ok(primitive.assume_offset(offset))
         }
     }
 }
@@ -126,7 +100,7 @@ pub(super) mod option_datetime {
     };
     use time::OffsetDateTime;
 
-    use super::{datetime::DateTimeVisitor, OFFSET_DATE_TIME_FORMAT};
+    use super::{datetime::DateTimeVisitor, OFFSET_DATETIME_FORMAT};
 
     pub fn deserialize<'de, D: Deserializer<'de>>(
         d: D,
@@ -141,7 +115,7 @@ pub(super) mod option_datetime {
         datetime
             .map(|datetime| {
                 datetime
-                    .format(&OFFSET_DATE_TIME_FORMAT)
+                    .format(&OFFSET_DATETIME_FORMAT)
                     .expect("incorrect format")
             })
             .serialize(s)
@@ -153,68 +127,12 @@ pub(super) mod option_datetime {
         type Value = Option<OffsetDateTime>;
 
         fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            f.write_str("an optional `PrimitiveDateTime`")
+            f.write_str("an optional datetime string")
         }
 
         #[inline]
         fn visit_some<D: Deserializer<'de>>(self, d: D) -> Result<Self::Value, D::Error> {
-            d.deserialize_any(DateTimeVisitor).map(Some)
-        }
-
-        #[inline]
-        fn visit_none<E: Error>(self) -> Result<Self::Value, E> {
-            self.visit_unit()
-        }
-
-        #[inline]
-        fn visit_unit<E: Error>(self) -> Result<Self::Value, E> {
-            Ok(None)
-        }
-    }
-}
-
-pub(super) mod option_datetime_full {
-    use std::fmt;
-
-    use serde::{
-        de::{Error, Visitor},
-        Deserializer, Serialize, Serializer,
-    };
-    use time::OffsetDateTime;
-
-    use super::{datetime_full::DateTimeVisitor, OFFSET_DATE_TIME_FORMAT_FULL};
-
-    pub fn deserialize<'de, D: Deserializer<'de>>(
-        d: D,
-    ) -> Result<Option<OffsetDateTime>, D::Error> {
-        d.deserialize_option(OptionDateTimeVisitor)
-    }
-
-    pub fn serialize<S: Serializer>(
-        datetime: &Option<OffsetDateTime>,
-        s: S,
-    ) -> Result<S::Ok, S::Error> {
-        datetime
-            .map(|datetime| {
-                datetime
-                    .format(&OFFSET_DATE_TIME_FORMAT_FULL)
-                    .expect("incorrect format")
-            })
-            .serialize(s)
-    }
-
-    struct OptionDateTimeVisitor;
-
-    impl<'de> Visitor<'de> for OptionDateTimeVisitor {
-        type Value = Option<OffsetDateTime>;
-
-        fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            f.write_str("an optional `OffsetDateTime`")
-        }
-
-        #[inline]
-        fn visit_some<D: Deserializer<'de>>(self, d: D) -> Result<Self::Value, D::Error> {
-            d.deserialize_any(DateTimeVisitor).map(Some)
+            d.deserialize_str(DateTimeVisitor).map(Some)
         }
 
         #[inline]

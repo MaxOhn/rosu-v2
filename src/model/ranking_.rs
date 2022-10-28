@@ -287,7 +287,7 @@ struct UserCompactWithoutStats<'u> {
     pub is_supporter: &'u bool,
     #[serde(
         skip_serializing_if = "Option::is_none",
-        with = "serde_::option_datetime_full"
+        with = "serde_::option_datetime"
     )]
     pub last_visit: &'u Option<OffsetDateTime>,
     pub pm_friends_only: &'u bool,
@@ -584,7 +584,7 @@ fn deserialize_rankings_cursor<'de, D: Deserializer<'de>>(d: D) -> Result<Option
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct Spotlight {
     /// The end date of the spotlight.
-    #[serde(with = "serde_::datetime_full")]
+    #[serde(with = "serde_::datetime")]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub end_date: OffsetDateTime,
     /// If the spotlight has different mades specific to each [`GameMode`](crate::model::GameMode).
@@ -601,7 +601,7 @@ pub struct Spotlight {
     #[serde(rename = "type")]
     pub spotlight_type: String,
     /// The starting date of the spotlight.
-    #[serde(with = "serde_::datetime_full")]
+    #[serde(with = "serde_::datetime")]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub start_date: OffsetDateTime,
 }

@@ -47,13 +47,13 @@ pub struct NewsPost {
     pub edit_url: String,
     /// Link to the first image in the document.
     pub first_image: String,
-    #[serde(with = "serde_::datetime_full")]
+    #[serde(with = "serde_::datetime")]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub published_at: OffsetDateTime,
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
-        with = "serde_::option_datetime_full"
+        with = "serde_::option_datetime"
     )]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub updated_at: Option<OffsetDateTime>,

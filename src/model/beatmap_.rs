@@ -326,7 +326,7 @@ fn deser_mapset_user<'de, D: Deserializer<'de>>(d: D) -> Result<Option<UserCompa
 
                 #[inline]
                 fn deserialize<D: Deserializer<'de>>(self, d: D) -> Result<Self::Value, D::Error> {
-                    serde_::option_datetime_full::deserialize(d)
+                    serde_::option_datetime::deserialize(d)
                 }
             }
 
@@ -681,13 +681,13 @@ pub struct BeatmapsetDiscussion {
     pub resolved: bool,
     pub can_be_resolved: bool,
     pub can_grant_kudosu: bool,
-    #[serde(with = "serde_::datetime_full")]
+    #[serde(with = "serde_::datetime")]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub created_at: OffsetDateTime,
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
-        with = "serde_::option_datetime_full"
+        with = "serde_::option_datetime"
     )]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub updated_at: Option<OffsetDateTime>,
@@ -698,7 +698,7 @@ pub struct BeatmapsetDiscussion {
     )]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub deleted_at: Option<OffsetDateTime>,
-    #[serde(with = "serde_::datetime_full")]
+    #[serde(with = "serde_::datetime")]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub last_post_at: OffsetDateTime,
     pub kudosu_denied: bool,
@@ -723,7 +723,7 @@ pub enum BeatmapsetEvent {
         #[serde(rename = "id")]
         event_id: u64,
         comment: BeatmapsetCommentId,
-        #[serde(with = "serde_::datetime_full")]
+        #[serde(with = "serde_::datetime")]
         #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         created_at: OffsetDateTime,
         user_id: u32,
@@ -735,7 +735,7 @@ pub enum BeatmapsetEvent {
         #[serde(rename = "id")]
         event_id: u64,
         comment: BeatmapsetCommentEdit<Genre>,
-        #[serde(with = "serde_::datetime_full")]
+        #[serde(with = "serde_::datetime")]
         #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         created_at: OffsetDateTime,
         user_id: u32,
@@ -746,7 +746,7 @@ pub enum BeatmapsetEvent {
         #[serde(rename = "id")]
         event_id: u64,
         comment: BeatmapsetCommentId,
-        #[serde(with = "serde_::datetime_full")]
+        #[serde(with = "serde_::datetime")]
         #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         created_at: OffsetDateTime,
         user_id: u32,
@@ -758,7 +758,7 @@ pub enum BeatmapsetEvent {
         #[serde(rename = "id")]
         event_id: u64,
         comment: BeatmapsetCommentId,
-        #[serde(with = "serde_::datetime_full")]
+        #[serde(with = "serde_::datetime")]
         #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         created_at: OffsetDateTime,
         user_id: u32,
@@ -770,7 +770,7 @@ pub enum BeatmapsetEvent {
         #[serde(rename = "id")]
         event_id: u64,
         comment: BeatmapsetCommentId,
-        #[serde(with = "serde_::datetime_full")]
+        #[serde(with = "serde_::datetime")]
         #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         created_at: OffsetDateTime,
         #[serde(rename = "beatmapset")]
@@ -781,7 +781,7 @@ pub enum BeatmapsetEvent {
         #[serde(rename = "id")]
         event_id: u64,
         comment: BeatmapsetCommentKudosuGain,
-        #[serde(with = "serde_::datetime_full")]
+        #[serde(with = "serde_::datetime")]
         #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         created_at: OffsetDateTime,
         user_id: u32,
@@ -793,7 +793,7 @@ pub enum BeatmapsetEvent {
         #[serde(rename = "id")]
         event_id: u64,
         comment: BeatmapsetCommentKudosuGain,
-        #[serde(with = "serde_::datetime_full")]
+        #[serde(with = "serde_::datetime")]
         #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         created_at: OffsetDateTime,
         user_id: u32,
@@ -805,7 +805,7 @@ pub enum BeatmapsetEvent {
         #[serde(rename = "id")]
         event_id: u64,
         comment: BeatmapsetCommentEdit<Language>,
-        #[serde(with = "serde_::datetime_full")]
+        #[serde(with = "serde_::datetime")]
         #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         created_at: OffsetDateTime,
         user_id: u32,
@@ -815,7 +815,7 @@ pub enum BeatmapsetEvent {
     Love {
         #[serde(rename = "id")]
         event_id: u64,
-        #[serde(with = "serde_::datetime_full")]
+        #[serde(with = "serde_::datetime")]
         #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         created_at: OffsetDateTime,
         user_id: u32,
@@ -826,7 +826,7 @@ pub enum BeatmapsetEvent {
         #[serde(rename = "id")]
         event_id: u64,
         comment: BeatmapsetCommentNominate,
-        #[serde(with = "serde_::datetime_full")]
+        #[serde(with = "serde_::datetime")]
         #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         created_at: OffsetDateTime,
         user_id: u32,
@@ -837,7 +837,7 @@ pub enum BeatmapsetEvent {
         #[serde(rename = "id")]
         event_id: u64,
         comment: BeatmapsetCommentEdit<bool>,
-        #[serde(with = "serde_::datetime_full")]
+        #[serde(with = "serde_::datetime")]
         #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         created_at: OffsetDateTime,
         user_id: u32,
@@ -849,7 +849,7 @@ pub enum BeatmapsetEvent {
         #[serde(rename = "id")]
         event_id: u64,
         comment: BeatmapsetCommentOwnerChange,
-        #[serde(with = "serde_::datetime_full")]
+        #[serde(with = "serde_::datetime")]
         #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         created_at: OffsetDateTime,
         user_id: u32,
@@ -859,7 +859,7 @@ pub enum BeatmapsetEvent {
     Rank {
         #[serde(rename = "id")]
         event_id: u64,
-        #[serde(with = "serde_::datetime_full")]
+        #[serde(with = "serde_::datetime")]
         #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         created_at: OffsetDateTime,
         #[serde(rename = "beatmapset")]
@@ -868,7 +868,7 @@ pub enum BeatmapsetEvent {
     Qualify {
         #[serde(rename = "id")]
         event_id: u64,
-        #[serde(with = "serde_::datetime_full")]
+        #[serde(with = "serde_::datetime")]
         #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         created_at: OffsetDateTime,
         #[serde(rename = "beatmapset")]
@@ -921,13 +921,13 @@ pub struct BeatmapsetPost {
     pub deleted_by_id: Option<u32>,
     pub system: bool,
     pub message: String,
-    #[serde(with = "serde_::datetime_full")]
+    #[serde(with = "serde_::datetime")]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub created_at: OffsetDateTime,
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
-        with = "serde_::option_datetime_full"
+        with = "serde_::option_datetime"
     )]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub updated_at: Option<OffsetDateTime>,

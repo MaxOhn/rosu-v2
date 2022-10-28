@@ -1,6 +1,7 @@
 ## Upcoming
 
-Nothing as of now
+- __Fixes:__
+  - Fixed deserialization of datetimes and made them mode robust against future changes
 
 # v0.6.1 (2022-10-24)
 

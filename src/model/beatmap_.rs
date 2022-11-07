@@ -1268,6 +1268,11 @@ macro_rules! search_sort_enum {
         /// Provides an option to specify a mapset order in a mapset search,
         /// see [`Osu::beatmapset_search`](crate::client::Osu::beatmapset_search).
         #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+        #[cfg_attr(
+            feature = "rkyv",
+            derive(Archive, RkyvDeserialize, RkyvSerialize),
+            archive(as = "Self"))
+        ]
         pub enum BeatmapsetSearchSort {
             $(
                 #[serde(rename = $name)]
@@ -1454,7 +1459,11 @@ impl Eq for MostPlayedMap {}
 
 #[allow(clippy::upper_case_acronyms, missing_docs)]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(Archive, RkyvDeserialize, RkyvSerialize),
+    archive(as = "Self")
+)]
 pub enum RankStatus {
     Graveyard = -2,
     WIP = -1,

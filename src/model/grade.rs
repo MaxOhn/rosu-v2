@@ -12,7 +12,11 @@ use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
 /// Enum for a [`Score`](crate::model::score::Score)'s grade (sometimes called rank)
 #[allow(clippy::upper_case_acronyms, missing_docs)]
 #[derive(Copy, Clone, Hash, Debug, Eq, PartialEq, PartialOrd, Serialize)]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(Archive, RkyvDeserialize, RkyvSerialize),
+    archive(as = "Self")
+)]
 pub enum Grade {
     F,
     D,

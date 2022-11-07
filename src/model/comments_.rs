@@ -144,7 +144,11 @@ impl CommentBundle {
 
 /// Available orders for comments
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(Archive, RkyvDeserialize, RkyvSerialize),
+    archive(as = "Self")
+)]
 pub enum CommentSort {
     /// Sort by date, newest first
     #[serde(rename = "new")]

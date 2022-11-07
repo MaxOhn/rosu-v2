@@ -166,7 +166,11 @@ pub struct Group {
 }
 
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(Archive, RkyvDeserialize, RkyvSerialize),
+    archive(as = "Self")
+)]
 pub enum HistoryType {
     #[serde(rename = "note")]
     Note,
@@ -238,7 +242,11 @@ impl PartialEq for ProfileBanner {
 impl Eq for ProfileBanner {}
 
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(Archive, RkyvDeserialize, RkyvSerialize),
+    archive(as = "Self")
+)]
 pub enum Playstyle {
     #[serde(rename = "mouse")]
     Mouse,
@@ -251,7 +259,11 @@ pub enum Playstyle {
 }
 
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(Archive, RkyvDeserialize, RkyvSerialize),
+    archive(as = "Self")
+)]
 #[serde(rename_all = "snake_case")]
 pub enum ProfilePage {
     Beatmaps,

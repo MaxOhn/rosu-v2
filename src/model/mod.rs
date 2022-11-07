@@ -268,7 +268,7 @@ pub mod rkyv {
         ArchivedBeatmapsetCommentNominate, ArchivedBeatmapsetCommentOwnerChange,
         ArchivedBeatmapsetCompact, ArchivedBeatmapsetCovers, ArchivedBeatmapsetDiscussion,
         ArchivedBeatmapsetEvent, ArchivedBeatmapsetEvents, ArchivedBeatmapsetPost,
-        ArchivedFailTimes, ArchivedGameModeAttributes, ArchivedMostPlayedMap, ArchivedRankStatus,
+        ArchivedFailTimes, ArchivedGameModeAttributes, ArchivedMostPlayedMap,
         BeatmapCompactResolver, BeatmapDifficultyAttributesResolver, BeatmapResolver,
         BeatmapsetAvailabilityResolver, BeatmapsetCommentEditResolver, BeatmapsetCommentIdResolver,
         BeatmapsetCommentKudosuGainResolver, BeatmapsetCommentNominateResolver,
@@ -276,12 +276,11 @@ pub mod rkyv {
         BeatmapsetDiscussionResolver, BeatmapsetEventResolver, BeatmapsetEventsResolver,
         BeatmapsetHypeResolver, BeatmapsetNominationsResolver, BeatmapsetPostResolver,
         BeatmapsetResolver, BeatmapsetReviewsConfigResolver, BeatmapsetVoteResolver,
-        FailTimesResolver, GameModeAttributesResolver, MostPlayedMapResolver, RankStatusResolver,
+        FailTimesResolver, GameModeAttributesResolver, MostPlayedMapResolver,
     };
 
     pub use super::comments_::{
-        ArchivedComment, ArchivedCommentSort, ArchivedCommentableMeta, CommentResolver,
-        CommentSortResolver, CommentableMetaResolver,
+        ArchivedComment, ArchivedCommentableMeta, CommentResolver, CommentableMetaResolver,
     };
 
     pub use super::forum_::{
@@ -289,11 +288,9 @@ pub mod rkyv {
         ForumPostsSearchResolver, ForumTopicResolver,
     };
 
-    pub use super::grade::{ArchivedGrade, GradeResolver};
-
     pub use super::kudosu_::{
-        ArchivedKudosuAction, ArchivedKudosuGiver, ArchivedKudosuHistory, ArchivedKudosuPost,
-        KudosuActionResolver, KudosuGiverResolver, KudosuHistoryResolver, KudosuPostResolver,
+        ArchivedKudosuGiver, ArchivedKudosuHistory, ArchivedKudosuPost, KudosuGiverResolver,
+        KudosuHistoryResolver, KudosuPostResolver,
     };
 
     pub use super::mode::GameModeResolver;
@@ -326,14 +323,13 @@ pub mod rkyv {
 
     pub use super::user_::{
         AccountHistoryResolver, ArchivedAccountHistory, ArchivedBadge, ArchivedGroup,
-        ArchivedHistoryType, ArchivedMedal, ArchivedMedalCompact, ArchivedMonthlyCount,
-        ArchivedPlaystyle, ArchivedProfileBanner, ArchivedProfilePage, ArchivedUser,
-        ArchivedUserCompact, ArchivedUserCover, ArchivedUserHighestRank, ArchivedUserPage,
-        ArchivedUserStatistics, BadgeResolver, GradeCountsResolver, GroupResolver,
-        HistoryTypeResolver, MedalCompactResolver, MedalResolver, MonthlyCountResolver,
-        PlaystyleResolver, ProfileBannerResolver, ProfilePageResolver, UserCompactResolver,
-        UserCoverResolver, UserHighestRankResolver, UserKudosuResolver, UserLevelResolver,
-        UserPageResolver, UserResolver, UserStatisticsResolver,
+        ArchivedMedal, ArchivedMedalCompact, ArchivedMonthlyCount, ArchivedProfileBanner,
+        ArchivedUser, ArchivedUserCompact, ArchivedUserCover, ArchivedUserHighestRank,
+        ArchivedUserPage, ArchivedUserStatistics, BadgeResolver, GradeCountsResolver,
+        GroupResolver, MedalCompactResolver, MedalResolver, MonthlyCountResolver,
+        ProfileBannerResolver, UserCompactResolver, UserCoverResolver, UserHighestRankResolver,
+        UserKudosuResolver, UserLevelResolver, UserPageResolver, UserResolver,
+        UserStatisticsResolver,
     };
 
     pub use super::wiki_::{ArchivedWikiPage, WikiPageResolver};

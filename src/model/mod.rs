@@ -276,11 +276,12 @@ pub mod rkyv {
         BeatmapsetDiscussionResolver, BeatmapsetEventResolver, BeatmapsetEventsResolver,
         BeatmapsetHypeResolver, BeatmapsetNominationsResolver, BeatmapsetPostResolver,
         BeatmapsetResolver, BeatmapsetReviewsConfigResolver, BeatmapsetVoteResolver,
-        FailTimesResolver, GameModeAttributesResolver, MostPlayedMapResolver,
+        FailTimesResolver, GameModeAttributesResolver, MostPlayedMapResolver, RankStatusResolver,
     };
 
     pub use super::comments_::{
-        ArchivedComment, ArchivedCommentableMeta, CommentResolver, CommentableMetaResolver,
+        ArchivedComment, ArchivedCommentableMeta, CommentResolver, CommentSortResolver,
+        CommentableMetaResolver,
     };
 
     pub use super::forum_::{
@@ -288,9 +289,11 @@ pub mod rkyv {
         ForumPostsSearchResolver, ForumTopicResolver,
     };
 
+    pub use super::grade::GradeResolver;
+
     pub use super::kudosu_::{
-        ArchivedKudosuGiver, ArchivedKudosuHistory, ArchivedKudosuPost, KudosuGiverResolver,
-        KudosuHistoryResolver, KudosuPostResolver,
+        ArchivedKudosuGiver, ArchivedKudosuHistory, ArchivedKudosuPost, KudosuActionResolver,
+        KudosuGiverResolver, KudosuHistoryResolver, KudosuPostResolver,
     };
 
     pub use super::mode::GameModeResolver;
@@ -326,10 +329,10 @@ pub mod rkyv {
         ArchivedMedal, ArchivedMedalCompact, ArchivedMonthlyCount, ArchivedProfileBanner,
         ArchivedUser, ArchivedUserCompact, ArchivedUserCover, ArchivedUserHighestRank,
         ArchivedUserPage, ArchivedUserStatistics, BadgeResolver, GradeCountsResolver,
-        GroupResolver, MedalCompactResolver, MedalResolver, MonthlyCountResolver,
-        ProfileBannerResolver, UserCompactResolver, UserCoverResolver, UserHighestRankResolver,
-        UserKudosuResolver, UserLevelResolver, UserPageResolver, UserResolver,
-        UserStatisticsResolver,
+        GroupResolver, HistoryTypeResolver, MedalCompactResolver, MedalResolver,
+        MonthlyCountResolver, PlaystyleResolver, ProfileBannerResolver, ProfilePageResolver,
+        UserCompactResolver, UserCoverResolver, UserHighestRankResolver, UserKudosuResolver,
+        UserLevelResolver, UserPageResolver, UserResolver, UserStatisticsResolver,
     };
 
     pub use super::wiki_::{ArchivedWikiPage, WikiPageResolver};

@@ -1467,11 +1467,7 @@ impl Eq for MostPlayedMap {}
 
 #[allow(clippy::upper_case_acronyms, missing_docs)]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(Archive, RkyvDeserialize, RkyvSerialize),
-    archive(as = "Self")
-)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub enum RankStatus {
     Graveyard = -2,
     WIP = -1,

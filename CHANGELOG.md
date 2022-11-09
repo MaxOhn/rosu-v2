@@ -2,7 +2,7 @@
 
 - __Adjustments:__
   - (Technically breaking change:) Instead of introducing custom archived types, some types now archive into themselves.
-    Impacted types are: `Grade`, `KudosuAction`, `CommentSort`, `HistoryType`, `Playstyle`, `ProfilePage`, `RankStatus`, `BeatmapDifficultyAttributes`, and `GameModeAttributes`.
+    Impacted types are: `Grade`, `KudosuAction`, `CommentSort`, `HistoryType`, `Playstyle`, `ProfilePage`, `BeatmapDifficultyAttributes`, and `GameModeAttributes`.
   - Implemented `rkyv::{Archive, Serialize, Deserialize}` for `BeatmapsetSearchSort`
 
 # v0.6.2 (2022-10-28)

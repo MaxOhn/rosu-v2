@@ -1,8 +1,8 @@
 ## Upcoming
 
 - __Adjustments:__
-  - (Technically breaking change:) Instead of introducing custom archived types, enums that have only unit variants now archive into themselves.
-    Impacted enums are: `Grade`, `KudosuAction`, `CommentSort`, `HistoryType`, `Playstyle`, `ProfilePage`, and `RankStatus`.
+  - (Technically breaking change:) Instead of introducing custom archived types, some types now archive into themselves.
+    Impacted types are: `Grade`, `KudosuAction`, `CommentSort`, `HistoryType`, `Playstyle`, `ProfilePage`, `RankStatus`, `BeatmapDifficultyAttributes`, and `GameModeAttributes`.
   - Implemented `rkyv::{Archive, Serialize, Deserialize}` for `BeatmapsetSearchSort`
 
 # v0.6.2 (2022-10-28)

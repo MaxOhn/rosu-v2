@@ -172,7 +172,11 @@ pub(crate) struct BeatmapDifficultyAttributesWrapper {
 }
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(Archive, RkyvDeserialize, RkyvSerialize),
+    archive(as = "Self")
+)]
 pub struct BeatmapDifficultyAttributes {
     pub max_combo: u32,
     #[serde(rename = "star_rating")]
@@ -182,7 +186,11 @@ pub struct BeatmapDifficultyAttributes {
 }
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(Archive, RkyvDeserialize, RkyvSerialize),
+    archive(as = "Self")
+)]
 #[serde(untagged)]
 pub enum GameModeAttributes {
     Osu {

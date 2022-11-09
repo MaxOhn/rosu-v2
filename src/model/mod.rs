@@ -262,15 +262,14 @@ pub mod wiki {
 #[cfg(feature = "rkyv")]
 pub mod rkyv {
     pub use super::beatmap_::{
-        ArchivedBeatmap, ArchivedBeatmapCompact, ArchivedBeatmapDifficultyAttributes,
-        ArchivedBeatmapset, ArchivedBeatmapsetAvailability, ArchivedBeatmapsetCommentEdit,
-        ArchivedBeatmapsetCommentId, ArchivedBeatmapsetCommentKudosuGain,
-        ArchivedBeatmapsetCommentNominate, ArchivedBeatmapsetCommentOwnerChange,
-        ArchivedBeatmapsetCompact, ArchivedBeatmapsetCovers, ArchivedBeatmapsetDiscussion,
-        ArchivedBeatmapsetEvent, ArchivedBeatmapsetEvents, ArchivedBeatmapsetPost,
-        ArchivedFailTimes, ArchivedGameModeAttributes, ArchivedMostPlayedMap,
-        BeatmapCompactResolver, BeatmapDifficultyAttributesResolver, BeatmapResolver,
-        BeatmapsetAvailabilityResolver, BeatmapsetCommentEditResolver, BeatmapsetCommentIdResolver,
+        ArchivedBeatmap, ArchivedBeatmapCompact, ArchivedBeatmapset,
+        ArchivedBeatmapsetAvailability, ArchivedBeatmapsetCommentEdit, ArchivedBeatmapsetCommentId,
+        ArchivedBeatmapsetCommentKudosuGain, ArchivedBeatmapsetCommentNominate,
+        ArchivedBeatmapsetCommentOwnerChange, ArchivedBeatmapsetCompact, ArchivedBeatmapsetCovers,
+        ArchivedBeatmapsetDiscussion, ArchivedBeatmapsetEvent, ArchivedBeatmapsetEvents,
+        ArchivedBeatmapsetPost, ArchivedFailTimes, ArchivedMostPlayedMap, BeatmapCompactResolver,
+        BeatmapDifficultyAttributesResolver, BeatmapResolver, BeatmapsetAvailabilityResolver,
+        BeatmapsetCommentEditResolver, BeatmapsetCommentIdResolver,
         BeatmapsetCommentKudosuGainResolver, BeatmapsetCommentNominateResolver,
         BeatmapsetCommentOwnerChangeResolver, BeatmapsetCoversResolver,
         BeatmapsetDiscussionResolver, BeatmapsetEventResolver, BeatmapsetEventsResolver,

@@ -101,11 +101,11 @@ impl<'a> GetComments<'a> {
         }
 
         if let Some(parent) = self.parent_id {
-            query.push("parent_id", &parent);
+            query.push("parent_id", parent);
         }
 
         if let Some(commentable) = self.commentable_id {
-            query.push("commentable_id", &commentable);
+            query.push("commentable_id", commentable);
         }
 
         if let Some(commentable) = self.commentable_type.take() {

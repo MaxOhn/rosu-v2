@@ -90,19 +90,19 @@ impl<'a> GetForumPosts<'a> {
         let mut query = Query::new();
 
         if let Some(sort) = self.sort {
-            query.push("sort", &sort);
+            query.push("sort", sort);
         }
 
         if let Some(limit) = self.limit {
-            query.push("limit", &limit);
+            query.push("limit", limit);
         }
 
         if let Some(id) = self.start {
-            query.push("start", &id);
+            query.push("start", id);
         }
 
         if let Some(id) = self.end {
-            query.push("end", &id);
+            query.push("end", id);
         }
 
         if let Some(cursor) = self.cursor.take() {

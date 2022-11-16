@@ -166,7 +166,7 @@ impl<'a> GetUser<'a> {
             UserId::Name(_) => "username",
         };
 
-        query.push("key", &kind);
+        query.push("key", kind);
 
         let route = Route::GetUser {
             user_id,
@@ -307,11 +307,11 @@ impl<'a> GetUserBeatmapsets<'a> {
         let mut query = Query::new();
 
         if let Some(limit) = self.limit {
-            query.push("limit", &limit);
+            query.push("limit", limit);
         }
 
         if let Some(offset) = self.offset {
-            query.push("offset", &offset);
+            query.push("offset", offset);
         }
 
         let osu = self.osu;
@@ -407,11 +407,11 @@ impl<'a> GetUserKudosu<'a> {
         let mut query = Query::new();
 
         if let Some(limit) = self.limit {
-            query.push("limit", &limit);
+            query.push("limit", limit);
         }
 
         if let Some(offset) = self.offset {
-            query.push("offset", &offset);
+            query.push("offset", offset);
         }
 
         let osu = self.osu;
@@ -505,11 +505,11 @@ impl<'a> GetUserMostPlayed<'a> {
         let mut query = Query::new();
 
         if let Some(limit) = self.limit {
-            query.push("limit", &limit);
+            query.push("limit", limit);
         }
 
         if let Some(offset) = self.offset {
-            query.push("offset", &offset);
+            query.push("offset", offset);
         }
 
         let osu = self.osu;
@@ -613,11 +613,11 @@ impl<'a> GetRecentEvents<'a> {
         let mut query = Query::new();
 
         if let Some(limit) = self.limit {
-            query.push("limit", &limit);
+            query.push("limit", limit);
         }
 
         if let Some(offset) = self.offset {
-            query.push("offset", &offset);
+            query.push("offset", offset);
         }
 
         let osu = self.osu;
@@ -802,19 +802,19 @@ impl<'a> GetUserScores<'a> {
         let mut query = Query::new();
 
         if let Some(limit) = self.limit {
-            query.push("limit", &limit);
+            query.push("limit", limit);
         }
 
         if let Some(offset) = self.offset {
-            query.push("offset", &offset);
+            query.push("offset", offset);
         }
 
         if let Some(mode) = self.mode {
-            query.push("mode", &mode.to_string());
+            query.push("mode", mode.to_string());
         }
 
         if let Some(include_fails) = self.include_fails {
-            query.push("include_fails", &(include_fails as u8));
+            query.push("include_fails", include_fails as u8);
         }
 
         let osu = self.osu;

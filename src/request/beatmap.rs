@@ -85,7 +85,7 @@ impl<'a> GetBeatmap<'a> {
         }
 
         if let Some(map_id) = self.map_id {
-            query.push("id", &map_id);
+            query.push("id", map_id);
         }
 
         let req = Request::with_query(Route::GetBeatmap, query);
@@ -297,7 +297,7 @@ impl<'a> GetBeatmapScores<'a> {
         }
 
         if let Some(score_type) = self.score_type {
-            query.push("type", &score_type);
+            query.push("type", score_type);
         }
 
         // if let Some(limit) = self.limit {

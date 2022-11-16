@@ -70,15 +70,15 @@ impl<'a> GetMatch<'a> {
         let mut query = Query::new();
 
         if let Some(after) = self.after {
-            query.push("after", &after);
+            query.push("after", after);
         }
 
         if let Some(before) = self.before {
-            query.push("before", &before);
+            query.push("before", before);
         }
 
         if let Some(limit) = self.limit {
-            query.push("limit", &limit);
+            query.push("limit", limit);
         }
 
         let route = Route::GetMatch {

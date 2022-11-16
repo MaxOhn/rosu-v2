@@ -260,6 +260,17 @@ impl GameMods {
             - self.contains(GameMods::NightCore) as usize
             - self.contains(GameMods::Perfect) as usize
     }
+
+    /// Returns the clock rate for the mods i.e. 1.5 for DT, 0.75 for HT, and 1.0 otherwise
+    pub fn clock_rate(self) -> f32 {
+        if self.contains(Self::DoubleTime) {
+            1.5
+        } else if self.contains(Self::HalfTime) {
+            0.75
+        } else {
+            1.0
+        }
+    }
 }
 
 impl fmt::Display for GameMods {

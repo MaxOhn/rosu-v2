@@ -5,6 +5,9 @@
     Impacted types are: `Grade`, `KudosuAction`, `CommentSort`, `HistoryType`, `Playstyle`, `ProfilePage`, `BeatmapDifficultyAttributes`, and `GameModeAttributes`.
   - Implemented `rkyv::{Archive, Serialize, Deserialize}` for `BeatmapsetSearchSort`
 
+- __Additions:__
+  - Added the method `GameMods::clock_rate`
+
 # v0.6.2 (2022-10-28)
 
 - __Fixes:__

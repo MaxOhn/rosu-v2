@@ -7,6 +7,7 @@
 
 - __Additions:__
   - Added the method `GameMods::clock_rate`
+  - Added `Ord` and `PartialOrd` implementation for `GameMode`
 
 # v0.6.2 (2022-10-28)
 

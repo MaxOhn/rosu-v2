@@ -8,7 +8,7 @@ use std::fmt;
 use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
 
 /// Available game modes
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Ord, PartialOrd)]
 #[cfg_attr(
     feature = "rkyv",
     derive(Archive, RkyvDeserialize, RkyvSerialize),

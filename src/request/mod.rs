@@ -26,6 +26,7 @@ mod forum;
 mod matches;
 mod news;
 mod ranking;
+mod replay;
 mod seasonal_backgrounds;
 mod user;
 mod wiki;
@@ -36,6 +37,8 @@ pub use forum::*;
 pub use matches::*;
 pub use news::*;
 pub use ranking::*;
+#[cfg(feature = "replay")]
+pub use replay::*;
 pub use seasonal_backgrounds::*;
 pub use user::*;
 pub use wiki::*;

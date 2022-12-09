@@ -344,6 +344,12 @@ impl Osu {
         GetRecentEvents::new(self, user_id.into())
     }
 
+    #[cfg(feature = "replay")]
+    /// Get the replay of a score in form of a [`Replay`](osu_db::Replay)
+    pub fn replay(&self, mode: GameMode, score_id: u64) -> GetReplay<'_> {
+        GetReplay::new(self, mode, score_id)
+    }
+
     /// Get a [`Score`](crate::model::score::Score) struct.
     ///
     /// The contained score will have the following options filled:
@@ -637,7 +643,6 @@ impl OsuRef {
 
         let resp = self.send_request(req).await?;
         let bytes = self.handle_status(resp).await?;
-
         parse_bytes(bytes)
     }
 

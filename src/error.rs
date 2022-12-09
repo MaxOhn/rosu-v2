@@ -3,7 +3,10 @@ use hyper::{
 };
 use serde::Deserialize;
 use serde_json::Error as SerdeError;
-use std::{error::Error as StdError, fmt};
+use std::{
+    error::Error as StdError,
+    fmt::{self, Debug},
+};
 use url::ParseError;
 
 /// The API response was of the form `{ "error": ... }`
@@ -42,6 +45,9 @@ pub enum OsuError {
     NotFound,
     /// Attempted to make request without valid token
     NoToken,
+    #[cfg(feature = "replay")]
+    /// There was an error while trying to use osu-db
+    OsuDbError { source: osu_db::Error },
     /// Failed to deserialize response
     Parsing { body: String, source: SerdeError },
     /// Failed to parse a value
@@ -80,6 +86,8 @@ impl StdError for OsuError {
             Self::CreatingTokenHeader { source } => Some(source),
             Self::NotFound => None,
             Self::NoToken => None,
+            #[cfg(feature = "replay")]
+            Self::OsuDbError { source } => Some(source),
             Self::Parsing { source, .. } => Some(source),
             Self::ParsingValue { source } => Some(source),
             Self::Request { source } => Some(source),
@@ -116,6 +124,10 @@ impl fmt::Display for OsuError {
                 Can not send requests until a new token has been acquired. \
                 This should only occur during an extended downtime of the osu!api.",
             ),
+            #[cfg(feature = "replay")]
+            Self::OsuDbError { source } => {
+                write!(f, "osu-db error",)
+            }
             Self::Parsing { body, .. } => write!(f, "failed to deserialize response: {}", body),
             Self::ParsingValue { .. } => f.write_str("failed to parse value"),
             Self::Request { .. } => f.write_str("failed to send request"),
@@ -132,6 +144,13 @@ impl fmt::Display for OsuError {
             Self::UpdateToken { .. } => f.write_str("failed to update osu!api token"),
             Self::Url { url, .. } => write!(f, "failed to parse URL of a request; url: `{}`", url),
         }
+    }
+}
+
+#[cfg(feature = "replay")]
+impl From<osu_db::Error> for OsuError {
+    fn from(e: osu_db::Error) -> Self {
+        Self::OsuDbError { source: e }
     }
 }
 

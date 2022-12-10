@@ -30,6 +30,9 @@ impl<'a> GetReplay<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, Replay> {
+        #[cfg(feature = "metrics")]
+        self.osu.metrics.replay.inc();
+
         let route = Route::GetReplay {
             mode: self.mode,
             score_id: self.score_id,

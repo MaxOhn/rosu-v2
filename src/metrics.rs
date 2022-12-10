@@ -36,6 +36,7 @@ pub(crate) struct Metrics {
     pub(crate) seasonal_backgrounds: IntCounter,
 
     pub(crate) score: IntCounter,
+    pub(crate) replay: IntCounter,
 
     pub(crate) own_data: IntCounter,
     pub(crate) user: IntCounter,
@@ -91,6 +92,7 @@ impl Metrics {
             seasonal_backgrounds: counters.with_label_values(&["Seasonal backgrounds"]),
 
             score: counters.with_label_values(&["Score"]),
+            replay: counters.with_label_values(&["Replay"]),
 
             own_data: counters.with_label_values(&["Own Data"]),
             user: counters.with_label_values(&["User"]),

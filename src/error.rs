@@ -3,10 +3,7 @@ use hyper::{
 };
 use serde::Deserialize;
 use serde_json::Error as SerdeError;
-use std::{
-    error::Error as StdError,
-    fmt::{self, Debug},
-};
+use std::{error::Error as StdError, fmt};
 use url::ParseError;
 
 /// The API response was of the form `{ "error": ... }`
@@ -125,7 +122,7 @@ impl fmt::Display for OsuError {
                 This should only occur during an extended downtime of the osu!api.",
             ),
             #[cfg(feature = "replay")]
-            Self::OsuDbError { source } => {
+            Self::OsuDbError { .. } => {
                 write!(f, "osu-db error",)
             }
             Self::Parsing { body, .. } => write!(f, "failed to deserialize response: {}", body),

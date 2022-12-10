@@ -16,7 +16,7 @@ Unlike api v1, api v2 does not require an api key by users. Instead, it requires
 To get those, you must register an application [here](https://osu.ppy.sh/home/account/edit#new-oauth-application).
 Unless you're interested in logging into the API through an osu! account, the callback URL here does not matter and can be left blank.
 
-If you went through the OAuth process for a user, you can provide the callback URL and received code 
+If you went through the OAuth process for a user, you can provide the callback URL and received code
 when creating the client in order to make requests on behalf of the authenticated user.
 
 ## Endpoints
@@ -27,7 +27,7 @@ The following endpoints are currently supported:
 - `beatmaps`: Up to 50 beatmaps at once including their beatmapsets.
 - `beatmaps/{map_id}/attributes`: The difficulty attributes of a beatmap
 - `beatmaps/{map_id}/scores`: The global score leaderboard for a beatmap
-- `beatmaps/{map_id}/scores/users/{user_id}[/all]`: Get (all) top score(s) of a user on a beatmap. Defaults to the play with the __max score__, not pp
+- `beatmaps/{map_id}/scores/users/{user_id}[/all]`: Get (all) top score(s) of a user on a beatmap. Defaults to the play with the **max score**, not pp
 - `beatmapsets/{mapset_id}`: The beatmapset including all of its difficulty beatmaps
 - `beatmapsets/events`: Various events around a beatmapset such as status, genre, or language updates, kudosu transfers, or new issues
 - `beatmapsets/search`: Search for beatmapsets; the same search as on the osu! website
@@ -41,6 +41,7 @@ The following endpoints are currently supported:
 - `rankings/{mode}/{ranking_type}`: The global leaderboard of either performance points, ranked score, countries, or a spotlight
 - `users/{user_id}/{recent_activity}`: List of a user's recent events like achieved medals, ranks on a beatmaps, username changes, supporter status updates, beatmapset status updates, ...
 - `scores/{mode}/{score_id}`: A specific score including its beatmap, beatmapset, and user
+- `scores/{mode}/{score_id}/download`: Replay of a score (requires OAuth)
 - `seasonal-backgrounds`: List of seasonal backgrounds i.e. their URL and artists
 - `spotlights`: List of overviews of all spotlights
 - `users/{user_id}[/{mode}]`: Detailed info about a user [in the specified mode]
@@ -103,9 +104,10 @@ async fn main() {
 
 ## Features
 
-| Flag | Description | deps
-|-----|-----|-----|
-| `default` | Enable the `cache` feature |
-| `cache` | Cache username-user_id pairs so that usernames can be used on all user endpoints instead of only user ids | [dashmap](https://github.com/xacrimon/dashmap)
-| `metrics` | Provide a count of all request types the client makes with the function `Osu::metrics` returning a `prometheus::IntCounterVec` | [prometheus](https://github.com/tikv/rust-prometheus)
-| `rkyv` | Implement rkyv's `Archive`, `Deserialize`, and `Serialize` for most types, allowing for insanely fast (de)serializing. | [rkyv](https://github.com/rkyv/rkyv)
+| Flag      | Description                                                                                                                    | deps                                                  |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------- |
+| `default` | Enable the `cache` feature                                                                                                     |
+| `cache`   | Cache username-user_id pairs so that usernames can be used on all user endpoints instead of only user ids                      | [dashmap](https://github.com/xacrimon/dashmap)        |
+| `metrics` | Provide a count of all request types the client makes with the function `Osu::metrics` returning a `prometheus::IntCounterVec` | [prometheus](https://github.com/tikv/rust-prometheus) |
+| `replay`  | Enables any endpoint, that would return a replay as a response                                                                 | [osu-db](https://github.com/negamartin/osu-db)        |
+| `rkyv`    | Implement rkyv's `Archive`, `Deserialize`, and `Serialize` for most types, allowing for insanely fast (de)serializing.         | [rkyv](https://github.com/rkyv/rkyv)                  |

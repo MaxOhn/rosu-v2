@@ -43,6 +43,7 @@ pub struct Score {
     #[serde(with = "serde_::datetime")]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub ended_at: OffsetDateTime,
+    pub passed: bool,
     #[serde(rename = "rank")]
     pub grade: Grade,
     pub max_combo: u32,

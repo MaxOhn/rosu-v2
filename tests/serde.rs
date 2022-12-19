@@ -516,6 +516,7 @@ fn get_score() -> Score {
     Score {
         accuracy: 98.76,
         ended_at: get_date(),
+        passed: true,
         grade: Grade::A,
         max_combo: 1234,
         map: Some(get_map()),

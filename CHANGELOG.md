@@ -1,15 +1,21 @@
 ## Upcoming
 
+Nothing as of now
+
+# v0.7.0 (2022-12-25)
+
 - __Adjustments:__
-  - (Technically breaking change:) Instead of introducing custom archived types, some types now archive into themselves.
-    Impacted types are: `Grade`, `KudosuAction`, `CommentSort`, `HistoryType`, `Playstyle`, `ProfilePage`, `BeatmapDifficultyAttributes`, and `GameModeAttributes`.
   - Implemented `rkyv::{Archive, Serialize, Deserialize}` for `BeatmapsetSearchSort`
 
 - __Additions:__
   - Added the method `GameMods::clock_rate`
   - Added `Ord` and `PartialOrd` implementation for `GameMode`
-  - (Technically breaking change:) Added the field `passed` to `Score` ([#3] - [@Jeglerjeg])
   - Added the method `Osu::replay_raw` to request the bytes of a replay. If the `replay` feature is enabled, the new method `Osu::replay` requests the replay and parses it into a [`osu_db::Replay`](https://docs.rs/osu-db/latest/osu_db/replay/struct.Replay.html). Note that both of these methods **require OAuth** through `OsuBuilder::with_authorization`. ([#2] - [@mezo])
+
+- __Breaking:__
+  - Added the field `passed` to `Score` ([#3] - [@Jeglerjeg])
+  - Instead of introducing custom archived types, some types now archive into themselves.
+    Impacted types are: `Grade`, `KudosuAction`, `CommentSort`, `HistoryType`, `Playstyle`, `ProfilePage`, `BeatmapDifficultyAttributes`, and `GameModeAttributes`.
 
 # v0.6.2 (2022-10-28)
 

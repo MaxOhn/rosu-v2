@@ -295,6 +295,21 @@ async fn recent_events() -> Result<()> {
     Ok(())
 }
 
+#[cfg(feature = "replay")]
+#[tokio::test]
+#[ignore = "requires OAuth to not throw an error"]
+async fn replay() -> Result<()> {
+    let replay = OSU
+        .get()
+        .await?
+        .replay(GameMode::Osu, COOKIEZI_FREEDOM_DIVE)
+        .await?;
+
+    println!("Received replay with the following score: {}", replay.score);
+
+    Ok(())
+}
+
 #[tokio::test]
 async fn kudosu() -> Result<()> {
     let history = OSU.get().await?.kudosu(SYLAS).limit(5).offset(1).await?;

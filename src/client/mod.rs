@@ -344,6 +344,29 @@ impl Osu {
         GetRecentEvents::new(self, user_id.into())
     }
 
+    /// Get the replay of a score in form of a [`Replay`](osu_db::Replay).
+    ///
+    /// Note that the client has to be initialized through the OAuth process
+    /// in order for this endpoint to not return an error.
+    ///
+    /// See [`OsuBuilder::with_authorization`](crate::OsuBuilder::with_authorization).
+    #[cfg(feature = "replay")]
+    #[inline]
+    pub fn replay(&self, mode: GameMode, score_id: u64) -> GetReplay<'_> {
+        GetReplay::new(self, mode, score_id)
+    }
+
+    /// Get the bytes of a replay of a score in form of a `Vec<u8>`.
+    ///
+    /// Note that the client has to be initialized through the OAuth process
+    /// in order for this endpoint to not return an error.
+    ///
+    /// See [`OsuBuilder::with_authorization`](crate::OsuBuilder::with_authorization).
+    #[inline]
+    pub fn replay_raw(&self, mode: GameMode, score_id: u64) -> GetReplayRaw<'_> {
+        GetReplayRaw::new(self, mode, score_id)
+    }
+
     /// Get a [`Score`](crate::model::score::Score) struct.
     ///
     /// The contained score will have the following options filled:
@@ -564,6 +587,10 @@ impl Osu {
     pub(crate) async fn request<T: DeserializeOwned>(&self, req: Request) -> OsuResult<T> {
         self.inner.request(req).await
     }
+
+    pub(crate) async fn request_raw(&self, req: Request) -> OsuResult<Bytes> {
+        self.inner.request_raw(req).await
+    }
 }
 
 impl Drop for Osu {
@@ -619,6 +646,8 @@ impl OsuRef {
                     body.push_with_quotes("grant_type", "authorization_code");
                     body.push_with_quotes("redirect_uri", &auth.redirect_uri);
                     body.push_with_quotes("code", &auth.code);
+                    // FIXME: let users decide which scopes to use?
+                    body.push_with_quotes("scope", "identify public");
                 }
             },
         };
@@ -642,13 +671,19 @@ impl OsuRef {
     }
 
     async fn request<T: DeserializeOwned>(&self, req: Request) -> OsuResult<T> {
-        let resp = self.raw(req).await?;
-        let bytes = self.handle_status(resp).await?;
+        let bytes = self.request_raw(req).await?;
 
         // let text = String::from_utf8_lossy(&bytes);
         // println!("Response:\n{}", text);
 
         parse_bytes(bytes)
+    }
+
+    async fn request_raw(&self, req: Request) -> OsuResult<Bytes> {
+        let resp = self.raw(req).await?;
+        let bytes = self.handle_status(resp).await?;
+
+        Ok(bytes)
     }
 
     async fn raw(&self, req: Request) -> OsuResult<Response<HyperBody>> {

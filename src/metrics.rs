@@ -37,7 +37,6 @@ pub(crate) struct Metrics {
 
     pub(crate) score: IntCounter,
 
-    #[cfg(feature = "replay")]
     pub(crate) replay: IntCounter,
 
     pub(crate) own_data: IntCounter,
@@ -95,7 +94,6 @@ impl Metrics {
 
             score: counters.with_label_values(&["Score"]),
 
-            #[cfg(feature = "replay")]
             replay: counters.with_label_values(&["Replay"]),
 
             own_data: counters.with_label_values(&["Own Data"]),

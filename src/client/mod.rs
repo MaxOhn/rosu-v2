@@ -356,6 +356,17 @@ impl Osu {
         GetReplay::new(self, mode, score_id)
     }
 
+    /// Get the bytes of a replay of a score in form of a `Vec<u8>`.
+    ///
+    /// Note that the client has to be initialized through the OAuth process
+    /// in order for this endpoint to not return an error.
+    ///
+    /// See [`OsuBuilder::with_authorization`](crate::OsuBuilder::with_authorization).
+    #[inline]
+    pub fn replay_raw(&self, mode: GameMode, score_id: u64) -> GetReplayRaw<'_> {
+        GetReplayRaw::new(self, mode, score_id)
+    }
+
     /// Get a [`Score`](crate::model::score::Score) struct.
     ///
     /// The contained score will have the following options filled:
@@ -577,7 +588,6 @@ impl Osu {
         self.inner.request(req).await
     }
 
-    #[cfg(feature = "replay")]
     pub(crate) async fn request_raw(&self, req: Request) -> OsuResult<Bytes> {
         self.inner.request_raw(req).await
     }

@@ -8,6 +8,7 @@
 - __Additions:__
   - Added the method `GameMods::clock_rate`
   - Added `Ord` and `PartialOrd` implementation for `GameMode`
+  - (Technically breaking change:) Added the field `passed` to `Score` ([#3] - [@Jeglerjeg])
 
 # v0.6.2 (2022-10-28)
 
@@ -129,3 +130,4 @@
 [@Jeglerjeg]: https://github.com/Jeglerjeg
 
 [#1]: https://github.com/MaxOhn/rosu-v2/pull/1
+[#2]: https://github.com/MaxOhn/rosu-v2/pull/3

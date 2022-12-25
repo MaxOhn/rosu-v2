@@ -52,6 +52,10 @@ pub(crate) enum Route {
     GetRecentEvents {
         user_id: u32,
     },
+    GetReplay {
+        mode: GameMode,
+        score_id: u64,
+    },
     GetScore {
         mode: GameMode,
         score_id: u64,
@@ -142,6 +146,10 @@ impl Route {
             Self::GetRecentEvents { user_id } => (
                 Method::GET,
                 format!("users/{}/recent_activity", user_id).into(),
+            ),
+            Self::GetReplay { mode, score_id } => (
+                Method::GET,
+                format!("scores/{}/{}/download", mode, score_id).into(),
             ),
             Self::GetScore { mode, score_id } => {
                 (Method::GET, format!("scores/{}/{}", mode, score_id).into())

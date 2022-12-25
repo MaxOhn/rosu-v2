@@ -39,7 +39,7 @@ impl<'a> GetReplay<'a> {
         };
 
         let osu = self.osu;
-        let fut = osu.request::<Vec<u8>>(Request::new(route)).map(|res| {
+        let fut = osu.request_raw(Request::new(route)).map(|res| {
             let bytes = res?;
             let replay = Replay::from_bytes(&bytes)?;
             Ok(replay)

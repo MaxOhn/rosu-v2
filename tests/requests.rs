@@ -361,6 +361,20 @@ async fn own_data() -> Result<()> {
     Ok(())
 }
 
+#[cfg(feature = "replay")]
+#[tokio::test]
+#[ignore = "requires OAuth to not throw an error"]
+async fn replay_download() -> Result<()> {
+    let replay = OSU.get().await?.replay(GameMode::Osu, 4227228979).await?;
+
+    println!(
+        "replay_hash={:?} | count_100={} | mods={:?} | timestamp={:?}",
+        replay.replay_hash, replay.count_100, replay.mods, replay.timestamp
+    );
+
+    Ok(())
+}
+
 #[tokio::test]
 async fn performance_rankings() -> Result<()> {
     let rankings = OSU

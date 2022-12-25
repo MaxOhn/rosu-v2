@@ -570,6 +570,11 @@ impl Osu {
     pub(crate) async fn request<T: DeserializeOwned>(&self, req: Request) -> OsuResult<T> {
         self.inner.request(req).await
     }
+
+    #[cfg(feature = "replay")]
+    pub(crate) async fn request_raw(&self, req: Request) -> OsuResult<Bytes> {
+        self.inner.request_raw(req).await
+    }
 }
 
 impl Drop for Osu {
@@ -625,6 +630,8 @@ impl OsuRef {
                     body.push_with_quotes("grant_type", "authorization_code");
                     body.push_with_quotes("redirect_uri", &auth.redirect_uri);
                     body.push_with_quotes("code", &auth.code);
+                    // FIXME: let users decide which scopes to use?
+                    body.push_with_quotes("scope", "identify public");
                 }
             },
         };
@@ -647,13 +654,19 @@ impl OsuRef {
     }
 
     async fn request<T: DeserializeOwned>(&self, req: Request) -> OsuResult<T> {
-        let resp = self.raw(req).await?;
-        let bytes = self.handle_status(resp).await?;
+        let bytes = self.request_raw(req).await?;
 
         // let text = String::from_utf8_lossy(&bytes);
         // println!("Response:\n{}", text);
 
         parse_bytes(bytes)
+    }
+
+    async fn request_raw(&self, req: Request) -> OsuResult<Bytes> {
+        let resp = self.raw(req).await?;
+        let bytes = self.handle_status(resp).await?;
+
+        Ok(bytes)
     }
 
     async fn raw(&self, req: Request) -> OsuResult<Response<HyperBody>> {

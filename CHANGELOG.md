@@ -9,6 +9,7 @@
   - Added the method `GameMods::clock_rate`
   - Added `Ord` and `PartialOrd` implementation for `GameMode`
   - (Technically breaking change:) Added the field `passed` to `Score` ([#3] - [@Jeglerjeg])
+  - Added the method `Osu::replay_raw` to request the bytes of a replay. If the `replay` feature is enabled, the new method `Osu::replay` requests the replay and parses it into a [`osu_db::Replay`](https://docs.rs/osu-db/latest/osu_db/replay/struct.Replay.html). Note that both of these methods **require OAuth** through `OsuBuilder::with_authorization`. ([#2] - [@mezo])
 
 # v0.6.2 (2022-10-28)
 
@@ -128,6 +129,8 @@
 - Initial release
 
 [@Jeglerjeg]: https://github.com/Jeglerjeg
+[@mezo]: https://github.com/mezodev0
 
 [#1]: https://github.com/MaxOhn/rosu-v2/pull/1
-[#2]: https://github.com/MaxOhn/rosu-v2/pull/3
+[#2]: https://github.com/MaxOhn/rosu-v2/pull/2
+[#3]: https://github.com/MaxOhn/rosu-v2/pull/3

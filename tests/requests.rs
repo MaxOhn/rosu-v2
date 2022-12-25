@@ -296,8 +296,8 @@ async fn recent_events() -> Result<()> {
 }
 
 #[cfg(feature = "replay")]
-#[ignore = "requires OAuth to not throw an error"]
 #[tokio::test]
+#[ignore = "requires OAuth to not throw an error"]
 async fn replay() -> Result<()> {
     let replay = OSU
         .get()
@@ -356,20 +356,6 @@ async fn own_data() -> Result<()> {
     println!(
         "Received own data showing a last activity of {:?}",
         user.last_visit
-    );
-
-    Ok(())
-}
-
-#[cfg(feature = "replay")]
-#[tokio::test]
-#[ignore = "requires OAuth to not throw an error"]
-async fn replay_download() -> Result<()> {
-    let replay = OSU.get().await?.replay(GameMode::Osu, 4227228979).await?;
-
-    println!(
-        "replay_hash={:?} | count_100={} | mods={:?} | timestamp={:?}",
-        replay.replay_hash, replay.count_100, replay.mods, replay.timestamp
     );
 
     Ok(())

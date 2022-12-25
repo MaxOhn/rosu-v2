@@ -109,5 +109,5 @@ async fn main() {
 | `default` | Enable the `cache` feature                                                                                                     |
 | `cache`   | Cache username-user_id pairs so that usernames can be used on all user endpoints instead of only user ids                      | [dashmap](https://github.com/xacrimon/dashmap)        |
 | `metrics` | Provide a count of all request types the client makes with the function `Osu::metrics` returning a `prometheus::IntCounterVec` | [prometheus](https://github.com/tikv/rust-prometheus) |
-| `replay`  | Enables any endpoint, that would return a replay as a response                                                                 | [osu-db](https://github.com/negamartin/osu-db)        |
+| `replay`  | Enables the method `Osu::replay` to download a replay                                                                          | [osu-db](https://github.com/negamartin/osu-db)        |
 | `rkyv`    | Implement rkyv's `Archive`, `Deserialize`, and `Serialize` for most types, allowing for insanely fast (de)serializing.         | [rkyv](https://github.com/rkyv/rkyv)                  |

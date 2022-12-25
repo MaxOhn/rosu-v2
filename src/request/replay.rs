@@ -38,12 +38,13 @@ impl<'a> GetReplay<'a> {
             score_id: self.score_id,
         };
 
-        let osu = self.osu;
-        let fut = osu.request_raw(Request::new(route)).map(|res| {
+        let fut = self.osu.request_raw(Request::new(route)).map(|res| {
             let bytes = res?;
             let replay = Replay::from_bytes(&bytes)?;
+
             Ok(replay)
         });
+
         Box::pin(fut)
     }
 }

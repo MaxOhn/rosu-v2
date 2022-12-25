@@ -122,9 +122,7 @@ impl fmt::Display for OsuError {
                 This should only occur during an extended downtime of the osu!api.",
             ),
             #[cfg(feature = "replay")]
-            Self::OsuDbError { .. } => {
-                write!(f, "osu-db error",)
-            }
+            Self::OsuDbError { .. } => f.write_str("osu-db error"),
             Self::Parsing { body, .. } => write!(f, "failed to deserialize response: {}", body),
             Self::ParsingValue { .. } => f.write_str("failed to parse value"),
             Self::Request { .. } => f.write_str("failed to send request"),

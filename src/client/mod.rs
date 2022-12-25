@@ -344,8 +344,14 @@ impl Osu {
         GetRecentEvents::new(self, user_id.into())
     }
 
+    /// Get the replay of a score in form of a [`Replay`](osu_db::Replay).
+    ///
+    /// Note that the client has to be initialized through the OAuth process
+    /// in order for this endpoint to not return an error.
+    ///
+    /// See [`OsuBuilder::with_authorization`](crate::OsuBuilder::with_authorization).
     #[cfg(feature = "replay")]
-    /// Get the replay of a score in form of a [`Replay`](osu_db::Replay)
+    #[inline]
     pub fn replay(&self, mode: GameMode, score_id: u64) -> GetReplay<'_> {
         GetReplay::new(self, mode, score_id)
     }
@@ -650,6 +656,7 @@ impl OsuRef {
 
         let resp = self.send_request(req).await?;
         let bytes = self.handle_status(resp).await?;
+
         parse_bytes(bytes)
     }
 

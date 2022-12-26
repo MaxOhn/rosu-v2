@@ -46,6 +46,8 @@ pub struct Score {
     pub passed: bool,
     #[serde(rename = "rank")]
     pub grade: Grade,
+    #[serde(rename = "beatmap_id")]
+    pub map_id: u32,
     pub max_combo: u32,
     #[serde(default, rename = "beatmap", skip_serializing_if = "Option::is_none")]
     pub map: Option<Beatmap>,

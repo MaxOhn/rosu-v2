@@ -518,6 +518,7 @@ fn get_score() -> Score {
         ended_at: get_date(),
         passed: true,
         grade: Grade::A,
+        map_id: 123,
         max_combo: 1234,
         map: Some(get_map()),
         mapset: Some(get_mapset_compact()),

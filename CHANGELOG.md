@@ -1,6 +1,7 @@
 ## Upcoming
 
-Nothing as of now
+- __Breaking:__
+  - Added the field `map_id` to `Score`
 
 # v0.7.0 (2022-12-25)
 
@@ -17,7 +18,7 @@ Nothing as of now
   - Instead of introducing custom archived types, some types now archive into themselves.
     Impacted types are: `Grade`, `KudosuAction`, `CommentSort`, `HistoryType`, `Playstyle`, `ProfilePage`, `BeatmapDifficultyAttributes`, and `GameModeAttributes`.
 
-# v0.6.2 (2022-10-28)
+## v0.6.2 (2022-10-28)
 
 - __Fixes:__
   - Fixed deserialization of datetimes and made them mode robust against future changes

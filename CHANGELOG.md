@@ -3,6 +3,9 @@
 - __Breaking:__
   - Added the field `map_id` to `Score`
 
+- __Fixes:__
+  - Anticipate `null` when deserializing user's `default_group`
+
 # v0.7.0 (2022-12-25)
 
 - __Adjustments:__

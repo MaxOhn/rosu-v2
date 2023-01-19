@@ -292,6 +292,7 @@ pub struct User {
     /// urls for the profile cover
     pub cover: UserCover,
     /// Identifier of the default [`Group`] the user belongs to.
+    #[serde(deserialize_with = "serde_::from_option::deserialize")]
     pub default_group: String,
     /// discord tag, `None` if not specified by the user
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -490,6 +491,7 @@ pub struct UserCompact {
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::CountryCodeWrapper))]
     pub country_code: CountryCode,
     /// Identifier of the default [`Group`] the user belongs to.
+    #[serde(deserialize_with = "serde_::from_option::deserialize")]
     pub default_group: String,
     /// has this account been active in the last x months?
     pub is_active: bool,

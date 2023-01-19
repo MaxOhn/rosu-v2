@@ -161,6 +161,18 @@ pub(super) mod adjust_acc {
     }
 }
 
+pub(super) mod from_option {
+
+    use serde::{Deserialize, Deserializer};
+
+    pub fn deserialize<'de, D: Deserializer<'de>, T>(d: D) -> Result<T, D::Error>
+    where
+        T: Default + Deserialize<'de>,
+    {
+        Option::<T>::deserialize(d).map(Option::unwrap_or_default)
+    }
+}
+
 pub(super) mod date {
     use std::fmt;
 

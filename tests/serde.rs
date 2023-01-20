@@ -614,9 +614,11 @@ fn get_user() -> User {
         website: Some(String::new()),
         account_history: Some(vec![AccountHistory {
             id: Some(1),
+            description: Some("abc".to_owned()),
             history_type: HistoryType::Note,
             timestamp: get_date(),
             seconds: 2,
+            permanent: false,
         }]),
         badges: Some(vec![Badge {
             awarded_at: get_date(),
@@ -696,9 +698,11 @@ fn get_user_compact() -> UserCompact {
         username: "bob".into(),
         account_history: Some(vec![AccountHistory {
             id: Some(1),
+            description: None,
             history_type: HistoryType::Note,
             timestamp: get_date(),
-            seconds: 2,
+            seconds: 0,
+            permanent: true,
         }]),
         badges: Some(vec![Badge {
             awarded_at: get_date(),

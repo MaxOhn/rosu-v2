@@ -2,6 +2,8 @@
 
 - __Breaking:__
   - Added the field `map_id` to `Score`
+  - Added the fields `description` and `permanent` to `AccountHistory`
+  - Added the variant `TournamentBan` to `HistoryType`
 
 - __Fixes:__
   - Anticipate `null` when deserializing user's `default_group`

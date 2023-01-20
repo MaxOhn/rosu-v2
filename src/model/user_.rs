@@ -16,6 +16,7 @@ use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
 pub struct AccountHistory {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub id: Option<u32>, // TODO: Can be removed?
+    pub description: Option<String>,
     #[serde(rename = "type")]
     pub history_type: HistoryType,
     #[serde(with = "serde_::datetime")]
@@ -23,6 +24,7 @@ pub struct AccountHistory {
     pub timestamp: OffsetDateTime,
     #[serde(rename = "length")]
     pub seconds: u32,
+    pub permanent: bool,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -166,17 +168,16 @@ pub struct Group {
 }
 
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
 #[cfg_attr(
     feature = "rkyv",
     derive(Archive, RkyvDeserialize, RkyvSerialize),
     archive(as = "Self")
 )]
 pub enum HistoryType {
-    #[serde(rename = "note")]
     Note,
-    #[serde(rename = "restriction")]
     Restriction,
-    #[serde(rename = "silence")]
+    TournamentBan,
     Silence,
 }
 

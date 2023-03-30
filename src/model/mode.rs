@@ -1,6 +1,6 @@
 use serde::{
     de::{Error, Unexpected, Visitor},
-    Deserialize, Deserializer, Serialize, Serializer,
+    Deserialize, Deserializer,
 };
 use std::fmt;
 
@@ -107,9 +107,10 @@ impl<'de> Deserialize<'de> for GameMode {
     }
 }
 
-impl Serialize for GameMode {
+#[cfg(feature = "serialize")]
+impl serde::Serialize for GameMode {
     #[inline]
-    fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+    fn serialize<S: serde::ser::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
         s.serialize_u8(*self as u8)
     }
 }

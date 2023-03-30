@@ -1,7 +1,7 @@
 use super::{serde_, user_::UserCompact, Cursor};
 use crate::{prelude::Username, request::GetUser, Osu, OsuResult};
 
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use std::fmt;
 use time::OffsetDateTime;
 
@@ -9,7 +9,8 @@ use time::OffsetDateTime;
 use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
 
 /// Represents an single comment.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct Comment {
     /// the ID of the comment
@@ -89,7 +90,8 @@ impl PartialEq for Comment {
 impl Eq for Comment {}
 
 /// Comments and related data.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 // TODO
 // #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct CommentBundle {
@@ -143,7 +145,8 @@ impl CommentBundle {
 }
 
 /// Available orders for comments
-#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(
     feature = "rkyv",
     derive(Archive, RkyvDeserialize, RkyvSerialize),
@@ -175,7 +178,8 @@ impl fmt::Display for CommentSort {
 }
 
 /// Metadata of the object that a comment is attached to.
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 #[serde(untagged)]
 pub enum CommentableMeta {

@@ -1,21 +1,14 @@
 use super::{
     beatmap::Beatmapset,
     serde_,
-    user_::{
-        deserialize_country, AccountHistory, Badge, Group, MedalCompact, MonthlyCount, UserCompact,
-        UserCover, UserPage, UserStatistics,
-    },
+    user_::{deserialize_country, UserCompact, UserStatistics},
     GameMode,
 };
-use crate::{
-    model::user_::{CountryCode, UserHighestRank, Username},
-    Osu, OsuResult,
-};
+use crate::{model::user_::CountryCode, Osu, OsuResult};
 
 use serde::{
     de::{Deserializer, Error, IgnoredAny, MapAccess, SeqAccess, Visitor},
-    ser::{SerializeSeq, SerializeStruct, Serializer},
-    Deserialize, Serialize,
+    Deserialize,
 };
 use std::fmt;
 use time::OffsetDateTime;
@@ -23,7 +16,8 @@ use time::OffsetDateTime;
 #[cfg(feature = "rkyv")]
 use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
 
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct ChartRankings {
     /// The list of beatmaps in the requested spotlight for the given mode
@@ -39,7 +33,8 @@ pub struct ChartRankings {
     pub spotlight: Spotlight,
 }
 
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct CountryRanking {
     /// Active user count
@@ -60,7 +55,8 @@ pub struct CountryRanking {
     pub ranked_score: u64,
 }
 
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct CountryRankings {
     /// The next page of the ranking
@@ -86,7 +82,8 @@ impl CountryRankings {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct Rankings {
     #[serde(default)]
@@ -237,10 +234,14 @@ where
     d.deserialize_seq(UserStatsVecVisitor)
 }
 
+#[cfg(feature = "serialize")]
 struct UserCompactBorrowed<'u>(&'u UserCompact);
 
-impl<'u> Serialize for UserCompactBorrowed<'u> {
-    fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+#[cfg(feature = "serialize")]
+impl<'u> serde::Serialize for UserCompactBorrowed<'u> {
+    fn serialize<S: serde::ser::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        use serde::ser::SerializeStruct;
+
         let user = self.0;
         let stats = user.statistics.as_ref().unwrap();
 
@@ -275,7 +276,8 @@ impl<'u> Serialize for UserCompactBorrowed<'u> {
 }
 
 // Serializing a UserCompact reference without statistics
-#[derive(Serialize)]
+#[cfg(feature = "serialize")]
+#[derive(serde::Serialize)]
 struct UserCompactWithoutStats<'u> {
     pub avatar_url: &'u String,
     pub country_code: &'u CountryCode,
@@ -295,18 +297,18 @@ struct UserCompactWithoutStats<'u> {
     pub profile_color: &'u Option<String>,
     #[serde(rename = "id")]
     pub user_id: &'u u32,
-    pub username: &'u Username,
+    pub username: &'u crate::prelude::Username,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub account_history: &'u Option<Vec<AccountHistory>>,
+    pub account_history: &'u Option<Vec<crate::prelude::AccountHistory>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub badges: &'u Option<Vec<Badge>>,
+    pub badges: &'u Option<Vec<crate::prelude::Badge>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub beatmap_playcounts_count: &'u Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub country: &'u Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub cover: &'u Option<UserCover>,
+    pub cover: &'u Option<crate::prelude::UserCover>,
     #[serde(
         rename = "favourite_beatmapset_count",
         skip_serializing_if = "Option::is_none"
@@ -320,7 +322,7 @@ struct UserCompactWithoutStats<'u> {
     )]
     pub graveyard_mapset_count: &'u Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub groups: &'u Option<Vec<Group>>,
+    pub groups: &'u Option<Vec<crate::prelude::Group>>,
     #[serde(
         rename = "guest_beatmapset_count",
         skip_serializing_if = "Option::is_none"
@@ -331,7 +333,7 @@ struct UserCompactWithoutStats<'u> {
         rename = "rank_highest",
         skip_serializing_if = "Option::is_none"
     )]
-    pub highest_rank: &'u Option<UserHighestRank>,
+    pub highest_rank: &'u Option<crate::prelude::UserHighestRank>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_admin: &'u Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -354,13 +356,13 @@ struct UserCompactWithoutStats<'u> {
     )]
     pub loved_mapset_count: &'u Option<u32>,
     #[serde(rename = "user_achievements", skip_serializing_if = "Option::is_none")]
-    pub medals: &'u Option<Vec<MedalCompact>>,
+    pub medals: &'u Option<Vec<crate::prelude::MedalCompact>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub monthly_playcounts: &'u Option<Vec<MonthlyCount>>,
+    pub monthly_playcounts: &'u Option<Vec<crate::prelude::MonthlyCount>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub page: &'u Option<UserPage>,
+    pub page: &'u Option<crate::prelude::UserPage>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub previous_usernames: &'u Option<Vec<Username>>,
+    pub previous_usernames: &'u Option<Vec<crate::prelude::Username>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rank_history: &'u Option<Vec<u32>>,
     #[serde(
@@ -369,7 +371,7 @@ struct UserCompactWithoutStats<'u> {
     )]
     pub ranked_mapset_count: &'u Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub replays_watched_counts: &'u Option<Vec<MonthlyCount>>,
+    pub replays_watched_counts: &'u Option<Vec<crate::prelude::MonthlyCount>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub scores_best_count: &'u Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -385,6 +387,7 @@ struct UserCompactWithoutStats<'u> {
     pub pending_mapset_count: &'u Option<u32>,
 }
 
+#[cfg(feature = "serialize")]
 impl<'u> UserCompactWithoutStats<'u> {
     fn new(user: &'u UserCompact) -> Self {
         let UserCompact {
@@ -486,7 +489,13 @@ impl<'u> UserCompactWithoutStats<'u> {
     }
 }
 
-fn serialize_user_stats_vec<S: Serializer>(users: &[UserCompact], s: S) -> Result<S::Ok, S::Error> {
+#[cfg(feature = "serialize")]
+fn serialize_user_stats_vec<S: serde::ser::Serializer>(
+    users: &[UserCompact],
+    s: S,
+) -> Result<S::Ok, S::Error> {
+    use serde::ser::SerializeSeq;
+
     let mut seq = s.serialize_seq(Some(users.len()))?;
 
     for user in users {
@@ -496,7 +505,8 @@ fn serialize_user_stats_vec<S: Serializer>(users: &[UserCompact], s: S) -> Resul
     seq.end()
 }
 
-#[derive(Copy, Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Copy, Clone, Debug, Deserialize, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 #[serde(rename_all = "lowercase")]
 pub(crate) enum RankingType {
@@ -588,7 +598,8 @@ fn deserialize_rankings_cursor<'de, D: Deserializer<'de>>(d: D) -> Result<Option
 }
 
 /// The details of a spotlight.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct Spotlight {
     /// The end date of the spotlight.

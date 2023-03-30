@@ -8,7 +8,7 @@ use crate::{
 use bitflags::bitflags;
 use serde::{
     de::{Error, IgnoredAny, MapAccess, SeqAccess, Unexpected, Visitor},
-    Deserialize, Deserializer, Serialize, Serializer,
+    Deserialize, Deserializer,
 };
 use std::{
     convert::{Into, TryFrom},
@@ -526,9 +526,10 @@ impl<'de> Deserialize<'de> for GameMods {
     }
 }
 
-impl Serialize for GameMods {
+#[cfg(feature = "serialize")]
+impl serde::Serialize for GameMods {
     #[inline]
-    fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+    fn serialize<S: serde::ser::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
         s.serialize_u32(self.bits)
     }
 }

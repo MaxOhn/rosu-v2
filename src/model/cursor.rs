@@ -1,6 +1,6 @@
 use crate::request::Query;
 
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use serde_json::Value;
 
 /// A structure included in some API responses containing the parameters to get the next set of results.
@@ -10,7 +10,8 @@ use serde_json::Value;
 /// If there are no more results available, a cursor with a value of `None` is returned.
 ///
 /// Note that sort option should also be specified for it to work.
-#[derive(Clone, Debug, Deserialize, PartialEq, Eq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 // TODO
 // #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 #[serde(transparent)]

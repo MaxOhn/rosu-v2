@@ -10,8 +10,7 @@ use serde::{
     de::{
         DeserializeSeed, Deserializer, Error, IgnoredAny, MapAccess, SeqAccess, Unexpected, Visitor,
     },
-    ser::Serializer,
-    Deserialize, Serialize,
+    Deserialize,
 };
 use std::{
     convert::TryFrom,
@@ -23,7 +22,8 @@ use time::OffsetDateTime;
 #[cfg(feature = "rkyv")]
 use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct Beatmap {
     pub ar: f32,
@@ -105,7 +105,8 @@ impl PartialEq for Beatmap {
 
 impl Eq for Beatmap {}
 
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct BeatmapCompact {
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -171,7 +172,8 @@ pub(crate) struct BeatmapDifficultyAttributesWrapper {
     pub attributes: BeatmapDifficultyAttributes,
 }
 
-#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(
     feature = "rkyv",
     derive(Archive, RkyvDeserialize, RkyvSerialize),
@@ -185,7 +187,8 @@ pub struct BeatmapDifficultyAttributes {
     pub attrs: GameModeAttributes,
 }
 
-#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(
     feature = "rkyv",
     derive(Archive, RkyvDeserialize, RkyvSerialize),
@@ -221,7 +224,8 @@ pub enum GameModeAttributes {
 }
 
 /// Represents a beatmapset. This extends [`BeatmapsetCompact`] with additional attributes.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(
     feature = "rkyv",
     derive(Archive, RkyvDeserialize, RkyvSerialize),
@@ -485,7 +489,8 @@ impl PartialEq for Beatmapset {
 
 impl Eq for Beatmapset {}
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct BeatmapsetAvailability {
     pub download_disabled: bool,
@@ -493,7 +498,8 @@ pub struct BeatmapsetAvailability {
     pub more_information: Option<String>,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct BeatmapsetCommentEdit<T> {
     #[serde(flatten)]
@@ -502,7 +508,8 @@ pub struct BeatmapsetCommentEdit<T> {
     pub new: T,
 }
 
-#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct BeatmapsetCommentId {
     #[serde(
@@ -531,7 +538,8 @@ pub struct BeatmapsetCommentId {
     pub mapset_discussion_post_id: Option<u64>,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct BeatmapsetCommentKudosuGain {
     #[serde(flatten)]
@@ -540,13 +548,15 @@ pub struct BeatmapsetCommentKudosuGain {
     pub votes: Vec<BeatmapsetVote>,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct BeatmapsetCommentNominate {
     pub modes: Vec<GameMode>,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct BeatmapsetCommentOwnerChange {
     #[serde(
@@ -572,7 +582,8 @@ pub struct BeatmapsetCommentOwnerChange {
 }
 
 /// Represents a beatmapset.
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct BeatmapsetCompact {
     pub artist: String,
@@ -640,7 +651,8 @@ impl From<Beatmapset> for BeatmapsetCompact {
 }
 
 /// URLs to various sizes of (parts of) the background picture
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct BeatmapsetCovers {
     /// Lengthy part of the background
@@ -666,7 +678,8 @@ pub struct BeatmapsetCovers {
     pub slim_cover_2x: String,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct BeatmapsetDiscussion {
     #[serde(rename = "id")]
@@ -723,7 +736,8 @@ impl PartialEq for BeatmapsetDiscussion {
 
 impl Eq for BeatmapsetDiscussion {}
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 #[serde(rename_all = "snake_case", tag = "type")]
 #[non_exhaustive]
@@ -885,7 +899,8 @@ pub enum BeatmapsetEvent {
     },
 }
 
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct BeatmapsetEvents {
     pub events: Vec<BeatmapsetEvent>,
@@ -894,7 +909,8 @@ pub struct BeatmapsetEvents {
     pub users: Vec<UserCompact>,
 }
 
-#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(
     feature = "rkyv",
     derive(Archive, RkyvDeserialize, RkyvSerialize),
@@ -905,7 +921,8 @@ pub struct BeatmapsetHype {
     pub required: u32,
 }
 
-#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(
     feature = "rkyv",
     derive(Archive, RkyvDeserialize, RkyvSerialize),
@@ -916,7 +933,8 @@ pub struct BeatmapsetNominations {
     pub required: u32,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct BeatmapsetPost {
     #[serde(rename = "id")]
@@ -949,7 +967,8 @@ pub struct BeatmapsetPost {
     pub deleted_at: Option<OffsetDateTime>,
 }
 
-#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(
     feature = "rkyv",
     derive(Archive, RkyvDeserialize, RkyvSerialize),
@@ -1029,9 +1048,10 @@ impl<'de> Deserialize<'de> for SearchRankStatus {
     }
 }
 
-impl Serialize for SearchRankStatus {
+#[cfg(feature = "serialize")]
+impl serde::Serialize for SearchRankStatus {
     #[inline]
-    fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+    fn serialize<S: serde::ser::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
         match self {
             Self::Any => s.serialize_i8(SEARCH_RANK_STATUS_ANY),
             Self::Specific(status) => s.serialize_i8(*status as i8),
@@ -1039,22 +1059,23 @@ impl Serialize for SearchRankStatus {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub(crate) struct BeatmapsetSearchParameters {
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "serialize", serde(skip_serializing_if = "Option::is_none"))]
     pub(crate) query: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "serialize", serde(skip_serializing_if = "Option::is_none"))]
     pub(crate) mode: Option<u8>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "serialize", serde(skip_serializing_if = "Option::is_none"))]
     pub(crate) status: Option<SearchRankStatus>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "serialize", serde(skip_serializing_if = "Option::is_none"))]
     pub(crate) genre: Option<u8>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "serialize", serde(skip_serializing_if = "Option::is_none"))]
     pub(crate) language: Option<u8>,
     pub(crate) video: bool,
     pub(crate) storyboard: bool,
     pub(crate) nsfw: bool,
-    #[serde(rename(serialize = "_sort"))]
+    #[cfg_attr(feature = "serialize", serde(rename(serialize = "_sort")))]
     sort: BeatmapsetSearchSort,
     descending: bool,
 }
@@ -1161,15 +1182,16 @@ impl<'de> Deserialize<'de> for BeatmapsetSearchParameters {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 // TODO
 // #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct BeatmapsetSearchResult {
     cursor: Option<Cursor>,
     /// All mapsets of the current page
-    #[serde(rename(serialize = "beatmapsets"))]
+    #[cfg_attr(feature = "serialize", serde(rename(serialize = "beatmapsets")))]
     pub mapsets: Vec<Beatmapset>,
-    #[serde(rename(serialize = "search"))]
+    #[cfg_attr(feature = "serialize", serde(rename(serialize = "search")))]
     pub(crate) params: BeatmapsetSearchParameters,
     /// Total amount of mapsets that fit the search query
     pub total: u32,
@@ -1275,7 +1297,8 @@ macro_rules! search_sort_enum {
     ( $( $( #[$meta:meta] )? $variant:ident => $name:literal ,)+ ) => {
         /// Provides an option to specify a mapset order in a mapset search,
         /// see [`Osu::beatmapset_search`](crate::client::Osu::beatmapset_search).
-        #[derive(Copy, Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+        #[derive(Copy, Clone, Debug, Default, Deserialize, Eq, PartialEq)]
+        #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
         #[cfg_attr(
             feature = "rkyv",
             derive(Archive, RkyvDeserialize, RkyvSerialize),
@@ -1354,7 +1377,8 @@ struct SubSort {
     descending: bool,
 }
 
-#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(
     feature = "rkyv",
     derive(Archive, RkyvDeserialize, RkyvSerialize),
@@ -1366,7 +1390,8 @@ pub struct BeatmapsetVote {
 }
 
 /// All fields are optional but there's always at least one field returned.
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct FailTimes {
     /// List of length 100
@@ -1439,7 +1464,8 @@ impl<'de> Visitor<'de> for HundredU32Visitor {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct MostPlayedMap {
     pub count: usize,
@@ -1504,9 +1530,10 @@ impl TryFrom<i8> for RankStatus {
     }
 }
 
-impl Serialize for RankStatus {
+#[cfg(feature = "serialize")]
+impl serde::Serialize for RankStatus {
     #[inline]
-    fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+    fn serialize<S: serde::ser::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
         s.serialize_i8(*self as i8)
     }
 }
@@ -1682,12 +1709,13 @@ fn flatten_description<'de, D: Deserializer<'de>>(d: D) -> Result<Option<String>
 }
 
 #[cfg(test)]
-mod tests {
+#[cfg(feature = "serialize")]
+mod serde_tests {
     use super::*;
     use serde::de::DeserializeOwned;
     use std::fmt::Debug;
 
-    fn ser_de<T: DeserializeOwned + Serialize + PartialEq + Debug>(val: T) {
+    fn ser_de<T: DeserializeOwned + serde::Serialize + PartialEq + Debug>(val: T) {
         let serialized =
             serde_json::to_string(&val).unwrap_or_else(|e| panic!("Failed to serialize: {}", e));
 

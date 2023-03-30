@@ -1272,10 +1272,10 @@ impl<'de> Deserialize<'de> for BeatmapsetSearchResult {
 }
 
 macro_rules! search_sort_enum {
-    ($($variant:ident => $name:literal,)+) => {
+    ( $( $( #[$meta:meta] )? $variant:ident => $name:literal ,)+ ) => {
         /// Provides an option to specify a mapset order in a mapset search,
         /// see [`Osu::beatmapset_search`](crate::client::Osu::beatmapset_search).
-        #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+        #[derive(Copy, Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
         #[cfg_attr(
             feature = "rkyv",
             derive(Archive, RkyvDeserialize, RkyvSerialize),
@@ -1284,6 +1284,7 @@ macro_rules! search_sort_enum {
         pub enum BeatmapsetSearchSort {
             $(
                 #[serde(rename = $name)]
+                $( #[$meta] )?
                 $variant,
             )+
         }
@@ -1336,22 +1337,16 @@ macro_rules! search_sort_enum {
     }
 }
 
-search_sort_enum!(
+search_sort_enum! {
     Artist => "artist",
     Favourites => "favourites",
     Playcount => "plays",
     RankedDate => "ranked",
     Rating => "rating",
+    #[default]
     Relevance => "relevance",
     Stars => "difficulty",
     Title => "title",
-);
-
-impl Default for BeatmapsetSearchSort {
-    #[inline]
-    fn default() -> Self {
-        BeatmapsetSearchSort::Relevance
-    }
 }
 
 struct SubSort {

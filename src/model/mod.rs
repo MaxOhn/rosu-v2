@@ -59,6 +59,7 @@ macro_rules! def_enum {
             }
         }
 
+        #[cfg(feature = "serialize")]
         impl serde::Serialize for $type {
             #[inline]
             fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {

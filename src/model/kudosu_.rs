@@ -1,4 +1,4 @@
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use time::OffsetDateTime;
 
 use crate::model::user_::Username;
@@ -6,7 +6,8 @@ use crate::model::user_::Username;
 #[cfg(feature = "rkyv")]
 use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
 
-#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(
     feature = "rkyv",
     derive(Archive, RkyvDeserialize, RkyvSerialize),
@@ -23,7 +24,8 @@ pub enum KudosuAction {
     VoteReset,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct KudosuGiver {
     pub url: String,
@@ -31,7 +33,8 @@ pub struct KudosuGiver {
     pub username: Username,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct KudosuHistory {
     pub id: u32,
@@ -60,7 +63,8 @@ impl PartialEq for KudosuHistory {
 
 impl Eq for KudosuHistory {}
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct KudosuPost {
     /// Url of the object.

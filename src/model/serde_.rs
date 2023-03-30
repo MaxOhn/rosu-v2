@@ -31,6 +31,7 @@ const OFFSET_FORMAT: &[FormatItem<'_>] = &[
     FormatItem::Component(Component::OffsetMinute(OffsetMinute::default())),
 ];
 
+#[cfg(feature = "serialize")]
 const OFFSET_DATETIME_FORMAT: &[FormatItem<'_>] = &[
     FormatItem::Compound(PRIMITIVE_FORMAT),
     FormatItem::Compound(OFFSET_FORMAT),
@@ -41,19 +42,25 @@ pub(super) mod datetime {
 
     use serde::{
         de::{Error, Visitor},
-        Deserializer, Serialize, Serializer,
+        Deserializer,
     };
     use time::{OffsetDateTime, PrimitiveDateTime, UtcOffset};
 
-    use super::{OFFSET_DATETIME_FORMAT, OFFSET_FORMAT, PRIMITIVE_FORMAT};
+    use super::{OFFSET_FORMAT, PRIMITIVE_FORMAT};
 
     pub fn deserialize<'de, D: Deserializer<'de>>(d: D) -> Result<OffsetDateTime, D::Error> {
         d.deserialize_str(DateTimeVisitor)
     }
 
-    pub fn serialize<S: Serializer>(datetime: &OffsetDateTime, s: S) -> Result<S::Ok, S::Error> {
+    #[cfg(feature = "serialize")]
+    pub fn serialize<S: serde::ser::Serializer>(
+        datetime: &OffsetDateTime,
+        s: S,
+    ) -> Result<S::Ok, S::Error> {
+        use serde::Serialize;
+
         datetime
-            .format(&OFFSET_DATETIME_FORMAT)
+            .format(&super::OFFSET_DATETIME_FORMAT)
             .expect("incorrect format")
             .serialize(s)
     }
@@ -96,11 +103,11 @@ pub(super) mod option_datetime {
 
     use serde::{
         de::{Error, Visitor},
-        Deserializer, Serialize, Serializer,
+        Deserializer,
     };
     use time::OffsetDateTime;
 
-    use super::{datetime::DateTimeVisitor, OFFSET_DATETIME_FORMAT};
+    use super::datetime::DateTimeVisitor;
 
     pub fn deserialize<'de, D: Deserializer<'de>>(
         d: D,
@@ -108,14 +115,17 @@ pub(super) mod option_datetime {
         d.deserialize_option(OptionDateTimeVisitor)
     }
 
-    pub fn serialize<S: Serializer>(
+    #[cfg(feature = "serialize")]
+    pub fn serialize<S: serde::ser::Serializer>(
         datetime: &Option<OffsetDateTime>,
         s: S,
     ) -> Result<S::Ok, S::Error> {
+        use serde::Serialize;
+
         datetime
             .map(|datetime| {
                 datetime
-                    .format(&OFFSET_DATETIME_FORMAT)
+                    .format(&super::OFFSET_DATETIME_FORMAT)
                     .expect("incorrect format")
             })
             .serialize(s)
@@ -148,7 +158,7 @@ pub(super) mod option_datetime {
 }
 
 pub(super) mod adjust_acc {
-    use serde::{Deserialize, Deserializer, Serializer};
+    use serde::{Deserialize, Deserializer};
 
     pub fn deserialize<'de, D: Deserializer<'de>>(d: D) -> Result<f32, D::Error> {
         let acc = <f32 as Deserialize>::deserialize(d)?;
@@ -156,7 +166,8 @@ pub(super) mod adjust_acc {
         Ok(100.0 * acc)
     }
 
-    pub fn serialize<S: Serializer>(f: &f32, s: S) -> Result<S::Ok, S::Error> {
+    #[cfg(feature = "serialize")]
+    pub fn serialize<S: serde::ser::Serializer>(f: &f32, s: S) -> Result<S::Ok, S::Error> {
         s.serialize_f32(*f / 100.0)
     }
 }
@@ -178,7 +189,7 @@ pub(super) mod date {
 
     use serde::{
         de::{Error, SeqAccess, Visitor},
-        Deserializer, Serialize, Serializer,
+        Deserializer,
     };
     use time::Date;
 
@@ -188,7 +199,10 @@ pub(super) mod date {
         d.deserialize_any(DateVisitor)
     }
 
-    pub fn serialize<S: Serializer>(date: &Date, s: S) -> Result<S::Ok, S::Error> {
+    #[cfg(feature = "serialize")]
+    pub fn serialize<S: serde::ser::Serializer>(date: &Date, s: S) -> Result<S::Ok, S::Error> {
+        use serde::Serialize;
+
         (date.year(), date.ordinal()).serialize(s)
     }
 

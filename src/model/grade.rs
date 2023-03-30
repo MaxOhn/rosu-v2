@@ -2,7 +2,7 @@ use crate::error::{OsuError, ParsingError};
 
 use serde::{
     de::{Error, Unexpected, Visitor},
-    Deserialize, Deserializer, Serialize,
+    Deserialize, Deserializer,
 };
 use std::{fmt, str::FromStr};
 
@@ -11,7 +11,8 @@ use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
 
 /// Enum for a [`Score`](crate::model::score::Score)'s grade (sometimes called rank)
 #[allow(clippy::upper_case_acronyms, missing_docs)]
-#[derive(Copy, Clone, Hash, Debug, Eq, PartialEq, PartialOrd, Serialize)]
+#[derive(Copy, Clone, Hash, Debug, Eq, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(
     feature = "rkyv",
     derive(Archive, RkyvDeserialize, RkyvSerialize),

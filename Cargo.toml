@@ -14,6 +14,7 @@ documentation = "https://docs.rs/rosu-v2/"
 
 [features]
 default = ["cache"]
+serialize = []
 cache = ["dashmap"]
 metrics = ["prometheus"]
 replay = ["osu-db"]

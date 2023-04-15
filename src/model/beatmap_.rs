@@ -897,6 +897,15 @@ pub enum BeatmapsetEvent {
         #[serde(rename = "beatmapset")]
         mapset: BeatmapsetCompact,
     },
+    TagsEdit {
+        #[serde(rename = "id")]
+        event_id: u64,
+        comment: BeatmapsetCommentEdit<String>,
+        #[serde(with = "serde_::datetime")]
+        #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
+        created_at: OffsetDateTime,
+        beatmapset: BeatmapsetCompact,
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq)]

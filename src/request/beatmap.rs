@@ -249,7 +249,6 @@ impl<'a> GetBeatmapScores<'a> {
     }
 
     /// Specify the mods of the scores
-    #[deprecated = "Does not currently work since the API requires osu!supporter for this feature"]
     #[inline]
     pub fn mods(mut self, mods: GameMods) -> Self {
         self.mods.replace(mods);

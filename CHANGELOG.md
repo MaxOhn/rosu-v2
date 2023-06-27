@@ -1,5 +1,9 @@
 ## Upcoming
 
+Nothing as of now
+
+# v0.8.0 (2023-06-27)
+
 - __Breaking:__
   - Added the field `map_id` to `Score`
   - Added the fields `description` and `permanent` to `AccountHistory`
@@ -15,7 +19,7 @@
   - Added the method `GetBeatmapScores::limit`
   - The method `GetBeatmapScores::mods` no longer shows the deprecation notice
 
-# v0.7.0 (2022-12-25)
+## v0.7.0 (2022-12-25)
 
 - __Adjustments:__
   - Implemented `rkyv::{Archive, Serialize, Deserialize}` for `BeatmapsetSearchSort`

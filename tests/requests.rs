@@ -517,7 +517,7 @@ async fn wiki() -> Result<()> {
         .get()
         .await?
         .wiki("fr")
-        .page("Client/File_formats/Osu_%28file_format%29")
+        .page("Client/File_formats/osu_%28file_format%29")
         .await?;
 
     println!(

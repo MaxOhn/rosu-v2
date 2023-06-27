@@ -18,7 +18,10 @@ use crate::{
 };
 
 use futures::future::TryFutureExt;
-use std::{fmt::Write, mem};
+use std::{
+    fmt::{Display, Formatter, Result as FmtResult, Write},
+    mem,
+};
 
 use super::Body;
 #[cfg(feature = "cache")]
@@ -210,6 +213,23 @@ impl<'a> GetBeatmapDifficultyAttributes<'a> {
 
 poll_req!(GetBeatmapDifficultyAttributes => BeatmapDifficultyAttributes);
 
+#[derive(Copy, Clone, Debug)]
+enum ScoreType {
+    Country,
+    Global,
+}
+
+impl Display for ScoreType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        let kind = match self {
+            Self::Country => "country",
+            Self::Global => "global",
+        };
+
+        f.write_str(kind)
+    }
+}
+
 /// Get top scores of a beatmap by its id in form of a
 /// vec of [`Score`](Score)s.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
@@ -217,7 +237,7 @@ pub struct GetBeatmapScores<'a> {
     fut: Option<Pending<'a, Vec<Score>>>,
     osu: &'a Osu,
     map_id: u32,
-    score_type: Option<&'static str>,
+    score_type: Option<ScoreType>,
     mode: Option<GameMode>,
     mods: Option<GameMods>,
     limit: Option<u32>,
@@ -232,7 +252,7 @@ impl<'a> GetBeatmapScores<'a> {
             fut: None,
             osu,
             map_id,
-            score_type: None, // TODO
+            score_type: None,
             mode: None,
             mods: None,
             limit: None,
@@ -256,11 +276,20 @@ impl<'a> GetBeatmapScores<'a> {
         self
     }
 
-    /// Specify the score type of the scores
-    #[deprecated = "Does not currently work since the API requires osu!supporter for this feature"]
+    /// Specify that the global leaderboard should be requested.
     #[inline]
-    pub fn score_type(mut self, score_type: &'static str) -> Self {
-        self.score_type.replace(score_type);
+    pub fn global(mut self) -> Self {
+        self.score_type = Some(ScoreType::Global);
+
+        self
+    }
+
+    /// Specify that the national leaderboard should be requested.
+    ///
+    /// Note that you must be authenticated through OAuth and have osu!supporter to use this.
+    #[inline]
+    pub fn country(mut self) -> Self {
+        self.score_type = Some(ScoreType::Country);
 
         self
     }

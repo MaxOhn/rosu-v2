@@ -9,7 +9,7 @@ Nothing as of now
   - Added the fields `description` and `permanent` to `AccountHistory`
   - Added the variant `TournamentBan` to `HistoryType`
   - Added the variant `TagsEdit` to `BeatmapsetEvent`
-  - Types no longer implement `serde::Serialize` unless the `serialize` feature is specified
+  - Types no longer implement `serde::Serialize` unless the `serialize` feature is specified ([#4])
   - Replaced the method `GetBeatmapScores::score_type` with `GetBeatmapScores::global` and `GetBeatmapScores::country`
 
 - __Fixes:__

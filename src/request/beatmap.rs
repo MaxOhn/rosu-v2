@@ -211,7 +211,7 @@ impl<'a> GetBeatmapDifficultyAttributes<'a> {
 poll_req!(GetBeatmapDifficultyAttributes => BeatmapDifficultyAttributes);
 
 /// Get top scores of a beatmap by its id in form of a
-/// vec of [`Score`](crate::model::score::Score)s.
+/// vec of [`Score`](Score)s.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetBeatmapScores<'a> {
     fut: Option<Pending<'a, Vec<Score>>>,
@@ -220,8 +220,8 @@ pub struct GetBeatmapScores<'a> {
     score_type: Option<&'static str>,
     mode: Option<GameMode>,
     mods: Option<GameMods>,
+    limit: Option<u32>,
     // ! Currently not working
-    // limit: Option<u32>,
     // offset: Option<u32>,
 }
 
@@ -235,7 +235,7 @@ impl<'a> GetBeatmapScores<'a> {
             score_type: None, // TODO
             mode: None,
             mods: None,
-            // limit: None,
+            limit: None,
             // offset: None,
         }
     }
@@ -266,12 +266,12 @@ impl<'a> GetBeatmapScores<'a> {
         self
     }
 
-    // #[inline]
-    // pub fn limit(mut self, limit: u32) -> Self {
-    //     self.limit.replace(limit);
+    #[inline]
+    pub fn limit(mut self, limit: u32) -> Self {
+        self.limit.replace(limit);
 
-    //     self
-    // }
+        self
+    }
 
     // #[inline]
     // pub fn offset(mut self, offset: u32) -> Self {
@@ -300,9 +300,9 @@ impl<'a> GetBeatmapScores<'a> {
             query.push("type", score_type);
         }
 
-        // if let Some(limit) = self.limit {
-        //     query.push("limit", limit);
-        // }
+        if let Some(limit) = self.limit {
+            query.push("limit", limit);
+        }
 
         // if let Some(offset) = self.offset {
         //     query.push("offset", offset);

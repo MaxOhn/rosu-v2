@@ -4,9 +4,16 @@
   - Added the field `map_id` to `Score`
   - Added the fields `description` and `permanent` to `AccountHistory`
   - Added the variant `TournamentBan` to `HistoryType`
+  - Added the variant `TagsEdit` to `BeatmapsetEvent`
+  - Types no longer implement `serde::Serialize` unless the `serialize` feature is specified
+  - Replaced the method `GetBeatmapScores::score_type` with `GetBeatmapScores::global` and `GetBeatmapScores::country`
 
 - __Fixes:__
   - Anticipate `null` when deserializing user's `default_group`
+
+- __Additions:__
+  - Added the method `GetBeatmapScores::limit`
+  - The method `GetBeatmapScores::mods` no longer shows the deprecation notice
 
 # v0.7.0 (2022-12-25)
 
@@ -146,3 +153,4 @@
 [#1]: https://github.com/MaxOhn/rosu-v2/pull/1
 [#2]: https://github.com/MaxOhn/rosu-v2/pull/2
 [#3]: https://github.com/MaxOhn/rosu-v2/pull/3
+[#4]: https://github.com/MaxOhn/rosu-v2/pull/4

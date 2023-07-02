@@ -37,7 +37,6 @@ use {crate::prelude::Username, dashmap::DashMap};
 use {crate::metrics::Metrics, prometheus::IntCounterVec};
 
 /// The main osu client.
-/// Cheap to clone.
 pub struct Osu {
     pub(crate) inner: Arc<OsuRef>,
     #[cfg(feature = "cache")]

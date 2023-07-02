@@ -40,9 +40,9 @@ use {crate::metrics::Metrics, prometheus::IntCounterVec};
 pub struct Osu {
     pub(crate) inner: Arc<OsuRef>,
     #[cfg(feature = "cache")]
-    pub(crate) cache: Arc<DashMap<Username, u32>>,
+    pub(crate) cache: Box<DashMap<Username, u32>>,
     #[cfg(feature = "metrics")]
-    pub(crate) metrics: Arc<Metrics>,
+    pub(crate) metrics: Box<Metrics>,
     token_loop_tx: Option<Sender<()>>,
 }
 

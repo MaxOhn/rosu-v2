@@ -111,10 +111,10 @@ impl OsuBuilder {
             token_loop_tx: Some(tx),
 
             #[cfg(feature = "cache")]
-            cache: Arc::new(DashMap::new()),
+            cache: Box::new(DashMap::new()),
 
             #[cfg(feature = "metrics")]
-            metrics: Arc::new(Metrics::new()),
+            metrics: Box::new(Metrics::new()),
         })
     }
 

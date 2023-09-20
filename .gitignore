@@ -1,3 +1,4 @@
 .env
 /Cargo.lock
+/.idea
 output.txt

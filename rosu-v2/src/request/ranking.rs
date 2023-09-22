@@ -14,8 +14,8 @@ use serde::Deserialize;
 
 /// Get a [`ChartRankings`](crate::model::ranking::ChartRankings) struct
 /// containing a [`Spotlight`](crate::model::ranking::Spotlight), its
-/// [`Beatmapset`](crate::model::beatmap::Beatmapset)s, and participating
-/// [`UserCompact`](crate::model::user::UserCompact).
+/// [`BeatmapsetExtended`](crate::model::beatmap::BeatmapsetExtended)s, and participating
+/// [`User`](crate::model::user::User).
 ///
 /// The mapset will have their `maps` option filled.
 ///
@@ -137,7 +137,7 @@ impl<'a> GetCountryRankings<'a> {
 poll_req!(GetCountryRankings => CountryRankings);
 
 /// Get a [`Rankings`](crate::model::ranking::Rankings) struct whose
-/// [`UserCompact`](crate::model::user::UserCompact)s are sorted
+/// [`User`](crate::model::user::User)s are sorted
 /// by their pp, i.e. the current pp leaderboard.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetPerformanceRankings<'a> {
@@ -245,7 +245,7 @@ impl<'a> GetPerformanceRankings<'a> {
 poll_req!(GetPerformanceRankings => Rankings);
 
 /// Get a [`Rankings`](crate::model::ranking::Rankings) struct whose
-/// [`UserCompact`](crate::model::user::UserCompact)s are sorted
+/// [`User`](crate::model::user::User)s are sorted
 /// by their ranked score, i.e. the current ranked score leaderboard.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetScoreRankings<'a> {

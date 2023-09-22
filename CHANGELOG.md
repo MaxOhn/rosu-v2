@@ -1,6 +1,8 @@
 ## Upcoming
 
-Nothing as of now
+- __Breaking:__
+  - `User`, `Beatmap`, and `Beatmapset` have been renamed to `UserExtended`, `BeatmapExtended`, and `BeatmapsetExtended`
+     and `UserCompact`, `BeatmapCompact`, and `BeatmapsetCompact` have been renamed to `User`, `Beatmap`, and `Beatmapset`
 
 # v0.8.0 (2023-06-27)
 

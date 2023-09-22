@@ -1,7 +1,7 @@
 use crate::{
     model::{
         beatmap::{
-            Beatmap, Beatmapset, BeatmapsetEvents, BeatmapsetSearchResult, BeatmapsetSearchSort,
+            BeatmapExtended, BeatmapsetExtended, BeatmapsetEvents, BeatmapsetSearchResult, BeatmapsetSearchSort,
             Genre, Language, RankStatus,
         },
         beatmap_::{
@@ -11,7 +11,7 @@ use crate::{
         score_::{BeatmapScores, BeatmapUserScore, Score, Scores},
         Cursor, GameMode,
     },
-    prelude::{BeatmapCompact, GameModsIntermode},
+    prelude::{Beatmap, GameModsIntermode},
     request::{Pending, Query, Request},
     routing::Route,
     Osu,
@@ -27,10 +27,10 @@ use super::Body;
 #[cfg(feature = "cache")]
 use super::UserId;
 
-/// Get a [`Beatmap`](crate::model::beatmap::Beatmap).
+/// Get a [`BeatmapExtended`](crate::model::beatmap::BeatmapExtended).
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetBeatmap<'a> {
-    fut: Option<Pending<'a, Beatmap>>,
+    fut: Option<Pending<'a, BeatmapExtended>>,
     osu: &'a Osu,
     checksum: Option<String>,
     filename: Option<String>,
@@ -73,7 +73,7 @@ impl<'a> GetBeatmap<'a> {
         self
     }
 
-    fn start(&mut self) -> Pending<'a, Beatmap> {
+    fn start(&mut self) -> Pending<'a, BeatmapExtended> {
         #[cfg(feature = "metrics")]
         self.osu.metrics.beatmap.inc();
 
@@ -94,18 +94,18 @@ impl<'a> GetBeatmap<'a> {
         let req = Request::with_query(Route::GetBeatmap, query);
 
         let osu = self.osu;
-        let fut = osu.request::<Beatmap>(req);
+        let fut = osu.request::<BeatmapExtended>(req);
 
         Box::pin(fut)
     }
 }
 
-poll_req!(GetBeatmap => Beatmap);
+poll_req!(GetBeatmap => BeatmapExtended);
 
-/// Get a vec of [`BeatmapCompact`](crate::model::beatmap::BeatmapCompact) by their map ids.
+/// Get a vec of [`Beatmap`](crate::model::beatmap::Beatmap) by their map ids.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetBeatmaps<'a> {
-    fut: Option<Pending<'a, Vec<BeatmapCompact>>>,
+    fut: Option<Pending<'a, Vec<Beatmap>>>,
     osu: &'a Osu,
     query: Query,
 }
@@ -129,7 +129,7 @@ impl<'a> GetBeatmaps<'a> {
         }
     }
 
-    fn start(&mut self) -> Pending<'a, Vec<BeatmapCompact>> {
+    fn start(&mut self) -> Pending<'a, Vec<Beatmap>> {
         #[cfg(feature = "metrics")]
         self.osu.metrics.beatmaps.inc();
 
@@ -143,7 +143,7 @@ impl<'a> GetBeatmaps<'a> {
     }
 }
 
-poll_req!(GetBeatmaps => Vec<BeatmapCompact>);
+poll_req!(GetBeatmaps => Vec<Beatmap>);
 
 /// Get [`BeatmapDifficultyAttributes`] of a map by its map id.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
@@ -596,10 +596,10 @@ impl<'a> GetBeatmapUserScores<'a> {
 
 poll_req!(GetBeatmapUserScores => Vec<Score>);
 
-/// Get a [`Beatmapset`](crate::model::beatmap::Beatmapset).
+/// Get a [`BeatmapsetExtended`](crate::model::beatmap::BeatmapsetExtended).
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetBeatmapset<'a> {
-    fut: Option<Pending<'a, Beatmapset>>,
+    fut: Option<Pending<'a, BeatmapsetExtended>>,
     osu: &'a Osu,
     mapset_id: u32,
 }
@@ -614,7 +614,7 @@ impl<'a> GetBeatmapset<'a> {
         }
     }
 
-    fn start(&mut self) -> Pending<'a, Beatmapset> {
+    fn start(&mut self) -> Pending<'a, BeatmapsetExtended> {
         #[cfg(feature = "metrics")]
         self.osu.metrics.beatmapset.inc();
 
@@ -623,18 +623,18 @@ impl<'a> GetBeatmapset<'a> {
         });
 
         let osu = self.osu;
-        let fut = osu.request::<Beatmapset>(req);
+        let fut = osu.request::<BeatmapsetExtended>(req);
 
         Box::pin(fut)
     }
 }
 
-poll_req!(GetBeatmapset => Beatmapset);
+poll_req!(GetBeatmapset => BeatmapsetExtended);
 
-/// Get a [`Beatmapset`](crate::model::beatmap::Beatmapset) from a beatmap ID.
+/// Get a [`BeatmapsetExtended`](crate::model::beatmap::BeatmapsetExtended) from a beatmap ID.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetBeatmapsetFromMapId<'a> {
-    fut: Option<Pending<'a, Beatmapset>>,
+    fut: Option<Pending<'a, BeatmapsetExtended>>,
     osu: &'a Osu,
     map_id: u32,
 }
@@ -649,7 +649,7 @@ impl<'a> GetBeatmapsetFromMapId<'a> {
         }
     }
 
-    fn start(&mut self) -> Pending<'a, Beatmapset> {
+    fn start(&mut self) -> Pending<'a, BeatmapsetExtended> {
         #[cfg(feature = "metrics")]
         self.osu.metrics.beatmapset_from_map_id.inc();
 
@@ -660,13 +660,13 @@ impl<'a> GetBeatmapsetFromMapId<'a> {
         let req = Request::with_query(Route::GetBeatmapsetFromMapId, query);
 
         let osu = self.osu;
-        let fut = osu.request::<Beatmapset>(req);
+        let fut = osu.request::<BeatmapsetExtended>(req);
 
         Box::pin(fut)
     }
 }
 
-poll_req!(GetBeatmapsetFromMapId => Beatmapset);
+poll_req!(GetBeatmapsetFromMapId => BeatmapsetExtended);
 
 /// Get a [`BeatmapsetEvents`](crate::model::beatmap::BeatmapsetEvents) struct.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
@@ -705,7 +705,7 @@ poll_req!(GetBeatmapsetEvents => BeatmapsetEvents);
 /// - nsfw: allowed
 /// - sort: by relevance, descending
 ///
-/// The contained [`Beatmapset`](crate::model::beatmap::Beatmapset)s will have the
+/// The contained [`BeatmapsetExtended`](crate::model::beatmap::BeatmapsetExtended)s will have the
 /// following options filled: `artist_unicode`, `legacy_thread_url`, `maps`,
 /// `ranked_date` and `submitted_date` if available, and `title_unicode`.
 ///

@@ -1,11 +1,11 @@
 use crate::{
     error::OsuError,
     model::{
-        beatmap::{Beatmapset, MostPlayedMap, RankStatus},
+        beatmap::{BeatmapsetExtended, MostPlayedMap, RankStatus},
         kudosu_::KudosuHistory,
         recent_event_::RecentEvent,
         score_::Score,
-        user_::{User, UserCompact},
+        user_::{UserExtended, User},
         GameMode,
     },
     prelude::Username,
@@ -77,7 +77,7 @@ impl fmt::Display for UserId {
     }
 }
 
-/// Get the [`User`](crate::model::user::User) of the authenticated user.
+/// Get the [`UserExtended`](crate::model::user::UserExtended) of the authenticated user.
 ///
 /// Note that the client has to be initialized with the `identify` scope
 /// through the OAuth process in order for this endpoint to not return an error.
@@ -85,7 +85,7 @@ impl fmt::Display for UserId {
 /// See [`OsuBuilder::with_authorization`](crate::OsuBuilder::with_authorization).
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetOwnData<'a> {
-    fut: Option<Pending<'a, User>>,
+    fut: Option<Pending<'a, UserExtended>>,
     osu: &'a Osu,
     mode: Option<GameMode>,
 }
@@ -108,13 +108,13 @@ impl<'a> GetOwnData<'a> {
         self
     }
 
-    fn start(&mut self) -> Pending<'a, User> {
+    fn start(&mut self) -> Pending<'a, UserExtended> {
         #[cfg(feature = "metrics")]
         self.osu.metrics.own_data.inc();
 
         let req = Request::new(Route::GetOwnData { mode: self.mode });
         let osu = self.osu;
-        let fut = osu.request::<User>(req);
+        let fut = osu.request::<UserExtended>(req);
 
         #[cfg(feature = "cache")]
         let fut = fut.inspect_ok(move |user| osu.update_cache(user.user_id, &user.username));
@@ -123,12 +123,12 @@ impl<'a> GetOwnData<'a> {
     }
 }
 
-poll_req!(GetOwnData => User);
+poll_req!(GetOwnData => UserExtended);
 
-/// Get a [`User`](crate::model::user::User) by their id.
+/// Get a [`UserExtended`](crate::model::user::UserExtended) by their id.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetUser<'a> {
-    fut: Option<Pending<'a, User>>,
+    fut: Option<Pending<'a, UserExtended>>,
     osu: &'a Osu,
     user_id: Option<UserId>,
     mode: Option<GameMode>,
@@ -153,7 +153,7 @@ impl<'a> GetUser<'a> {
         self
     }
 
-    fn start(&mut self) -> Pending<'a, User> {
+    fn start(&mut self) -> Pending<'a, UserExtended> {
         #[cfg(feature = "metrics")]
         self.osu.metrics.user.inc();
 
@@ -175,7 +175,7 @@ impl<'a> GetUser<'a> {
 
         let req = Request::with_query(route, query);
         let osu = self.osu;
-        let fut = osu.request::<User>(req);
+        let fut = osu.request::<UserExtended>(req);
 
         #[cfg(feature = "cache")]
         let fut = fut.inspect_ok(move |user| osu.update_cache(user.user_id, &user.username));
@@ -184,9 +184,9 @@ impl<'a> GetUser<'a> {
     }
 }
 
-poll_req!(GetUser => User);
+poll_req!(GetUser => UserExtended);
 
-/// Get the [`Beatmapset`](crate::model::beatmap::Beatmapset)s of a user by their id.
+/// Get the [`BeatmapsetExtended`](crate::model::beatmap::BeatmapsetExtended)s of a user by their id.
 ///
 /// If no map type specified, either manually through
 /// [`status`](crate::request::GetUserBeatmapsets::status),
@@ -197,7 +197,7 @@ poll_req!(GetUser => User);
 /// it defaults to `ranked`.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetUserBeatmapsets<'a> {
-    fut: Option<Pending<'a, Vec<Beatmapset>>>,
+    fut: Option<Pending<'a, Vec<BeatmapsetExtended>>>,
     osu: &'a Osu,
     map_type: &'static str,
     limit: Option<usize>,
@@ -299,7 +299,7 @@ impl<'a> GetUserBeatmapsets<'a> {
         self
     }
 
-    fn start(&mut self) -> Pending<'a, Vec<Beatmapset>> {
+    fn start(&mut self) -> Pending<'a, Vec<BeatmapsetExtended>> {
         #[cfg(feature = "metrics")]
         self.osu.metrics.user_beatmapsets.inc();
 
@@ -340,7 +340,7 @@ impl<'a> GetUserBeatmapsets<'a> {
     }
 }
 
-poll_req!(GetUserBeatmapsets => Vec<Beatmapset>);
+poll_req!(GetUserBeatmapsets => Vec<BeatmapsetExtended>);
 
 /// Get a user's kudosu history by their user id in form of a vec
 /// of [`KudosuHistory`](crate::model::kudosu::KudosuHistory).
@@ -855,11 +855,11 @@ impl<'a> GetUserScores<'a> {
 
 poll_req!(GetUserScores => Vec<Score>);
 
-/// Get a vec of [`UserCompact`](crate::model::user::UserCompact) by their ids.
+/// Get a vec of [`User`](crate::model::user::User) by their ids.
 #[allow(dead_code)]
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetUsers<'a> {
-    fut: Option<Pending<'a, Vec<UserCompact>>>,
+    fut: Option<Pending<'a, Vec<User>>>,
     osu: &'a Osu,
     form: Option<Query>,
 }
@@ -880,7 +880,7 @@ impl<'a> GetUsers<'a> {
         }
     }
 
-    fn start(&mut self) -> Pending<'a, Vec<UserCompact>> {
+    fn start(&mut self) -> Pending<'a, Vec<User>> {
         #[cfg(feature = "metrics")]
         self.osu.metrics.users.inc();
 
@@ -894,4 +894,4 @@ impl<'a> GetUsers<'a> {
     }
 }
 
-poll_req!(GetUsers => Vec<UserCompact>);
+poll_req!(GetUsers => Vec<User>);

@@ -89,8 +89,8 @@ mod types {
         }
     }
 
-    pub(super) fn get_mapset() -> Beatmapset {
-        Beatmapset {
+    pub(super) fn get_mapset() -> BeatmapsetExtended {
+        BeatmapsetExtended {
             artist: "artist".to_owned(),
             artist_unicode: Some("äöü".to_owned()),
             availability: BeatmapsetAvailability {
@@ -140,8 +140,8 @@ mod types {
         }
     }
 
-    pub(super) fn get_map() -> Beatmap {
-        Beatmap {
+    pub(super) fn get_map() -> BeatmapExtended {
+        BeatmapExtended {
             ar: 9.3,
             bpm: 182.3,
             checksum: Some(String::new()),
@@ -176,8 +176,8 @@ mod types {
         }
     }
 
-    pub(super) fn get_map_compact() -> BeatmapCompact {
-        BeatmapCompact {
+    pub(super) fn get_map_compact() -> Beatmap {
+        Beatmap {
             checksum: Some("ABC123".to_owned()),
             creator_id: 456,
             fail_times: None,
@@ -192,8 +192,8 @@ mod types {
         }
     }
 
-    pub(super) fn get_mapset_compact() -> BeatmapsetCompact {
-        BeatmapsetCompact {
+    pub(super) fn get_mapset_compact() -> Beatmapset {
+        Beatmapset {
             artist: "artist".to_owned(),
             artist_unicode: Some("äöü".to_owned()),
             covers: get_mapset_covers(),
@@ -579,8 +579,8 @@ mod types {
         }
     }
 
-    pub(super) fn get_user() -> User {
-        User {
+    pub(super) fn get_user() -> UserExtended {
+        UserExtended {
             avatar_url: String::new(),
             comments_count: 0,
             country: "belgiania".to_owned(),
@@ -690,8 +690,8 @@ mod types {
         }
     }
 
-    pub(super) fn get_user_compact() -> UserCompact {
-        UserCompact {
+    pub(super) fn get_user_compact() -> User {
+        User {
             avatar_url: String::new(),
             country_code: "be".into(),
             default_group: "default".to_owned(),

@@ -1,5 +1,5 @@
 use super::{
-    beatmap::BeatmapCompact, mods::GameMods, score_::ScoreStatistics, serde_, user_::UserCompact,
+    beatmap::Beatmap, mods::GameMods, score_::ScoreStatistics, serde_, user_::User,
     Cursor, GameMode,
 };
 use crate::{
@@ -328,10 +328,10 @@ pub struct MatchGame {
     pub scoring_type: ScoringType,
     pub team_type: TeamType,
     pub mods: GameMods,
-    /// [`BeatmapCompact`](crate::model::beatmap::BeatmapCompact) of the game;
+    /// [`Beatmap`](crate::model::beatmap::Beatmap) of the game;
     /// `None` if the map was deleted
     #[cfg_attr(feature = "serialize", serde(rename = "beatmap"))]
-    pub map: Option<BeatmapCompact>,
+    pub map: Option<Beatmap>,
     pub scores: Vec<MatchScore>,
 }
 
@@ -350,7 +350,7 @@ impl<'de> Deserialize<'de> for MatchGame {
             team_type: TeamType,
             mods: Box<RawValue>,
             #[serde(rename = "beatmap")]
-            map: Option<BeatmapCompact>,
+            map: Option<Beatmap>,
             scores: Vec<MatchScore>,
         }
 
@@ -641,7 +641,7 @@ struct MatchScoreInfo {
     pass: bool,
 }
 
-struct MatchUsers(HashMap<u32, UserCompact>);
+struct MatchUsers(HashMap<u32, User>);
 
 struct MatchUsersVisitor;
 
@@ -657,7 +657,7 @@ impl<'de> Visitor<'de> for MatchUsersVisitor {
     fn visit_seq<A: SeqAccess<'de>>(self, mut seq: A) -> Result<Self::Value, A::Error> {
         let mut users = HashMap::with_capacity(seq.size_hint().unwrap_or_default());
 
-        while let Some(next) = seq.next_element::<UserCompact>()? {
+        while let Some(next) = seq.next_element::<User>()? {
             users.insert(next.user_id, next);
         }
 
@@ -697,12 +697,12 @@ pub struct OsuMatch {
     pub start_time: OffsetDateTime,
     /// Maps user ids to users
     #[cfg_attr(feature = "serialize", serde(serialize_with = "serialize_match_users"))]
-    pub users: HashMap<u32, UserCompact>,
+    pub users: HashMap<u32, User>,
 }
 
 #[cfg(feature = "serialize")]
 fn serialize_match_users<S: serde::ser::Serializer>(
-    users: &HashMap<u32, UserCompact>,
+    users: &HashMap<u32, User>,
     s: S,
 ) -> Result<S::Ok, S::Error> {
     use serde::ser::SerializeSeq;

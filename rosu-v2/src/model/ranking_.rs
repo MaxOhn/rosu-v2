@@ -1,7 +1,7 @@
 use super::{
-    beatmap::Beatmapset,
+    beatmap::BeatmapsetExtended,
     serde_,
-    user_::{deserialize_country, UserCompact, UserStatistics},
+    user_::{deserialize_country, User, UserStatistics},
     GameMode,
 };
 use crate::{model::user_::CountryCode, Osu, OsuResult};
@@ -22,13 +22,13 @@ use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
 pub struct ChartRankings {
     /// The list of beatmaps in the requested spotlight for the given mode
     #[serde(rename = "beatmapsets")]
-    pub mapsets: Vec<Beatmapset>,
+    pub mapsets: Vec<BeatmapsetExtended>,
     #[serde(
         deserialize_with = "deserialize_user_stats_vec",
         serialize_with = "serialize_user_stats_vec"
     )]
     /// Score details ordered by score in descending order.
-    pub ranking: Vec<UserCompact>,
+    pub ranking: Vec<User>,
     /// Spotlight details
     pub spotlight: Spotlight,
 }
@@ -99,7 +99,7 @@ pub struct Rankings {
         deserialize_with = "deserialize_user_stats_vec",
         serialize_with = "serialize_user_stats_vec"
     )]
-    pub ranking: Vec<UserCompact>,
+    pub ranking: Vec<User>,
     #[serde(default)]
     #[cfg(not(feature = "rkyv"))]
     pub(crate) ranking_type: Option<RankingType>,
@@ -109,7 +109,7 @@ pub struct Rankings {
 struct UserStatsVecVisitor;
 
 impl<'de> Visitor<'de> for UserStatsVecVisitor {
-    type Value = Vec<UserCompact>;
+    type Value = Vec<User>;
 
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("a vec of UserStatistics structs")
@@ -127,7 +127,7 @@ impl<'de> Visitor<'de> for UserStatsVecVisitor {
     }
 }
 
-struct UserCompactWrapper(UserCompact);
+struct UserCompactWrapper(User);
 
 impl<'de> Deserialize<'de> for UserCompactWrapper {
     #[inline]
@@ -139,7 +139,7 @@ impl<'de> Deserialize<'de> for UserCompactWrapper {
 struct UserStatsVisitor;
 
 impl<'de> Visitor<'de> for UserStatsVisitor {
-    type Value = UserCompact;
+    type Value = User;
 
     #[inline]
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -202,7 +202,7 @@ impl<'de> Visitor<'de> for UserStatsVisitor {
             replays_watched.ok_or_else(|| Error::missing_field("replays_watched_by_others"))?;
         let total_hits = total_hits.ok_or_else(|| Error::missing_field("total_hits"))?;
         let total_score = total_score.ok_or_else(|| Error::missing_field("total_score"))?;
-        let mut user: UserCompact = user.ok_or_else(|| Error::missing_field("user"))?;
+        let mut user: User = user.ok_or_else(|| Error::missing_field("user"))?;
 
         let stats = UserStatistics {
             accuracy,
@@ -227,7 +227,7 @@ impl<'de> Visitor<'de> for UserStatsVisitor {
     }
 }
 
-fn deserialize_user_stats_vec<'de, D>(d: D) -> Result<Vec<UserCompact>, D::Error>
+fn deserialize_user_stats_vec<'de, D>(d: D) -> Result<Vec<User>, D::Error>
 where
     D: Deserializer<'de>,
 {
@@ -235,7 +235,7 @@ where
 }
 
 #[cfg(feature = "serialize")]
-struct UserCompactBorrowed<'u>(&'u UserCompact);
+struct UserCompactBorrowed<'u>(&'u User);
 
 #[cfg(feature = "serialize")]
 impl<'u> serde::Serialize for UserCompactBorrowed<'u> {
@@ -389,8 +389,8 @@ struct UserCompactWithoutStats<'u> {
 
 #[cfg(feature = "serialize")]
 impl<'u> UserCompactWithoutStats<'u> {
-    fn new(user: &'u UserCompact) -> Self {
-        let UserCompact {
+    fn new(user: &'u User) -> Self {
+        let User {
             avatar_url,
             country_code,
             default_group,
@@ -491,7 +491,7 @@ impl<'u> UserCompactWithoutStats<'u> {
 
 #[cfg(feature = "serialize")]
 fn serialize_user_stats_vec<S: serde::ser::Serializer>(
-    users: &[UserCompact],
+    users: &[User],
     s: S,
 ) -> Result<S::Ok, S::Error> {
     use serde::ser::SerializeSeq;

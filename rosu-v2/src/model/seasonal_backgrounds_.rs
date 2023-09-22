@@ -1,5 +1,5 @@
 use super::serde_;
-use crate::model::user_::UserCompact;
+use crate::model::user_::User;
 
 use serde::Deserialize;
 use time::OffsetDateTime;
@@ -14,9 +14,9 @@ use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
 pub struct SeasonalBackground {
     /// URL to the image
     pub url: String,
-    /// [`UserCompact`](crate::model::user::UserCompact) of the artist of the art
+    /// [`User`](crate::model::user::User) of the artist of the art
     #[serde(rename = "user")]
-    pub artist: UserCompact,
+    pub artist: User,
 }
 
 /// Collection of seasonal backgrounds

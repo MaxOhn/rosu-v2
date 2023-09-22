@@ -182,9 +182,9 @@ pub(crate) mod wiki_;
 /// Beatmap(set) related types
 pub mod beatmap {
     pub use super::beatmap_::{
-        Beatmap, BeatmapCompact, BeatmapDifficultyAttributes, Beatmapset, BeatmapsetAvailability,
+        BeatmapExtended, Beatmap, BeatmapDifficultyAttributes, BeatmapsetExtended, BeatmapsetAvailability,
         BeatmapsetCommentEdit, BeatmapsetCommentId, BeatmapsetCommentKudosuGain,
-        BeatmapsetCommentNominate, BeatmapsetCommentOwnerChange, BeatmapsetCompact,
+        BeatmapsetCommentNominate, BeatmapsetCommentOwnerChange, Beatmapset,
         BeatmapsetCovers, BeatmapsetDiscussion, BeatmapsetEvent, BeatmapsetEvents, BeatmapsetHype,
         BeatmapsetNominations, BeatmapsetPost, BeatmapsetReviewsConfig, BeatmapsetSearchResult,
         BeatmapsetSearchSort, BeatmapsetVote, FailTimes, GameModeAttributes, Genre, Language,
@@ -251,7 +251,7 @@ pub mod seasonal_backgrounds {
 pub mod user {
     pub use super::user_::{
         AccountHistory, Badge, CountryCode, GradeCounts, Group, HistoryType, Medal, MedalCompact,
-        MonthlyCount, Playstyle, ProfileBanner, ProfilePage, User, UserCompact, UserCover,
+        MonthlyCount, Playstyle, ProfileBanner, ProfilePage, UserExtended, User, UserCover,
         UserHighestRank, UserKudosu, UserLevel, UserPage, UserStatistics, Username,
     };
 }

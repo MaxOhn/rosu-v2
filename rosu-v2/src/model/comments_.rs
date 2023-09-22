@@ -1,4 +1,4 @@
-use super::{serde_, user_::UserCompact, Cursor};
+use super::{serde_, user_::User, Cursor};
 use crate::{prelude::Username, request::GetUser, Osu, OsuResult};
 
 use serde::Deserialize;
@@ -71,7 +71,7 @@ pub struct Comment {
 }
 
 impl Comment {
-    /// Request the [`User`](crate::model::user::User) of a comment.
+    /// Request the [`UserExtended`](crate::model::user::UserExtended) of a comment.
     ///
     /// Only works if `user_id` is Some.
     #[inline]
@@ -123,7 +123,7 @@ pub struct CommentBundle {
     /// IDs of the comments in the bundle the current user has upvoted
     pub user_votes: Vec<u32>,
     /// List of users related to the comments
-    pub users: Vec<UserCompact>,
+    pub users: Vec<User>,
 }
 
 impl CommentBundle {

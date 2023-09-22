@@ -72,12 +72,12 @@ impl Osu {
         self.metrics.counters.clone()
     }
 
-    /// Get a [`Beatmap`](crate::model::beatmap::Beatmap).
+    /// Get a [`BeatmapExtended`](crate::model::beatmap::BeatmapExtended).
     ///
     /// Filled options will be: `deleted_at` (if deleted), `fail_times`,
     /// `mapset` and `max_combo` (if available for mode).
     ///
-    /// The contained [`Beatmapset`](crate::model::beatmap::Beatmapset) will
+    /// The contained [`BeatmapsetExtended`](crate::model::beatmap::BeatmapsetExtended) will
     /// have these options filled: `legacy_thread_url`, `ratings`,
     /// `ranked_date` (if not unranked) and `submitted_date` (if submitted).
     #[inline]
@@ -85,7 +85,7 @@ impl Osu {
         GetBeatmap::new(self)
     }
 
-    /// Get a vec of at most 50 [`BeatmapCompact`](crate::model::beatmap::BeatmapCompact)s.
+    /// Get a vec of at most 50 [`Beatmap`](crate::model::beatmap::Beatmap)s.
     ///
     /// The contained maps will have these options filled: `mapset`,
     /// `fail_times`, and `max_combo` (if available for mode).
@@ -102,7 +102,7 @@ impl Osu {
     /// The contained scores will have the following options filled:
     /// `pp` (if ranked or approved), and `user`.
     ///
-    /// The scores' contained [`UserCompact`](crate::model::user::UserCompact)
+    /// The scores' contained [`User`](crate::model::user::User)
     /// will have the `country` and `cover` options filled.
     #[inline]
     pub fn beatmap_scores(&self, map_id: u32) -> GetBeatmapScores<'_> {
@@ -165,14 +165,14 @@ impl Osu {
         GetBeatmapUserScores::new(self, map_id, user_id.into())
     }
 
-    /// Get a [`Beatmapset`](crate::model::beatmap::Beatmapset).
+    /// Get a [`BeatmapsetExtended`](crate::model::beatmap::BeatmapsetExtended).
     ///
     /// Filled options will be: `artist_unicode`, `converts`, `description`,
     /// `genre`, `language`, `legacy_thread_url`, `maps`, `ratings`,
     /// `ranked_date` (if not unranked), `recent_favourites`,
     /// `submitted_date` (if submitted), and `title_unicode`.
     ///
-    /// The contained [`Beatmap`](crate::model::beatmap::Beatmap)s
+    /// The contained [`BeatmapExtended`](crate::model::beatmap::BeatmapExtended)s
     /// will contain `Some` in `fail_times`, `max_combo`
     /// (if available for mode), and `deleted_at` (if deleted).
     #[inline]
@@ -180,14 +180,14 @@ impl Osu {
         GetBeatmapset::new(self, mapset_id)
     }
 
-    /// Get a [`Beatmapset`](crate::model::beatmap::Beatmapset) from a map ID.
+    /// Get a [`BeatmapsetExtended`](crate::model::beatmap::BeatmapsetExtended) from a map ID.
     ///
     /// Filled options will be: `artist_unicode`, `converts`, `description`,
     /// `genre`, `language`, `legacy_thread_url`, `maps`, `ratings`,
     /// `ranked_date` (if not unranked), `recent_favourites`,
     /// `submitted_date` (if submitted), and `title_unicode`.
     ///
-    /// The contained [`Beatmap`](crate::model::beatmap::Beatmap)s
+    /// The contained [`BeatmapExtended`](crate::model::beatmap::BeatmapExtended)s
     /// will contain `Some` in `fail_times`, `max_combo`
     /// (if available for mode), and `deleted_at` (if deleted).
     #[inline]
@@ -214,7 +214,7 @@ impl Osu {
     /// - nsfw: allowed
     /// - sort: by relevance, descending
     ///
-    /// The contained [`Beatmapset`](crate::model::beatmap::Beatmapset)s will have the
+    /// The contained [`BeatmapsetExtended`](crate::model::beatmap::BeatmapsetExtended)s will have the
     /// following options filled: `artist_unicode`, `legacy_thread_url`, `maps`,
     /// `ranked_date` and `submitted_date` if available, and `title_unicode`.
     ///
@@ -245,8 +245,8 @@ impl Osu {
 
     /// Get a [`ChartRankings`](crate::model::ranking::ChartRankings) struct
     /// containing a [`Spotlight`](crate::model::ranking::Spotlight), its
-    /// [`Beatmapset`](crate::model::beatmap::Beatmapset)s, and participating
-    /// [`UserCompact`](crate::model::user::UserCompact).
+    /// [`BeatmapsetExtended`](crate::model::beatmap::BeatmapsetExtended)s, and participating
+    /// [`User`](crate::model::user::User).
     ///
     /// The mapset will have their `maps` option filled.
     ///
@@ -308,7 +308,7 @@ impl Osu {
         GetMatches::new(self)
     }
 
-    /// Get the [`User`](crate::model::user::User) of the authenticated user.
+    /// Get the [`UserExtended`](crate::model::user::UserExtended) of the authenticated user.
     ///
     /// Note that the client has to be initialized with the `identify` scope
     /// through the OAuth process in order for this endpoint to not return an error.
@@ -320,7 +320,7 @@ impl Osu {
     }
 
     /// Get a [`Rankings`](crate::model::ranking::Rankings) struct whose
-    /// [`UserCompact`](crate::model::user::UserCompact)s are sorted
+    /// [`User`](crate::model::user::User)s are sorted
     /// by their pp, i.e. the current pp leaderboard.
     #[inline]
     pub fn performance_rankings(&self, mode: GameMode) -> GetPerformanceRankings<'_> {
@@ -379,7 +379,7 @@ impl Osu {
     }
 
     /// Get a [`Rankings`](crate::model::ranking::Rankings) struct whose
-    /// [`UserCompact`](crate::model::user::UserCompact)s are sorted
+    /// [`User`](crate::model::user::User)s are sorted
     /// by their ranked score, i.e. the current ranked score leaderboard.
     #[inline]
     pub fn score_rankings(&self, mode: GameMode) -> GetScoreRankings<'_> {
@@ -398,7 +398,7 @@ impl Osu {
         GetSpotlights::new(self)
     }
 
-    /// Get a [`User`](crate::model::user::User).
+    /// Get a [`UserExtended`](crate::model::user::UserExtended).
     ///
     /// The following options will be filled if the user specified them:
     /// `discord`, `interests`, `location`, `occupation`, `playstyle`,
@@ -413,7 +413,7 @@ impl Osu {
         GetUser::new(self, user_id)
     }
 
-    /// Get the [`Beatmapset`](crate::model::beatmap::Beatmapset)s of a user by their id.
+    /// Get the [`BeatmapsetExtended`](crate::model::beatmap::BeatmapsetExtended)s of a user by their id.
     ///
     /// If no map type specified, either manually through
     /// [`map_type`](crate::request::GetUserBeatmapsets::map_type),
@@ -426,18 +426,18 @@ impl Osu {
     ///
     /// Filled options will be: `artist_unicode`, `legacy_thread_url`, `maps`, `title_unicode`.
     ///
-    /// All options of the contained [`Beatmap`](crate::model::beatmap::Beatmap)s will be `None`.
+    /// All options of the contained [`BeatmapExtended`](crate::model::beatmap::BeatmapExtended)s will be `None`.
     #[cfg(not(feature = "cache"))]
     #[inline]
     pub fn user_beatmapsets(&self, user_id: u32) -> GetUserBeatmapsets<'_> {
         GetUserBeatmapsets::new(self, user_id)
     }
 
-    /// Get a vec of [`Beatmapset`](crate::model::beatmap::Beatmapset)s a user made.
+    /// Get a vec of [`BeatmapsetExtended`](crate::model::beatmap::BeatmapsetExtended)s a user made.
     ///
     /// Filled options will be: `artist_unicode`, `legacy_thread_url`, `maps`, `title_unicode`.
     ///
-    /// All options of the contained [`Beatmap`](crate::model::beatmap::Beatmap)s will be `None`.
+    /// All options of the contained [`BeatmapExtended`](crate::model::beatmap::BeatmapExtended)s will be `None`.
     #[cfg(feature = "cache")]
     #[inline]
     pub fn user_beatmapsets(&self, user_id: impl Into<UserId>) -> GetUserBeatmapsets<'_> {
@@ -446,8 +446,8 @@ impl Osu {
 
     /// Get a vec of a user's [`MostPlayedMap`](crate::model::beatmap::MostPlayedMap)s.
     ///
-    /// All options of the contained [`BeatmapCompact`](crate::model::beatmap::BeatmapCompact) and
-    /// [`BeatmapsetCompact`](crate::model::beatmap::BeatmapsetCompact) will be `None`.
+    /// All options of the contained [`Beatmap`](crate::model::beatmap::Beatmap) and
+    /// [`Beatmapset`](crate::model::beatmap::Beatmapset) will be `None`.
     ///
     /// ## Limit
     ///
@@ -460,8 +460,8 @@ impl Osu {
 
     /// Get a vec of a user's [`MostPlayedMap`](crate::model::beatmap::MostPlayedMap)s.
     ///
-    /// All options of the contained [`BeatmapCompact`](crate::model::beatmap::BeatmapCompact) and
-    /// [`BeatmapsetCompact`](crate::model::beatmap::BeatmapsetCompact) will be `None`.
+    /// All options of the contained [`Beatmap`](crate::model::beatmap::Beatmap) and
+    /// [`Beatmapset`](crate::model::beatmap::Beatmapset) will be `None`.
     ///
     /// ## Limit
     ///
@@ -485,9 +485,9 @@ impl Osu {
     ///
     /// Additionally, the `best` score type will provide the `weight` option.
     ///
-    /// All options of the contained [`Beatmap`](crate::model::beatmap::Beatmap),
-    /// [`BeatmapsetCompact`](crate::model::beatmap::Beatmapset), and
-    /// [`UserCompact`](crate::model::user::UserCompact) will be `None`.
+    /// All options of the contained [`BeatmapExtended`](crate::model::beatmap::BeatmapExtended),
+    /// [`Beatmapset`](crate::model::beatmap::BeatmapsetExtended), and
+    /// [`User`](crate::model::user::User) will be `None`.
     ///
     /// ## Note
     ///
@@ -516,9 +516,9 @@ impl Osu {
     ///
     /// Additionally, the `best` score type will provide the `weight` option.
     ///
-    /// All options of the contained [`Beatmap`](crate::model::beatmap::Beatmap),
-    /// [`BeatmapsetCompact`](crate::model::beatmap::Beatmapset), and
-    /// [`UserCompact`](crate::model::user::UserCompact) will be `None`.
+    /// All options of the contained [`BeatmapExtended`](crate::model::beatmap::BeatmapExtended),
+    /// [`Beatmapset`](crate::model::beatmap::Beatmapset), and
+    /// [`User`](crate::model::user::User) will be `None`.
     ///
     /// ## Note
     ///
@@ -534,7 +534,7 @@ impl Osu {
         GetUserScores::new(self, user_id.into())
     }
 
-    /// Get a vec of [`UserCompact`](crate::model::user::UserCompact).
+    /// Get a vec of [`User`](crate::model::user::User).
     #[deprecated = "The API currently doesn't allow this endpoint for public use"]
     #[inline]
     pub fn users(&self, user_ids: &[u32]) -> GetUsers<'_> {

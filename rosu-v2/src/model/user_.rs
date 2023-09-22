@@ -116,7 +116,7 @@ where
     d.deserialize_option(OptionCountryVisitor)
 }
 
-/// Counts of grades of a [`User`].
+/// Counts of grades of a [`UserExtended`].
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(
@@ -147,7 +147,7 @@ fn deserialize_i32_default<'de, D: Deserializer<'de>>(d: D) -> Result<i32, D::Er
     <Option<i32> as Deserialize>::deserialize(d).map(Option::unwrap_or_default)
 }
 
-/// Describes a Group membership of a [`User`].
+/// Describes a Group membership of a [`UserExtended`].
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
@@ -287,11 +287,11 @@ pub enum ProfilePage {
     TopRanks,
 }
 
-/// Represents a User. Extends [`UserCompact`] object with additional attributes.
+/// Represents a User. Extends [`User`] object with additional attributes.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
-pub struct User {
+pub struct UserExtended {
     /// url of user's avatar
     pub avatar_url: String,
     /// number of forum comments
@@ -498,7 +498,7 @@ pub struct User {
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
-pub struct UserCompact {
+pub struct User {
     /// url of user's avatar
     pub avatar_url: String,
     /// two-letter code representing user's country
@@ -653,8 +653,8 @@ pub struct UserCompact {
     pub pending_mapset_count: Option<u32>,
 }
 
-impl From<User> for UserCompact {
-    fn from(user: User) -> Self {
+impl From<UserExtended> for User {
+    fn from(user: UserExtended) -> Self {
         Self {
             avatar_url: user.avatar_url,
             country_code: user.country_code,
@@ -727,7 +727,7 @@ pub struct UserHighestRank {
     pub updated_at: OffsetDateTime,
 }
 
-/// Kudosu of a [`User`]
+/// Kudosu of a [`UserExtended`]
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(
@@ -742,7 +742,7 @@ pub struct UserKudosu {
     pub total: i32,
 }
 
-/// Level progression of a [`User`].
+/// Level progression of a [`UserExtended`].
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(
@@ -785,7 +785,7 @@ pub struct UserPage {
     pub raw: String,
 }
 
-/// A summary of various gameplay statistics for a [`User`]. Specific to a [`GameMode`]
+/// A summary of various gameplay statistics for a [`UserExtended`]. Specific to a [`GameMode`]
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]

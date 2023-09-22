@@ -175,7 +175,7 @@ impl GameMod {
             "1K" => Some(1 << 26),
             "3K" => Some(1 << 27),
             "2K" => Some(1 << 28),
-            "V2" => Some(1 << 29),
+            "SV2" => Some(1 << 29),
             "MR" => Some(1 << 30),
             _ => None,
         }

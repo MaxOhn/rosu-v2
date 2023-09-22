@@ -119,8 +119,6 @@ impl NoFailOsu {
                 Acronym::from_str_unchecked("SD"),
                 Acronym::from_str_unchecked("PF"),
                 Acronym::from_str_unchecked("AC"),
-                Acronym::from_str_unchecked("AT"),
-                Acronym::from_str_unchecked("CN"),
                 Acronym::from_str_unchecked("RX"),
                 Acronym::from_str_unchecked("AP"),
             ]
@@ -406,8 +404,6 @@ impl SuddenDeathOsu {
                 Acronym::from_str_unchecked("NF"),
                 Acronym::from_str_unchecked("PF"),
                 Acronym::from_str_unchecked("TP"),
-                Acronym::from_str_unchecked("AT"),
-                Acronym::from_str_unchecked("CN"),
                 Acronym::from_str_unchecked("RX"),
                 Acronym::from_str_unchecked("AP"),
             ]
@@ -488,8 +484,6 @@ impl PerfectOsu {
                 Acronym::from_str_unchecked("NF"),
                 Acronym::from_str_unchecked("SD"),
                 Acronym::from_str_unchecked("AC"),
-                Acronym::from_str_unchecked("AT"),
-                Acronym::from_str_unchecked("CN"),
                 Acronym::from_str_unchecked("RX"),
                 Acronym::from_str_unchecked("AP"),
             ]
@@ -992,6 +986,7 @@ impl serde::Serialize for StrictTrackingOsu {
 )]
 pub struct AccuracyChallengeOsu {
     pub minimum_accuracy: Option<f32>,
+    pub accuracy_judge_mode: Option<String>,
     pub restart: Option<bool>,
 }
 impl AccuracyChallengeOsu {
@@ -1006,8 +1001,6 @@ impl AccuracyChallengeOsu {
                 Acronym::from_str_unchecked("EZ"),
                 Acronym::from_str_unchecked("NF"),
                 Acronym::from_str_unchecked("PF"),
-                Acronym::from_str_unchecked("AT"),
-                Acronym::from_str_unchecked("CN"),
                 Acronym::from_str_unchecked("RX"),
                 Acronym::from_str_unchecked("AP"),
             ]
@@ -1033,10 +1026,12 @@ impl<'de> Deserialize<'de> for AccuracyChallengeOsu {
             }
             fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
                 let mut minimum_accuracy = None;
+                let mut accuracy_judge_mode = None;
                 let mut restart = None;
                 while let Some(key) = map.next_key()? {
                     match key {
                         "minimum_accuracy" => minimum_accuracy = Some(map.next_value()?),
+                        "accuracy_judge_mode" => accuracy_judge_mode = Some(map.next_value()?),
                         "restart" => restart = Some(map.next_value()?),
                         _ => {
                             let _: IgnoredAny = map.next_value()?;
@@ -1045,6 +1040,7 @@ impl<'de> Deserialize<'de> for AccuracyChallengeOsu {
                 }
                 Ok(Self::Value {
                     minimum_accuracy: minimum_accuracy.unwrap_or_default(),
+                    accuracy_judge_mode: accuracy_judge_mode.unwrap_or_default(),
                     restart: restart.unwrap_or_default(),
                 })
             }
@@ -1056,11 +1052,15 @@ impl<'de> Deserialize<'de> for AccuracyChallengeOsu {
 impl serde::Serialize for AccuracyChallengeOsu {
     fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
         use serde::ser::SerializeMap;
-        let field_count =
-            self.minimum_accuracy.is_some() as usize + self.restart.is_some() as usize;
+        let field_count = self.minimum_accuracy.is_some() as usize
+            + self.accuracy_judge_mode.is_some() as usize
+            + self.restart.is_some() as usize;
         let mut map = s.serialize_map(Some(field_count))?;
         if let Some(ref x) = self.minimum_accuracy {
             map.serialize_entry("minimum_accuracy", x)?;
+        }
+        if let Some(ref x) = self.accuracy_judge_mode {
+            map.serialize_entry("accuracy_judge_mode", x)?;
         }
         if let Some(ref x) = self.restart {
             map.serialize_entry("restart", x)?;
@@ -1644,10 +1644,6 @@ impl AutoplayOsu {
     pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
         unsafe {
             [
-                Acronym::from_str_unchecked("NF"),
-                Acronym::from_str_unchecked("SD"),
-                Acronym::from_str_unchecked("PF"),
-                Acronym::from_str_unchecked("AC"),
                 Acronym::from_str_unchecked("AL"),
                 Acronym::from_str_unchecked("SG"),
                 Acronym::from_str_unchecked("CN"),
@@ -1717,10 +1713,6 @@ impl CinemaOsu {
     pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
         unsafe {
             [
-                Acronym::from_str_unchecked("NF"),
-                Acronym::from_str_unchecked("SD"),
-                Acronym::from_str_unchecked("PF"),
-                Acronym::from_str_unchecked("AC"),
                 Acronym::from_str_unchecked("AL"),
                 Acronym::from_str_unchecked("SG"),
                 Acronym::from_str_unchecked("AT"),
@@ -2569,7 +2561,7 @@ impl BarrelRollOsu {
     }
     /// Iterator of [`Acronym`] for mods that are incompatible with [`BarrelRollOsu`]
     pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
-        [].into_iter()
+        unsafe { [Acronym::from_str_unchecked("BU")] }.into_iter()
     }
     /// The description of [`BarrelRollOsu`]
     pub const fn description() -> &'static str {
@@ -2885,6 +2877,7 @@ impl MagnetisedOsu {
                 Acronym::from_str_unchecked("TR"),
                 Acronym::from_str_unchecked("WG"),
                 Acronym::from_str_unchecked("RP"),
+                Acronym::from_str_unchecked("BU"),
             ]
         }
         .into_iter()
@@ -2960,6 +2953,7 @@ impl RepelOsu {
                 Acronym::from_str_unchecked("TR"),
                 Acronym::from_str_unchecked("WG"),
                 Acronym::from_str_unchecked("MG"),
+                Acronym::from_str_unchecked("BU"),
             ]
         }
         .into_iter()
@@ -3146,6 +3140,113 @@ impl serde::Serialize for FreezeFrameOsu {
         map.end()
     }
 }
+/// Don't let their popping distract you!
+#[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
+pub struct BubblesOsu {}
+impl BubblesOsu {
+    /// The acronym of [`BubblesOsu`]
+    pub const fn acronym() -> Acronym {
+        unsafe { Acronym::from_str_unchecked("BU") }
+    }
+    /// Iterator of [`Acronym`] for mods that are incompatible with [`BubblesOsu`]
+    pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
+        unsafe {
+            [
+                Acronym::from_str_unchecked("BR"),
+                Acronym::from_str_unchecked("MG"),
+                Acronym::from_str_unchecked("RP"),
+            ]
+        }
+        .into_iter()
+    }
+    /// The description of [`BubblesOsu`]
+    pub const fn description() -> &'static str {
+        "Don't let their popping distract you!"
+    }
+    /// The [`GameModKind`] of [`BubblesOsu`]
+    pub const fn kind() -> GameModKind {
+        GameModKind::Fun
+    }
+}
+impl<'de> Deserialize<'de> for BubblesOsu {
+    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        struct BubblesOsuVisitor;
+        impl<'de> Visitor<'de> for BubblesOsuVisitor {
+            type Value = BubblesOsu;
+            fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+                f.write_str("BubblesOsu")
+            }
+            fn visit_map<A: MapAccess<'de>>(self, _: A) -> Result<Self::Value, A::Error> {
+                Ok(Self::Value {})
+            }
+        }
+        d.deserialize_map(BubblesOsuVisitor)
+    }
+}
+#[cfg(feature = "serialize")]
+impl serde::Serialize for BubblesOsu {
+    fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        use serde::ser::SerializeMap;
+        let field_count = 0;
+        let map = s.serialize_map(Some(field_count))?;
+        map.end()
+    }
+}
+/// Colours hit objects based on the rhythm.
+#[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
+pub struct SynesthesiaOsu {}
+impl SynesthesiaOsu {
+    /// The acronym of [`SynesthesiaOsu`]
+    pub const fn acronym() -> Acronym {
+        unsafe { Acronym::from_str_unchecked("SY") }
+    }
+    /// Iterator of [`Acronym`] for mods that are incompatible with [`SynesthesiaOsu`]
+    pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
+        [].into_iter()
+    }
+    /// The description of [`SynesthesiaOsu`]
+    pub const fn description() -> &'static str {
+        "Colours hit objects based on the rhythm."
+    }
+    /// The [`GameModKind`] of [`SynesthesiaOsu`]
+    pub const fn kind() -> GameModKind {
+        GameModKind::Fun
+    }
+}
+impl<'de> Deserialize<'de> for SynesthesiaOsu {
+    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        struct SynesthesiaOsuVisitor;
+        impl<'de> Visitor<'de> for SynesthesiaOsuVisitor {
+            type Value = SynesthesiaOsu;
+            fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+                f.write_str("SynesthesiaOsu")
+            }
+            fn visit_map<A: MapAccess<'de>>(self, _: A) -> Result<Self::Value, A::Error> {
+                Ok(Self::Value {})
+            }
+        }
+        d.deserialize_map(SynesthesiaOsuVisitor)
+    }
+}
+#[cfg(feature = "serialize")]
+impl serde::Serialize for SynesthesiaOsu {
+    fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        use serde::ser::SerializeMap;
+        let field_count = 0;
+        let map = s.serialize_map(Some(field_count))?;
+        map.end()
+    }
+}
 /// Automatically applied to plays on devices with a touchscreen.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
 #[cfg_attr(
@@ -3202,7 +3303,7 @@ impl serde::Serialize for TouchDeviceOsu {
         map.end()
     }
 }
-/// Uses the V2 scoring system
+/// Score set on earlier osu! versions with the V2 scoring algorithm active.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
 #[cfg_attr(
     feature = "rkyv",
@@ -3213,7 +3314,7 @@ pub struct ScoreV2Osu {}
 impl ScoreV2Osu {
     /// The acronym of [`ScoreV2Osu`]
     pub const fn acronym() -> Acronym {
-        unsafe { Acronym::from_str_unchecked("V2") }
+        unsafe { Acronym::from_str_unchecked("SV2") }
     }
     /// Iterator of [`Acronym`] for mods that are incompatible with [`ScoreV2Osu`]
     pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
@@ -3221,7 +3322,7 @@ impl ScoreV2Osu {
     }
     /// The description of [`ScoreV2Osu`]
     pub const fn description() -> &'static str {
-        "Uses the V2 scoring system"
+        "Score set on earlier osu! versions with the V2 scoring algorithm active."
     }
     /// The [`GameModKind`] of [`ScoreV2Osu`]
     pub const fn kind() -> GameModKind {
@@ -3340,8 +3441,6 @@ impl NoFailTaiko {
                 Acronym::from_str_unchecked("SD"),
                 Acronym::from_str_unchecked("PF"),
                 Acronym::from_str_unchecked("AC"),
-                Acronym::from_str_unchecked("AT"),
-                Acronym::from_str_unchecked("CN"),
                 Acronym::from_str_unchecked("RX"),
             ]
         }
@@ -3624,8 +3723,6 @@ impl SuddenDeathTaiko {
             [
                 Acronym::from_str_unchecked("NF"),
                 Acronym::from_str_unchecked("PF"),
-                Acronym::from_str_unchecked("AT"),
-                Acronym::from_str_unchecked("CN"),
                 Acronym::from_str_unchecked("RX"),
             ]
         }
@@ -3705,8 +3802,6 @@ impl PerfectTaiko {
                 Acronym::from_str_unchecked("NF"),
                 Acronym::from_str_unchecked("SD"),
                 Acronym::from_str_unchecked("AC"),
-                Acronym::from_str_unchecked("AT"),
-                Acronym::from_str_unchecked("CN"),
                 Acronym::from_str_unchecked("RX"),
             ]
         }
@@ -4070,6 +4165,7 @@ impl serde::Serialize for FlashlightTaiko {
 )]
 pub struct AccuracyChallengeTaiko {
     pub minimum_accuracy: Option<f32>,
+    pub accuracy_judge_mode: Option<String>,
     pub restart: Option<bool>,
 }
 impl AccuracyChallengeTaiko {
@@ -4083,8 +4179,6 @@ impl AccuracyChallengeTaiko {
             [
                 Acronym::from_str_unchecked("NF"),
                 Acronym::from_str_unchecked("PF"),
-                Acronym::from_str_unchecked("AT"),
-                Acronym::from_str_unchecked("CN"),
                 Acronym::from_str_unchecked("RX"),
             ]
         }
@@ -4109,10 +4203,12 @@ impl<'de> Deserialize<'de> for AccuracyChallengeTaiko {
             }
             fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
                 let mut minimum_accuracy = None;
+                let mut accuracy_judge_mode = None;
                 let mut restart = None;
                 while let Some(key) = map.next_key()? {
                     match key {
                         "minimum_accuracy" => minimum_accuracy = Some(map.next_value()?),
+                        "accuracy_judge_mode" => accuracy_judge_mode = Some(map.next_value()?),
                         "restart" => restart = Some(map.next_value()?),
                         _ => {
                             let _: IgnoredAny = map.next_value()?;
@@ -4121,6 +4217,7 @@ impl<'de> Deserialize<'de> for AccuracyChallengeTaiko {
                 }
                 Ok(Self::Value {
                     minimum_accuracy: minimum_accuracy.unwrap_or_default(),
+                    accuracy_judge_mode: accuracy_judge_mode.unwrap_or_default(),
                     restart: restart.unwrap_or_default(),
                 })
             }
@@ -4132,11 +4229,15 @@ impl<'de> Deserialize<'de> for AccuracyChallengeTaiko {
 impl serde::Serialize for AccuracyChallengeTaiko {
     fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
         use serde::ser::SerializeMap;
-        let field_count =
-            self.minimum_accuracy.is_some() as usize + self.restart.is_some() as usize;
+        let field_count = self.minimum_accuracy.is_some() as usize
+            + self.accuracy_judge_mode.is_some() as usize
+            + self.restart.is_some() as usize;
         let mut map = s.serialize_map(Some(field_count))?;
         if let Some(ref x) = self.minimum_accuracy {
             map.serialize_entry("minimum_accuracy", x)?;
+        }
+        if let Some(ref x) = self.accuracy_judge_mode {
+            map.serialize_entry("accuracy_judge_mode", x)?;
         }
         if let Some(ref x) = self.restart {
             map.serialize_entry("restart", x)?;
@@ -4484,10 +4585,6 @@ impl AutoplayTaiko {
     pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
         unsafe {
             [
-                Acronym::from_str_unchecked("NF"),
-                Acronym::from_str_unchecked("SD"),
-                Acronym::from_str_unchecked("PF"),
-                Acronym::from_str_unchecked("AC"),
                 Acronym::from_str_unchecked("SG"),
                 Acronym::from_str_unchecked("CN"),
                 Acronym::from_str_unchecked("RX"),
@@ -4552,10 +4649,6 @@ impl CinemaTaiko {
     pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
         unsafe {
             [
-                Acronym::from_str_unchecked("NF"),
-                Acronym::from_str_unchecked("SD"),
-                Acronym::from_str_unchecked("PF"),
-                Acronym::from_str_unchecked("AC"),
                 Acronym::from_str_unchecked("SG"),
                 Acronym::from_str_unchecked("AT"),
                 Acronym::from_str_unchecked("RX"),
@@ -5026,7 +5119,7 @@ impl serde::Serialize for AdaptiveSpeedTaiko {
         map.end()
     }
 }
-/// Uses the V2 scoring system
+/// Score set on earlier osu! versions with the V2 scoring algorithm active.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
 #[cfg_attr(
     feature = "rkyv",
@@ -5037,7 +5130,7 @@ pub struct ScoreV2Taiko {}
 impl ScoreV2Taiko {
     /// The acronym of [`ScoreV2Taiko`]
     pub const fn acronym() -> Acronym {
-        unsafe { Acronym::from_str_unchecked("V2") }
+        unsafe { Acronym::from_str_unchecked("SV2") }
     }
     /// Iterator of [`Acronym`] for mods that are incompatible with [`ScoreV2Taiko`]
     pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
@@ -5045,7 +5138,7 @@ impl ScoreV2Taiko {
     }
     /// The description of [`ScoreV2Taiko`]
     pub const fn description() -> &'static str {
-        "Uses the V2 scoring system"
+        "Score set on earlier osu! versions with the V2 scoring algorithm active."
     }
     /// The [`GameModKind`] of [`ScoreV2Taiko`]
     pub const fn kind() -> GameModKind {
@@ -5180,8 +5273,6 @@ impl NoFailCatch {
                 Acronym::from_str_unchecked("SD"),
                 Acronym::from_str_unchecked("PF"),
                 Acronym::from_str_unchecked("AC"),
-                Acronym::from_str_unchecked("AT"),
-                Acronym::from_str_unchecked("CN"),
                 Acronym::from_str_unchecked("RX"),
             ]
         }
@@ -5462,8 +5553,6 @@ impl SuddenDeathCatch {
             [
                 Acronym::from_str_unchecked("NF"),
                 Acronym::from_str_unchecked("PF"),
-                Acronym::from_str_unchecked("AT"),
-                Acronym::from_str_unchecked("CN"),
                 Acronym::from_str_unchecked("RX"),
             ]
         }
@@ -5543,8 +5632,6 @@ impl PerfectCatch {
                 Acronym::from_str_unchecked("NF"),
                 Acronym::from_str_unchecked("SD"),
                 Acronym::from_str_unchecked("AC"),
-                Acronym::from_str_unchecked("AT"),
-                Acronym::from_str_unchecked("CN"),
                 Acronym::from_str_unchecked("RX"),
             ]
         }
@@ -5906,6 +5993,7 @@ impl serde::Serialize for FlashlightCatch {
 )]
 pub struct AccuracyChallengeCatch {
     pub minimum_accuracy: Option<f32>,
+    pub accuracy_judge_mode: Option<String>,
     pub restart: Option<bool>,
 }
 impl AccuracyChallengeCatch {
@@ -5920,8 +6008,6 @@ impl AccuracyChallengeCatch {
                 Acronym::from_str_unchecked("EZ"),
                 Acronym::from_str_unchecked("NF"),
                 Acronym::from_str_unchecked("PF"),
-                Acronym::from_str_unchecked("AT"),
-                Acronym::from_str_unchecked("CN"),
                 Acronym::from_str_unchecked("RX"),
             ]
         }
@@ -5946,10 +6032,12 @@ impl<'de> Deserialize<'de> for AccuracyChallengeCatch {
             }
             fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
                 let mut minimum_accuracy = None;
+                let mut accuracy_judge_mode = None;
                 let mut restart = None;
                 while let Some(key) = map.next_key()? {
                     match key {
                         "minimum_accuracy" => minimum_accuracy = Some(map.next_value()?),
+                        "accuracy_judge_mode" => accuracy_judge_mode = Some(map.next_value()?),
                         "restart" => restart = Some(map.next_value()?),
                         _ => {
                             let _: IgnoredAny = map.next_value()?;
@@ -5958,6 +6046,7 @@ impl<'de> Deserialize<'de> for AccuracyChallengeCatch {
                 }
                 Ok(Self::Value {
                     minimum_accuracy: minimum_accuracy.unwrap_or_default(),
+                    accuracy_judge_mode: accuracy_judge_mode.unwrap_or_default(),
                     restart: restart.unwrap_or_default(),
                 })
             }
@@ -5969,11 +6058,15 @@ impl<'de> Deserialize<'de> for AccuracyChallengeCatch {
 impl serde::Serialize for AccuracyChallengeCatch {
     fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
         use serde::ser::SerializeMap;
-        let field_count =
-            self.minimum_accuracy.is_some() as usize + self.restart.is_some() as usize;
+        let field_count = self.minimum_accuracy.is_some() as usize
+            + self.accuracy_judge_mode.is_some() as usize
+            + self.restart.is_some() as usize;
         let mut map = s.serialize_map(Some(field_count))?;
         if let Some(ref x) = self.minimum_accuracy {
             map.serialize_entry("minimum_accuracy", x)?;
+        }
+        if let Some(ref x) = self.accuracy_judge_mode {
+            map.serialize_entry("accuracy_judge_mode", x)?;
         }
         if let Some(ref x) = self.restart {
             map.serialize_entry("restart", x)?;
@@ -6215,10 +6308,6 @@ impl AutoplayCatch {
     pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
         unsafe {
             [
-                Acronym::from_str_unchecked("NF"),
-                Acronym::from_str_unchecked("SD"),
-                Acronym::from_str_unchecked("PF"),
-                Acronym::from_str_unchecked("AC"),
                 Acronym::from_str_unchecked("CN"),
                 Acronym::from_str_unchecked("RX"),
             ]
@@ -6281,10 +6370,6 @@ impl CinemaCatch {
     pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
         unsafe {
             [
-                Acronym::from_str_unchecked("NF"),
-                Acronym::from_str_unchecked("SD"),
-                Acronym::from_str_unchecked("PF"),
-                Acronym::from_str_unchecked("AC"),
                 Acronym::from_str_unchecked("AT"),
                 Acronym::from_str_unchecked("RX"),
             ]
@@ -6780,7 +6865,7 @@ impl serde::Serialize for NoScopeCatch {
         map.end()
     }
 }
-/// Uses the V2 scoring system
+/// Score set on earlier osu! versions with the V2 scoring algorithm active.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
 #[cfg_attr(
     feature = "rkyv",
@@ -6791,7 +6876,7 @@ pub struct ScoreV2Catch {}
 impl ScoreV2Catch {
     /// The acronym of [`ScoreV2Catch`]
     pub const fn acronym() -> Acronym {
-        unsafe { Acronym::from_str_unchecked("V2") }
+        unsafe { Acronym::from_str_unchecked("SV2") }
     }
     /// Iterator of [`Acronym`] for mods that are incompatible with [`ScoreV2Catch`]
     pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
@@ -6799,7 +6884,7 @@ impl ScoreV2Catch {
     }
     /// The description of [`ScoreV2Catch`]
     pub const fn description() -> &'static str {
-        "Uses the V2 scoring system"
+        "Score set on earlier osu! versions with the V2 scoring algorithm active."
     }
     /// The [`GameModKind`] of [`ScoreV2Catch`]
     pub const fn kind() -> GameModKind {
@@ -6934,8 +7019,6 @@ impl NoFailMania {
                 Acronym::from_str_unchecked("SD"),
                 Acronym::from_str_unchecked("PF"),
                 Acronym::from_str_unchecked("AC"),
-                Acronym::from_str_unchecked("AT"),
-                Acronym::from_str_unchecked("CN"),
             ]
         }
         .into_iter()
@@ -7217,8 +7300,6 @@ impl SuddenDeathMania {
             [
                 Acronym::from_str_unchecked("NF"),
                 Acronym::from_str_unchecked("PF"),
-                Acronym::from_str_unchecked("AT"),
-                Acronym::from_str_unchecked("CN"),
             ]
         }
         .into_iter()
@@ -7297,8 +7378,6 @@ impl PerfectMania {
                 Acronym::from_str_unchecked("NF"),
                 Acronym::from_str_unchecked("SD"),
                 Acronym::from_str_unchecked("AC"),
-                Acronym::from_str_unchecked("AT"),
-                Acronym::from_str_unchecked("CN"),
             ]
         }
         .into_iter()
@@ -7765,6 +7844,7 @@ impl serde::Serialize for FlashlightMania {
 )]
 pub struct AccuracyChallengeMania {
     pub minimum_accuracy: Option<f32>,
+    pub accuracy_judge_mode: Option<String>,
     pub restart: Option<bool>,
 }
 impl AccuracyChallengeMania {
@@ -7779,8 +7859,6 @@ impl AccuracyChallengeMania {
                 Acronym::from_str_unchecked("EZ"),
                 Acronym::from_str_unchecked("NF"),
                 Acronym::from_str_unchecked("PF"),
-                Acronym::from_str_unchecked("AT"),
-                Acronym::from_str_unchecked("CN"),
             ]
         }
         .into_iter()
@@ -7804,10 +7882,12 @@ impl<'de> Deserialize<'de> for AccuracyChallengeMania {
             }
             fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
                 let mut minimum_accuracy = None;
+                let mut accuracy_judge_mode = None;
                 let mut restart = None;
                 while let Some(key) = map.next_key()? {
                     match key {
                         "minimum_accuracy" => minimum_accuracy = Some(map.next_value()?),
+                        "accuracy_judge_mode" => accuracy_judge_mode = Some(map.next_value()?),
                         "restart" => restart = Some(map.next_value()?),
                         _ => {
                             let _: IgnoredAny = map.next_value()?;
@@ -7816,6 +7896,7 @@ impl<'de> Deserialize<'de> for AccuracyChallengeMania {
                 }
                 Ok(Self::Value {
                     minimum_accuracy: minimum_accuracy.unwrap_or_default(),
+                    accuracy_judge_mode: accuracy_judge_mode.unwrap_or_default(),
                     restart: restart.unwrap_or_default(),
                 })
             }
@@ -7827,11 +7908,15 @@ impl<'de> Deserialize<'de> for AccuracyChallengeMania {
 impl serde::Serialize for AccuracyChallengeMania {
     fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
         use serde::ser::SerializeMap;
-        let field_count =
-            self.minimum_accuracy.is_some() as usize + self.restart.is_some() as usize;
+        let field_count = self.minimum_accuracy.is_some() as usize
+            + self.accuracy_judge_mode.is_some() as usize
+            + self.restart.is_some() as usize;
         let mut map = s.serialize_map(Some(field_count))?;
         if let Some(ref x) = self.minimum_accuracy {
             map.serialize_entry("minimum_accuracy", x)?;
+        }
+        if let Some(ref x) = self.accuracy_judge_mode {
+            map.serialize_entry("accuracy_judge_mode", x)?;
         }
         if let Some(ref x) = self.restart {
             map.serialize_entry("restart", x)?;
@@ -9010,10 +9095,6 @@ impl AutoplayMania {
     pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
         unsafe {
             [
-                Acronym::from_str_unchecked("NF"),
-                Acronym::from_str_unchecked("SD"),
-                Acronym::from_str_unchecked("PF"),
-                Acronym::from_str_unchecked("AC"),
                 Acronym::from_str_unchecked("CN"),
                 Acronym::from_str_unchecked("AS"),
             ]
@@ -9076,10 +9157,6 @@ impl CinemaMania {
     pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
         unsafe {
             [
-                Acronym::from_str_unchecked("NF"),
-                Acronym::from_str_unchecked("SD"),
-                Acronym::from_str_unchecked("PF"),
-                Acronym::from_str_unchecked("AC"),
                 Acronym::from_str_unchecked("AT"),
                 Acronym::from_str_unchecked("AS"),
             ]
@@ -9481,7 +9558,7 @@ impl serde::Serialize for AdaptiveSpeedMania {
         map.end()
     }
 }
-/// Uses the V2 scoring system
+/// Score set on earlier osu! versions with the V2 scoring algorithm active.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
 #[cfg_attr(
     feature = "rkyv",
@@ -9492,7 +9569,7 @@ pub struct ScoreV2Mania {}
 impl ScoreV2Mania {
     /// The acronym of [`ScoreV2Mania`]
     pub const fn acronym() -> Acronym {
-        unsafe { Acronym::from_str_unchecked("V2") }
+        unsafe { Acronym::from_str_unchecked("SV2") }
     }
     /// Iterator of [`Acronym`] for mods that are incompatible with [`ScoreV2Mania`]
     pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
@@ -9500,7 +9577,7 @@ impl ScoreV2Mania {
     }
     /// The description of [`ScoreV2Mania`]
     pub const fn description() -> &'static str {
-        "Uses the V2 scoring system"
+        "Score set on earlier osu! versions with the V2 scoring algorithm active."
     }
     /// The [`GameModKind`] of [`ScoreV2Mania`]
     pub const fn kind() -> GameModKind {
@@ -9570,6 +9647,7 @@ pub enum GameModIntermode {
     Autoplay,
     BarrelRoll,
     Blinds,
+    Bubbles,
     Cinema,
     Classic,
     ConstantSpeed,
@@ -9613,6 +9691,7 @@ pub enum GameModIntermode {
     StrictTracking,
     SuddenDeath,
     Swap,
+    Synesthesia,
     TargetPractice,
     TenKeys,
     ThreeKeys,
@@ -9637,6 +9716,7 @@ impl GameModIntermode {
                 Self::Autoplay => Acronym::from_str_unchecked("AT"),
                 Self::BarrelRoll => Acronym::from_str_unchecked("BR"),
                 Self::Blinds => Acronym::from_str_unchecked("BL"),
+                Self::Bubbles => Acronym::from_str_unchecked("BU"),
                 Self::Cinema => Acronym::from_str_unchecked("CN"),
                 Self::Classic => Acronym::from_str_unchecked("CL"),
                 Self::ConstantSpeed => Acronym::from_str_unchecked("CS"),
@@ -9671,7 +9751,7 @@ impl GameModIntermode {
                 Self::Random => Acronym::from_str_unchecked("RD"),
                 Self::Relax => Acronym::from_str_unchecked("RX"),
                 Self::Repel => Acronym::from_str_unchecked("RP"),
-                Self::ScoreV2 => Acronym::from_str_unchecked("V2"),
+                Self::ScoreV2 => Acronym::from_str_unchecked("SV2"),
                 Self::SevenKeys => Acronym::from_str_unchecked("7K"),
                 Self::SingleTap => Acronym::from_str_unchecked("SG"),
                 Self::SixKeys => Acronym::from_str_unchecked("6K"),
@@ -9680,6 +9760,7 @@ impl GameModIntermode {
                 Self::StrictTracking => Acronym::from_str_unchecked("ST"),
                 Self::SuddenDeath => Acronym::from_str_unchecked("SD"),
                 Self::Swap => Acronym::from_str_unchecked("SW"),
+                Self::Synesthesia => Acronym::from_str_unchecked("SY"),
                 Self::TargetPractice => Acronym::from_str_unchecked("TP"),
                 Self::TenKeys => Acronym::from_str_unchecked("10K"),
                 Self::ThreeKeys => Acronym::from_str_unchecked("3K"),
@@ -9706,6 +9787,7 @@ impl GameModIntermode {
             Self::Autoplay => Some(2048),
             Self::BarrelRoll => None,
             Self::Blinds => None,
+            Self::Bubbles => None,
             Self::Cinema => Some(4194304),
             Self::Classic => None,
             Self::ConstantSpeed => None,
@@ -9749,6 +9831,7 @@ impl GameModIntermode {
             Self::StrictTracking => None,
             Self::SuddenDeath => Some(32),
             Self::Swap => None,
+            Self::Synesthesia => None,
             Self::TargetPractice => Some(8388608),
             Self::TenKeys => None,
             Self::ThreeKeys => Some(134217728),
@@ -9772,6 +9855,7 @@ impl GameModIntermode {
             Self::Autoplay => GameModKind::Automation,
             Self::BarrelRoll => GameModKind::Fun,
             Self::Blinds => GameModKind::DifficultyIncrease,
+            Self::Bubbles => GameModKind::Fun,
             Self::Cinema => GameModKind::Automation,
             Self::Classic => GameModKind::Conversion,
             Self::ConstantSpeed => GameModKind::Conversion,
@@ -9815,6 +9899,7 @@ impl GameModIntermode {
             Self::StrictTracking => GameModKind::DifficultyIncrease,
             Self::SuddenDeath => GameModKind::DifficultyIncrease,
             Self::Swap => GameModKind::Conversion,
+            Self::Synesthesia => GameModKind::Fun,
             Self::TargetPractice => GameModKind::Conversion,
             Self::TenKeys => GameModKind::Conversion,
             Self::ThreeKeys => GameModKind::Conversion,
@@ -9838,6 +9923,7 @@ impl GameModIntermode {
             "AT" => Some(Self::Autoplay),
             "BR" => Some(Self::BarrelRoll),
             "BL" => Some(Self::Blinds),
+            "BU" => Some(Self::Bubbles),
             "CN" => Some(Self::Cinema),
             "CL" => Some(Self::Classic),
             "CS" => Some(Self::ConstantSpeed),
@@ -9872,7 +9958,7 @@ impl GameModIntermode {
             "RD" => Some(Self::Random),
             "RX" => Some(Self::Relax),
             "RP" => Some(Self::Repel),
-            "V2" => Some(Self::ScoreV2),
+            "SV2" => Some(Self::ScoreV2),
             "7K" => Some(Self::SevenKeys),
             "SG" => Some(Self::SingleTap),
             "6K" => Some(Self::SixKeys),
@@ -9881,6 +9967,7 @@ impl GameModIntermode {
             "ST" => Some(Self::StrictTracking),
             "SD" => Some(Self::SuddenDeath),
             "SW" => Some(Self::Swap),
+            "SY" => Some(Self::Synesthesia),
             "TP" => Some(Self::TargetPractice),
             "10K" => Some(Self::TenKeys),
             "3K" => Some(Self::ThreeKeys),
@@ -10010,6 +10097,8 @@ impl From<&GameMod> for GameModOrder {
                 GameMod::RepelOsu(_) => arm!(Osu, RepelOsu, None, Repel),
                 GameMod::AdaptiveSpeedOsu(_) => arm!(Osu, AdaptiveSpeedOsu, None, AdaptiveSpeed),
                 GameMod::FreezeFrameOsu(_) => arm!(Osu, FreezeFrameOsu, None, FreezeFrame),
+                GameMod::BubblesOsu(_) => arm!(Osu, BubblesOsu, None, Bubbles),
+                GameMod::SynesthesiaOsu(_) => arm!(Osu, SynesthesiaOsu, None, Synesthesia),
                 GameMod::TouchDeviceOsu(_) => arm!(Osu, TouchDeviceOsu, Some(3), TouchDevice),
                 GameMod::ScoreV2Osu(_) => arm!(Osu, ScoreV2Osu, Some(30), ScoreV2),
                 GameMod::EasyTaiko(_) => arm!(Taiko, EasyTaiko, Some(2), Easy),
@@ -10211,6 +10300,8 @@ pub enum GameMod {
     RepelOsu(RepelOsu),
     AdaptiveSpeedOsu(AdaptiveSpeedOsu),
     FreezeFrameOsu(FreezeFrameOsu),
+    BubblesOsu(BubblesOsu),
+    SynesthesiaOsu(SynesthesiaOsu),
     TouchDeviceOsu(TouchDeviceOsu),
     ScoreV2Osu(ScoreV2Osu),
     EasyTaiko(EasyTaiko),
@@ -10349,8 +10440,10 @@ impl GameMod {
             ("RP", GameMode::Osu) => Some(Self::RepelOsu(Default::default())),
             ("AS", GameMode::Osu) => Some(Self::AdaptiveSpeedOsu(Default::default())),
             ("FR", GameMode::Osu) => Some(Self::FreezeFrameOsu(Default::default())),
+            ("BU", GameMode::Osu) => Some(Self::BubblesOsu(Default::default())),
+            ("SY", GameMode::Osu) => Some(Self::SynesthesiaOsu(Default::default())),
             ("TD", GameMode::Osu) => Some(Self::TouchDeviceOsu(Default::default())),
-            ("V2", GameMode::Osu) => Some(Self::ScoreV2Osu(Default::default())),
+            ("SV2", GameMode::Osu) => Some(Self::ScoreV2Osu(Default::default())),
             ("EZ", GameMode::Taiko) => Some(Self::EasyTaiko(Default::default())),
             ("NF", GameMode::Taiko) => Some(Self::NoFailTaiko(Default::default())),
             ("HT", GameMode::Taiko) => Some(Self::HalfTimeTaiko(Default::default())),
@@ -10375,7 +10468,7 @@ impl GameMod {
             ("WD", GameMode::Taiko) => Some(Self::WindDownTaiko(Default::default())),
             ("MU", GameMode::Taiko) => Some(Self::MutedTaiko(Default::default())),
             ("AS", GameMode::Taiko) => Some(Self::AdaptiveSpeedTaiko(Default::default())),
-            ("V2", GameMode::Taiko) => Some(Self::ScoreV2Taiko(Default::default())),
+            ("SV2", GameMode::Taiko) => Some(Self::ScoreV2Taiko(Default::default())),
             ("EZ", GameMode::Catch) => Some(Self::EasyCatch(Default::default())),
             ("NF", GameMode::Catch) => Some(Self::NoFailCatch(Default::default())),
             ("HT", GameMode::Catch) => Some(Self::HalfTimeCatch(Default::default())),
@@ -10399,7 +10492,7 @@ impl GameMod {
             ("FF", GameMode::Catch) => Some(Self::FloatingFruitsCatch(Default::default())),
             ("MU", GameMode::Catch) => Some(Self::MutedCatch(Default::default())),
             ("NS", GameMode::Catch) => Some(Self::NoScopeCatch(Default::default())),
-            ("V2", GameMode::Catch) => Some(Self::ScoreV2Catch(Default::default())),
+            ("SV2", GameMode::Catch) => Some(Self::ScoreV2Catch(Default::default())),
             ("EZ", GameMode::Mania) => Some(Self::EasyMania(Default::default())),
             ("NF", GameMode::Mania) => Some(Self::NoFailMania(Default::default())),
             ("HT", GameMode::Mania) => Some(Self::HalfTimeMania(Default::default())),
@@ -10437,7 +10530,7 @@ impl GameMod {
             ("WD", GameMode::Mania) => Some(Self::WindDownMania(Default::default())),
             ("MU", GameMode::Mania) => Some(Self::MutedMania(Default::default())),
             ("AS", GameMode::Mania) => Some(Self::AdaptiveSpeedMania(Default::default())),
-            ("V2", GameMode::Mania) => Some(Self::ScoreV2Mania(Default::default())),
+            ("SV2", GameMode::Mania) => Some(Self::ScoreV2Mania(Default::default())),
             _ => None,
         }
     }
@@ -10486,6 +10579,8 @@ impl GameMod {
             Self::RepelOsu(_) => RepelOsu::acronym(),
             Self::AdaptiveSpeedOsu(_) => AdaptiveSpeedOsu::acronym(),
             Self::FreezeFrameOsu(_) => FreezeFrameOsu::acronym(),
+            Self::BubblesOsu(_) => BubblesOsu::acronym(),
+            Self::SynesthesiaOsu(_) => SynesthesiaOsu::acronym(),
             Self::TouchDeviceOsu(_) => TouchDeviceOsu::acronym(),
             Self::ScoreV2Osu(_) => ScoreV2Osu::acronym(),
             Self::EasyTaiko(_) => EasyTaiko::acronym(),
@@ -10622,6 +10717,8 @@ impl GameMod {
             Self::RepelOsu(_) => RepelOsu::incompatible_mods().collect(),
             Self::AdaptiveSpeedOsu(_) => AdaptiveSpeedOsu::incompatible_mods().collect(),
             Self::FreezeFrameOsu(_) => FreezeFrameOsu::incompatible_mods().collect(),
+            Self::BubblesOsu(_) => BubblesOsu::incompatible_mods().collect(),
+            Self::SynesthesiaOsu(_) => SynesthesiaOsu::incompatible_mods().collect(),
             Self::TouchDeviceOsu(_) => TouchDeviceOsu::incompatible_mods().collect(),
             Self::ScoreV2Osu(_) => ScoreV2Osu::incompatible_mods().collect(),
             Self::EasyTaiko(_) => EasyTaiko::incompatible_mods().collect(),
@@ -10764,6 +10861,8 @@ impl GameMod {
             Self::RepelOsu(_) => RepelOsu::description(),
             Self::AdaptiveSpeedOsu(_) => AdaptiveSpeedOsu::description(),
             Self::FreezeFrameOsu(_) => FreezeFrameOsu::description(),
+            Self::BubblesOsu(_) => BubblesOsu::description(),
+            Self::SynesthesiaOsu(_) => SynesthesiaOsu::description(),
             Self::TouchDeviceOsu(_) => TouchDeviceOsu::description(),
             Self::ScoreV2Osu(_) => ScoreV2Osu::description(),
             Self::EasyTaiko(_) => EasyTaiko::description(),
@@ -10900,6 +10999,8 @@ impl GameMod {
             Self::RepelOsu(_) => RepelOsu::kind(),
             Self::AdaptiveSpeedOsu(_) => AdaptiveSpeedOsu::kind(),
             Self::FreezeFrameOsu(_) => FreezeFrameOsu::kind(),
+            Self::BubblesOsu(_) => BubblesOsu::kind(),
+            Self::SynesthesiaOsu(_) => SynesthesiaOsu::kind(),
             Self::TouchDeviceOsu(_) => TouchDeviceOsu::kind(),
             Self::ScoreV2Osu(_) => ScoreV2Osu::kind(),
             Self::EasyTaiko(_) => EasyTaiko::kind(),
@@ -11120,6 +11221,8 @@ impl GameMod {
             | Self::RepelOsu(_)
             | Self::AdaptiveSpeedOsu(_)
             | Self::FreezeFrameOsu(_)
+            | Self::BubblesOsu(_)
+            | Self::SynesthesiaOsu(_)
             | Self::TouchDeviceOsu(_)
             | Self::ScoreV2Osu(_) => GameMode::Osu,
             Self::EasyTaiko(_)
@@ -11256,6 +11359,8 @@ impl GameMod {
             Self::RepelOsu(_) => GameModIntermode::Repel,
             Self::AdaptiveSpeedOsu(_) => GameModIntermode::AdaptiveSpeed,
             Self::FreezeFrameOsu(_) => GameModIntermode::FreezeFrame,
+            Self::BubblesOsu(_) => GameModIntermode::Bubbles,
+            Self::SynesthesiaOsu(_) => GameModIntermode::Synesthesia,
             Self::TouchDeviceOsu(_) => GameModIntermode::TouchDevice,
             Self::ScoreV2Osu(_) => GameModIntermode::ScoreV2,
             Self::EasyTaiko(_) => GameModIntermode::Easy,
@@ -11415,8 +11520,10 @@ impl<'de> Visitor<'de> for GameModSettings<'de> {
             ("RP", GameMode::Osu) => GameMod::RepelOsu(Deserialize::deserialize(d)?),
             ("AS", GameMode::Osu) => GameMod::AdaptiveSpeedOsu(Deserialize::deserialize(d)?),
             ("FR", GameMode::Osu) => GameMod::FreezeFrameOsu(Deserialize::deserialize(d)?),
+            ("BU", GameMode::Osu) => GameMod::BubblesOsu(Deserialize::deserialize(d)?),
+            ("SY", GameMode::Osu) => GameMod::SynesthesiaOsu(Deserialize::deserialize(d)?),
             ("TD", GameMode::Osu) => GameMod::TouchDeviceOsu(Deserialize::deserialize(d)?),
-            ("V2", GameMode::Osu) => GameMod::ScoreV2Osu(Deserialize::deserialize(d)?),
+            ("SV2", GameMode::Osu) => GameMod::ScoreV2Osu(Deserialize::deserialize(d)?),
             ("EZ", GameMode::Taiko) => GameMod::EasyTaiko(Deserialize::deserialize(d)?),
             ("NF", GameMode::Taiko) => GameMod::NoFailTaiko(Deserialize::deserialize(d)?),
             ("HT", GameMode::Taiko) => GameMod::HalfTimeTaiko(Deserialize::deserialize(d)?),
@@ -11443,7 +11550,7 @@ impl<'de> Visitor<'de> for GameModSettings<'de> {
             ("WD", GameMode::Taiko) => GameMod::WindDownTaiko(Deserialize::deserialize(d)?),
             ("MU", GameMode::Taiko) => GameMod::MutedTaiko(Deserialize::deserialize(d)?),
             ("AS", GameMode::Taiko) => GameMod::AdaptiveSpeedTaiko(Deserialize::deserialize(d)?),
-            ("V2", GameMode::Taiko) => GameMod::ScoreV2Taiko(Deserialize::deserialize(d)?),
+            ("SV2", GameMode::Taiko) => GameMod::ScoreV2Taiko(Deserialize::deserialize(d)?),
             ("EZ", GameMode::Catch) => GameMod::EasyCatch(Deserialize::deserialize(d)?),
             ("NF", GameMode::Catch) => GameMod::NoFailCatch(Deserialize::deserialize(d)?),
             ("HT", GameMode::Catch) => GameMod::HalfTimeCatch(Deserialize::deserialize(d)?),
@@ -11469,7 +11576,7 @@ impl<'de> Visitor<'de> for GameModSettings<'de> {
             ("FF", GameMode::Catch) => GameMod::FloatingFruitsCatch(Deserialize::deserialize(d)?),
             ("MU", GameMode::Catch) => GameMod::MutedCatch(Deserialize::deserialize(d)?),
             ("NS", GameMode::Catch) => GameMod::NoScopeCatch(Deserialize::deserialize(d)?),
-            ("V2", GameMode::Catch) => GameMod::ScoreV2Catch(Deserialize::deserialize(d)?),
+            ("SV2", GameMode::Catch) => GameMod::ScoreV2Catch(Deserialize::deserialize(d)?),
             ("EZ", GameMode::Mania) => GameMod::EasyMania(Deserialize::deserialize(d)?),
             ("NF", GameMode::Mania) => GameMod::NoFailMania(Deserialize::deserialize(d)?),
             ("HT", GameMode::Mania) => GameMod::HalfTimeMania(Deserialize::deserialize(d)?),
@@ -11509,7 +11616,7 @@ impl<'de> Visitor<'de> for GameModSettings<'de> {
             ("WD", GameMode::Mania) => GameMod::WindDownMania(Deserialize::deserialize(d)?),
             ("MU", GameMode::Mania) => GameMod::MutedMania(Deserialize::deserialize(d)?),
             ("AS", GameMode::Mania) => GameMod::AdaptiveSpeedMania(Deserialize::deserialize(d)?),
-            ("V2", GameMode::Mania) => GameMod::ScoreV2Mania(Deserialize::deserialize(d)?),
+            ("SV2", GameMode::Mania) => GameMod::ScoreV2Mania(Deserialize::deserialize(d)?),
             _ => {
                 return Err(DeError::custom(format!(
                     "unknown acronym {} for mode {:?}",
@@ -11534,7 +11641,9 @@ impl<'de> Visitor<'de> for ModeAsSeed<GameMod> {
         // Using RawValue avoids an allocation since serde_json generally
         // deserializes into String to handle escaped characters.
         let key = map.next_key::<&RawValue>()?.map(RawValue::get);
-        let Some(r#""acronym""#) = key else {return Err(DeError::custom("expected `acronym` as first field"));};
+        let Some(r#""acronym""#) = key else {
+            return Err(DeError::custom("expected `acronym` as first field"));
+        };
         let acronym: &'de str = map.next_value()?;
         let mut gamemod = None;
         while let Some(key) = map.next_key::<&str>()? {
@@ -11616,7 +11725,9 @@ impl serde::Serialize for GameMod {
                 }
             }
             Self::AccuracyChallengeOsu(m) => {
-                let has_some = m.minimum_accuracy.is_some() || m.restart.is_some();
+                let has_some = m.minimum_accuracy.is_some()
+                    || m.accuracy_judge_mode.is_some()
+                    || m.restart.is_some();
                 if has_some {
                     s.serialize_entry("settings", m)?;
                 }
@@ -11779,7 +11890,9 @@ impl serde::Serialize for GameMod {
                 }
             }
             Self::AccuracyChallengeTaiko(m) => {
-                let has_some = m.minimum_accuracy.is_some() || m.restart.is_some();
+                let has_some = m.minimum_accuracy.is_some()
+                    || m.accuracy_judge_mode.is_some()
+                    || m.restart.is_some();
                 if has_some {
                     s.serialize_entry("settings", m)?;
                 }
@@ -11877,7 +11990,9 @@ impl serde::Serialize for GameMod {
                 }
             }
             Self::AccuracyChallengeCatch(m) => {
-                let has_some = m.minimum_accuracy.is_some() || m.restart.is_some();
+                let has_some = m.minimum_accuracy.is_some()
+                    || m.accuracy_judge_mode.is_some()
+                    || m.restart.is_some();
                 if has_some {
                     s.serialize_entry("settings", m)?;
                 }
@@ -11983,7 +12098,9 @@ impl serde::Serialize for GameMod {
                 }
             }
             Self::AccuracyChallengeMania(m) => {
-                let has_some = m.minimum_accuracy.is_some() || m.restart.is_some();
+                let has_some = m.minimum_accuracy.is_some()
+                    || m.accuracy_judge_mode.is_some()
+                    || m.restart.is_some();
                 if has_some {
                     s.serialize_entry("settings", m)?;
                 }
@@ -12093,6 +12210,9 @@ macro_rules! mods_inner {
     ( [ $( $mode:ident )? ] BR $( $rest:tt )* ) => {
         mods_inner!( [ $( $mode )? ] $( $rest )* BarrelRoll )
     };
+    ( [ $( $mode:ident )? ] BU $( $rest:tt )* ) => {
+        mods_inner!( [ $( $mode )? ] $( $rest )* Bubbles )
+    };
     ( [ $( $mode:ident )? ] CL $( $rest:tt )* ) => {
         mods_inner!( [ $( $mode )? ] $( $rest )* Classic )
     };
@@ -12195,8 +12315,14 @@ macro_rules! mods_inner {
     ( [ $( $mode:ident )? ] ST $( $rest:tt )* ) => {
         mods_inner!( [ $( $mode )? ] $( $rest )* StrictTracking )
     };
+    ( [ $( $mode:ident )? ] SV2 $( $rest:tt )* ) => {
+        mods_inner!( [ $( $mode )? ] $( $rest )* ScoreV2 )
+    };
     ( [ $( $mode:ident )? ] SW $( $rest:tt )* ) => {
         mods_inner!( [ $( $mode )? ] $( $rest )* Swap )
+    };
+    ( [ $( $mode:ident )? ] SY $( $rest:tt )* ) => {
+        mods_inner!( [ $( $mode )? ] $( $rest )* Synesthesia )
     };
     ( [ $( $mode:ident )? ] TC $( $rest:tt )* ) => {
         mods_inner!( [ $( $mode )? ] $( $rest )* Traceable )
@@ -12209,9 +12335,6 @@ macro_rules! mods_inner {
     };
     ( [ $( $mode:ident )? ] TR $( $rest:tt )* ) => {
         mods_inner!( [ $( $mode )? ] $( $rest )* Transform )
-    };
-    ( [ $( $mode:ident )? ] V2 $( $rest:tt )* ) => {
-        mods_inner!( [ $( $mode )? ] $( $rest )* ScoreV2 )
     };
     ( [ $( $mode:ident )? ] WD $( $rest:tt )* ) => {
         mods_inner!( [ $( $mode )? ] $( $rest )* WindDown )

@@ -1,6 +1,12 @@
 ## Upcoming
 
 - __Breaking:__
+  - `GameMods` have been reworked entirely to accommodate for osu!lazer's mods. They're no longer based on bitflags
+     but instead on a `BTreeMap` collection of `GameMod`. `GameMod` variants account for a `GameMode`. The analogous
+     mode-agnostic counterpart is `GameModsIntermode` and their `GameModIntermode` elements. E.g. there are the variants
+     `GameMod::HiddenOsu` and `GameMod::HiddenTaiko`, as well as `GameModIntermode::Hidden`.
+     The macro `mods!` can be used as shorthand for creating `GameMods` or `GameModsIntermode` based on acronyms
+     e.g. `mods!(Catch: HD HR DT)` to create `GameMods` for `GameMode::Catch` or `mods!(HD HR DT)` to create `GameModsIntermode`.
   - `User`, `Beatmap`, and `Beatmapset` have been renamed to `UserExtended`, `BeatmapExtended`, and `BeatmapsetExtended`
      and `UserCompact`, `BeatmapCompact`, and `BeatmapsetCompact` have been renamed to `User`, `Beatmap`, and `Beatmapset`
   - Added the field `mapset_id` to `Beatmap`

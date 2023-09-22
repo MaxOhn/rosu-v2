@@ -492,7 +492,7 @@ mod types {
         MatchScore {
             user_id: 123456,
             accuracy: 99.5,
-            mods: mods!(V2 RX),
+            mods: mods!(SV2 RX),
             score: 12_345_678,
             max_combo: 1000,
             perfect: false,

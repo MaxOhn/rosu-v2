@@ -1,15 +1,20 @@
 use super::{
     beatmap::{Beatmap, BeatmapsetCompact},
+    mods::GameMods,
     serde_,
     user_::UserCompact,
-    GameMode, GameMods, Grade,
+    GameMode, Grade,
 };
-use crate::{request::GetUser, Osu};
+use crate::{mods, prelude::ModeAsSeed, request::GetUser, Osu};
 
-use serde::Deserialize;
+use serde::{
+    de::{DeserializeSeed, Error as DeError},
+    Deserialize, Deserializer,
+};
 
 #[cfg(feature = "rkyv")]
 use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
+use serde_json::value::RawValue;
 use time::OffsetDateTime;
 
 #[derive(Debug, Deserialize)]
@@ -36,51 +41,118 @@ impl BeatmapUserScore {
     }
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct Score {
-    #[serde(with = "serde_::adjust_acc")]
+    #[cfg_attr(feature = "serialize", serde(with = "serde_::adjust_acc"))]
     pub accuracy: f32,
-    #[serde(with = "serde_::datetime")]
+    #[cfg_attr(feature = "serialize", serde(with = "serde_::datetime"))]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub ended_at: OffsetDateTime,
     pub passed: bool,
-    #[serde(rename = "rank")]
+    #[cfg_attr(feature = "serialize", serde(rename = "rank"))]
     pub grade: Grade,
-    #[serde(rename = "beatmap_id")]
+    #[cfg_attr(feature = "serialize", serde(rename = "beatmap_id"))]
     pub map_id: u32,
     pub max_combo: u32,
-    #[serde(default, rename = "beatmap", skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(
+        feature = "serialize",
+        serde(rename = "beatmap", skip_serializing_if = "Option::is_none")
+    )]
     pub map: Option<Beatmap>,
-    #[serde(
-        default,
-        rename = "beatmapset",
-        skip_serializing_if = "Option::is_none"
+    #[cfg_attr(
+        feature = "serialize",
+        serde(rename = "beatmapset", skip_serializing_if = "Option::is_none")
     )]
     pub mapset: Option<BeatmapsetCompact>,
-    #[serde(alias = "ruleset_id")]
     pub mode: GameMode,
     pub mods: GameMods,
-    #[serde(alias = "legacy_perfect")]
     pub perfect: bool,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "serialize", serde(skip_serializing_if = "Option::is_none"))]
     pub pp: Option<f32>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "serialize", serde(skip_serializing_if = "Option::is_none"))]
     pub rank_country: Option<u32>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "serialize", serde(skip_serializing_if = "Option::is_none"))]
     pub rank_global: Option<u32>,
     pub replay: Option<bool>,
-    #[serde(alias = "total_score")]
     pub score: u32,
-    #[serde(rename = "best_id")]
+    #[cfg_attr(feature = "serialize", serde(rename = "best_id"))]
     pub score_id: Option<u64>,
     pub statistics: ScoreStatistics,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "serialize", serde(skip_serializing_if = "Option::is_none"))]
     pub user: Option<UserCompact>,
     pub user_id: u32,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "serialize", serde(skip_serializing_if = "Option::is_none"))]
     pub weight: Option<ScoreWeight>,
+}
+
+impl<'de> Deserialize<'de> for Score {
+    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        #[derive(Deserialize)]
+        struct ScoreRawMods {
+            #[serde(with = "serde_::adjust_acc")]
+            accuracy: f32,
+            #[serde(with = "serde_::datetime")]
+            ended_at: OffsetDateTime,
+            passed: bool,
+            #[serde(rename = "rank")]
+            grade: Grade,
+            #[serde(rename = "beatmap_id")]
+            map_id: u32,
+            max_combo: u32,
+            #[serde(rename = "beatmap")]
+            map: Option<Beatmap>,
+            #[serde(rename = "beatmapset")]
+            mapset: Option<BeatmapsetCompact>,
+            #[serde(alias = "ruleset_id")]
+            mode: GameMode,
+            mods: Box<RawValue>,
+            #[serde(alias = "legacy_perfect")]
+            perfect: bool,
+            pp: Option<f32>,
+            rank_country: Option<u32>,
+            rank_global: Option<u32>,
+            replay: Option<bool>,
+            #[serde(alias = "total_score")]
+            score: u32,
+            #[serde(rename = "best_id")]
+            score_id: Option<u64>,
+            statistics: ScoreStatistics,
+            user: Option<UserCompact>,
+            user_id: u32,
+            weight: Option<ScoreWeight>,
+        }
+
+        let score_raw = <ScoreRawMods as serde::Deserialize>::deserialize(d)?;
+        let mut d = serde_json::Deserializer::from_str(score_raw.mods.get());
+
+        Ok(Score {
+            mods: ModeAsSeed::<GameMods>::new(score_raw.mode)
+                .deserialize(&mut d)
+                .map_err(DeError::custom)?,
+            accuracy: score_raw.accuracy,
+            ended_at: score_raw.ended_at,
+            passed: score_raw.passed,
+            grade: score_raw.grade,
+            map_id: score_raw.map_id,
+            max_combo: score_raw.max_combo,
+            map: score_raw.map,
+            mapset: score_raw.mapset,
+            mode: score_raw.mode,
+            perfect: score_raw.perfect,
+            pp: score_raw.pp,
+            rank_country: score_raw.rank_country,
+            rank_global: score_raw.rank_global,
+            replay: score_raw.replay,
+            score: score_raw.score,
+            score_id: score_raw.score_id,
+            statistics: score_raw.statistics,
+            user: score_raw.user,
+            user_id: score_raw.user_id,
+            weight: score_raw.weight,
+        })
+    }
 }
 
 impl Score {
@@ -223,13 +295,9 @@ pub struct ScoreWeight {
     pub pp: f32,
 }
 
-const HDFL: GameMods =
-    GameMods::from_bits_truncate(GameMods::Hidden.bits() + GameMods::Flashlight.bits());
-const HDFLFI: GameMods = GameMods::from_bits_truncate(HDFL.bits() + GameMods::FadeIn.bits());
-
 fn osu_grade(score: &Score, passed_objects: u32) -> Grade {
     if score.statistics.count_300 == passed_objects {
-        return if score.mods.intersects(HDFL) {
+        return if score.mods.contains_any(mods!(HD FL)) {
             Grade::XH
         } else {
             Grade::X
@@ -242,7 +310,7 @@ fn osu_grade(score: &Score, passed_objects: u32) -> Grade {
     let ratio50 = stats.count_50 as f32 / passed_objects as f32;
 
     if ratio300 > 0.9 && ratio50 < 0.01 && stats.count_miss == 0 {
-        if score.mods.intersects(HDFL) {
+        if score.mods.contains_any(mods!(HD FL)) {
             Grade::SH
         } else {
             Grade::S
@@ -260,7 +328,7 @@ fn osu_grade(score: &Score, passed_objects: u32) -> Grade {
 
 fn mania_grade(score: &Score, passed_objects: u32, accuracy: Option<f32>) -> Grade {
     if score.statistics.count_geki == passed_objects {
-        return if score.mods.intersects(HDFLFI) {
+        return if score.mods.contains_any(mods!(HD FL FI)) {
             Grade::XH
         } else {
             Grade::X
@@ -270,7 +338,7 @@ fn mania_grade(score: &Score, passed_objects: u32, accuracy: Option<f32>) -> Gra
     let accuracy = accuracy.unwrap_or_else(|| score.accuracy());
 
     if accuracy > 95.0 {
-        if score.mods.intersects(HDFLFI) {
+        if score.mods.contains_any(mods!(HD FL FI)) {
             Grade::SH
         } else {
             Grade::S
@@ -288,7 +356,7 @@ fn mania_grade(score: &Score, passed_objects: u32, accuracy: Option<f32>) -> Gra
 
 fn taiko_grade(score: &Score, passed_objects: u32) -> Grade {
     if score.statistics.count_300 == passed_objects {
-        return if score.mods.intersects(HDFL) {
+        return if score.mods.contains_any(mods!(HD FL)) {
             Grade::XH
         } else {
             Grade::X
@@ -299,7 +367,7 @@ fn taiko_grade(score: &Score, passed_objects: u32) -> Grade {
     let ratio300 = stats.count_300 as f32 / passed_objects as f32;
 
     if ratio300 > 0.9 && stats.count_miss == 0 {
-        if score.mods.intersects(HDFL) {
+        if score.mods.contains_any(mods!(HD FL)) {
             Grade::SH
         } else {
             Grade::S
@@ -319,13 +387,13 @@ fn ctb_grade(score: &Score, accuracy: Option<f32>) -> Grade {
     let accuracy = accuracy.unwrap_or_else(|| score.accuracy());
 
     if (100.0 - accuracy).abs() <= std::f32::EPSILON {
-        if score.mods.intersects(HDFL) {
+        if score.mods.contains_any(mods!(HD FL)) {
             Grade::XH
         } else {
             Grade::X
         }
     } else if accuracy > 98.0 {
-        if score.mods.intersects(HDFL) {
+        if score.mods.contains_any(mods!(HD FL)) {
             Grade::SH
         } else {
             Grade::S

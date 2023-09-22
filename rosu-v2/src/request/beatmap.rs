@@ -9,9 +9,9 @@ use crate::{
             SearchRankStatus,
         },
         score_::{BeatmapScores, BeatmapUserScore, Score, Scores},
-        Cursor, GameMode, GameMods,
+        Cursor, GameMode,
     },
-    prelude::BeatmapCompact,
+    prelude::{BeatmapCompact, GameModsIntermode},
     request::{Pending, Query, Request},
     routing::Route,
     Osu,
@@ -152,7 +152,7 @@ pub struct GetBeatmapDifficultyAttributes<'a> {
     osu: &'a Osu,
     map_id: u32,
     mode: Option<GameMode>,
-    mods: Option<GameMods>,
+    mods: Option<GameModsIntermode>,
 }
 
 impl<'a> GetBeatmapDifficultyAttributes<'a> {
@@ -176,8 +176,11 @@ impl<'a> GetBeatmapDifficultyAttributes<'a> {
 
     /// Specify the mods
     #[inline]
-    pub fn mods(mut self, mods: GameMods) -> Self {
-        self.mods = Some(mods);
+    pub fn mods<M>(mut self, mods: M) -> Self
+    where
+        GameModsIntermode: From<M>,
+    {
+        self.mods = Some(GameModsIntermode::from(mods));
 
         self
     }
@@ -192,7 +195,7 @@ impl<'a> GetBeatmapDifficultyAttributes<'a> {
 
         let mut body = Body::default();
 
-        if let Some(mods) = self.mods {
+        if let Some(ref mods) = self.mods {
             body.push_without_quotes("mods", mods.bits());
         }
 
@@ -239,7 +242,7 @@ pub struct GetBeatmapScores<'a> {
     map_id: u32,
     score_type: Option<ScoreType>,
     mode: Option<GameMode>,
-    mods: Option<GameMods>,
+    mods: Option<GameModsIntermode>,
     limit: Option<u32>,
     // ! Currently not working
     // offset: Option<u32>,
@@ -270,8 +273,11 @@ impl<'a> GetBeatmapScores<'a> {
 
     /// Specify the mods of the scores
     #[inline]
-    pub fn mods(mut self, mods: GameMods) -> Self {
-        self.mods.replace(mods);
+    pub fn mods<M>(mut self, mods: M) -> Self
+    where
+        GameModsIntermode: From<M>,
+    {
+        self.mods = Some(GameModsIntermode::from(mods));
 
         self
     }
@@ -318,9 +324,13 @@ impl<'a> GetBeatmapScores<'a> {
             query.push("mode", &mode.to_string());
         }
 
-        if let Some(mods) = self.mods {
-            for m in mods {
-                query.push("mods[]", &m.to_string());
+        if let Some(mods) = self.mods.take() {
+            if mods.is_empty() {
+                query.push("mods[]", "NM");
+            } else {
+                for m in mods {
+                    query.push("mods[]", m.acronym());
+                }
             }
         }
 
@@ -370,7 +380,7 @@ pub struct GetBeatmapUserScore<'a> {
     osu: &'a Osu,
     map_id: u32,
     mode: Option<GameMode>,
-    mods: Option<GameMods>,
+    mods: Option<GameModsIntermode>,
 
     #[cfg(not(feature = "cache"))]
     user_id: u32,
@@ -416,8 +426,11 @@ impl<'a> GetBeatmapUserScore<'a> {
 
     /// Specify the mods
     #[inline]
-    pub fn mods(mut self, mods: GameMods) -> Self {
-        self.mods.replace(mods);
+    pub fn mods<M>(mut self, mods: M) -> Self
+    where
+        GameModsIntermode: From<M>,
+    {
+        self.mods.replace(GameModsIntermode::from(mods));
 
         self
     }
@@ -432,9 +445,13 @@ impl<'a> GetBeatmapUserScore<'a> {
             query.push("mode", &mode.to_string());
         }
 
-        if let Some(mods) = self.mods {
-            for m in mods {
-                query.push("mods[]", &m.to_string());
+        if let Some(mods) = self.mods.take() {
+            if mods.is_empty() {
+                query.push("mods[]", "NM");
+            } else {
+                for m in mods {
+                    query.push("mods[]", m.acronym());
+                }
             }
         }
 

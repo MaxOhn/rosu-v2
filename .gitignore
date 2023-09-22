@@ -1,3 +1,6 @@
 .env
-/Cargo.lock
-output.txt
+/.idea
+Cargo.lock
+/*/Cargo.lock
+output.*
+expanded.*

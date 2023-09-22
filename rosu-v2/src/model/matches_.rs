@@ -1,16 +1,23 @@
 use super::{
-    beatmap::BeatmapCompact, score_::ScoreStatistics, serde_, user_::UserCompact, Cursor, GameMode,
-    GameMods,
+    beatmap::BeatmapCompact, mods::GameMods, score_::ScoreStatistics, serde_, user_::UserCompact,
+    Cursor, GameMode,
 };
-use crate::{Osu, OsuResult};
+use crate::{
+    prelude::{GameModsIntermode, ModeAsSeed},
+    Osu, OsuResult,
+};
 
 #[cfg(feature = "rkyv")]
 use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
 
 use serde::{
-    de::{Deserializer, Error, IgnoredAny, MapAccess, SeqAccess, Unexpected, Visitor},
+    de::{
+        DeserializeSeed, Deserializer, Error as DeError, Error, IgnoredAny, MapAccess, SeqAccess,
+        Unexpected, Visitor,
+    },
     Deserialize,
 };
+use serde_json::value::RawValue;
 use std::{collections::HashMap, fmt, slice::Iter, vec::Drain};
 use time::OffsetDateTime;
 
@@ -299,19 +306,21 @@ impl<'de> Deserialize<'de> for MatchEvent {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct MatchGame {
-    #[serde(rename = "id")]
+    #[cfg_attr(feature = "serialize", serde(rename = "id"))]
     pub game_id: u64,
-    #[serde(with = "serde_::datetime")]
+    #[cfg_attr(feature = "serialize", serde(with = "serde_::datetime"))]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub start_time: OffsetDateTime,
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        with = "serde_::option_datetime"
+    #[cfg_attr(
+        feature = "serialize",
+        serde(
+            skip_serializing_if = "Option::is_none",
+            with = "serde_::option_datetime"
+        )
     )]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub end_time: Option<OffsetDateTime>,
@@ -321,9 +330,47 @@ pub struct MatchGame {
     pub mods: GameMods,
     /// [`BeatmapCompact`](crate::model::beatmap::BeatmapCompact) of the game;
     /// `None` if the map was deleted
-    #[serde(rename = "beatmap")]
+    #[cfg_attr(feature = "serialize", serde(rename = "beatmap"))]
     pub map: Option<BeatmapCompact>,
     pub scores: Vec<MatchScore>,
+}
+
+impl<'de> Deserialize<'de> for MatchGame {
+    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        #[derive(Deserialize)]
+        struct MatchGameRawMods {
+            #[serde(rename = "id")]
+            game_id: u64,
+            #[serde(with = "serde_::datetime")]
+            start_time: OffsetDateTime,
+            #[serde(with = "serde_::option_datetime")]
+            end_time: Option<OffsetDateTime>,
+            mode: GameMode,
+            scoring_type: ScoringType,
+            team_type: TeamType,
+            mods: Box<RawValue>,
+            #[serde(rename = "beatmap")]
+            map: Option<BeatmapCompact>,
+            scores: Vec<MatchScore>,
+        }
+
+        let game_raw = <MatchGameRawMods as serde::Deserialize>::deserialize(d)?;
+        let mut d = serde_json::Deserializer::from_str(game_raw.mods.get());
+
+        Ok(MatchGame {
+            mods: ModeAsSeed::<GameMods>::new(game_raw.mode)
+                .deserialize(&mut d)
+                .map_err(DeError::custom)?,
+            game_id: game_raw.game_id,
+            start_time: game_raw.start_time,
+            end_time: game_raw.end_time,
+            mode: game_raw.mode,
+            scoring_type: game_raw.scoring_type,
+            team_type: game_raw.team_type,
+            map: game_raw.map,
+            scores: game_raw.scores,
+        })
+    }
 }
 
 macro_rules! mvp_fold {
@@ -496,7 +543,7 @@ pub struct MatchScore {
     #[cfg_attr(feature = "serialize", serde(with = "serde_::adjust_acc"))]
     pub accuracy: f32,
     pub max_combo: u32,
-    pub mods: GameMods,
+    pub mods: GameModsIntermode,
     pub pass: bool,
     pub perfect: bool,
     pub score: u32,
@@ -710,7 +757,7 @@ impl OsuMatch {
     ///                 # mode: GameMode::Osu,
     ///                 # scoring_type: ScoringType::Score,
     ///                 # team_type: TeamType::HeadToHead,
-    ///                 # mods: GameMods::NoMod,
+    ///                 # mods: GameMods::new(),
     ///                 # map: None,
     ///                 # scores: vec![],
     ///             # }),
@@ -740,7 +787,7 @@ impl OsuMatch {
     ///                 # mode: GameMode::Osu,
     ///                 # scoring_type: ScoringType::Score,
     ///                 # team_type: TeamType::HeadToHead,
-    ///                 # mods: GameMods::NoMod,
+    ///                 # mods: GameMods::new(),
     ///                 # map: None,
     ///                 # scores: vec![],
     ///             # }),

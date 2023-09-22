@@ -1,4 +1,4 @@
-pub type GenResult<T = (), E = Error> = std::result::Result<T, E>;
+pub type GenResult<T = (), E = Error> = Result<T, E>;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {

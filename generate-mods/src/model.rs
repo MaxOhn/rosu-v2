@@ -1,7 +1,6 @@
 use std::{
     borrow::Cow,
     fmt::{Debug, Formatter, Result as FmtResult},
-    mem,
 };
 
 use itoa::Buffer;
@@ -43,7 +42,6 @@ pub struct RulesetMods {
 impl RulesetMods {
     pub fn process(rulesets: &mut [Self]) {
         for ruleset in rulesets.iter_mut() {
-            ruleset.spoof_v2();
             ruleset.process_mod_names();
 
             // make sure no gamemod excludes itself explicitly
@@ -53,27 +51,6 @@ impl RulesetMods {
                     .retain(|incompatible| incompatible != &gamemod.acronym);
             }
         }
-    }
-
-    fn spoof_v2(&mut self) {
-        assert!(self
-            .mods
-            .iter()
-            .map(|gamemod| gamemod.acronym.as_str())
-            .all(|acronym| acronym != "V2"));
-
-        let mut mods = mem::take(&mut self.mods).into_vec();
-
-        mods.push(GameMod {
-            acronym: Acronym::from_str("V2").unwrap(),
-            name: "ScoreV2".into(),
-            description: "Uses the V2 scoring system".into(),
-            kind: "System".into(),
-            settings: [].into(),
-            incompatible_mods: [].into(),
-        });
-
-        self.mods = mods.into_boxed_slice();
     }
 
     /// Removes whitespace and adds the mode as suffix
@@ -286,11 +263,6 @@ impl GameMod {
     fn define_fn_incompatible_mods(&self, writer: &mut Writer) -> GenResult {
         writer.write("/// Iterator of [`Acronym`] for mods that are incompatible with [`")?;
         writer.write(&self.name)?;
-        // writer.write(
-        //     "`]\n\
-        //     pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {\
-        //         unsafe { [",
-        // )?;
         writer.write(
             "`]\n\
             pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {",

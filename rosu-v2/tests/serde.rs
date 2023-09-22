@@ -153,8 +153,8 @@ mod types {
             cs: 4.1,
             deleted_at: Some(get_date()),
             fail_times: Some(FailTimes {
-                exit: Some(vec![1, 2, 3]),
-                fail: Some(vec![4, 5, 6]),
+                exit: Some((1..=100).collect::<Vec<_>>().try_into().unwrap()),
+                fail: Some((101..=200).collect::<Vec<_>>().try_into().unwrap()),
             }),
             hp: 7.5,
             is_scoreable: true,

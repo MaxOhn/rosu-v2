@@ -4,6 +4,10 @@
   - `User`, `Beatmap`, and `Beatmapset` have been renamed to `UserExtended`, `BeatmapExtended`, and `BeatmapsetExtended`
      and `UserCompact`, `BeatmapCompact`, and `BeatmapsetCompact` have been renamed to `User`, `Beatmap`, and `Beatmapset`
   - Added the field `mapset_id` to `Beatmap`
+  - The fields `FailTimes::fail` and `FailTimes::exit` are now of type `Option<Box<u32; 100>>` instead of `Option<Vec<u32>>`
+
+- __Fixes__:
+  - Fixed deserializing `FailTimes` for `Beatmap` and `BeatmapExtended`
 
 # v0.8.0 (2023-06-27)
 

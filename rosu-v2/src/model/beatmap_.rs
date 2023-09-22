@@ -44,7 +44,7 @@ pub struct BeatmapExtended {
     )]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub deleted_at: Option<OffsetDateTime>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "failtimes", skip_serializing_if = "Option::is_none")]
     pub fail_times: Option<FailTimes>,
     #[serde(rename = "drain")]
     pub hp: f32,
@@ -108,7 +108,7 @@ pub struct Beatmap {
     pub checksum: Option<String>,
     #[serde(rename = "user_id")]
     pub creator_id: u32,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "failtimes", skip_serializing_if = "Option::is_none")]
     pub fail_times: Option<FailTimes>,
     #[serde(rename = "id")]
     pub map_id: u32,
@@ -1399,36 +1399,49 @@ pub struct BeatmapsetVote {
 pub struct FailTimes {
     /// List of length 100
     #[serde(
-        default,
         deserialize_with = "use_vec_option_visitor",
         skip_serializing_if = "Option::is_none"
     )]
-    pub exit: Option<Vec<u32>>,
+    pub exit: Option<Box<[u32; 100]>>,
     /// List of length 100
     #[serde(
-        default,
         deserialize_with = "use_vec_option_visitor",
         skip_serializing_if = "Option::is_none"
     )]
-    pub fail: Option<Vec<u32>>,
+    pub fail: Option<Box<[u32; 100]>>,
 }
 
-fn use_vec_option_visitor<'de, D: Deserializer<'de>>(d: D) -> Result<Option<Vec<u32>>, D::Error> {
+fn use_vec_option_visitor<'de, D: Deserializer<'de>>(
+    d: D,
+) -> Result<Option<Box<[u32; 100]>>, D::Error> {
     d.deserialize_option(VecOptionVisitor)
 }
 
 struct VecOptionVisitor;
 
 impl<'de> Visitor<'de> for VecOptionVisitor {
-    type Value = Option<Vec<u32>>;
+    type Value = Option<Box<[u32; 100]>>;
 
     fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.write_str("null or a sequence of u32")
     }
 
     #[inline]
+    fn visit_seq<A: SeqAccess<'de>>(self, mut seq: A) -> Result<Self::Value, A::Error> {
+        let mut ids = Vec::with_capacity(100);
+
+        while let Some(n) = seq.next_element()? {
+            ids.push(n);
+        }
+
+        ids.try_into()
+            .map(Some)
+            .map_err(|ids: Vec<u32>| Error::invalid_length(ids.len(), &"100"))
+    }
+
+    #[inline]
     fn visit_some<D: Deserializer<'de>>(self, d: D) -> Result<Self::Value, D::Error> {
-        d.deserialize_seq(HundredU32Visitor::new()).map(Some)
+        d.deserialize_seq(self)
     }
 
     #[inline]
@@ -1439,31 +1452,6 @@ impl<'de> Visitor<'de> for VecOptionVisitor {
     #[inline]
     fn visit_unit<E: Error>(self) -> Result<Self::Value, E> {
         Ok(None)
-    }
-}
-
-struct HundredU32Visitor(Vec<u32>);
-
-impl HundredU32Visitor {
-    fn new() -> Self {
-        Self(Vec::with_capacity(100))
-    }
-}
-
-impl<'de> Visitor<'de> for HundredU32Visitor {
-    type Value = Vec<u32>;
-
-    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str("a sequence of u32")
-    }
-
-    #[inline]
-    fn visit_seq<A: SeqAccess<'de>>(mut self, mut seq: A) -> Result<Self::Value, A::Error> {
-        while let Some(n) = seq.next_element()? {
-            self.0.push(n);
-        }
-
-        Ok(self.0)
     }
 }
 

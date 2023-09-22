@@ -29,7 +29,7 @@ pub struct BeatmapExtended {
     pub ar: f32,
     #[serde(deserialize_with = "deserialize_f32_default")]
     pub bpm: f32,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub checksum: Option<String>,
     pub convert: bool,
     pub count_circles: u32,
@@ -39,13 +39,12 @@ pub struct BeatmapExtended {
     pub creator_id: u32,
     pub cs: f32,
     #[serde(
-        default,
         skip_serializing_if = "Option::is_none",
         with = "serde_::option_datetime"
     )]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub deleted_at: Option<OffsetDateTime>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub fail_times: Option<FailTimes>,
     #[serde(rename = "drain")]
     pub hp: f32,
@@ -55,15 +54,11 @@ pub struct BeatmapExtended {
     pub last_updated: OffsetDateTime,
     #[serde(rename = "id")]
     pub map_id: u32,
-    #[serde(
-        default,
-        rename = "beatmapset",
-        skip_serializing_if = "Option::is_none"
-    )]
+    #[serde(rename = "beatmapset", skip_serializing_if = "Option::is_none")]
     pub mapset: Option<BeatmapsetExtended>,
     #[serde(rename = "beatmapset_id")]
     pub mapset_id: u32,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub max_combo: Option<u32>,
     pub mode: GameMode,
     #[serde(rename = "accuracy")]
@@ -109,21 +104,19 @@ impl Eq for BeatmapExtended {}
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct Beatmap {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub checksum: Option<String>,
     #[serde(rename = "user_id")]
     pub creator_id: u32,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub fail_times: Option<FailTimes>,
     #[serde(rename = "id")]
     pub map_id: u32,
-    #[serde(
-        default,
-        rename = "beatmapset",
-        skip_serializing_if = "Option::is_none"
-    )]
+    #[serde(rename = "beatmapset", skip_serializing_if = "Option::is_none")]
     pub mapset: Option<Beatmapset>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "beatmapset_id")]
+    pub mapset_id: u32,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub max_combo: Option<u32>,
     pub mode: GameMode,
     #[serde(rename = "total_length")]
@@ -151,6 +144,7 @@ impl From<BeatmapExtended> for Beatmap {
             fail_times: map.fail_times,
             map_id: map.map_id,
             mapset: map.mapset.map(|ms| ms.into()),
+            mapset_id: map.mapset_id,
             max_combo: map.max_combo,
             mode: map.mode,
             seconds_total: map.seconds_total,

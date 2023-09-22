@@ -3,6 +3,7 @@
 - __Breaking:__
   - `User`, `Beatmap`, and `Beatmapset` have been renamed to `UserExtended`, `BeatmapExtended`, and `BeatmapsetExtended`
      and `UserCompact`, `BeatmapCompact`, and `BeatmapsetCompact` have been renamed to `User`, `Beatmap`, and `Beatmapset`
+  - Added the field `mapset_id` to `Beatmap`
 
 # v0.8.0 (2023-06-27)
 

@@ -82,16 +82,6 @@ const DE_VS_CA: u32 = 71028303;
 const COOKIEZI_FREEDOM_DIVE: u64 = 2177560145;
 
 #[tokio::test]
-#[ignore = "specific testing"]
-async fn custom() -> Result<()> {
-    let result = OSU.get().await?.beatmapset(3).await?;
-
-    println!("Result:\n{:#?}", result.creator);
-
-    Ok(())
-}
-
-#[tokio::test]
 async fn beatmap() -> Result<()> {
     let map = OSU.get().await?.beatmap().map_id(ADESSO_BALLA).await?;
 

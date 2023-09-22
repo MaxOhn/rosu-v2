@@ -183,6 +183,7 @@ mod types {
             fail_times: None,
             map_id: 123456,
             mapset: Some(get_mapset_compact()),
+            mapset_id: 2345,
             max_combo: Some(1000),
             mode: GameMode::Catch,
             seconds_total: 120,

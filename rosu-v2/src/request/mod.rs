@@ -45,12 +45,9 @@ pub use wiki::*;
 
 use crate::{routing::Route, OsuResult};
 
+use itoa::{Buffer, Integer};
 use serde::Serialize;
-use std::{
-    fmt::{Display, Write},
-    future::Future,
-    pin::Pin,
-};
+use std::{future::Future, pin::Pin};
 
 type Pending<'a, T> = Pin<Box<dyn Future<Output = OsuResult<T>> + Send + Sync + 'a>>;
 
@@ -87,47 +84,50 @@ impl Request {
 }
 
 pub(crate) struct Body {
-    inner: String,
+    inner: Vec<u8>,
 }
 
 impl Body {
     pub(crate) fn new() -> Self {
-        Self {
-            inner: String::new(),
-        }
+        Self { inner: Vec::new() }
     }
 
     fn push_prefix(&mut self) {
-        if self.inner.is_empty() {
-            self.inner.push('{');
-        } else {
-            self.inner.push(',');
-        }
+        let prefix = if self.inner.is_empty() { b'{' } else { b',' };
+        self.inner.push(prefix);
     }
 
-    fn push_key(&mut self, key: &str) {
+    fn push_key(&mut self, key: &[u8]) {
         self.push_prefix();
-        self.inner.push('"');
-        self.inner.push_str(key);
-        self.inner.push_str("\":");
+        self.inner.push(b'"');
+        self.inner.extend_from_slice(key);
+        self.inner.extend_from_slice(b"\":");
     }
 
-    pub(crate) fn push_with_quotes(&mut self, key: &str, value: impl Display) {
-        self.push_key(key);
-        let _ = write!(self.inner, r#""{value}""#);
+    fn push_value(&mut self, value: &[u8]) {
+        self.inner.push(b'"');
+        self.inner.extend_from_slice(value);
+        self.inner.push(b'"');
     }
 
-    pub(crate) fn push_without_quotes(&mut self, key: &str, value: impl Display) {
-        self.push_key(key);
-        let _ = write!(self.inner, "{value}");
+    pub(crate) fn push_str(&mut self, key: &str, value: &str) {
+        self.push_key(key.as_bytes());
+        self.push_value(value.as_bytes());
+    }
+
+    pub(crate) fn push_int(&mut self, key: &str, int: impl Integer) {
+        self.push_key(key.as_bytes());
+
+        let mut buf = Buffer::new();
+        self.push_value(buf.format(int).as_bytes());
     }
 
     pub(crate) fn into_bytes(mut self) -> Vec<u8> {
         if !self.inner.is_empty() {
-            self.inner.push('}');
+            self.inner.push(b'}');
         }
 
-        self.inner.into_bytes()
+        self.inner
     }
 }
 

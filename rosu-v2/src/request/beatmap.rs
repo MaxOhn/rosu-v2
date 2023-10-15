@@ -189,12 +189,12 @@ impl<'a> GetBeatmapDifficultyAttributes<'a> {
 
         let mut body = Body::new();
 
-        if let Some(ref mods) = self.mods {
-            body.push_without_quotes("mods", mods);
+        if let Some(mods) = self.mods {
+            body.push_int("mods", mods);
         }
 
         if let Some(mode) = self.mode {
-            body.push_without_quotes("ruleset_id", mode as u32);
+            body.push_int("ruleset_id", mode as u32);
         }
 
         let req = Request::with_body(route, body);

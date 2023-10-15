@@ -144,16 +144,22 @@ pub enum Scope {
     Public,
 }
 
+impl Scope {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Scope::ChatWrite => "chat.write",
+            Scope::Delegate => "delegate",
+            Scope::ForumWrite => "forum.write",
+            Scope::FriendsRead => "friends.read",
+            Scope::Identify => "identify",
+            Scope::Lazer => "lazer",
+            Scope::Public => "public",
+        }
+    }
+}
+
 impl Display for Scope {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Scope::ChatWrite => f.write_str("chat.write"),
-            Scope::Delegate => f.write_str("delegate"),
-            Scope::ForumWrite => f.write_str("forum.write"),
-            Scope::FriendsRead => f.write_str("friends.read"),
-            Scope::Identify => f.write_str("identify"),
-            Scope::Lazer => f.write_str("lazer"),
-            Scope::Public => f.write_str("public"),
-        }
+        f.write_str(self.as_str())
     }
 }

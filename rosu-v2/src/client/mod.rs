@@ -615,25 +615,25 @@ const API_VERSION: u32 = 20220705;
 impl OsuRef {
     async fn request_token(&self) -> OsuResult<TokenResponse> {
         let mut body = Body::new();
-        body.push_without_quotes("client_id", self.client_id);
-        body.push_with_quotes("client_secret", &self.client_secret);
+        body.push_int("client_id", self.client_id);
+        body.push_str("client_secret", &self.client_secret);
 
         match &self.auth_kind {
             AuthorizationKind::Client(scope) => {
-                body.push_with_quotes("grant_type", "client_credentials");
-                body.push_with_quotes("scope", scope);
+                body.push_str("grant_type", "client_credentials");
+                body.push_str("scope", scope.as_str());
             }
             AuthorizationKind::User(auth) => match &self.token.read().await.refresh {
                 Some(refresh) => {
-                    body.push_with_quotes("grant_type", "refresh_token");
-                    body.push_with_quotes("refresh_token", refresh);
+                    body.push_str("grant_type", "refresh_token");
+                    body.push_str("refresh_token", refresh);
                 }
                 None => {
-                    body.push_with_quotes("grant_type", "authorization_code");
-                    body.push_with_quotes("redirect_uri", &auth.redirect_uri);
-                    body.push_with_quotes("code", &auth.code);
+                    body.push_str("grant_type", "authorization_code");
+                    body.push_str("redirect_uri", &auth.redirect_uri);
+                    body.push_str("code", &auth.code);
                     // FIXME: let users decide which scopes to use?
-                    body.push_with_quotes("scope", "identify public");
+                    body.push_str("scope", "identify public");
                 }
             },
         };

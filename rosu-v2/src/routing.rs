@@ -78,10 +78,9 @@ pub(crate) enum Route {
     },
     #[allow(dead_code)]
     GetUsers,
-    // TODO: box strings
     GetWikiPage {
-        locale: String,
-        page: Option<String>,
+        locale: Box<str>,
+        page: Option<Box<str>>,
     },
 }
 

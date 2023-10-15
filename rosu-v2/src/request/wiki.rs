@@ -10,8 +10,8 @@ use crate::{
 pub struct GetWikiPage<'a> {
     fut: Option<Pending<'a, WikiPage>>, // TODO: Make this enum; either WikiPage or binary blob
     osu: &'a Osu,
-    locale: Option<String>,
-    page: Option<String>,
+    locale: Option<Box<str>>,
+    page: Option<Box<str>>,
 }
 
 impl<'a> GetWikiPage<'a> {
@@ -20,7 +20,7 @@ impl<'a> GetWikiPage<'a> {
         Self {
             fut: None,
             osu,
-            locale: Some(locale.into()),
+            locale: Some(Box::from(locale.into())),
             page: None,
         }
     }
@@ -28,7 +28,7 @@ impl<'a> GetWikiPage<'a> {
     /// Specify the page
     #[inline]
     pub fn page(mut self, page: impl Into<String>) -> Self {
-        self.page.replace(page.into());
+        self.page = Some(Box::from(page.into()));
 
         self
     }

@@ -227,9 +227,7 @@ pub fn define_gamemod_intermode(
     writer.write(
         "impl PartialOrd for GameModIntermode {\
             fn partial_cmp(&self, other: &Self) -> Option<Ordering> {\
-                self.bits()\
-                    .zip(other.bits())\
-                    .map(|(self_bits, other_bits)| self_bits.cmp(&other_bits))\
+                Some(self.cmp(other))\
             }\
         }\
         impl Ord for GameModIntermode {\
@@ -340,15 +338,7 @@ pub fn define_gamemod_order(
         }\
         impl PartialOrd for GameModOrder {\
             fn partial_cmp(&self, other: &Self) -> Option<Ordering> {\
-                match self.mode.cmp(&other.mode) {\
-                    Ordering::Equal => match (self.index, other.index) {\
-                        (Some(self_idx), Some(other_idx)) => {\
-                            Some(self_idx.cmp(&other_idx))\
-                        },\
-                        _ => None,\
-                    }\
-                    cmp => Some(cmp),\
-                }\
+                Some(self.cmp(other))\
             }\
         }\
         impl Ord for GameModOrder {\

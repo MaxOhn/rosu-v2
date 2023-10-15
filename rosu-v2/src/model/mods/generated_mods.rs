@@ -1267,7 +1267,6 @@ impl serde::Serialize for DifficultyAdjustOsu {
 )]
 pub struct ClassicOsu {
     pub no_slider_head_accuracy: Option<bool>,
-    pub no_slider_head_movement: Option<bool>,
     pub classic_note_lock: Option<bool>,
     pub always_play_tail_sample: Option<bool>,
     pub fade_hit_circle_early: Option<bool>,
@@ -1300,7 +1299,6 @@ impl<'de> Deserialize<'de> for ClassicOsu {
             }
             fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
                 let mut no_slider_head_accuracy = None;
-                let mut no_slider_head_movement = None;
                 let mut classic_note_lock = None;
                 let mut always_play_tail_sample = None;
                 let mut fade_hit_circle_early = None;
@@ -1308,9 +1306,6 @@ impl<'de> Deserialize<'de> for ClassicOsu {
                     match key {
                         "no_slider_head_accuracy" => {
                             no_slider_head_accuracy = Some(map.next_value()?)
-                        }
-                        "no_slider_head_movement" => {
-                            no_slider_head_movement = Some(map.next_value()?)
                         }
                         "classic_note_lock" => classic_note_lock = Some(map.next_value()?),
                         "always_play_tail_sample" => {
@@ -1324,7 +1319,6 @@ impl<'de> Deserialize<'de> for ClassicOsu {
                 }
                 Ok(Self::Value {
                     no_slider_head_accuracy: no_slider_head_accuracy.unwrap_or_default(),
-                    no_slider_head_movement: no_slider_head_movement.unwrap_or_default(),
                     classic_note_lock: classic_note_lock.unwrap_or_default(),
                     always_play_tail_sample: always_play_tail_sample.unwrap_or_default(),
                     fade_hit_circle_early: fade_hit_circle_early.unwrap_or_default(),
@@ -1339,16 +1333,12 @@ impl serde::Serialize for ClassicOsu {
     fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
         use serde::ser::SerializeMap;
         let field_count = self.no_slider_head_accuracy.is_some() as usize
-            + self.no_slider_head_movement.is_some() as usize
             + self.classic_note_lock.is_some() as usize
             + self.always_play_tail_sample.is_some() as usize
             + self.fade_hit_circle_early.is_some() as usize;
         let mut map = s.serialize_map(Some(field_count))?;
         if let Some(ref x) = self.no_slider_head_accuracy {
             map.serialize_entry("no_slider_head_accuracy", x)?;
-        }
-        if let Some(ref x) = self.no_slider_head_movement {
-            map.serialize_entry("no_slider_head_movement", x)?;
         }
         if let Some(ref x) = self.classic_note_lock {
             map.serialize_entry("classic_note_lock", x)?;
@@ -9984,9 +9974,7 @@ impl GameModIntermode {
 }
 impl PartialOrd for GameModIntermode {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        self.bits()
-            .zip(other.bits())
-            .map(|(self_bits, other_bits)| self_bits.cmp(&other_bits))
+        Some(self.cmp(other))
     }
 }
 impl Ord for GameModIntermode {
@@ -10215,13 +10203,7 @@ impl From<&GameMod> for GameModOrder {
 }
 impl PartialOrd for GameModOrder {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        match self.mode.cmp(&other.mode) {
-            Ordering::Equal => match (self.index, other.index) {
-                (Some(self_idx), Some(other_idx)) => Some(self_idx.cmp(&other_idx)),
-                _ => None,
-            },
-            cmp => Some(cmp),
-        }
+        Some(self.cmp(other))
     }
 }
 impl Ord for GameModOrder {
@@ -11750,7 +11732,6 @@ impl serde::Serialize for GameMod {
             }
             Self::ClassicOsu(m) => {
                 let has_some = m.no_slider_head_accuracy.is_some()
-                    || m.no_slider_head_movement.is_some()
                     || m.classic_note_lock.is_some()
                     || m.always_play_tail_sample.is_some()
                     || m.fade_hit_circle_early.is_some();

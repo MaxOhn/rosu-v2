@@ -183,7 +183,7 @@ impl Route {
                 let mut path = format!("wiki/{locale}/");
 
                 if let Some(page) = page {
-                    path.push_str(&page);
+                    path.push_str(page);
                 }
 
                 (Method::GET, path.into())

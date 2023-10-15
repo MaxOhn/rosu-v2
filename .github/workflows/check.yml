@@ -1,0 +1,77 @@
+name: Check project
+
+on:
+  push:
+    branches: [ "main", "next" ]
+  pull_request:
+
+jobs:
+  clippy:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        include:
+          - kind: default-features
+            features: default
+          - kind: full-features
+            features: cache,macros,metrics,replay,serialize
+
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v2
+
+      - name: Add problem matchers
+        run: echo "::add-matcher::.github/rust.json"
+
+      - name: Run clippy
+        run: cargo clippy --features ${{ matrix.features }} --all-targets
+
+  rustfmt:
+    name: Format
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Install nightly toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+            components: rustfmt
+            toolchain: nightly
+
+      - name: Add problem matchers
+        run: echo "::add-matcher::.github/rust.json"
+
+      - name: Check code formatting
+        run: cargo fmt -- --check
+
+  feature-combinations:
+    name: Feature combinations
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v2
+
+      - name: Add problem matchers
+        run: echo "::add-matcher::.github/rust.json"
+
+      - name: Install cargo-hack
+        uses: taiki-e/install-action@cargo-hack
+
+      - name: Check feature-combinations
+        run: cargo hack check --feature-powerset

@@ -84,9 +84,6 @@ impl<'a> GetForumPosts<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, ForumPosts> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.forum_posts.inc();
-
         let mut query = Query::new();
 
         if let Some(sort) = self.sort {

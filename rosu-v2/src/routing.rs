@@ -7,7 +7,6 @@ use hyper::Method;
 use std::{borrow::Cow, fmt::Write};
 
 #[allow(clippy::enum_variant_names)]
-#[derive(Debug)]
 #[non_exhaustive]
 pub(crate) enum Route {
     GetBeatmap,
@@ -79,6 +78,7 @@ pub(crate) enum Route {
     },
     #[allow(dead_code)]
     GetUsers,
+    // TODO: box strings
     GetWikiPage {
         locale: String,
         page: Option<String>,
@@ -87,7 +87,7 @@ pub(crate) enum Route {
 
 impl Route {
     /// Separate a route into its parts: the HTTP method and the URI path.
-    pub(crate) fn into_parts(self) -> (Method, Cow<'static, str>) {
+    pub(crate) fn to_parts(&self) -> (Method, Cow<'static, str>) {
         match self {
             Self::GetBeatmap => (Method::GET, "beatmaps/lookup".into()),
             Self::GetBeatmaps => (Method::GET, "beatmaps".into()),
@@ -189,6 +189,39 @@ impl Route {
 
                 (Method::GET, path.into())
             }
+        }
+    }
+
+    #[cfg(feature = "metrics")]
+    pub(crate) fn name(&self) -> &'static str {
+        match self {
+            Self::GetBeatmap => "GetBeatmap",
+            Self::GetBeatmaps => "GetBeatmaps",
+            Self::GetBeatmapDifficultyAttributes { .. } => "GetBeatmapDifficultyAttributes",
+            Self::GetBeatmapScores { .. } => "GetBeatmapScores",
+            Self::GetBeatmapUserScore { .. } => "GetBeatmapUserScore",
+            Self::GetBeatmapUserScores { .. } => "GetBeatmapUserScores",
+            Self::GetBeatmapset { .. } => "GetBeatmapset",
+            Self::GetBeatmapsetFromMapId => "GetBeatmapsetFromMapId",
+            Self::GetBeatmapsetEvents => "GetBeatmapsetEvents",
+            Self::GetBeatmapsetSearch => "GetBeatmapsetSearch",
+            Self::GetComments => "GetComments",
+            Self::GetForumPosts { .. } => "GetForumPosts",
+            Self::GetMatch { .. } => "GetMatch",
+            Self::GetNews { .. } => "GetNews",
+            Self::GetOwnData { .. } => "GetOwnData",
+            Self::GetRankings { .. } => "GetRankings",
+            Self::GetRecentEvents { .. } => "GetRecentEvents",
+            Self::GetReplay { .. } => "GetReplay",
+            Self::GetScore { .. } => "GetScore",
+            Self::GetSeasonalBackgrounds => "GetSeasonalBackgrounds",
+            Self::GetSpotlights => "GetSpotlights",
+            Self::GetUser { .. } => "GetUser",
+            Self::GetUserBeatmapsets { .. } => "GetUserBeatmapsets",
+            Self::GetUserKudosu { .. } => "GetUserKudosu",
+            Self::GetUserScores { .. } => "GetUserScores",
+            Self::GetUsers => "GetUsers",
+            Self::GetWikiPage { .. } => "GetWikiPage",
         }
     }
 }

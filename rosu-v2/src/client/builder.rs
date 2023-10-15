@@ -10,9 +10,6 @@ use tokio::sync::{oneshot, RwLock};
 #[cfg(feature = "cache")]
 use dashmap::DashMap;
 
-#[cfg(feature = "metrics")]
-use crate::metrics::Metrics;
-
 /// Builder struct for an [`Osu`](crate::Osu) client.
 ///
 /// `client_id` as well as `client_secret` **must** be specified before building.
@@ -106,15 +103,15 @@ impl OsuBuilder {
         // Let an async worker update the token regularly
         Token::update_worker(Arc::clone(&inner), expires_in, dropped_rx);
 
+        #[cfg(feature = "metrics")]
+        crate::metrics::init_metrics();
+
         Ok(Osu {
             inner,
             token_loop_tx: Some(tx),
 
             #[cfg(feature = "cache")]
             cache: Box::new(DashMap::new()),
-
-            #[cfg(feature = "metrics")]
-            metrics: Box::new(Metrics::new()),
         })
     }
 

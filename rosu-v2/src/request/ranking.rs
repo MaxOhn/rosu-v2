@@ -52,9 +52,6 @@ impl<'a> GetChartRankings<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, ChartRankings> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.chart_rankings.inc();
-
         let mut query = Query::new();
 
         if let Some(spotlight) = self.spotlight {
@@ -114,9 +111,6 @@ impl<'a> GetCountryRankings<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, CountryRankings> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.country_rankings.inc();
-
         let mut query = Query::new();
 
         if let Some(page) = self.page {
@@ -195,9 +189,6 @@ impl<'a> GetPerformanceRankings<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, Rankings> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.performance_rankings.inc();
-
         let mode = self.mode;
         let mut query = Query::new();
 
@@ -275,9 +266,6 @@ impl<'a> GetScoreRankings<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, Rankings> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.score_rankings.inc();
-
         let mode = self.mode;
         let mut query = Query::new();
 
@@ -329,9 +317,6 @@ impl<'a> GetSpotlights<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, Vec<Spotlight>> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.spotlights.inc();
-
         let req = Request::new(Route::GetSpotlights);
         let fut = self.osu.request::<Spotlights>(req).map_ok(|s| s.spotlights);
 

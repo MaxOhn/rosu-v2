@@ -11,6 +11,9 @@
      and `UserCompact`, `BeatmapCompact`, and `BeatmapsetCompact` have been renamed to `User`, `Beatmap`, and `Beatmapset`
   - Added the field `mapset_id` to `Beatmap`
   - The fields `FailTimes::fail` and `FailTimes::exit` are now of type `Option<Box<u32; 100>>` instead of `Option<Vec<u32>>`
+  - Metrics are now recorded using the [`metrics`](https://github.com/metrics-rs/metrics/tree/main/metrics) crate instead of prometheus directly.
+    That means they're no longer exposed through a method, but are recorded in the global metrics registry instead.
+    You can install a global metrics registry e.g. through the [metrics-exporter-prometheus](https://github.com/metrics-rs/metrics/tree/main/metrics-exporter-prometheus) crate.
 
 - __Fixes__:
   - Fixed deserializing `FailTimes` for `Beatmap` and `BeatmapExtended`

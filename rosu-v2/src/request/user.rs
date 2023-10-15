@@ -109,9 +109,6 @@ impl<'a> GetOwnData<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, UserExtended> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.own_data.inc();
-
         let req = Request::new(Route::GetOwnData { mode: self.mode });
         let osu = self.osu;
         let fut = osu.request::<UserExtended>(req);
@@ -154,9 +151,6 @@ impl<'a> GetUser<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, UserExtended> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.user.inc();
-
         let mut query = Query::new();
 
         let user_id = self.user_id.take().unwrap();
@@ -300,9 +294,6 @@ impl<'a> GetUserBeatmapsets<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, Vec<BeatmapsetExtended>> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.user_beatmapsets.inc();
-
         let map_type = self.map_type;
         let mut query = Query::new();
 
@@ -401,9 +392,6 @@ impl<'a> GetUserKudosu<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, Vec<KudosuHistory>> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.user_kudosu.inc();
-
         let mut query = Query::new();
 
         if let Some(limit) = self.limit {
@@ -499,9 +487,6 @@ impl<'a> GetUserMostPlayed<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, Vec<MostPlayedMap>> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.most_played.inc();
-
         let mut query = Query::new();
 
         if let Some(limit) = self.limit {
@@ -607,9 +592,6 @@ impl<'a> GetRecentEvents<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, Vec<RecentEvent>> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.recent_events.inc();
-
         let mut query = Query::new();
 
         if let Some(limit) = self.limit {
@@ -791,14 +773,6 @@ impl<'a> GetUserScores<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, Vec<Score>> {
-        #[cfg(feature = "metrics")]
-        match self.score_type {
-            ScoreType::Best => self.osu.metrics.user_top_scores.inc(),
-            ScoreType::First => self.osu.metrics.user_first_scores.inc(),
-            ScoreType::Pinned => self.osu.metrics.user_pinned_scores.inc(),
-            ScoreType::Recent => self.osu.metrics.user_recent_scores.inc(),
-        }
-
         let mut query = Query::new();
 
         if let Some(limit) = self.limit {
@@ -881,9 +855,6 @@ impl<'a> GetUsers<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, Vec<User>> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.users.inc();
-
         Box::pin(async { Err(OsuError::UnavailableEndpoint) })
 
         // let query = self.query.take().unwrap();

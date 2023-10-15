@@ -44,9 +44,7 @@ pub use wiki::*;
 
 use crate::{routing::Route, OsuResult};
 
-use hyper::Method;
 use std::{
-    borrow::Cow,
     fmt::{Display, Formatter, Result, Write},
     future::Future,
     pin::Pin,
@@ -54,11 +52,9 @@ use std::{
 
 type Pending<'a, T> = Pin<Box<dyn Future<Output = OsuResult<T>> + Send + Sync + 'a>>;
 
-#[derive(Debug)]
 pub(crate) struct Request {
     pub query: Query,
-    pub method: Method,
-    pub path: Cow<'static, str>,
+    pub route: Route,
     pub body: Body,
 }
 
@@ -76,18 +72,11 @@ impl Request {
     }
 
     fn with_query_and_body(route: Route, query: Query, body: Body) -> Self {
-        let (method, path) = route.into_parts();
-
-        Self {
-            query,
-            method,
-            path,
-            body,
-        }
+        Self { query, route, body }
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub(crate) struct Body {
     inner: String,
 }
@@ -127,7 +116,7 @@ impl Body {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub(crate) struct Query {
     query: String,
 }

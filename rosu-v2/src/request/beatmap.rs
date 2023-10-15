@@ -183,7 +183,7 @@ impl<'a> GetBeatmapDifficultyAttributes<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, BeatmapDifficultyAttributes> {
-        let route = Route::GetBeatmapDifficultyAttributes {
+        let route = Route::PostBeatmapDifficultyAttributes {
             map_id: self.map_id,
         };
 

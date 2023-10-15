@@ -7,9 +7,7 @@ use crate::{
 };
 
 use serde::{
-    de::{
-        DeserializeSeed, Deserializer, Error, IgnoredAny, MapAccess, Unexpected, Visitor,
-    },
+    de::{DeserializeSeed, Deserializer, Error, IgnoredAny, MapAccess, Unexpected, Visitor},
     Deserialize,
 };
 use std::{

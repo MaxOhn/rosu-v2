@@ -1,6 +1,6 @@
 use super::{
-    beatmap::Beatmap, mods::GameMods, score_::ScoreStatistics, serde_, user_::User,
-    Cursor, GameMode,
+    beatmap::Beatmap, mods::GameMods, score_::ScoreStatistics, serde_, user_::User, Cursor,
+    GameMode,
 };
 use crate::{
     prelude::{GameModsIntermode, ModeAsSeed},

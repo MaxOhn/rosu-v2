@@ -614,7 +614,7 @@ const API_VERSION: u32 = 20220705;
 
 impl OsuRef {
     async fn request_token(&self) -> OsuResult<TokenResponse> {
-        let mut body = Body::default();
+        let mut body = Body::new();
         body.push_without_quotes("client_id", self.client_id);
         body.push_with_quotes("client_secret", &self.client_secret);
 
@@ -672,7 +672,13 @@ impl OsuRef {
         #[cfg(feature = "metrics")]
         let start = std::time::Instant::now();
 
-        let url = format!("https://osu.ppy.sh/api/v2/{path}{query}");
+        let mut url = format!("https://osu.ppy.sh/api/v2/{path}");
+
+        if let Some(ref query) = query {
+            url.push('?');
+            url.push_str(query);
+        }
+
         let resp = self.raw(url, method, body).await?;
         let bytes = self.handle_status(resp).await?;
 

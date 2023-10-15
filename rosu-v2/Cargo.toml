@@ -28,9 +28,11 @@ leaky-bucket-lite = { version = "0.5" }
 log = { version = "0.4", default-features = false }
 hyper = { version = "0.14", default-features = false, features = ["client"] }
 hyper-rustls = { version = "0.23", default-features = false, features = ["http1", "http2", "native-tokio"] }
+itoa = { version = "1.0.9" }
 paste = { version = "1.0", default-features = false, optional = true }
 serde = { version = "1.0", default-features = false, features = ["derive"] }
 serde_json = { version = "1.0", default-features = false, features = ["std", "raw_value"] }
+serde_urlencoded = { version = "0.7.1" }
 smallstr = { version = "0.2", features = ["serde"] }
 thiserror = { version = "1.0" }
 time = { version = "0.3", features = ["formatting", "parsing"] }

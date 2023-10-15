@@ -67,10 +67,7 @@ impl<'a> GetReplay<'a> {
 
     fn start(&mut self) -> Pending<'a, Replay> {
         let fut = self.inner.take().unwrap().map(|res| {
-            let bytes = res?;
-            let replay = Replay::from_bytes(&bytes)?;
-
-            Ok(replay)
+            res.and_then(|bytes| Replay::from_bytes(&bytes).map_err(crate::error::OsuError::from))
         });
 
         Box::pin(fut)

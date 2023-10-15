@@ -94,29 +94,29 @@ impl Route {
                 (Method::POST, format!("beatmaps/{map_id}/attributes").into())
             }
             Self::GetBeatmapScores { map_id } => {
-                (Method::GET, format!("beatmaps/{}/scores", map_id).into())
+                (Method::GET, format!("beatmaps/{map_id}/scores").into())
             }
             Self::GetBeatmapUserScore { map_id, user_id } => (
                 Method::GET,
-                format!("beatmaps/{}/scores/users/{}", map_id, user_id).into(),
+                format!("beatmaps/{map_id}/scores/users/{user_id}").into(),
             ),
             Self::GetBeatmapUserScores { map_id, user_id } => (
                 Method::GET,
-                format!("beatmaps/{}/scores/users/{}/all", map_id, user_id).into(),
+                format!("beatmaps/{map_id}/scores/users/{user_id}/all").into(),
             ),
             Self::GetBeatmapset { mapset_id } => {
-                (Method::GET, format!("beatmapsets/{}", mapset_id).into())
+                (Method::GET, format!("beatmapsets/{mapset_id}").into())
             }
             Self::GetBeatmapsetFromMapId => (Method::GET, "beatmapsets/lookup".into()),
             Self::GetBeatmapsetEvents => (Method::GET, "beatmapsets/events".into()),
             Self::GetBeatmapsetSearch => (Method::GET, "beatmapsets/search".into()),
             Self::GetComments => (Method::GET, "comments".into()),
             Self::GetForumPosts { topic_id } => {
-                (Method::GET, format!("forums/topics/{}", topic_id).into())
+                (Method::GET, format!("forums/topics/{topic_id}").into())
             }
             Self::GetMatch { match_id } => {
                 let path = match match_id {
-                    Some(id) => format!("matches/{}", id).into(),
+                    Some(id) => format!("matches/{id}").into(),
                     None => "matches".into(),
                 };
 
@@ -132,7 +132,7 @@ impl Route {
             }
             Self::GetOwnData { mode } => {
                 let path = match mode {
-                    Some(mode) => format!("me/{}", mode).into(),
+                    Some(mode) => format!("me/{mode}").into(),
                     None => "me".into(),
                 };
 
@@ -140,47 +140,47 @@ impl Route {
             }
             Self::GetRankings { mode, ranking_type } => (
                 Method::GET,
-                format!("rankings/{}/{}", mode, ranking_type).into(),
+                format!("rankings/{mode}/{}", ranking_type.as_str()).into(),
             ),
             Self::GetRecentEvents { user_id } => (
                 Method::GET,
-                format!("users/{}/recent_activity", user_id).into(),
+                format!("users/{user_id}/recent_activity").into(),
             ),
             Self::GetReplay { mode, score_id } => (
                 Method::GET,
-                format!("scores/{}/{}/download", mode, score_id).into(),
+                format!("scores/{mode}/{score_id}/download").into(),
             ),
             Self::GetScore { mode, score_id } => {
-                (Method::GET, format!("scores/{}/{}", mode, score_id).into())
+                (Method::GET, format!("scores/{mode}/{score_id}").into())
             }
             Self::GetSeasonalBackgrounds => (Method::GET, "seasonal-backgrounds".into()),
             Self::GetSpotlights => (Method::GET, "spotlights".into()),
             Self::GetUser { user_id, mode } => {
-                let mut path = format!("users/{}", user_id);
+                let mut path = format!("users/{user_id}");
 
                 if let Some(mode) = mode {
-                    let _ = write!(path, "/{}", mode);
+                    let _ = write!(path, "/{mode}");
                 }
 
                 (Method::GET, path.into())
             }
             Self::GetUserBeatmapsets { user_id, map_type } => (
                 Method::GET,
-                format!("users/{}/beatmapsets/{}", user_id, map_type).into(),
+                format!("users/{user_id}/beatmapsets/{map_type}").into(),
             ),
             Self::GetUserKudosu { user_id } => {
-                (Method::GET, format!("users/{}/kudosu", user_id).into())
+                (Method::GET, format!("users/{user_id}/kudosu").into())
             }
             Self::GetUserScores {
                 user_id,
                 score_type,
             } => (
                 Method::GET,
-                format!("users/{}/scores/{}", user_id, score_type).into(),
+                format!("users/{user_id}/scores/{}", score_type.as_str()).into(),
             ),
             Self::GetUsers => (Method::GET, "users".into()),
             Self::GetWikiPage { locale, page } => {
-                let mut path = format!("wiki/{}/", locale);
+                let mut path = format!("wiki/{locale}/");
 
                 if let Some(page) = page {
                     path.push_str(&page);

@@ -516,17 +516,14 @@ pub(crate) enum RankingType {
     Score,
 }
 
-impl fmt::Display for RankingType {
-    #[inline]
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let kind = match self {
+impl RankingType {
+    pub(crate) fn as_str(self) -> &'static str {
+        match self {
             Self::Charts => "charts",
             Self::Country => "country",
             Self::Performance => "performance",
             Self::Score => "score",
-        };
-
-        f.write_str(kind)
+        }
     }
 }
 

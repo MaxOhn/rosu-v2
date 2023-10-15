@@ -1,7 +1,7 @@
 use super::{serde_, user_::User, Cursor};
 use crate::{prelude::Username, request::GetUser, Osu, OsuResult};
 
-use serde::Deserialize;
+use serde::{Deserialize, Serializer};
 use std::fmt;
 use time::OffsetDateTime;
 
@@ -164,16 +164,27 @@ pub enum CommentSort {
     Top,
 }
 
-impl fmt::Display for CommentSort {
-    #[inline]
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let sort = match self {
+impl CommentSort {
+    pub fn as_str(self) -> &'static str {
+        match self {
             Self::New => "new",
             Self::Old => "old",
             Self::Top => "top",
-        };
+        }
+    }
 
-        f.write_str(sort)
+    pub(crate) fn serialize_as_query<S: Serializer>(
+        &self,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error> {
+        serializer.serialize_str(self.as_str())
+    }
+}
+
+impl fmt::Display for CommentSort {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
     }
 }
 

@@ -3,21 +3,31 @@ use crate::{
         comments_::{CommentBundle, CommentSort},
         Cursor,
     },
-    request::{Pending, Query, Request},
+    request::{
+        serialize::{maybe_comment_sort, maybe_cursor},
+        Pending, Query, Request,
+    },
     routing::Route,
     Osu,
 };
 
+use serde::Serialize;
+
 /// Get a list of comments and their replies up to two levels deep
 /// in form of a [`CommentBundle`](crate::model::comments::CommentBundle).
 #[must_use = "futures do nothing unless you `.await` or poll them"]
+#[derive(Serialize)]
 pub struct GetComments<'a> {
+    #[serde(skip)]
     fut: Option<Pending<'a, CommentBundle>>,
+    #[serde(skip)]
     osu: &'a Osu,
     commentable_type: Option<String>,
     commentable_id: Option<u32>,
     parent_id: Option<u32>,
+    #[serde(serialize_with = "maybe_comment_sort")]
     sort: Option<CommentSort>,
+    #[serde(flatten, serialize_with = "maybe_cursor")]
     cursor: Option<Cursor>,
 }
 
@@ -91,28 +101,7 @@ impl<'a> GetComments<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, CommentBundle> {
-        let mut query = Query::new();
-
-        if let Some(sort) = self.sort {
-            query.push("sort", &sort.to_string());
-        }
-
-        if let Some(parent) = self.parent_id {
-            query.push("parent_id", parent);
-        }
-
-        if let Some(commentable) = self.commentable_id {
-            query.push("commentable_id", commentable);
-        }
-
-        if let Some(commentable) = self.commentable_type.take() {
-            query.push("commentable_type", &commentable);
-        }
-
-        if let Some(cursor) = self.cursor.take() {
-            cursor.push_to_query(&mut query);
-        }
-
+        let query = Query::encode(self);
         let req = Request::with_query(Route::GetComments, query);
 
         Box::pin(self.osu.request(req))

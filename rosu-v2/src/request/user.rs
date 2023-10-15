@@ -5,15 +5,20 @@ use crate::{
         kudosu_::KudosuHistory,
         recent_event_::RecentEvent,
         score_::Score,
-        user_::{UserExtended, User},
+        user_::{User, UserExtended},
         GameMode,
     },
     prelude::Username,
-    request::{Pending, Query, Request},
+    request::{
+        serialize::{maybe_bool_as_u8, maybe_mode_as_str, maybe_user_id_type},
+        Pending, Query, Request,
+    },
     routing::Route,
     Osu,
 };
 
+use itoa::Buffer;
+use serde::Serialize;
 use smallstr::SmallString;
 use std::fmt;
 
@@ -71,7 +76,7 @@ impl From<String> for UserId {
 impl fmt::Display for UserId {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Id(id) => write!(f, "{}", id),
+            Self::Id(id) => write!(f, "{id}"),
             Self::Name(name) => f.write_str(name),
         }
     }
@@ -124,10 +129,15 @@ poll_req!(GetOwnData => UserExtended);
 
 /// Get a [`UserExtended`](crate::model::user::UserExtended) by their id.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
+#[derive(Serialize)]
 pub struct GetUser<'a> {
+    #[serde(skip)]
     fut: Option<Pending<'a, UserExtended>>,
+    #[serde(skip)]
     osu: &'a Osu,
+    #[serde(rename(serialize = "key"), serialize_with = "maybe_user_id_type")]
     user_id: Option<UserId>,
+    #[serde(skip)]
     mode: Option<GameMode>,
 }
 
@@ -151,16 +161,8 @@ impl<'a> GetUser<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, UserExtended> {
-        let mut query = Query::new();
-
+        let query = Query::encode(self);
         let user_id = self.user_id.take().unwrap();
-
-        let kind = match &user_id {
-            UserId::Id(_) => "id",
-            UserId::Name(_) => "username",
-        };
-
-        query.push("key", kind);
 
         let route = Route::GetUser {
             user_id,
@@ -190,17 +192,23 @@ poll_req!(GetUser => UserExtended);
 /// [`pending`](crate::request::GetUserBeatmapsets::pending),
 /// it defaults to `ranked`.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
+#[derive(Serialize)]
 pub struct GetUserBeatmapsets<'a> {
+    #[serde(skip)]
     fut: Option<Pending<'a, Vec<BeatmapsetExtended>>>,
+    #[serde(skip)]
     osu: &'a Osu,
+    #[serde(skip)]
     map_type: &'static str,
     limit: Option<usize>,
     offset: Option<usize>,
 
     #[cfg(not(feature = "cache"))]
+    #[serde(skip)]
     user_id: u32,
 
     #[cfg(feature = "cache")]
+    #[serde(skip)]
     user_id: UserId,
 }
 
@@ -294,17 +302,8 @@ impl<'a> GetUserBeatmapsets<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, Vec<BeatmapsetExtended>> {
+        let query = Query::encode(self);
         let map_type = self.map_type;
-        let mut query = Query::new();
-
-        if let Some(limit) = self.limit {
-            query.push("limit", limit);
-        }
-
-        if let Some(offset) = self.offset {
-            query.push("offset", offset);
-        }
-
         let osu = self.osu;
 
         #[cfg(not(feature = "cache"))]
@@ -336,16 +335,21 @@ poll_req!(GetUserBeatmapsets => Vec<BeatmapsetExtended>);
 /// Get a user's kudosu history by their user id in form of a vec
 /// of [`KudosuHistory`](crate::model::kudosu::KudosuHistory).
 #[must_use = "futures do nothing unless you `.await` or poll them"]
+#[derive(Serialize)]
 pub struct GetUserKudosu<'a> {
+    #[serde(skip)]
     fut: Option<Pending<'a, Vec<KudosuHistory>>>,
+    #[serde(skip)]
     osu: &'a Osu,
     limit: Option<usize>,
     offset: Option<usize>,
 
     #[cfg(not(feature = "cache"))]
+    #[serde(skip)]
     user_id: u32,
 
     #[cfg(feature = "cache")]
+    #[serde(skip)]
     user_id: UserId,
 }
 
@@ -392,16 +396,7 @@ impl<'a> GetUserKudosu<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, Vec<KudosuHistory>> {
-        let mut query = Query::new();
-
-        if let Some(limit) = self.limit {
-            query.push("limit", limit);
-        }
-
-        if let Some(offset) = self.offset {
-            query.push("offset", offset);
-        }
-
+        let query = Query::encode(self);
         let osu = self.osu;
 
         #[cfg(not(feature = "cache"))]
@@ -431,16 +426,21 @@ poll_req!(GetUserKudosu => Vec<KudosuHistory>);
 /// Get the most played beatmaps of a user by their id in form
 /// of a vec of [`MostPlayedMap`](crate::model::beatmap::MostPlayedMap).
 #[must_use = "futures do nothing unless you `.await` or poll them"]
+#[derive(Serialize)]
 pub struct GetUserMostPlayed<'a> {
+    #[serde(skip)]
     fut: Option<Pending<'a, Vec<MostPlayedMap>>>,
+    #[serde(skip)]
     osu: &'a Osu,
     limit: Option<usize>,
     offset: Option<usize>,
 
     #[cfg(not(feature = "cache"))]
+    #[serde(skip)]
     user_id: u32,
 
     #[cfg(feature = "cache")]
+    #[serde(skip)]
     user_id: UserId,
 }
 
@@ -487,16 +487,7 @@ impl<'a> GetUserMostPlayed<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, Vec<MostPlayedMap>> {
-        let mut query = Query::new();
-
-        if let Some(limit) = self.limit {
-            query.push("limit", limit);
-        }
-
-        if let Some(offset) = self.offset {
-            query.push("offset", offset);
-        }
-
+        let query = Query::encode(self);
         let osu = self.osu;
 
         #[cfg(not(feature = "cache"))]
@@ -536,16 +527,21 @@ poll_req!(GetUserMostPlayed => Vec<MostPlayedMap>);
 
 /// Get a vec of [`RecentEvent`](crate::model::recent_event::RecentEvent) of a user by their id.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
+#[derive(Serialize)]
 pub struct GetRecentEvents<'a> {
+    #[serde(skip)]
     fut: Option<Pending<'a, Vec<RecentEvent>>>,
+    #[serde(skip)]
     osu: &'a Osu,
     limit: Option<usize>,
     offset: Option<usize>,
 
     #[cfg(not(feature = "cache"))]
+    #[serde(skip)]
     user_id: u32,
 
     #[cfg(feature = "cache")]
+    #[serde(skip)]
     user_id: UserId,
 }
 
@@ -592,16 +588,7 @@ impl<'a> GetRecentEvents<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, Vec<RecentEvent>> {
-        let mut query = Query::new();
-
-        if let Some(limit) = self.limit {
-            query.push("limit", limit);
-        }
-
-        if let Some(offset) = self.offset {
-            query.push("offset", offset);
-        }
-
+        let query = Query::encode(self);
         let osu = self.osu;
 
         #[cfg(not(feature = "cache"))]
@@ -638,16 +625,14 @@ pub(crate) enum ScoreType {
     Recent,
 }
 
-impl fmt::Display for ScoreType {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let kind = match self {
+impl ScoreType {
+    pub(crate) fn as_str(self) -> &'static str {
+        match self {
             Self::Best => "best",
             Self::First => "firsts",
             Self::Pinned => "pinned",
             Self::Recent => "recent",
-        };
-
-        f.write_str(kind)
+        }
     }
 }
 
@@ -658,19 +643,27 @@ impl fmt::Display for ScoreType {
 /// [`firsts`](crate::request::GetUserScores::firsts),
 /// or [`recent`](crate::request::GetUserScores::recent), it defaults to `best`.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
+#[derive(Serialize)]
 pub struct GetUserScores<'a> {
+    #[serde(skip)]
     fut: Option<Pending<'a, Vec<Score>>>,
+    #[serde(skip)]
     osu: &'a Osu,
+    #[serde(skip)]
     score_type: ScoreType,
     limit: Option<usize>,
     offset: Option<usize>,
+    #[serde(serialize_with = "maybe_bool_as_u8")]
     include_fails: Option<bool>,
+    #[serde(serialize_with = "maybe_mode_as_str")]
     mode: Option<GameMode>,
 
     #[cfg(not(feature = "cache"))]
+    #[serde(skip)]
     user_id: u32,
 
     #[cfg(feature = "cache")]
+    #[serde(skip)]
     user_id: UserId,
 }
 
@@ -773,24 +766,7 @@ impl<'a> GetUserScores<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, Vec<Score>> {
-        let mut query = Query::new();
-
-        if let Some(limit) = self.limit {
-            query.push("limit", limit);
-        }
-
-        if let Some(offset) = self.offset {
-            query.push("offset", offset);
-        }
-
-        if let Some(mode) = self.mode {
-            query.push("mode", mode.to_string());
-        }
-
-        if let Some(include_fails) = self.include_fails {
-            query.push("include_fails", include_fails as u8);
-        }
-
+        let query = Query::encode(self);
         let osu = self.osu;
 
         #[cfg(not(feature = "cache"))]
@@ -835,16 +811,25 @@ poll_req!(GetUserScores => Vec<Score>);
 pub struct GetUsers<'a> {
     fut: Option<Pending<'a, Vec<User>>>,
     osu: &'a Osu,
-    form: Option<Query>,
+    form: Option<String>,
 }
 
 impl<'a> GetUsers<'a> {
     #[inline]
     pub(crate) fn new(osu: &'a Osu, user_ids: &[u32]) -> Self {
-        let mut query = Query::new();
+        let mut query = String::new();
+        let mut buf = Buffer::new();
 
-        for user_id in user_ids.iter().take(50) {
-            query.push("id[]", user_id);
+        let mut iter = user_ids.iter().take(50).copied();
+
+        if let Some(user_id) = iter.next() {
+            query.push_str("id[]=");
+            query.push_str(buf.format(user_id));
+
+            for user_id in iter {
+                query.push_str("&id[]=");
+                query.push_str(buf.format(user_id));
+            }
         }
 
         Self {

@@ -26,6 +26,17 @@ pub enum GameMode {
     Mania = 3,
 }
 
+impl GameMode {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Osu => "osu",
+            Self::Taiko => "taiko",
+            Self::Catch => "fruits",
+            Self::Mania => "mania",
+        }
+    }
+}
+
 impl From<u8> for GameMode {
     #[inline]
     fn from(mode: u8) -> Self {
@@ -49,12 +60,7 @@ impl Default for GameMode {
 impl fmt::Display for GameMode {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Osu => f.write_str("osu"),
-            Self::Taiko => f.write_str("taiko"),
-            Self::Catch => f.write_str("fruits"),
-            Self::Mania => f.write_str("mania"),
-        }
+        f.write_str(self.as_str())
     }
 }
 

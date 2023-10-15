@@ -118,8 +118,9 @@
 //! | `rkyv` | Implement rkyv's `Archive`, `Deserialize`, and `Serialize` for most types, allowing for insanely fast (de)serializing. | [rkyv](https://github.com/rkyv/rkyv)
 //!
 
-// #![deny(missing_docs)] // TODO
+#![deny(rustdoc::broken_intra_doc_links, rustdoc::missing_crate_level_docs)]
 #![deny(clippy::all, nonstandard_style, rust_2018_idioms, unused, warnings)]
+// #![deny(missing_docs)] // TODO
 
 mod client;
 mod routing;

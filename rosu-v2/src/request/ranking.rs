@@ -10,7 +10,7 @@ use crate::{
 };
 
 use futures::future::TryFutureExt;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 /// Get a [`ChartRankings`](crate::model::ranking::ChartRankings) struct
 /// containing a [`Spotlight`](crate::model::ranking::Spotlight), its
@@ -24,9 +24,13 @@ use serde::Deserialize;
 /// The statistics vector is ordered by `ranked_score`.
 /// The `user` option is filled.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
+#[derive(Serialize)]
 pub struct GetChartRankings<'a> {
+    #[serde(skip)]
     fut: Option<Pending<'a, ChartRankings>>,
+    #[serde(skip)]
     osu: &'a Osu,
+    #[serde(skip)]
     mode: GameMode,
     spotlight: Option<u32>,
 }
@@ -52,11 +56,7 @@ impl<'a> GetChartRankings<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, ChartRankings> {
-        let mut query = Query::new();
-
-        if let Some(spotlight) = self.spotlight {
-            query.push("spotlight", spotlight);
-        }
+        let query = Query::encode(self);
 
         let route = Route::GetRankings {
             mode: self.mode,
@@ -84,10 +84,15 @@ poll_req!(GetChartRankings => ChartRankings);
 /// containing a vec of [`CountryRanking`](crate::model::ranking::CountryRanking)s
 /// which will be sorted by the country's total pp.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
+#[derive(Serialize)]
 pub struct GetCountryRankings<'a> {
+    #[serde(skip)]
     fut: Option<Pending<'a, CountryRankings>>,
+    #[serde(skip)]
     osu: &'a Osu,
+    #[serde(skip)]
     mode: GameMode,
+    #[serde(rename(serialize = "cursor[page]"))]
     page: Option<u32>,
 }
 
@@ -111,11 +116,7 @@ impl<'a> GetCountryRankings<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, CountryRankings> {
-        let mut query = Query::new();
-
-        if let Some(page) = self.page {
-            query.push("cursor[page]", page);
-        }
+        let query = Query::encode(self);
 
         let route = Route::GetRankings {
             mode: self.mode,
@@ -134,12 +135,17 @@ poll_req!(GetCountryRankings => CountryRankings);
 /// [`User`](crate::model::user::User)s are sorted
 /// by their pp, i.e. the current pp leaderboard.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
+#[derive(Serialize)]
 pub struct GetPerformanceRankings<'a> {
+    #[serde(skip)]
     fut: Option<Pending<'a, Rankings>>,
+    #[serde(skip)]
     osu: &'a Osu,
+    #[serde(skip)]
     mode: GameMode,
     country: Option<CountryCode>,
     variant: Option<&'static str>,
+    #[serde(rename(serialize = "cursor[page]"))]
     page: Option<u32>,
 }
 
@@ -190,20 +196,7 @@ impl<'a> GetPerformanceRankings<'a> {
 
     fn start(&mut self) -> Pending<'a, Rankings> {
         let mode = self.mode;
-        let mut query = Query::new();
-
-        if let Some(ref country) = self.country {
-            query.push("country", country);
-        }
-
-        // ! Adjust filter once there are non-mania variants
-        if let Some(variant) = self.variant.filter(|_| mode == GameMode::Mania) {
-            query.push("variant", variant);
-        }
-
-        if let Some(page) = self.page {
-            query.push("cursor[page]", page);
-        }
+        let query = Query::encode(self);
 
         let route = Route::GetRankings {
             mode,
@@ -239,10 +232,15 @@ poll_req!(GetPerformanceRankings => Rankings);
 /// [`User`](crate::model::user::User)s are sorted
 /// by their ranked score, i.e. the current ranked score leaderboard.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
+#[derive(Serialize)]
 pub struct GetScoreRankings<'a> {
+    #[serde(skip)]
     fut: Option<Pending<'a, Rankings>>,
+    #[serde(skip)]
     osu: &'a Osu,
+    #[serde(skip)]
     mode: GameMode,
+    #[serde(rename(serialize = "cursor[page]"))]
     page: Option<u32>,
 }
 
@@ -267,11 +265,7 @@ impl<'a> GetScoreRankings<'a> {
 
     fn start(&mut self) -> Pending<'a, Rankings> {
         let mode = self.mode;
-        let mut query = Query::new();
-
-        if let Some(page) = self.page {
-            query.push("cursor[page]", page);
-        }
+        let query = Query::encode(self);
 
         let route = Route::GetRankings {
             mode,

@@ -1,20 +1,27 @@
 use crate::{
     model::{forum_::ForumPosts, Cursor},
-    request::{Pending, Query, Request},
+    request::{serialize::maybe_cursor, Pending, Query, Request},
     routing::Route,
     Osu,
 };
 
+use serde::Serialize;
+
 /// Get a [`ForumPosts`](crate::model::forum::ForumPosts) struct for a forum topic
 #[must_use = "futures do nothing unless you `.await` or poll them"]
+#[derive(Serialize)]
 pub struct GetForumPosts<'a> {
+    #[serde(skip)]
     fut: Option<Pending<'a, ForumPosts>>,
+    #[serde(skip)]
     osu: &'a Osu,
+    #[serde(skip)]
     topic_id: u64,
     sort: Option<&'static str>,
     limit: Option<usize>,
     start: Option<u64>,
     end: Option<u64>,
+    #[serde(flatten, serialize_with = "maybe_cursor")]
     cursor: Option<Cursor>,
 }
 
@@ -84,27 +91,7 @@ impl<'a> GetForumPosts<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, ForumPosts> {
-        let mut query = Query::new();
-
-        if let Some(sort) = self.sort {
-            query.push("sort", sort);
-        }
-
-        if let Some(limit) = self.limit {
-            query.push("limit", limit);
-        }
-
-        if let Some(id) = self.start {
-            query.push("start", id);
-        }
-
-        if let Some(id) = self.end {
-            query.push("end", id);
-        }
-
-        if let Some(cursor) = self.cursor.take() {
-            cursor.push_to_query(&mut query);
-        }
+        let query = Query::encode(self);
 
         let route = Route::GetForumPosts {
             topic_id: self.topic_id,

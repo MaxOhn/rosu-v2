@@ -28,6 +28,7 @@ mod news;
 mod ranking;
 mod replay;
 mod seasonal_backgrounds;
+mod serialize;
 mod user;
 mod wiki;
 
@@ -44,8 +45,9 @@ pub use wiki::*;
 
 use crate::{routing::Route, OsuResult};
 
+use serde::Serialize;
 use std::{
-    fmt::{Display, Formatter, Result, Write},
+    fmt::{Display, Write},
     future::Future,
     pin::Pin,
 };
@@ -53,35 +55,48 @@ use std::{
 type Pending<'a, T> = Pin<Box<dyn Future<Output = OsuResult<T>> + Send + Sync + 'a>>;
 
 pub(crate) struct Request {
-    pub query: Query,
+    pub query: Option<String>,
     pub route: Route,
     pub body: Body,
 }
 
 impl Request {
     fn new(route: Route) -> Self {
-        Self::with_query_and_body(route, Query::default(), Body::default())
-    }
-
-    fn with_query(route: Route, query: Query) -> Self {
-        Self::with_query_and_body(route, query, Body::default())
+        Self::with_body(route, Body::new())
     }
 
     fn with_body(route: Route, body: Body) -> Self {
-        Self::with_query_and_body(route, Query::default(), body)
+        Self {
+            query: None,
+            route,
+            body,
+        }
     }
 
-    fn with_query_and_body(route: Route, query: Query, body: Body) -> Self {
-        Self { query, route, body }
+    fn with_query(route: Route, query: String) -> Self {
+        Self::with_query_and_body(route, query, Body::new())
+    }
+
+    fn with_query_and_body(route: Route, query: String, body: Body) -> Self {
+        Self {
+            query: Some(query),
+            route,
+            body,
+        }
     }
 }
 
-#[derive(Default)]
 pub(crate) struct Body {
     inner: String,
 }
 
 impl Body {
+    pub(crate) fn new() -> Self {
+        Self {
+            inner: String::new(),
+        }
+    }
+
     fn push_prefix(&mut self) {
         if self.inner.is_empty() {
             self.inner.push('{');
@@ -116,32 +131,10 @@ impl Body {
     }
 }
 
-#[derive(Default)]
-pub(crate) struct Query {
-    query: String,
-}
+struct Query;
 
 impl Query {
-    pub(crate) fn new() -> Self {
-        Self::default()
-    }
-
-    pub(crate) fn push(&mut self, key: &str, value: impl Display) {
-        self.query.push_str(key);
-        self.query.push('=');
-        let _ = write!(self.query, "{}", value);
-        self.query.push('&');
-    }
-}
-
-impl Display for Query {
-    #[inline]
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        if self.query.is_empty() {
-            return Ok(());
-        }
-
-        f.write_char('?')?;
-        f.write_str(&self.query[..self.query.len() - 1])
+    fn encode<T: Serialize>(query: &T) -> String {
+        serde_urlencoded::to_string(query).expect("serde_urlencoded should not fail")
     }
 }

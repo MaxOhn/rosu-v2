@@ -8,6 +8,8 @@ use std::{
 use dotenv::dotenv;
 use eyre::{Result, WrapErr};
 use once_cell::sync::OnceCell;
+#[cfg(feature = "cache")]
+use rosu_v2::mods;
 use rosu_v2::{
     model::{
         beatmap::{BeatmapsetSearchSort, RankStatus},
@@ -16,9 +18,6 @@ use rosu_v2::{
     Osu,
 };
 use tokio::sync::{Mutex, MutexGuard};
-
-#[cfg(feature = "cache")]
-use rosu_v2::mods;
 
 struct OsuSingleton {
     initialized: AtomicBool,
@@ -196,9 +195,9 @@ async fn beatmapset_events() -> Result<()> {
 
 #[tokio::test]
 async fn beatmapset_search() -> Result<()> {
-    let search_result = OSU
-        .get()
-        .await?
+    let osu = OSU.get().await?;
+
+    let search_result = osu
         .beatmapset_search()
         .query("artist=camellia stars>8 ar>9 length<400")
         .status(RankStatus::Graveyard)
@@ -209,6 +208,14 @@ async fn beatmapset_search() -> Result<()> {
 
     println!(
         "Received search result containing {} out of {} mapsets",
+        search_result.mapsets.len(),
+        search_result.total,
+    );
+
+    let search_result = search_result.get_next(&*osu).await.unwrap()?;
+
+    println!(
+        "Received next search result containing {} out of {} mapsets",
         search_result.mapsets.len(),
         search_result.total,
     );

@@ -3,19 +3,25 @@ use crate::{
         matches_::{MatchList, OsuMatch},
         Cursor,
     },
-    request::{Pending, Query, Request},
+    request::{serialize::maybe_cursor, Pending, Query, Request},
     routing::Route,
     Osu,
 };
+
+use serde::Serialize;
 
 #[cfg(feature = "cache")]
 use futures::TryFutureExt;
 
 /// Get an [`OsuMatch`](crate::model::matches::OsuMatch) by its id
 #[must_use = "futures do nothing unless you `.await` or poll them"]
+#[derive(Serialize)]
 pub struct GetMatch<'a> {
+    #[serde(skip)]
     fut: Option<Pending<'a, OsuMatch>>,
+    #[serde(skip)]
     osu: &'a Osu,
+    #[serde(skip)]
     match_id: u32,
     after: Option<u64>,
     before: Option<u64>,
@@ -64,19 +70,7 @@ impl<'a> GetMatch<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, OsuMatch> {
-        let mut query = Query::new();
-
-        if let Some(after) = self.after {
-            query.push("after", after);
-        }
-
-        if let Some(before) = self.before {
-            query.push("before", before);
-        }
-
-        if let Some(limit) = self.limit {
-            query.push("limit", limit);
-        }
+        let query = Query::encode(self);
 
         let route = Route::GetMatch {
             match_id: Some(self.match_id),
@@ -102,9 +96,13 @@ poll_req!(GetMatch => OsuMatch);
 /// Get a [`MatchList`](crate::model::matches::MatchList) containing all
 /// currently open multiplayer lobbies.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
+#[derive(Serialize)]
 pub struct GetMatches<'a> {
+    #[serde(skip)]
     fut: Option<Pending<'a, MatchList>>,
+    #[serde(skip)]
     osu: &'a Osu,
+    #[serde(flatten, serialize_with = "maybe_cursor")]
     cursor: Option<Cursor>,
 }
 
@@ -126,12 +124,7 @@ impl<'a> GetMatches<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, MatchList> {
-        let mut query = Query::new();
-
-        if let Some(cursor) = self.cursor.take() {
-            cursor.push_to_query(&mut query);
-        }
-
+        let query = Query::encode(self);
         let req = Request::with_query(Route::GetMatch { match_id: None }, query);
 
         Box::pin(self.osu.request(req))

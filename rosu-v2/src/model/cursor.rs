@@ -1,15 +1,12 @@
-use crate::request::Query;
-
-use serde::Deserialize;
+use serde::{ser::SerializeMap, Deserialize, Serializer};
 use serde_json::Value;
 
 /// A structure included in some API responses containing the parameters to get the next set of results.
 ///
 /// The values of the cursor should be provided to next request of the same endpoint to get the next set of results.
-///
 /// If there are no more results available, a cursor with a value of `None` is returned.
 ///
-/// Note that sort option should also be specified for it to work.
+/// Note that a sort option should also be specified for it to work.
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 // TODO
@@ -26,22 +23,21 @@ impl Cursor {
         Self { cursor }
     }
 
-    pub(crate) fn push_to_query(&self, query: &mut Query) {
-        if let Value::Object(ref map) = self.cursor {
-            for (key, value) in map {
-                let key = format!("cursor[{}]", key);
-
-                match value {
-                    Value::Bool(v) => query.push(key.as_str(), v),
-                    Value::Number(v) => query.push(key.as_str(), v),
-                    Value::String(v) => query.push(key.as_str(), v),
-                    Value::Null | Value::Array(_) | Value::Object(_) => {
-                        unreachable!("cursor fields expected to be a string, number, or boolean")
-                    }
-                }
-            }
-        } else {
+    pub(crate) fn serialize_as_query<S: Serializer>(
+        &self,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error> {
+        let Value::Object(ref json_map) = self.cursor else {
             unreachable!("cursor is expected to be a map");
+        };
+
+        let mut map = serializer.serialize_map(Some(json_map.len()))?;
+
+        for (key, value) in json_map {
+            let key = format!("cursor[{key}]");
+            map.serialize_entry(&key, value)?;
         }
+
+        map.end()
     }
 }

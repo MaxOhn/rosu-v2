@@ -182,13 +182,13 @@ pub(crate) mod wiki_;
 /// Beatmap(set) related types
 pub mod beatmap {
     pub use super::beatmap_::{
-        BeatmapExtended, Beatmap, BeatmapDifficultyAttributes, BeatmapsetExtended, BeatmapsetAvailability,
+        Beatmap, BeatmapDifficultyAttributes, BeatmapExtended, Beatmapset, BeatmapsetAvailability,
         BeatmapsetCommentEdit, BeatmapsetCommentId, BeatmapsetCommentKudosuGain,
-        BeatmapsetCommentNominate, BeatmapsetCommentOwnerChange, Beatmapset,
-        BeatmapsetCovers, BeatmapsetDiscussion, BeatmapsetEvent, BeatmapsetEvents, BeatmapsetHype,
-        BeatmapsetNominations, BeatmapsetPost, BeatmapsetReviewsConfig, BeatmapsetSearchResult,
-        BeatmapsetSearchSort, BeatmapsetVote, FailTimes, GameModeAttributes, Genre, Language,
-        MostPlayedMap, RankStatus,
+        BeatmapsetCommentNominate, BeatmapsetCommentOwnerChange, BeatmapsetCovers,
+        BeatmapsetDiscussion, BeatmapsetEvent, BeatmapsetEvents, BeatmapsetExtended,
+        BeatmapsetHype, BeatmapsetNominations, BeatmapsetPost, BeatmapsetReviewsConfig,
+        BeatmapsetSearchResult, BeatmapsetSearchSort, BeatmapsetVote, FailTimes,
+        GameModeAttributes, Genre, Language, MostPlayedMap, RankStatus,
     };
 }
 
@@ -251,7 +251,7 @@ pub mod seasonal_backgrounds {
 pub mod user {
     pub use super::user_::{
         AccountHistory, Badge, CountryCode, GradeCounts, Group, HistoryType, Medal, MedalCompact,
-        MonthlyCount, Playstyle, ProfileBanner, ProfilePage, UserExtended, User, UserCover,
+        MonthlyCount, Playstyle, ProfileBanner, ProfilePage, User, UserCover, UserExtended,
         UserHighestRank, UserKudosu, UserLevel, UserPage, UserStatistics, Username,
     };
 }
@@ -265,14 +265,15 @@ pub mod wiki {
 #[cfg(feature = "rkyv")]
 pub mod rkyv {
     pub use super::beatmap_::{
-        ArchivedBeatmap, ArchivedBeatmapCompact, ArchivedBeatmapset,
+        ArchivedBeatmap, ArchivedBeatmapExtended, ArchivedBeatmapset,
         ArchivedBeatmapsetAvailability, ArchivedBeatmapsetCommentEdit, ArchivedBeatmapsetCommentId,
         ArchivedBeatmapsetCommentKudosuGain, ArchivedBeatmapsetCommentNominate,
-        ArchivedBeatmapsetCommentOwnerChange, ArchivedBeatmapsetCompact, ArchivedBeatmapsetCovers,
+        ArchivedBeatmapsetCommentOwnerChange, ArchivedBeatmapsetCovers,
         ArchivedBeatmapsetDiscussion, ArchivedBeatmapsetEvent, ArchivedBeatmapsetEvents,
-        ArchivedBeatmapsetPost, ArchivedFailTimes, ArchivedMostPlayedMap, ArchivedRankStatus,
-        BeatmapCompactResolver, BeatmapDifficultyAttributesResolver, BeatmapResolver,
-        BeatmapsetAvailabilityResolver, BeatmapsetCommentEditResolver, BeatmapsetCommentIdResolver,
+        ArchivedBeatmapsetExtended, ArchivedBeatmapsetPost, ArchivedFailTimes,
+        ArchivedMostPlayedMap, ArchivedRankStatus, BeatmapDifficultyAttributesResolver,
+        BeatmapExtendedResolver, BeatmapResolver, BeatmapsetAvailabilityResolver,
+        BeatmapsetCommentEditResolver, BeatmapsetCommentIdResolver,
         BeatmapsetCommentKudosuGainResolver, BeatmapsetCommentNominateResolver,
         BeatmapsetCommentOwnerChangeResolver, BeatmapsetCoversResolver,
         BeatmapsetDiscussionResolver, BeatmapsetEventResolver, BeatmapsetEventsResolver,
@@ -329,11 +330,11 @@ pub mod rkyv {
     pub use super::user_::{
         AccountHistoryResolver, ArchivedAccountHistory, ArchivedBadge, ArchivedGroup,
         ArchivedMedal, ArchivedMedalCompact, ArchivedMonthlyCount, ArchivedProfileBanner,
-        ArchivedUser, ArchivedUserCompact, ArchivedUserCover, ArchivedUserHighestRank,
+        ArchivedUser, ArchivedUserCover, ArchivedUserExtended, ArchivedUserHighestRank,
         ArchivedUserPage, ArchivedUserStatistics, BadgeResolver, GradeCountsResolver,
         GroupResolver, HistoryTypeResolver, MedalCompactResolver, MedalResolver,
         MonthlyCountResolver, PlaystyleResolver, ProfileBannerResolver, ProfilePageResolver,
-        UserCompactResolver, UserCoverResolver, UserHighestRankResolver, UserKudosuResolver,
+        UserCoverResolver, UserExtendedResolver, UserHighestRankResolver, UserKudosuResolver,
         UserLevelResolver, UserPageResolver, UserResolver, UserStatisticsResolver,
     };
 

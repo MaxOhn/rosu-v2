@@ -74,9 +74,6 @@ impl<'a> GetBeatmap<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, BeatmapExtended> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.beatmap.inc();
-
         let mut query = Query::new();
 
         if let Some(ref checksum) = self.checksum {
@@ -130,9 +127,6 @@ impl<'a> GetBeatmaps<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, Vec<Beatmap>> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.beatmaps.inc();
-
         let query = mem::take(&mut self.query);
         let req = Request::with_query(Route::GetBeatmaps, query);
         let osu = self.osu;
@@ -186,9 +180,6 @@ impl<'a> GetBeatmapDifficultyAttributes<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, BeatmapDifficultyAttributes> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.beatmap_difficulty_attributes.inc();
-
         let route = Route::GetBeatmapDifficultyAttributes {
             map_id: self.map_id,
         };
@@ -315,9 +306,6 @@ impl<'a> GetBeatmapScores<'a> {
     // }
 
     fn start(&mut self) -> Pending<'a, Vec<Score>> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.beatmap_scores.inc();
-
         let mut query = Query::new();
 
         if let Some(mode) = self.mode {
@@ -436,9 +424,6 @@ impl<'a> GetBeatmapUserScore<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, BeatmapUserScore> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.beatmap_user_score.inc();
-
         let mut query = Query::new();
 
         if let Some(mode) = self.mode {
@@ -544,9 +529,6 @@ impl<'a> GetBeatmapUserScores<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, Vec<Score>> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.beatmap_user_score.inc();
-
         let mut query = Query::new();
 
         if let Some(mode) = self.mode {
@@ -615,9 +597,6 @@ impl<'a> GetBeatmapset<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, BeatmapsetExtended> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.beatmapset.inc();
-
         let req = Request::new(Route::GetBeatmapset {
             mapset_id: self.mapset_id,
         });
@@ -650,9 +629,6 @@ impl<'a> GetBeatmapsetFromMapId<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, BeatmapsetExtended> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.beatmapset_from_map_id.inc();
-
         let mut query = Query::new();
 
         query.push("beatmap_id", self.map_id);
@@ -682,9 +658,6 @@ impl<'a> GetBeatmapsetEvents<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, BeatmapsetEvents> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.beatmapset_events.inc();
-
         let req = Request::new(Route::GetBeatmapsetEvents);
 
         Box::pin(self.osu.request(req))
@@ -858,9 +831,6 @@ impl<'a> GetBeatmapsetSearch<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, BeatmapsetSearchResult> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.beatmapset_search.inc();
-
         let q = self.query.take();
         let mode = self.mode;
         let status = self.status;
@@ -977,9 +947,6 @@ impl<'a> GetScore<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, Score> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.score.inc();
-
         let route = Route::GetScore {
             mode: self.mode,
             score_id: self.score_id,

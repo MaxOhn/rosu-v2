@@ -33,16 +33,11 @@ use url::Url;
 #[cfg(feature = "cache")]
 use {crate::prelude::Username, dashmap::DashMap};
 
-#[cfg(feature = "metrics")]
-use {crate::metrics::Metrics, prometheus::IntCounterVec};
-
 /// The main osu client.
 pub struct Osu {
     pub(crate) inner: Arc<OsuRef>,
     #[cfg(feature = "cache")]
     pub(crate) cache: Box<DashMap<Username, u32>>,
-    #[cfg(feature = "metrics")]
-    pub(crate) metrics: Box<Metrics>,
     token_loop_tx: Option<Sender<()>>,
 }
 
@@ -62,14 +57,6 @@ impl Osu {
     #[inline]
     pub fn builder() -> OsuBuilder {
         OsuBuilder::default()
-    }
-
-    /// Returns an [`IntCounterVec`](crate::prelude::IntCounterVec) from
-    /// [prometheus](https://crates.io/crates/prometheus) containing
-    /// a counter for each request type.
-    #[cfg(feature = "metrics")]
-    pub fn metrics(&self) -> IntCounterVec {
-        self.metrics.counters.clone()
     }
 
     /// Get a [`BeatmapExtended`](crate::model::beatmap::BeatmapExtended).
@@ -569,7 +556,7 @@ impl Osu {
                 // ! concurrent function calls but since `DashMap::len` is a non-trivial
                 // ! method to call and `cache_user` is called frequently, it's hopefully
                 // ! fine to just naively increment here and ignore double-countings.
-                self.metrics.cache_size.inc();
+                ::metrics::increment_counter!("osu_username_cache_size");
 
                 Ok(user.user_id)
             }
@@ -679,23 +666,25 @@ impl OsuRef {
     }
 
     async fn request_raw(&self, req: Request) -> OsuResult<Bytes> {
-        let resp = self.raw(req).await?;
+        let Request { query, route, body } = req;
+        let (method, path) = route.to_parts();
+
+        #[cfg(feature = "metrics")]
+        let start = std::time::Instant::now();
+
+        let url = format!("https://osu.ppy.sh/api/v2/{path}{query}");
+        let resp = self.raw(url, method, body).await?;
         let bytes = self.handle_status(resp).await?;
+
+        #[cfg(feature = "metrics")]
+        ::metrics::histogram!("osu_response_time",start.elapsed(),"route" => route.name());
 
         Ok(bytes)
     }
 
-    async fn raw(&self, req: Request) -> OsuResult<Response<HyperBody>> {
-        let Request {
-            query,
-            method,
-            path,
-            body,
-        } = req;
-
-        let url = format!("https://osu.ppy.sh/api/v2/{}{}", path, query);
+    async fn raw(&self, url: String, method: Method, body: Body) -> OsuResult<Response<HyperBody>> {
         let url = Url::parse(&url).map_err(|source| OsuError::Url { source, url })?;
-        debug!("URL: {}", url);
+        debug!("URL: {url}");
 
         if let Some(ref token) = self.token.read().await.access {
             let value = HeaderValue::from_str(token)

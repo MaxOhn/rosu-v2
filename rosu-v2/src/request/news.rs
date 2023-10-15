@@ -41,9 +41,6 @@ impl<'a> GetNews<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, News> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.news.inc();
-
         let mut query = Query::new();
 
         if let Some(cursor) = self.cursor.take() {

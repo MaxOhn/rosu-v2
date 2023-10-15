@@ -19,9 +19,6 @@ impl<'a> GetSeasonalBackgrounds<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, SeasonalBackgrounds> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.seasonal_backgrounds.inc();
-
         let req = Request::new(Route::GetSeasonalBackgrounds);
 
         Box::pin(self.osu.request(req))

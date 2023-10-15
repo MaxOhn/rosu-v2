@@ -8,7 +8,7 @@ use crate::{
 
 use serde::{
     de::{
-        DeserializeSeed, Deserializer, Error, IgnoredAny, MapAccess, SeqAccess, Unexpected, Visitor,
+        DeserializeSeed, Deserializer, Error, IgnoredAny, MapAccess, Unexpected, Visitor,
     },
     Deserialize,
 };
@@ -1398,60 +1398,79 @@ pub struct BeatmapsetVote {
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct FailTimes {
     /// List of length 100
-    #[serde(
-        deserialize_with = "use_vec_option_visitor",
-        skip_serializing_if = "Option::is_none"
-    )]
+    #[serde(with = "hundred_items", skip_serializing_if = "Option::is_none")]
     pub exit: Option<Box<[u32; 100]>>,
     /// List of length 100
-    #[serde(
-        deserialize_with = "use_vec_option_visitor",
-        skip_serializing_if = "Option::is_none"
-    )]
+    #[serde(with = "hundred_items", skip_serializing_if = "Option::is_none")]
     pub fail: Option<Box<[u32; 100]>>,
 }
 
-fn use_vec_option_visitor<'de, D: Deserializer<'de>>(
-    d: D,
-) -> Result<Option<Box<[u32; 100]>>, D::Error> {
-    d.deserialize_option(VecOptionVisitor)
-}
+mod hundred_items {
+    use serde::de::{Deserializer, Error as DeError, SeqAccess, Visitor};
+    use std::fmt::{Formatter, Result as FmtResult};
 
-struct VecOptionVisitor;
-
-impl<'de> Visitor<'de> for VecOptionVisitor {
-    type Value = Option<Box<[u32; 100]>>;
-
-    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str("null or a sequence of u32")
+    pub(super) fn deserialize<'de, D: Deserializer<'de>>(
+        d: D,
+    ) -> Result<Option<Box<[u32; 100]>>, D::Error> {
+        d.deserialize_option(VecOptionVisitor)
     }
 
-    #[inline]
-    fn visit_seq<A: SeqAccess<'de>>(self, mut seq: A) -> Result<Self::Value, A::Error> {
-        let mut ids = Vec::with_capacity(100);
+    #[cfg(feature = "serialize")]
+    pub(super) fn serialize<S: serde::Serializer>(
+        opt: &Option<Box<[u32; 100]>>,
+        s: S,
+    ) -> Result<S::Ok, S::Error> {
+        use serde::ser::SerializeSeq;
 
-        while let Some(n) = seq.next_element()? {
-            ids.push(n);
+        let Some(seq) = opt else {
+            return s.serialize_none();
+        };
+
+        let mut state = s.serialize_seq(Some(seq.len()))?;
+
+        for item in seq.iter() {
+            state.serialize_element(item)?;
         }
 
-        ids.try_into()
-            .map(Some)
-            .map_err(|ids: Vec<u32>| Error::invalid_length(ids.len(), &"100"))
+        state.end()
     }
 
-    #[inline]
-    fn visit_some<D: Deserializer<'de>>(self, d: D) -> Result<Self::Value, D::Error> {
-        d.deserialize_seq(self)
-    }
+    struct VecOptionVisitor;
 
-    #[inline]
-    fn visit_none<E: Error>(self) -> Result<Self::Value, E> {
-        self.visit_unit()
-    }
+    impl<'de> Visitor<'de> for VecOptionVisitor {
+        type Value = Option<Box<[u32; 100]>>;
 
-    #[inline]
-    fn visit_unit<E: Error>(self) -> Result<Self::Value, E> {
-        Ok(None)
+        fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+            f.write_str("null or a sequence of u32")
+        }
+
+        #[inline]
+        fn visit_seq<A: SeqAccess<'de>>(self, mut seq: A) -> Result<Self::Value, A::Error> {
+            let mut ids = Vec::with_capacity(100);
+
+            while let Some(n) = seq.next_element()? {
+                ids.push(n);
+            }
+
+            ids.try_into()
+                .map(Some)
+                .map_err(|ids: Vec<u32>| DeError::invalid_length(ids.len(), &"100"))
+        }
+
+        #[inline]
+        fn visit_some<D: Deserializer<'de>>(self, d: D) -> Result<Self::Value, D::Error> {
+            d.deserialize_seq(self)
+        }
+
+        #[inline]
+        fn visit_none<E: DeError>(self) -> Result<Self::Value, E> {
+            self.visit_unit()
+        }
+
+        #[inline]
+        fn visit_unit<E: DeError>(self) -> Result<Self::Value, E> {
+            Ok(None)
+        }
     }
 }
 

@@ -7,15 +7,7 @@ const URL: &str = "https://raw.githubusercontent.com/ppy/osu-web/master/database
 const OUT_FILE: &str = "./generated_mods.rs";
 
 fn main() -> GenResult {
-    tokio::runtime::Builder::new_current_thread()
-        .enable_all()
-        .build()
-        .expect("Failed to create runtime")
-        .block_on(async_main())
-}
-
-async fn async_main() -> GenResult {
-    let bytes = reqwest::get(URL).await?.bytes().await?;
+    let bytes = minreq::get(URL).send()?.into_bytes();
     let mut rulesets: Vec<RulesetMods> = serde_json::from_slice(&bytes)?;
     RulesetMods::process(&mut rulesets);
 

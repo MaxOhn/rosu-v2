@@ -74,4 +74,8 @@ jobs:
         uses: taiki-e/install-action@cargo-hack
 
       - name: Check feature-combinations
-        run: cargo hack check --feature-powerset --no-dev-deps --group-features cache,macros --group-features rkyv,serialize
+        run: >
+          cargo hack check
+          --feature-powerset --no-dev-deps
+          --group-features default,cache,macros --group-features rkyv,serialize
+          --workspace --exclude generate-mods

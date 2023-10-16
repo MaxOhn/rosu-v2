@@ -60,12 +60,12 @@ pub struct Score {
         feature = "serialize",
         serde(rename = "beatmap", skip_serializing_if = "Option::is_none")
     )]
-    pub map: Option<BeatmapExtended>,
+    pub map: Option<Box<BeatmapExtended>>,
     #[cfg_attr(
         feature = "serialize",
         serde(rename = "beatmapset", skip_serializing_if = "Option::is_none")
     )]
-    pub mapset: Option<Beatmapset>,
+    pub mapset: Option<Box<Beatmapset>>,
     pub mode: GameMode,
     pub mods: GameMods,
     pub perfect: bool,
@@ -81,7 +81,7 @@ pub struct Score {
     pub score_id: Option<u64>,
     pub statistics: ScoreStatistics,
     #[cfg_attr(feature = "serialize", serde(skip_serializing_if = "Option::is_none"))]
-    pub user: Option<User>,
+    pub user: Option<Box<User>>,
     pub user_id: u32,
     #[cfg_attr(feature = "serialize", serde(skip_serializing_if = "Option::is_none"))]
     pub weight: Option<ScoreWeight>,
@@ -102,9 +102,9 @@ impl<'de> Deserialize<'de> for Score {
             map_id: u32,
             max_combo: u32,
             #[serde(rename = "beatmap")]
-            map: Option<BeatmapExtended>,
+            map: Option<Box<BeatmapExtended>>,
             #[serde(rename = "beatmapset")]
-            mapset: Option<Beatmapset>,
+            mapset: Option<Box<Beatmapset>>,
             #[serde(alias = "ruleset_id")]
             mode: GameMode,
             mods: Box<RawValue>,
@@ -119,7 +119,7 @@ impl<'de> Deserialize<'de> for Score {
             #[serde(rename = "best_id")]
             score_id: Option<u64>,
             statistics: ScoreStatistics,
-            user: Option<User>,
+            user: Option<Box<User>>,
             user_id: u32,
             weight: Option<ScoreWeight>,
         }

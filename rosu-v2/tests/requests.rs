@@ -212,7 +212,7 @@ async fn beatmapset_search() -> Result<()> {
         search_result.total,
     );
 
-    let search_result = search_result.get_next(&*osu).await.unwrap()?;
+    let search_result = search_result.get_next(&osu).await.unwrap()?;
 
     println!(
         "Received next search result containing {} out of {} mapsets",

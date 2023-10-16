@@ -14,6 +14,7 @@
   - Metrics are now recorded using the [`metrics`](https://github.com/metrics-rs/metrics/tree/main/metrics) crate instead of prometheus directly.
     That means they're no longer exposed through a method, but are recorded in the global metrics registry instead.
     You can install a global metrics registry e.g. through the [metrics-exporter-prometheus](https://github.com/metrics-rs/metrics/tree/main/metrics-exporter-prometheus) crate.
+  - Most fields of (optional) `User(Extended)`, `Beatmap(Extended)`, and `Beatmapset(Extended)` are now wrapped in a `Box`.
 
 - __Fixes__:
   - Fixed deserializing `FailTimes` for `Beatmap` and `BeatmapExtended`

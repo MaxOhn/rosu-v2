@@ -77,5 +77,6 @@ jobs:
         run: >
           cargo hack check
           --feature-powerset --no-dev-deps
+          --optional-deps metrics,rkyv
           --group-features default,cache,macros --group-features rkyv,serialize
           --workspace --exclude generate-mods

@@ -331,7 +331,7 @@ pub struct MatchGame {
     /// [`Beatmap`](crate::model::beatmap::Beatmap) of the game;
     /// `None` if the map was deleted
     #[cfg_attr(feature = "serialize", serde(rename = "beatmap"))]
-    pub map: Option<Beatmap>,
+    pub map: Option<Box<Beatmap>>,
     pub scores: Vec<MatchScore>,
 }
 
@@ -350,7 +350,7 @@ impl<'de> Deserialize<'de> for MatchGame {
             team_type: TeamType,
             mods: Box<RawValue>,
             #[serde(rename = "beatmap")]
-            map: Option<Beatmap>,
+            map: Option<Box<Beatmap>>,
             scores: Vec<MatchScore>,
         }
 

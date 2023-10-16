@@ -101,7 +101,7 @@ mod types {
             can_be_hyped: true,
             converts: Some(vec![]),
             covers: get_mapset_covers(),
-            creator: Some(get_user_compact()),
+            creator: Some(Box::new(get_user_compact())),
             creator_name: "god".into(),
             creator_id: 2,
             description: Some("description".to_owned()),
@@ -160,7 +160,7 @@ mod types {
             is_scoreable: true,
             last_updated: get_date(),
             map_id: 123456,
-            mapset: Some(get_mapset()),
+            mapset: Some(Box::new(get_mapset())),
             mapset_id: 12345,
             max_combo: Some(1750),
             mode: GameMode::Osu,
@@ -182,7 +182,7 @@ mod types {
             creator_id: 456,
             fail_times: None,
             map_id: 123456,
-            mapset: Some(get_mapset_compact()),
+            mapset: Some(Box::new(get_mapset_compact())),
             mapset_id: 2345,
             max_combo: Some(1000),
             mode: GameMode::Catch,
@@ -264,7 +264,7 @@ mod types {
                         mapset_discussion_post_id: None,
                     },
                     created_at: get_date(),
-                    mapset: get_mapset_compact(),
+                    mapset: Box::new(get_mapset_compact()),
                     user_id: 123456,
                     discussion: get_mapset_discussion(),
                 },
@@ -282,7 +282,7 @@ mod types {
                     },
                     created_at: get_date(),
                     user_id: 123456,
-                    mapset: get_mapset_compact(),
+                    mapset: Box::new(get_mapset_compact()),
                 },
                 BeatmapsetEvent::IssueReopen {
                     event_id: 1,
@@ -294,7 +294,7 @@ mod types {
                     },
                     created_at: get_date(),
                     user_id: 123456,
-                    mapset: get_mapset_compact(),
+                    mapset: Box::new(get_mapset_compact()),
                     discussion: get_mapset_discussion(),
                 },
                 BeatmapsetEvent::IssueResolve {
@@ -307,7 +307,7 @@ mod types {
                     },
                     created_at: get_date(),
                     user_id: 123456,
-                    mapset: get_mapset_compact(),
+                    mapset: Box::new(get_mapset_compact()),
                     discussion: get_mapset_discussion(),
                 },
                 BeatmapsetEvent::KudosuDeny {
@@ -319,7 +319,7 @@ mod types {
                         mapset_discussion_post_id: Some(3),
                     },
                     created_at: get_date(),
-                    mapset: get_mapset_compact(),
+                    mapset: Box::new(get_mapset_compact()),
                     discussion: get_mapset_discussion(),
                 },
                 BeatmapsetEvent::KudosuGain {
@@ -342,7 +342,7 @@ mod types {
                     },
                     created_at: get_date(),
                     user_id: 123456,
-                    mapset: get_mapset_compact(),
+                    mapset: Box::new(get_mapset_compact()),
                     discussion: get_mapset_discussion(),
                 },
                 BeatmapsetEvent::LanguageEdit {
@@ -359,7 +359,7 @@ mod types {
                     },
                     created_at: get_date(),
                     user_id: 123456,
-                    mapset: get_mapset_compact(),
+                    mapset: Box::new(get_mapset_compact()),
                 },
                 BeatmapsetEvent::Nominate {
                     event_id: 5,
@@ -373,7 +373,7 @@ mod types {
                     },
                     created_at: get_date(),
                     user_id: 123456,
-                    mapset: get_mapset_compact(),
+                    mapset: Box::new(get_mapset_compact()),
                 },
                 BeatmapsetEvent::NsfwToggle {
                     event_id: 6,
@@ -389,7 +389,7 @@ mod types {
                     },
                     created_at: get_date(),
                     user_id: 123456,
-                    mapset: get_mapset_compact(),
+                    mapset: Box::new(get_mapset_compact()),
                 },
                 BeatmapsetEvent::OwnerChange {
                     event_id: 9,
@@ -403,17 +403,17 @@ mod types {
                     },
                     created_at: get_date(),
                     user_id: 99,
-                    mapset: get_mapset_compact(),
+                    mapset: Box::new(get_mapset_compact()),
                 },
                 BeatmapsetEvent::Rank {
                     event_id: 7,
                     created_at: get_date(),
-                    mapset: get_mapset_compact(),
+                    mapset: Box::new(get_mapset_compact()),
                 },
                 BeatmapsetEvent::Qualify {
                     event_id: 8,
                     created_at: get_date(),
-                    mapset: get_mapset_compact(),
+                    mapset: Box::new(get_mapset_compact()),
                 },
             ],
             reviews_config: BeatmapsetReviewsConfig { max_blocks: 100 },
@@ -463,7 +463,7 @@ mod types {
                         ]
                         .into_iter()
                         .collect(),
-                        map: Some(get_map_compact()),
+                        map: Some(Box::new(get_map_compact())),
                         scores: vec![get_match_score()],
                     }),
                     match_name: "other name".to_owned(),
@@ -518,8 +518,8 @@ mod types {
             grade: Grade::A,
             map_id: 123,
             max_combo: 1234,
-            map: Some(get_map()),
-            mapset: Some(get_mapset_compact()),
+            map: Some(Box::new(get_map())),
+            mapset: Some(Box::new(get_mapset_compact())),
             mode: GameMode::Catch,
             mods: [
                 GameMod::DifficultyAdjustCatch(DifficultyAdjustCatch {
@@ -549,7 +549,7 @@ mod types {
                 count_50: 200,
                 count_miss: 1,
             },
-            user: Some(get_user_compact()),
+            user: Some(Box::new(get_user_compact())),
             user_id: 2,
             weight: Some(ScoreWeight {
                 percentage: 1.0,

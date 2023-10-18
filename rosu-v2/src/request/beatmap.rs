@@ -246,7 +246,7 @@ pub struct GetBeatmapScores<'a> {
     score_type: Option<ScoreType>,
     #[serde(serialize_with = "maybe_mode_as_str")]
     mode: Option<GameMode>,
-    #[serde(serialize_with = "maybe_mods_as_list")]
+    #[serde(flatten, serialize_with = "maybe_mods_as_list")]
     mods: Option<GameModsIntermode>,
     limit: Option<u32>,
     // ! Currently not working

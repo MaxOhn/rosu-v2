@@ -23,40 +23,18 @@ impl Token {
     pub(super) fn update_worker(osu: Arc<OsuRef>, mut expire: i64, mut dropped_rx: Receiver<()>) {
         tokio::spawn(async move {
             loop {
-                let adjusted_expire = adjust_token_expire(expire);
-                debug!("Acquire new API token in {} seconds", adjusted_expire);
-
-                tokio::select! {
-                    _ = &mut dropped_rx => return debug!("Osu dropped; exiting token update loop"),
-                    _ = sleep(Duration::from_secs(adjusted_expire.max(0) as u64)) => {}
-                }
-
-                debug!("API token expired, acquiring new one...");
-
                 // In case acquiring a new token takes too long,
                 // remove the previous token as soon as it expires
                 // so that new requests will not be sent until
                 // a new token has been acquired
                 let (expire_tx, expire_rx) = oneshot::channel::<()>();
-                let osu_clone = Arc::clone(&osu);
-
-                tokio::spawn(async move {
-                    tokio::select! {
-                        _ = expire_rx => {}
-                        _ = sleep(Duration::from_secs(expire.max(0) as u64)) => {
-                            warn!("Acquiring new token took too long, removed current token");
-                            osu_clone.token.write().await.access.take();
-                        }
-                    }
-                });
 
                 tokio::select! {
                     _ = &mut dropped_rx => {
                         let _ = expire_tx.send(());
-
                         return debug!("Osu dropped; exiting token update loop");
                     }
-                    token = Token::request_loop(&osu) => {
+                    token = Self::update_routine(Arc::clone(&osu), expire, expire_rx) => {
                         let _ = expire_tx.send(());
                         debug!("Successfully acquired new token");
 
@@ -66,6 +44,31 @@ impl Token {
                 }
             }
         });
+    }
+
+    async fn update_routine(
+        osu: Arc<OsuRef>,
+        expire: i64,
+        mut expire_rx: Receiver<()>,
+    ) -> TokenResponse {
+        let osu_clone = Arc::clone(&osu);
+        tokio::spawn(async move {
+            tokio::select! {
+                _ = &mut expire_rx => {}
+                _ = sleep(Duration::from_secs(expire.max(0) as u64)) => {
+                    warn!("Acquiring new token took too long, removed current token");
+                    osu_clone.token.write().await.access.take();
+                }
+            }
+        });
+
+        let adjusted_expire = adjust_token_expire(expire);
+        debug!("Acquire new API token in {} seconds", adjusted_expire);
+
+        sleep(Duration::from_secs(adjusted_expire.max(0) as u64)).await;
+        debug!("API token expired, acquiring new one...");
+
+        Token::request_loop(&osu).await
     }
 
     // Acquire a new token through exponential backoff

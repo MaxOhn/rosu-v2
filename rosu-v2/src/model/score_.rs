@@ -50,7 +50,8 @@ impl BeatmapUserScore {
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct Score {
-    pub maximum_statistics: MaximumStatistics,
+    pub ranked: Option<bool>,
+    pub maximum_statistics: ScoreStatistics,
     pub mods: GameMods,
     pub statistics: ScoreStatistics,
     #[cfg_attr(feature = "serialize", serde(rename = "beatmap_id"))]
@@ -64,13 +65,13 @@ pub struct Score {
     pub user_id: u32,
     #[cfg_attr(feature = "serialize", serde(with = "serde_::adjust_acc"))]
     pub accuracy: f32,
-    pub build_id: Option<()>,
+    pub build_id: Option<u32>,
     #[cfg_attr(feature = "serialize", serde(with = "serde_::datetime"))]
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub ended_at: OffsetDateTime,
     pub has_replay: bool,
     pub legacy_perfect: Option<bool>,
-    pub legacy_score_id: u64,
+    pub legacy_score_id: Option<u64>,
     #[cfg_attr(feature = "serialize", serde(rename = "legacy_total_score"))]
     pub legacy_score: u32,
     pub max_combo: u32,
@@ -78,7 +79,9 @@ pub struct Score {
     pub pp: Option<f32>,
     #[cfg_attr(feature = "serialize", serde(rename = "ruleset_id"))]
     pub mode: GameMode,
-    pub started_at: Option<()>,
+    #[cfg_attr(feature = "serialize", serde(with = "serde_::option_datetime"))]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
+    pub started_at: Option<OffsetDateTime>,
     #[cfg_attr(feature = "serialize", serde(rename = "total_score"))]
     pub score: u32,
     pub replay: bool,
@@ -97,9 +100,10 @@ impl<'de> Deserialize<'de> for Score {
         #[derive(Deserialize)]
         #[serde(deny_unknown_fields)]
         struct ScoreRawMods {
-            maximum_statistics: Box<RawValue>,
+            ranked: Option<bool>,
+            maximum_statistics: ScoreStatistics,
             mods: Box<RawValue>,
-            statistics: Box<RawValue>,
+            statistics: ScoreStatistics,
             #[serde(rename = "beatmap_id")]
             map_id: u32,
             best_id: Option<u64>,
@@ -111,12 +115,12 @@ impl<'de> Deserialize<'de> for Score {
             user_id: u32,
             #[serde(with = "serde_::adjust_acc")]
             accuracy: f32,
-            build_id: Option<()>,
+            build_id: Option<u32>,
             #[serde(with = "serde_::datetime")]
             ended_at: OffsetDateTime,
             has_replay: bool,
             legacy_perfect: Option<bool>,
-            legacy_score_id: u64,
+            legacy_score_id: Option<u64>,
             #[serde(rename = "legacy_total_score")]
             legacy_score: u32,
             max_combo: u32,
@@ -124,7 +128,8 @@ impl<'de> Deserialize<'de> for Score {
             pp: Option<f32>,
             #[serde(rename = "ruleset_id")]
             mode: GameMode,
-            started_at: Option<()>,
+            #[serde(with = "serde_::option_datetime")]
+            started_at: Option<OffsetDateTime>,
             #[serde(rename = "total_score")]
             score: u32,
             replay: bool,
@@ -139,23 +144,15 @@ impl<'de> Deserialize<'de> for Score {
         }
 
         let score_raw = <ScoreRawMods as serde::Deserialize>::deserialize(d)?;
+        let mut d = serde_json::Deserializer::from_str(score_raw.mods.get());
 
         Ok(Score {
-            maximum_statistics: ModeAsSeed::<MaximumStatistics>::new(score_raw.mode)
-                .deserialize(&mut serde_json::Deserializer::from_str(
-                    score_raw.maximum_statistics.get(),
-                ))
-                .map_err(DeError::custom)?,
+            ranked: score_raw.ranked,
+            maximum_statistics: score_raw.maximum_statistics,
             mods: ModeAsSeed::<GameMods>::new(score_raw.mode)
-                .deserialize(&mut serde_json::Deserializer::from_str(
-                    score_raw.mods.get(),
-                ))
+                .deserialize(&mut d)
                 .map_err(DeError::custom)?,
-            statistics: ModeAsSeed::<ScoreStatistics>::new(score_raw.mode)
-                .deserialize(&mut serde_json::Deserializer::from_str(
-                    score_raw.statistics.get(),
-                ))
-                .map_err(DeError::custom)?,
+            statistics: score_raw.statistics,
             map_id: score_raw.map_id,
             best_id: score_raw.best_id,
             id: score_raw.id,
@@ -197,13 +194,13 @@ impl Score {
     /// Note: Includes tiny droplet (misses) for `GameMode::Catch`.
     #[inline]
     pub fn total_hits(&self) -> u32 {
-        self.statistics.total_hits()
+        self.statistics.total_hits(self.mode)
     }
 
     /// Calculate the accuracy i.e. `0 <= accuracy <= 100`
     #[inline]
     pub fn accuracy(&self) -> f32 {
-        self.statistics.accuracy()
+        self.statistics.accuracy(self.mode)
     }
 
     /// Calculate the grade of the score.
@@ -243,228 +240,128 @@ pub(crate) struct Scores {
     pub(crate) scores: Vec<Score>,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serialize", derive(serde::Serialize), serde(untagged))]
+#[derive(Clone, Debug, Default, Deserialize, PartialEq, Eq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
-pub enum ScoreStatistics {
-    Osu(OsuStatistics),
-    Taiko(TaikoStatistics),
-    Catch(CatchStatistics),
-    Mania(ManiaStatistics),
+pub struct ScoreStatistics {
+    #[serde(default)]
+    pub miss: u32,
+    #[serde(default)]
+    pub meh: u32,
+    #[serde(default)]
+    pub ok: u32,
+    #[serde(default)]
+    pub good: u32,
+    #[serde(default)]
+    pub great: u32,
+    #[serde(default)]
+    pub perfect: u32,
+    #[serde(default)]
+    pub large_tick_hit: u32,
+    #[serde(default)]
+    pub large_tick_miss: u32,
+    #[serde(default)]
+    pub small_tick_hit: u32,
+    #[serde(default)]
+    pub small_tick_miss: u32,
+    #[serde(default)]
+    pub ignore_hit: u32,
+    #[serde(default)]
+    pub ignore_miss: u32,
+    #[serde(default)]
+    pub large_bonus: u32,
+    #[serde(default)]
+    pub small_bonus: u32,
+    #[serde(default)]
+    pub slider_tail_hit: u32,
+    #[serde(default)]
+    pub combo_break: u32,
+    #[serde(default)]
+    pub legacy_combo_increase: u32,
 }
 
 impl ScoreStatistics {
     /// Count all hitobjects of the score i.e. for `GameMode::Osu` the amount 300s, 100s, 50s, and misses.
     ///
     /// Note: Includes tiny droplet (misses) for `GameMode::Catch`.
-    pub fn total_hits(&self) -> u32 {
-        match self {
-            ScoreStatistics::Osu(stats) => stats.total_hits(),
-            ScoreStatistics::Taiko(stats) => stats.total_hits(),
-            ScoreStatistics::Catch(stats) => stats.total_hits(),
-            ScoreStatistics::Mania(stats) => stats.total_hits(),
+    pub fn total_hits(&self, mode: GameMode) -> u32 {
+        match mode {
+            GameMode::Osu => self.ok + self.meh + self.great + self.miss,
+            GameMode::Taiko => self.ok + self.great + self.miss,
+            GameMode::Catch => self.miss + self.great + self.large_tick_hit + self.small_tick_hit,
+            GameMode::Mania => {
+                self.ok + self.meh + self.good + self.miss + self.great + self.perfect
+            }
         }
     }
 
     /// Calculate the accuracy rounded to two decimal points i.e. `0 <= accuracy <= 100`
-    pub fn accuracy(&self) -> f32 {
-        match self {
-            ScoreStatistics::Osu(stats) => stats.accuracy(),
-            ScoreStatistics::Taiko(stats) => stats.accuracy(),
-            ScoreStatistics::Catch(stats) => stats.accuracy(),
-            ScoreStatistics::Mania(stats) => stats.accuracy(),
-        }
-    }
+    pub fn accuracy(&self, mode: GameMode) -> f32 {
+        let numerator;
+        let denominator;
 
-    /// The amount of misses.
-    pub fn miss(&self) -> u32 {
-        match self {
-            ScoreStatistics::Osu(stats) => stats.miss,
-            ScoreStatistics::Taiko(stats) => stats.miss,
-            ScoreStatistics::Catch(stats) => stats.miss,
-            ScoreStatistics::Mania(stats) => stats.miss,
-        }
-    }
-}
+        match mode {
+            GameMode::Osu => {
+                numerator = (self.meh * 50 + self.ok * 100 + self.great * 300) as f32;
+                denominator = (self.total_hits(mode) * 300) as f32;
+            }
+            GameMode::Taiko => {
+                numerator = 0.5 * self.ok as f32 + self.great as f32;
+                denominator = self.total_hits(mode) as f32;
+            }
+            GameMode::Catch => {
+                numerator = (self.large_tick_hit + self.great + self.small_tick_hit) as f32;
+                denominator = self.total_hits(mode) as f32;
+            }
+            GameMode::Mania => {
+                numerator = (self.meh * 50
+                    + self.ok * 100
+                    + self.good * 200
+                    + (self.great + self.perfect) * 300) as f32;
 
-#[derive(Clone, Debug, Default, Deserialize, PartialEq, Eq)]
-#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
-#[serde(deny_unknown_fields)]
-pub struct OsuStatistics {
-    #[serde(default)]
-    pub ok: u32,
-    #[serde(default)]
-    pub meh: u32,
-    #[serde(default)]
-    pub miss: u32,
-    #[serde(default)]
-    pub great: u32,
-    #[serde(default)]
-    pub ignore_hit: u32,
-    #[serde(default)]
-    pub ignore_miss: u32,
-    #[serde(default)]
-    pub small_bonus: u32,
-    #[serde(default)]
-    pub large_tick_hit: u32,
-    #[serde(default)]
-    pub large_tick_miss: u32,
-}
-
-impl OsuStatistics {
-    /// Count all hitobjects of the score.
-    pub fn total_hits(&self) -> u32 {
-        self.ok + self.meh + self.great + self.miss
-    }
-
-    /// Calculate the accuracy rounded to two decimal points i.e. `0 <= accuracy <= 100`
-    pub fn accuracy(&self) -> f32 {
-        let numerator = (self.meh * 50 + self.ok * 100 + self.great * 300) as f32;
-        let denominator = (self.total_hits() * 300) as f32;
-
-        (10_000.0 * numerator / denominator).round() / 100.0
-    }
-}
-
-#[derive(Clone, Debug, Default, Deserialize, PartialEq, Eq)]
-#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
-#[serde(deny_unknown_fields)]
-pub struct TaikoStatistics {
-    #[serde(default)]
-    pub ok: u32,
-    #[serde(default)]
-    pub miss: u32,
-    #[serde(default)]
-    pub great: u32,
-    #[serde(default)]
-    pub ignore_hit: u32,
-    #[serde(default)]
-    pub large_bonus: u32,
-    #[serde(default)]
-    pub small_bonus: u32,
-}
-
-impl TaikoStatistics {
-    /// Count all hitobjects of the score.
-    pub fn total_hits(&self) -> u32 {
-        self.ok + self.great + self.miss
-    }
-
-    /// Calculate the accuracy rounded to two decimal points i.e. `0 <= accuracy <= 100`
-    pub fn accuracy(&self) -> f32 {
-        let numerator = 0.5 * self.ok as f32 + self.great as f32;
-        let denominator = self.total_hits() as f32;
-
-        (10_000.0 * numerator / denominator).round() / 100.0
-    }
-}
-
-#[derive(Clone, Debug, Default, Deserialize, PartialEq, Eq)]
-#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
-#[serde(deny_unknown_fields)]
-pub struct CatchStatistics {
-    #[serde(default)]
-    pub miss: u32,
-    #[serde(default)]
-    pub great: u32,
-    #[serde(default)]
-    pub large_tick_hit: u32,
-    #[serde(default)]
-    pub small_tick_hit: u32,
-    #[serde(default)]
-    pub small_tick_miss: u32,
-}
-
-impl CatchStatistics {
-    /// Count all hitobjects of the score.
-    ///
-    /// Note: Includes tiny droplet (misses).
-    pub fn total_hits(&self) -> u32 {
-        self.miss + self.great + self.large_tick_hit + self.small_tick_hit
-    }
-
-    /// Calculate the accuracy rounded to two decimal points i.e. `0 <= accuracy <= 100`
-    pub fn accuracy(&self) -> f32 {
-        // TODO: test
-        let numerator = (self.large_tick_hit + self.great + self.small_tick_hit) as f32;
-        let denominator = self.total_hits() as f32;
-
-        (10_000.0 * numerator / denominator).round() / 100.0
-    }
-}
-
-#[derive(Clone, Debug, Default, Deserialize, PartialEq, Eq)]
-#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
-#[serde(deny_unknown_fields)]
-pub struct ManiaStatistics {
-    #[serde(default)]
-    pub ok: u32,
-    #[serde(default)]
-    pub meh: u32,
-    #[serde(default)]
-    pub good: u32,
-    #[serde(default)]
-    pub miss: u32,
-    #[serde(default)]
-    pub great: u32,
-    #[serde(default)]
-    pub perfect: u32,
-    #[serde(default)]
-    pub ignore_hit: u32,
-    #[serde(default)]
-    pub combo_break: u32,
-    #[serde(default)]
-    pub ignore_miss: u32,
-}
-
-impl ManiaStatistics {
-    /// Count all hitobjects of the score.
-    pub fn total_hits(&self) -> u32 {
-        self.ok + self.meh + self.good + self.miss + self.great + self.perfect
-    }
-
-    /// Calculate the accuracy rounded to two decimal points i.e. `0 <= accuracy <= 100`
-    pub fn accuracy(&self) -> f32 {
-        let numerator =
-            (self.meh * 50 + self.ok * 100 + self.good * 200 + (self.great + self.perfect) * 300)
-                as f32;
-
-        let denominator = (self.total_hits() * 300) as f32;
-
-        (10_000.0 * numerator / denominator).round() / 100.0
-    }
-}
-
-impl<'de> Visitor<'de> for ModeAsSeed<ScoreStatistics> {
-    type Value = ScoreStatistics;
-
-    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str("a statistics object")
-    }
-
-    fn visit_map<A: MapAccess<'de>>(self, map: A) -> Result<Self::Value, A::Error> {
-        let mut d = MapAccessDeserializer::new(map);
-
-        let stats = match self.mode {
-            GameMode::Osu => ScoreStatistics::Osu(Deserialize::deserialize(d)?),
-            GameMode::Taiko => ScoreStatistics::Taiko(Deserialize::deserialize(d)?),
-            GameMode::Catch => ScoreStatistics::Catch(Deserialize::deserialize(d)?),
-            GameMode::Mania => ScoreStatistics::Mania(Deserialize::deserialize(d)?),
+                denominator = (self.total_hits(mode) * 300) as f32;
+            }
         };
 
-        Ok(stats)
+        (10_000.0 * numerator / denominator).round() / 100.0
     }
-}
 
-impl<'de> DeserializeSeed<'de> for ModeAsSeed<ScoreStatistics> {
-    type Value = ScoreStatistics;
+    /// Turn [`ScoreStatistics`] into [`LegacyScoreStatistics`]
+    pub fn as_legacy(&self, mode: GameMode) -> LegacyScoreStatistics {
+        let mut count_geki = 0;
+        let mut count_katu = 0;
+        let mut count_300 = self.great;
+        let mut count_100 = 0;
+        let mut count_50 = 0;
+        let mut count_miss = self.miss;
 
-    fn deserialize<D: Deserializer<'de>>(self, d: D) -> Result<Self::Value, D::Error> {
-        d.deserialize_map(self)
+        match mode {
+            GameMode::Osu => {
+                count_100 = self.ok;
+                count_50 = self.meh;
+            }
+            GameMode::Taiko => count_100 = self.ok,
+            GameMode::Catch => {
+                count_100 = self.large_tick_hit;
+                count_50 = self.small_tick_hit;
+                count_katu = self.small_tick_miss;
+            }
+            GameMode::Mania => {
+                count_geki = self.perfect;
+                count_katu = self.good;
+                count_100 = self.ok;
+                count_50 = self.meh;
+            }
+        }
+
+        LegacyScoreStatistics {
+            count_geki,
+            count_katu,
+            count_300,
+            count_100,
+            count_50,
+            count_miss,
+        }
     }
 }
 
@@ -524,152 +421,6 @@ impl LegacyScoreStatistics {
         };
 
         (10_000.0 * numerator / denumerator).round() / 100.0
-    }
-}
-
-impl From<ScoreStatistics> for LegacyScoreStatistics {
-    fn from(stats: ScoreStatistics) -> Self {
-        match stats {
-            ScoreStatistics::Osu(stats) => stats.into(),
-            ScoreStatistics::Taiko(stats) => stats.into(),
-            ScoreStatistics::Catch(stats) => stats.into(),
-            ScoreStatistics::Mania(stats) => stats.into(),
-        }
-    }
-}
-
-impl From<OsuStatistics> for LegacyScoreStatistics {
-    fn from(stats: OsuStatistics) -> Self {
-        Self {
-            count_geki: 0,
-            count_katu: 0,
-            count_300: stats.great,
-            count_100: stats.ok,
-            count_50: stats.meh,
-            count_miss: stats.miss,
-        }
-    }
-}
-
-impl From<TaikoStatistics> for LegacyScoreStatistics {
-    fn from(stats: TaikoStatistics) -> Self {
-        Self {
-            count_geki: 0,
-            count_katu: 0,
-            count_300: stats.great,
-            count_100: stats.ok,
-            count_50: 0,
-            count_miss: stats.miss,
-        }
-    }
-}
-
-impl From<CatchStatistics> for LegacyScoreStatistics {
-    fn from(stats: CatchStatistics) -> Self {
-        Self {
-            count_geki: 0,
-            count_katu: stats.small_tick_miss,
-            count_300: stats.great,
-            count_100: stats.large_tick_hit,
-            count_50: stats.small_tick_hit,
-            count_miss: stats.miss,
-        }
-    }
-}
-
-impl From<ManiaStatistics> for LegacyScoreStatistics {
-    fn from(stats: ManiaStatistics) -> Self {
-        Self {
-            count_geki: stats.perfect,
-            count_katu: stats.good,
-            count_300: stats.great,
-            count_100: stats.ok,
-            count_50: stats.meh,
-            count_miss: stats.miss,
-        }
-    }
-}
-
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serialize", derive(serde::Serialize), serde(untagged))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
-pub enum MaximumStatistics {
-    Osu(OsuMaximumStatistics),
-    Taiko(TaikoMaximumStatistics),
-    Catch(CatchMaximumStatistics),
-    Mania(ManiaMaximumStatistics),
-}
-
-#[derive(Copy, Clone, Debug, Default, Deserialize, PartialEq, Eq)]
-#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
-#[serde(deny_unknown_fields)]
-pub struct OsuMaximumStatistics {
-    #[serde(default)]
-    pub great: u32,
-    #[serde(default)]
-    pub miss: u32,
-    pub legacy_combo_increase: Option<u32>,
-}
-
-#[derive(Copy, Clone, Debug, Default, Deserialize, PartialEq, Eq)]
-#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
-#[serde(deny_unknown_fields)]
-pub struct TaikoMaximumStatistics {
-    #[serde(default)]
-    pub great: u32,
-}
-
-#[derive(Copy, Clone, Debug, Default, Deserialize, PartialEq, Eq)]
-#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
-#[serde(deny_unknown_fields)]
-pub struct CatchMaximumStatistics {
-    #[serde(default)]
-    pub great: u32,
-    #[serde(default)]
-    pub large_tick_hit: u32,
-    #[serde(default)]
-    pub small_tick_hit: u32,
-}
-
-#[derive(Copy, Clone, Debug, Default, Deserialize, PartialEq, Eq)]
-#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
-#[serde(deny_unknown_fields)]
-pub struct ManiaMaximumStatistics {
-    #[serde(default)]
-    pub perfect: u32,
-    pub legacy_combo_increase: Option<u32>,
-}
-
-impl<'de> Visitor<'de> for ModeAsSeed<MaximumStatistics> {
-    type Value = MaximumStatistics;
-
-    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str("a maximum statistics object")
-    }
-
-    fn visit_map<A: MapAccess<'de>>(self, map: A) -> Result<Self::Value, A::Error> {
-        let mut d = MapAccessDeserializer::new(map);
-
-        let stats = match self.mode {
-            GameMode::Osu => MaximumStatistics::Osu(Deserialize::deserialize(d)?),
-            GameMode::Taiko => MaximumStatistics::Taiko(Deserialize::deserialize(d)?),
-            GameMode::Catch => MaximumStatistics::Catch(Deserialize::deserialize(d)?),
-            GameMode::Mania => MaximumStatistics::Mania(Deserialize::deserialize(d)?),
-        };
-
-        Ok(stats)
-    }
-}
-
-impl<'de> DeserializeSeed<'de> for ModeAsSeed<MaximumStatistics> {
-    type Value = MaximumStatistics;
-
-    fn deserialize<D: Deserializer<'de>>(self, d: D) -> Result<Self::Value, D::Error> {
-        d.deserialize_map(self)
     }
 }
 

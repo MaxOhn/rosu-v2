@@ -240,10 +240,8 @@ pub mod recent_event {
 /// Score related types
 pub mod score {
     pub use super::score_::{
-        BeatmapUserScore, CatchMaximumStatistics, CatchStatistics, LegacyScoreStatistics,
-        ManiaMaximumStatistics, ManiaStatistics, MaximumStatistics, OsuMaximumStatistics,
-        OsuStatistics, Score, ScoreStatistics, ScoreWeight, TaikoMaximumStatistics,
-        TaikoStatistics, UserAttributes,
+        BeatmapUserScore, LegacyScoreStatistics, Score, ScoreStatistics, ScoreWeight,
+        UserAttributes,
     };
 }
 
@@ -323,15 +321,9 @@ pub mod rkyv {
     };
 
     pub use super::score_::{
-        ArchivedBeatmapUserScore, ArchivedCatchMaximumStatistics, ArchivedCatchStatistics,
-        ArchivedLegacyScoreStatistics, ArchivedManiaMaximumStatistics, ArchivedManiaStatistics,
-        ArchivedMaximumStatistics, ArchivedOsuMaximumStatistics, ArchivedOsuStatistics,
-        ArchivedScore, ArchivedScoreStatistics, ArchivedTaikoMaximumStatistics,
-        ArchivedTaikoStatistics, BeatmapUserScoreResolver, CatchMaximumStatisticsResolver,
-        CatchStatisticsResolver, LegacyScoreStatisticsResolver, ManiaMaximumStatisticsResolver,
-        ManiaStatisticsResolver, MaximumStatisticsResolver, OsuMaximumStatisticsResolver,
-        OsuStatisticsResolver, ScoreResolver, ScoreStatisticsResolver, ScoreWeightResolver,
-        TaikoMaximumStatisticsResolver, TaikoStatisticsResolver,
+        ArchivedBeatmapUserScore, ArchivedLegacyScoreStatistics, ArchivedScore,
+        ArchivedScoreStatistics, BeatmapUserScoreResolver, LegacyScoreStatisticsResolver,
+        ScoreResolver, ScoreStatisticsResolver, ScoreWeightResolver,
     };
 
     pub use super::seasonal_backgrounds_::{

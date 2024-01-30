@@ -13,14 +13,10 @@
 ///
 /// ```rust
 /// # use rosu_v2::{mods, model::mods::GameModsIntermode};
-#[cfg_attr(
-    feature = "macros",
-    doc = r#"# use rosu_v2::model::mods::GameMods;
-let mods: GameMods = mods!(Taiko: NC HR);
-assert_eq!(mods.to_string(), "HRNC");
-
-"#
-)]
+#[cfg_attr(feature = "macros", doc = "# use rosu_v2::model::mods::GameMods;")]
+#[cfg_attr(feature = "macros", doc = "let mods: GameMods = mods!(Taiko: NC HR);")]
+#[cfg_attr(feature = "macros", doc = r#"assert_eq!(mods.to_string(), "HRNC");"#)] // FIXME: seems to not be rendered properly by rustdoc
+#[cfg_attr(feature = "macros", doc = "")]
 /// let mods: GameModsIntermode = mods!(DT HR TC);
 /// assert_eq!(mods.to_string(), "HRDTTC");
 /// ```

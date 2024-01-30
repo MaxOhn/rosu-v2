@@ -211,7 +211,7 @@ pub mod kudosu {
 pub mod matches {
     pub use super::matches_::{
         MatchEvent, MatchGame, MatchGameDrain, MatchGameIter, MatchInfo, MatchList,
-        MatchListParams, MatchScore, MatchScoreStatistics, OsuMatch, ScoringType, Team, TeamType,
+        MatchListParams, MatchScore, OsuMatch, ScoringType, Team, TeamType,
     };
 }
 
@@ -240,9 +240,10 @@ pub mod recent_event {
 /// Score related types
 pub mod score {
     pub use super::score_::{
-        BeatmapUserScore, CatchMaximumStatistics, CatchStatistics, ManiaMaximumStatistics,
-        ManiaStatistics, MaximumStatistics, OsuMaximumStatistics, OsuStatistics, Score,
-        ScoreStatistics, ScoreWeight, TaikoMaximumStatistics, TaikoStatistics, UserAttributes,
+        BeatmapUserScore, CatchMaximumStatistics, CatchStatistics, LegacyScoreStatistics,
+        ManiaMaximumStatistics, ManiaStatistics, MaximumStatistics, OsuMaximumStatistics,
+        OsuStatistics, Score, ScoreStatistics, ScoreWeight, TaikoMaximumStatistics,
+        TaikoStatistics, UserAttributes,
     };
 }
 
@@ -323,14 +324,13 @@ pub mod rkyv {
 
     pub use super::score_::{
         ArchivedBeatmapUserScore, ArchivedCatchMaximumStatistics, ArchivedCatchStatistics,
-        ArchivedManiaMaximumStatistics, ArchivedManiaStatistics, ArchivedMaximumStatistics,
-        ArchivedOsuMaximumStatistics, ArchivedOsuStatistics, ArchivedScore,
-        ArchivedScoreStatistics, ArchivedTaikoMaximumStatistics, ArchivedTaikoStatistics,
-        BeatmapUserScoreResolver, CatchMaximumStatisticsResolver, CatchMaximumStatisticsResolver,
-        CatchStatisticsResolver, ManiaMaximumStatisticsResolver, ManiaMaximumStatisticsResolver,
+        ArchivedLegacyScoreStatistics, ArchivedManiaMaximumStatistics, ArchivedManiaStatistics,
+        ArchivedMaximumStatistics, ArchivedOsuMaximumStatistics, ArchivedOsuStatistics,
+        ArchivedScore, ArchivedScoreStatistics, ArchivedTaikoMaximumStatistics,
+        ArchivedTaikoStatistics, BeatmapUserScoreResolver, CatchMaximumStatisticsResolver,
+        CatchStatisticsResolver, LegacyScoreStatisticsResolver, ManiaMaximumStatisticsResolver,
         ManiaStatisticsResolver, MaximumStatisticsResolver, OsuMaximumStatisticsResolver,
-        OsuMaximumStatisticsResolver, OsuStatisticsResolver, OsuStatisticsResolver, ScoreResolver,
-        ScoreStatisticsResolver, ScoreWeightResolver, TaikoMaximumStatisticsResolver,
+        OsuStatisticsResolver, ScoreResolver, ScoreStatisticsResolver, ScoreWeightResolver,
         TaikoMaximumStatisticsResolver, TaikoStatisticsResolver,
     };
 

@@ -583,6 +583,7 @@ pub struct BeatmapsetCommentNominationResetReceived {
     )]
     pub map_discussion_post_id: Option<u64>,
     pub source_user_id: u32,
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::UsernameWrapper))]
     pub source_user_username: Username,
 }
 

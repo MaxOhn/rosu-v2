@@ -496,7 +496,7 @@ mod types {
             score: 12_345_678,
             max_combo: 1000,
             perfect: false,
-            statistics: rosu_v2::model::matches::MatchScoreStatistics {
+            statistics: LegacyScoreStatistics {
                 count_geki: 0,
                 count_300: 1,
                 count_katu: 2,

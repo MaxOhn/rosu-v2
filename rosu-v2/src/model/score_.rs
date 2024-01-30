@@ -66,6 +66,7 @@ pub struct Score {
     pub accuracy: f32,
     pub build_id: Option<()>,
     #[cfg_attr(feature = "serialize", serde(with = "serde_::datetime"))]
+    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub ended_at: OffsetDateTime,
     pub has_replay: bool,
     pub legacy_perfect: Option<bool>,
@@ -252,6 +253,40 @@ pub enum ScoreStatistics {
     Mania(ManiaStatistics),
 }
 
+impl ScoreStatistics {
+    /// Count all hitobjects of the score i.e. for `GameMode::Osu` the amount 300s, 100s, 50s, and misses.
+    ///
+    /// Note: Includes tiny droplet (misses) for `GameMode::Catch`.
+    pub fn total_hits(&self) -> u32 {
+        match self {
+            ScoreStatistics::Osu(stats) => stats.total_hits(),
+            ScoreStatistics::Taiko(stats) => stats.total_hits(),
+            ScoreStatistics::Catch(stats) => stats.total_hits(),
+            ScoreStatistics::Mania(stats) => stats.total_hits(),
+        }
+    }
+
+    /// Calculate the accuracy rounded to two decimal points i.e. `0 <= accuracy <= 100`
+    pub fn accuracy(&self) -> f32 {
+        match self {
+            ScoreStatistics::Osu(stats) => stats.accuracy(),
+            ScoreStatistics::Taiko(stats) => stats.accuracy(),
+            ScoreStatistics::Catch(stats) => stats.accuracy(),
+            ScoreStatistics::Mania(stats) => stats.accuracy(),
+        }
+    }
+
+    /// The amount of misses.
+    pub fn miss(&self) -> u32 {
+        match self {
+            ScoreStatistics::Osu(stats) => stats.miss,
+            ScoreStatistics::Taiko(stats) => stats.miss,
+            ScoreStatistics::Catch(stats) => stats.miss,
+            ScoreStatistics::Mania(stats) => stats.miss,
+        }
+    }
+}
+
 #[derive(Clone, Debug, Default, Deserialize, PartialEq, Eq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
@@ -433,6 +468,128 @@ impl<'de> DeserializeSeed<'de> for ModeAsSeed<ScoreStatistics> {
     }
 }
 
+#[derive(Clone, Debug, Default, Deserialize, PartialEq, Eq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
+pub struct LegacyScoreStatistics {
+    pub count_geki: u32,
+    pub count_katu: u32,
+    pub count_300: u32,
+    pub count_100: u32,
+    pub count_50: u32,
+    pub count_miss: u32,
+}
+
+impl LegacyScoreStatistics {
+    /// Count all hitobjects of the score i.e. for `GameMode::Osu` the amount 300s, 100s, 50s, and misses.
+    ///
+    /// Note: Includes tiny droplet (misses) for `GameMode::Catch`
+    pub fn total_hits(&self, mode: GameMode) -> u32 {
+        let mut amount = self.count_300 + self.count_100 + self.count_miss;
+
+        if mode != GameMode::Taiko {
+            amount += self.count_50;
+
+            if mode != GameMode::Osu {
+                amount += self.count_katu;
+                amount += (mode != GameMode::Catch) as u32 * self.count_geki;
+            }
+        }
+
+        amount
+    }
+
+    /// Calculate the accuracy rounded to two decimal points i.e. `0 <= accuracy <= 100`
+    pub fn accuracy(&self, mode: GameMode) -> f32 {
+        let amount_objects = self.total_hits(mode) as f32;
+
+        let (numerator, denumerator) = match mode {
+            GameMode::Taiko => (
+                0.5 * self.count_100 as f32 + self.count_300 as f32,
+                amount_objects,
+            ),
+            GameMode::Catch => (
+                (self.count_300 + self.count_100 + self.count_50) as f32,
+                amount_objects,
+            ),
+            GameMode::Osu | GameMode::Mania => {
+                let mut n =
+                    (self.count_50 * 50 + self.count_100 * 100 + self.count_300 * 300) as f32;
+
+                n += ((mode == GameMode::Mania) as u32
+                    * (self.count_katu * 200 + self.count_geki * 300)) as f32;
+
+                (n, amount_objects * 300.0)
+            }
+        };
+
+        (10_000.0 * numerator / denumerator).round() / 100.0
+    }
+}
+
+impl From<ScoreStatistics> for LegacyScoreStatistics {
+    fn from(stats: ScoreStatistics) -> Self {
+        match stats {
+            ScoreStatistics::Osu(stats) => stats.into(),
+            ScoreStatistics::Taiko(stats) => stats.into(),
+            ScoreStatistics::Catch(stats) => stats.into(),
+            ScoreStatistics::Mania(stats) => stats.into(),
+        }
+    }
+}
+
+impl From<OsuStatistics> for LegacyScoreStatistics {
+    fn from(stats: OsuStatistics) -> Self {
+        Self {
+            count_geki: 0,
+            count_katu: 0,
+            count_300: stats.great,
+            count_100: stats.ok,
+            count_50: stats.meh,
+            count_miss: stats.miss,
+        }
+    }
+}
+
+impl From<TaikoStatistics> for LegacyScoreStatistics {
+    fn from(stats: TaikoStatistics) -> Self {
+        Self {
+            count_geki: 0,
+            count_katu: 0,
+            count_300: stats.great,
+            count_100: stats.ok,
+            count_50: 0,
+            count_miss: stats.miss,
+        }
+    }
+}
+
+impl From<CatchStatistics> for LegacyScoreStatistics {
+    fn from(stats: CatchStatistics) -> Self {
+        Self {
+            count_geki: 0,
+            count_katu: stats.small_tick_miss,
+            count_300: stats.great,
+            count_100: stats.large_tick_hit,
+            count_50: stats.small_tick_hit,
+            count_miss: stats.miss,
+        }
+    }
+}
+
+impl From<ManiaStatistics> for LegacyScoreStatistics {
+    fn from(stats: ManiaStatistics) -> Self {
+        Self {
+            count_geki: stats.perfect,
+            count_katu: stats.good,
+            count_300: stats.great,
+            count_100: stats.ok,
+            count_50: stats.meh,
+            count_miss: stats.miss,
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize), serde(untagged))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
@@ -513,30 +670,6 @@ impl<'de> DeserializeSeed<'de> for ModeAsSeed<MaximumStatistics> {
 
     fn deserialize<D: Deserializer<'de>>(self, d: D) -> Result<Self::Value, D::Error> {
         d.deserialize_map(self)
-    }
-}
-
-impl ScoreStatistics {
-    /// Count all hitobjects of the score i.e. for `GameMode::Osu` the amount 300s, 100s, 50s, and misses.
-    ///
-    /// Note: Includes tiny droplet (misses) for `GameMode::Catch`.
-    pub fn total_hits(&self) -> u32 {
-        match self {
-            ScoreStatistics::Osu(stats) => stats.total_hits(),
-            ScoreStatistics::Taiko(stats) => stats.total_hits(),
-            ScoreStatistics::Catch(stats) => stats.total_hits(),
-            ScoreStatistics::Mania(stats) => stats.total_hits(),
-        }
-    }
-
-    /// Calculate the accuracy rounded to two decimal points i.e. `0 <= accuracy <= 100`
-    pub fn accuracy(&self) -> f32 {
-        match self {
-            ScoreStatistics::Osu(stats) => stats.accuracy(),
-            ScoreStatistics::Taiko(stats) => stats.accuracy(),
-            ScoreStatistics::Catch(stats) => stats.accuracy(),
-            ScoreStatistics::Mania(stats) => stats.accuracy(),
-        }
     }
 }
 

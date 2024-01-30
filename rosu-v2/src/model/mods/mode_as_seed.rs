@@ -73,13 +73,17 @@ impl<'de> Visitor<'de> for ModeAsSeed<GameMods> {
     }
 }
 
-impl<'de, T> DeserializeSeed<'de> for ModeAsSeed<T>
-where
-    Self: Visitor<'de>,
-{
-    type Value = <Self as Visitor<'de>>::Value;
+impl<'de> DeserializeSeed<'de> for ModeAsSeed<GameMods> {
+    type Value = GameMods;
 
-    #[inline]
+    fn deserialize<D: Deserializer<'de>>(self, d: D) -> Result<Self::Value, D::Error> {
+        d.deserialize_any(self)
+    }
+}
+
+impl<'de> DeserializeSeed<'de> for ModeAsSeed<GameMod> {
+    type Value = GameMod;
+
     fn deserialize<D: Deserializer<'de>>(self, d: D) -> Result<Self::Value, D::Error> {
         d.deserialize_any(self)
     }

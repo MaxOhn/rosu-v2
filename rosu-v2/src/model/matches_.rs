@@ -1,7 +1,4 @@
-use super::{
-    beatmap::Beatmap, mods::GameMods, score_::ScoreStatistics, serde_, user_::User, Cursor,
-    GameMode,
-};
+use super::{beatmap::Beatmap, mods::GameMods, serde_, user_::User, Cursor, GameMode};
 use crate::{
     prelude::{GameModsIntermode, ModeAsSeed},
     Osu, OsuResult,
@@ -548,7 +545,7 @@ pub struct MatchScore {
     pub perfect: bool,
     pub score: u32,
     pub slot: u8,
-    pub statistics: ScoreStatistics,
+    pub statistics: MatchScoreStatistics,
     pub team: Team,
     pub user_id: u32,
 }
@@ -996,6 +993,17 @@ impl PartialEq for OsuMatch {
 }
 
 impl Eq for OsuMatch {}
+
+#[derive(Clone, Debug, Default, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct MatchScoreStatistics {
+    pub count_100: u32,
+    pub count_300: u32,
+    pub count_50: u32,
+    pub count_geki: u32,
+    pub count_katu: u32,
+    pub count_miss: u32,
+}
 
 def_enum!(ScoringType {
     Score = 0 ("score"),

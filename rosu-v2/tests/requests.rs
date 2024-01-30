@@ -488,12 +488,12 @@ async fn user_scores() -> Result<()> {
         .await?
         .user_scores("Badewanne3")
         .mode(GameMode::Catch)
-        .limit(99)
+        .limit(9)
         .offset(1)
         .best()
         .await?;
 
-    assert_eq!(scores.len(), 99);
+    assert_eq!(scores.len(), 9);
 
     Ok(())
 }

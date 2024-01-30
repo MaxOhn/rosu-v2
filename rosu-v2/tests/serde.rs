@@ -496,7 +496,7 @@ mod types {
             score: 12_345_678,
             max_combo: 1000,
             perfect: false,
-            statistics: ScoreStatistics {
+            statistics: rosu_v2::model::matches::MatchScoreStatistics {
                 count_geki: 0,
                 count_300: 1,
                 count_katu: 2,
@@ -511,51 +511,52 @@ mod types {
     }
 
     pub(super) fn get_score() -> Score {
-        Score {
-            accuracy: 98.76,
-            ended_at: get_date(),
-            passed: true,
-            grade: Grade::A,
-            map_id: 123,
-            max_combo: 1234,
-            map: Some(Box::new(get_map())),
-            mapset: Some(Box::new(get_mapset_compact())),
-            mode: GameMode::Catch,
-            mods: [
-                GameMod::DifficultyAdjustCatch(DifficultyAdjustCatch {
-                    circle_size: Some(1.0),
-                    approach_rate: None,
-                    hard_rock_offsets: Some(false),
-                    drain_rate: None,
-                    overall_difficulty: Some(10.0),
-                    extended_limits: None,
-                }),
-                GameMod::HardRockCatch(HardRockCatch {}),
-            ]
-            .into_iter()
-            .collect(),
-            perfect: false,
-            pp: Some(456.78),
-            rank_country: Some(1),
-            rank_global: Some(10),
-            replay: Some(true),
-            score: 12_345_678,
-            score_id: Some(123_456_789_000),
-            statistics: ScoreStatistics {
-                count_geki: 1,
-                count_300: 1000,
-                count_katu: 2,
-                count_100: 300,
-                count_50: 200,
-                count_miss: 1,
-            },
-            user: Some(Box::new(get_user_compact())),
-            user_id: 2,
-            weight: Some(ScoreWeight {
-                percentage: 1.0,
-                pp: 456.78,
-            }),
-        }
+        todo!()
+        // Score {
+        //     accuracy: 98.76,
+        //     ended_at: get_date(),
+        //     passed: true,
+        //     grade: Grade::A,
+        //     map_id: 123,
+        //     max_combo: 1234,
+        //     map: Some(Box::new(get_map())),
+        //     mapset: Some(Box::new(get_mapset_compact())),
+        //     mode: GameMode::Catch,
+        //     mods: [
+        //         GameMod::DifficultyAdjustCatch(DifficultyAdjustCatch {
+        //             circle_size: Some(1.0),
+        //             approach_rate: None,
+        //             hard_rock_offsets: Some(false),
+        //             drain_rate: None,
+        //             overall_difficulty: Some(10.0),
+        //             extended_limits: None,
+        //         }),
+        //         GameMod::HardRockCatch(HardRockCatch {}),
+        //     ]
+        //     .into_iter()
+        //     .collect(),
+        //     perfect: false,
+        //     pp: Some(456.78),
+        //     rank_country: Some(1),
+        //     rank_global: Some(10),
+        //     replay: Some(true),
+        //     score: 12_345_678,
+        //     score_id: Some(123_456_789_000),
+        //     statistics: ScoreStatistics {
+        //         count_geki: 1,
+        //         count_300: 1000,
+        //         count_katu: 2,
+        //         count_100: 300,
+        //         count_50: 200,
+        //         count_miss: 1,
+        //     },
+        //     user: Some(Box::new(get_user_compact())),
+        //     user_id: 2,
+        //     weight: Some(ScoreWeight {
+        //         percentage: 1.0,
+        //         pp: 456.78,
+        //     }),
+        // }
     }
 
     pub(super) fn get_seasonal_backgrounds() -> SeasonalBackgrounds {

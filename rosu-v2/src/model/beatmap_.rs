@@ -550,6 +550,45 @@ pub struct BeatmapsetCommentNominate {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
+pub struct BeatmapsetCommentNominationReset {
+    #[serde(
+        default,
+        rename = "beatmap_discussion_id",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub map_discussion_id: Option<u64>,
+    #[serde(
+        default,
+        rename = "beatmap_discussion_post_id",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub map_discussion_post_id: Option<u64>,
+    pub nominator_ids: Vec<u32>,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
+pub struct BeatmapsetCommentNominationResetReceived {
+    #[serde(
+        default,
+        rename = "beatmap_discussion_id",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub map_discussion_id: Option<u64>,
+    #[serde(
+        default,
+        rename = "beatmap_discussion_post_id",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub map_discussion_post_id: Option<u64>,
+    pub source_user_id: u32,
+    pub source_user_username: Username,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct BeatmapsetCommentOwnerChange {
     #[serde(
         default,
@@ -847,6 +886,30 @@ pub enum BeatmapsetEvent {
         user_id: u32,
         #[serde(rename = "beatmapset")]
         mapset: Box<Beatmapset>,
+    },
+    NominationReset {
+        #[serde(rename = "id")]
+        event_id: u64,
+        comment: BeatmapsetCommentNominationReset,
+        #[serde(with = "serde_::datetime")]
+        #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
+        created_at: OffsetDateTime,
+        user_id: u32,
+        #[serde(rename = "beatmapset")]
+        mapset: Box<Beatmapset>,
+        discussion: BeatmapsetDiscussion,
+    },
+    NominationResetReceived {
+        #[serde(rename = "id")]
+        event_id: u64,
+        comment: BeatmapsetCommentNominationResetReceived,
+        #[serde(with = "serde_::datetime")]
+        #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
+        created_at: OffsetDateTime,
+        user_id: u32,
+        #[serde(rename = "beatmapset")]
+        mapset: Box<Beatmapset>,
+        discussion: BeatmapsetDiscussion,
     },
     NsfwToggle {
         #[serde(rename = "id")]

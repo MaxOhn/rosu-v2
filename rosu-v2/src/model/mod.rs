@@ -211,7 +211,7 @@ pub mod kudosu {
 pub mod matches {
     pub use super::matches_::{
         MatchEvent, MatchGame, MatchGameDrain, MatchGameIter, MatchInfo, MatchList,
-        MatchListParams, MatchScore, OsuMatch, ScoringType, Team, TeamType,
+        MatchListParams, MatchScore, MatchScoreStatistics, OsuMatch, ScoringType, Team, TeamType,
     };
 }
 
@@ -239,7 +239,11 @@ pub mod recent_event {
 
 /// Score related types
 pub mod score {
-    pub use super::score_::{BeatmapUserScore, Score, ScoreStatistics, ScoreWeight};
+    pub use super::score_::{
+        BeatmapUserScore, CatchMaximumStatistics, CatchStatistics, ManiaMaximumStatistics,
+        ManiaStatistics, MaximumStatistics, OsuMaximumStatistics, OsuStatistics, Score,
+        ScoreStatistics, ScoreWeight, TaikoMaximumStatistics, TaikoStatistics, UserAttributes,
+    };
 }
 
 /// Seasonal background related types

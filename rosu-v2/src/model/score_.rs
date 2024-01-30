@@ -1,7 +1,7 @@
 use std::fmt::{Formatter, Result as FmtResult};
 
 use super::{
-    beatmap_::{Beatmap, Beatmapset},
+    beatmap_::{Beatmap, BeatmapExtended, Beatmapset},
     mods::GameMods,
     serde_,
     user::User,
@@ -53,28 +53,38 @@ pub struct Score {
     pub maximum_statistics: MaximumStatistics,
     pub mods: GameMods,
     pub statistics: ScoreStatistics,
+    #[cfg_attr(feature = "serialize", serde(rename = "beatmap_id"))]
     pub map_id: u32,
     pub best_id: Option<u64>,
     pub id: u64,
+    #[cfg_attr(feature = "serialize", serde(rename = "rank"))]
     pub grade: Grade,
+    #[cfg_attr(feature = "serialize", serde(rename = "type"))]
     pub kind: Box<str>,
     pub user_id: u32,
+    #[cfg_attr(feature = "serialize", serde(with = "serde_::adjust_acc"))]
     pub accuracy: f32,
     pub build_id: Option<()>,
+    #[cfg_attr(feature = "serialize", serde(with = "serde_::datetime"))]
     pub ended_at: OffsetDateTime,
     pub has_replay: bool,
     pub legacy_perfect: Option<bool>,
     pub legacy_score_id: u64,
+    #[cfg_attr(feature = "serialize", serde(rename = "legacy_total_score"))]
     pub legacy_score: u32,
     pub max_combo: u32,
     pub passed: bool,
     pub pp: Option<f32>,
+    #[cfg_attr(feature = "serialize", serde(rename = "ruleset_id"))]
     pub mode: GameMode,
     pub started_at: Option<()>,
+    #[cfg_attr(feature = "serialize", serde(rename = "total_score"))]
     pub score: u32,
     pub replay: bool,
     pub current_user_attributes: UserAttributes,
-    pub map: Option<Box<Beatmap>>,
+    #[cfg_attr(feature = "serialize", serde(rename = "beatmap"))]
+    pub map: Option<Box<BeatmapExtended>>,
+    #[cfg_attr(feature = "serialize", serde(rename = "beatmapset"))]
     pub mapset: Option<Box<Beatmapset>>,
     pub rank_global: Option<u32>,
     pub user: Option<Box<User>>,
@@ -119,7 +129,7 @@ impl<'de> Deserialize<'de> for Score {
             replay: bool,
             current_user_attributes: UserAttributes,
             #[serde(rename = "beatmap")]
-            map: Option<Box<Beatmap>>,
+            map: Option<Box<BeatmapExtended>>,
             #[serde(rename = "beatmapset")]
             mapset: Option<Box<Beatmapset>>,
             rank_global: Option<u32>,
@@ -233,6 +243,8 @@ pub(crate) struct Scores {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize), serde(untagged))]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub enum ScoreStatistics {
     Osu(OsuStatistics),
     Taiko(TaikoStatistics),
@@ -241,6 +253,8 @@ pub enum ScoreStatistics {
 }
 
 #[derive(Clone, Debug, Default, Deserialize, PartialEq, Eq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 #[serde(deny_unknown_fields)]
 pub struct OsuStatistics {
     #[serde(default)]
@@ -279,6 +293,8 @@ impl OsuStatistics {
 }
 
 #[derive(Clone, Debug, Default, Deserialize, PartialEq, Eq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 #[serde(deny_unknown_fields)]
 pub struct TaikoStatistics {
     #[serde(default)]
@@ -311,6 +327,8 @@ impl TaikoStatistics {
 }
 
 #[derive(Clone, Debug, Default, Deserialize, PartialEq, Eq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 #[serde(deny_unknown_fields)]
 pub struct CatchStatistics {
     #[serde(default)]
@@ -344,6 +362,8 @@ impl CatchStatistics {
 }
 
 #[derive(Clone, Debug, Default, Deserialize, PartialEq, Eq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 #[serde(deny_unknown_fields)]
 pub struct ManiaStatistics {
     #[serde(default)]
@@ -414,6 +434,8 @@ impl<'de> DeserializeSeed<'de> for ModeAsSeed<ScoreStatistics> {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize), serde(untagged))]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub enum MaximumStatistics {
     Osu(OsuMaximumStatistics),
     Taiko(TaikoMaximumStatistics),
@@ -422,6 +444,8 @@ pub enum MaximumStatistics {
 }
 
 #[derive(Copy, Clone, Debug, Default, Deserialize, PartialEq, Eq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 #[serde(deny_unknown_fields)]
 pub struct OsuMaximumStatistics {
     #[serde(default)]
@@ -432,6 +456,8 @@ pub struct OsuMaximumStatistics {
 }
 
 #[derive(Copy, Clone, Debug, Default, Deserialize, PartialEq, Eq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 #[serde(deny_unknown_fields)]
 pub struct TaikoMaximumStatistics {
     #[serde(default)]
@@ -439,6 +465,8 @@ pub struct TaikoMaximumStatistics {
 }
 
 #[derive(Copy, Clone, Debug, Default, Deserialize, PartialEq, Eq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 #[serde(deny_unknown_fields)]
 pub struct CatchMaximumStatistics {
     #[serde(default)]
@@ -450,6 +478,8 @@ pub struct CatchMaximumStatistics {
 }
 
 #[derive(Copy, Clone, Debug, Default, Deserialize, PartialEq, Eq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 #[serde(deny_unknown_fields)]
 pub struct ManiaMaximumStatistics {
     #[serde(default)]
@@ -525,6 +555,8 @@ pub struct ScoreWeight {
 }
 
 #[derive(Copy, Clone, Debug, Deserialize, PartialEq, Eq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct UserAttributes {
     pub pin: Option<()>,
 }

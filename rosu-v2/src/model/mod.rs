@@ -322,8 +322,16 @@ pub mod rkyv {
     };
 
     pub use super::score_::{
-        ArchivedBeatmapUserScore, ArchivedScore, BeatmapUserScoreResolver, ScoreResolver,
-        ScoreStatisticsResolver, ScoreWeightResolver,
+        ArchivedBeatmapUserScore, ArchivedCatchMaximumStatistics, ArchivedCatchStatistics,
+        ArchivedManiaMaximumStatistics, ArchivedManiaStatistics, ArchivedMaximumStatistics,
+        ArchivedOsuMaximumStatistics, ArchivedOsuStatistics, ArchivedScore,
+        ArchivedScoreStatistics, ArchivedTaikoMaximumStatistics, ArchivedTaikoStatistics,
+        BeatmapUserScoreResolver, CatchMaximumStatisticsResolver, CatchMaximumStatisticsResolver,
+        CatchStatisticsResolver, ManiaMaximumStatisticsResolver, ManiaMaximumStatisticsResolver,
+        ManiaStatisticsResolver, MaximumStatisticsResolver, OsuMaximumStatisticsResolver,
+        OsuMaximumStatisticsResolver, OsuStatisticsResolver, OsuStatisticsResolver, ScoreResolver,
+        ScoreStatisticsResolver, ScoreWeightResolver, TaikoMaximumStatisticsResolver,
+        TaikoMaximumStatisticsResolver, TaikoStatisticsResolver,
     };
 
     pub use super::seasonal_backgrounds_::{

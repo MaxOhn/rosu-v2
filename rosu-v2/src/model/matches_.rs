@@ -995,6 +995,8 @@ impl PartialEq for OsuMatch {
 impl Eq for OsuMatch {}
 
 #[derive(Clone, Debug, Default, Deserialize, PartialEq, Eq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 #[serde(deny_unknown_fields)]
 pub struct MatchScoreStatistics {
     pub count_100: u32,

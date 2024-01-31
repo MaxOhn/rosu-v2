@@ -70,6 +70,7 @@ pub struct Score {
     #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub ended_at: OffsetDateTime,
     pub has_replay: bool,
+    pub is_perfect_combo: bool,
     pub legacy_perfect: Option<bool>,
     pub legacy_score_id: Option<u64>,
     #[cfg_attr(feature = "serialize", serde(rename = "legacy_total_score"))]
@@ -119,6 +120,7 @@ impl<'de> Deserialize<'de> for Score {
             #[serde(with = "serde_::datetime")]
             ended_at: OffsetDateTime,
             has_replay: bool,
+            is_perfect_combo: bool,
             legacy_perfect: Option<bool>,
             legacy_score_id: Option<u64>,
             #[serde(rename = "legacy_total_score")]
@@ -163,6 +165,7 @@ impl<'de> Deserialize<'de> for Score {
             build_id: score_raw.build_id,
             ended_at: score_raw.ended_at,
             has_replay: score_raw.has_replay,
+            is_perfect_combo: score_raw.is_perfect_combo,
             legacy_perfect: score_raw.legacy_perfect,
             legacy_score_id: score_raw.legacy_score_id,
             legacy_score: score_raw.legacy_score,

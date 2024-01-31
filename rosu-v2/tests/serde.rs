@@ -535,6 +535,7 @@ mod types {
             ]
             .into_iter()
             .collect(),
+            is_perfect_combo: false,
             legacy_perfect: Some(false),
             pp: Some(456.78),
             rank_global: Some(10),

@@ -119,8 +119,7 @@ impl NoFailOsu {
                 Acronym::from_str_unchecked("SD"),
                 Acronym::from_str_unchecked("PF"),
                 Acronym::from_str_unchecked("AC"),
-                Acronym::from_str_unchecked("RX"),
-                Acronym::from_str_unchecked("AP"),
+                Acronym::from_str_unchecked("CN"),
             ]
         }
         .into_iter()
@@ -172,6 +171,7 @@ impl serde::Serialize for NoFailOsu {
 )]
 pub struct HalfTimeOsu {
     pub speed_change: Option<f32>,
+    pub adjust_pitch: Option<bool>,
 }
 impl HalfTimeOsu {
     /// The acronym of [`HalfTimeOsu`]
@@ -217,9 +217,11 @@ impl<'de> Deserialize<'de> for HalfTimeOsu {
             }
             fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
                 let mut speed_change = None;
+                let mut adjust_pitch = None;
                 while let Some(key) = map.next_key()? {
                     match key {
                         "speed_change" => speed_change = Some(map.next_value()?),
+                        "adjust_pitch" => adjust_pitch = Some(map.next_value()?),
                         _ => {
                             let _: IgnoredAny = map.next_value()?;
                         }
@@ -227,6 +229,7 @@ impl<'de> Deserialize<'de> for HalfTimeOsu {
                 }
                 Ok(Self::Value {
                     speed_change: speed_change.unwrap_or_default(),
+                    adjust_pitch: adjust_pitch.unwrap_or_default(),
                 })
             }
         }
@@ -237,10 +240,14 @@ impl<'de> Deserialize<'de> for HalfTimeOsu {
 impl serde::Serialize for HalfTimeOsu {
     fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
         use serde::ser::SerializeMap;
-        let field_count = self.speed_change.is_some() as usize;
+        let field_count =
+            self.speed_change.is_some() as usize + self.adjust_pitch.is_some() as usize;
         let mut map = s.serialize_map(Some(field_count))?;
         if let Some(ref x) = self.speed_change {
             map.serialize_entry("speed_change", x)?;
+        }
+        if let Some(ref x) = self.adjust_pitch {
+            map.serialize_entry("adjust_pitch", x)?;
         }
         map.end()
     }
@@ -404,8 +411,7 @@ impl SuddenDeathOsu {
                 Acronym::from_str_unchecked("NF"),
                 Acronym::from_str_unchecked("PF"),
                 Acronym::from_str_unchecked("TP"),
-                Acronym::from_str_unchecked("RX"),
-                Acronym::from_str_unchecked("AP"),
+                Acronym::from_str_unchecked("CN"),
             ]
         }
         .into_iter()
@@ -484,8 +490,7 @@ impl PerfectOsu {
                 Acronym::from_str_unchecked("NF"),
                 Acronym::from_str_unchecked("SD"),
                 Acronym::from_str_unchecked("AC"),
-                Acronym::from_str_unchecked("RX"),
-                Acronym::from_str_unchecked("AP"),
+                Acronym::from_str_unchecked("CN"),
             ]
         }
         .into_iter()
@@ -551,6 +556,7 @@ impl serde::Serialize for PerfectOsu {
 )]
 pub struct DoubleTimeOsu {
     pub speed_change: Option<f32>,
+    pub adjust_pitch: Option<bool>,
 }
 impl DoubleTimeOsu {
     /// The acronym of [`DoubleTimeOsu`]
@@ -596,9 +602,11 @@ impl<'de> Deserialize<'de> for DoubleTimeOsu {
             }
             fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
                 let mut speed_change = None;
+                let mut adjust_pitch = None;
                 while let Some(key) = map.next_key()? {
                     match key {
                         "speed_change" => speed_change = Some(map.next_value()?),
+                        "adjust_pitch" => adjust_pitch = Some(map.next_value()?),
                         _ => {
                             let _: IgnoredAny = map.next_value()?;
                         }
@@ -606,6 +614,7 @@ impl<'de> Deserialize<'de> for DoubleTimeOsu {
                 }
                 Ok(Self::Value {
                     speed_change: speed_change.unwrap_or_default(),
+                    adjust_pitch: adjust_pitch.unwrap_or_default(),
                 })
             }
         }
@@ -616,10 +625,14 @@ impl<'de> Deserialize<'de> for DoubleTimeOsu {
 impl serde::Serialize for DoubleTimeOsu {
     fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
         use serde::ser::SerializeMap;
-        let field_count = self.speed_change.is_some() as usize;
+        let field_count =
+            self.speed_change.is_some() as usize + self.adjust_pitch.is_some() as usize;
         let mut map = s.serialize_map(Some(field_count))?;
         if let Some(ref x) = self.speed_change {
             map.serialize_entry("speed_change", x)?;
+        }
+        if let Some(ref x) = self.adjust_pitch {
+            map.serialize_entry("adjust_pitch", x)?;
         }
         map.end()
     }
@@ -726,6 +739,7 @@ impl HiddenOsu {
                 Acronym::from_str_unchecked("SI"),
                 Acronym::from_str_unchecked("TC"),
                 Acronym::from_str_unchecked("AD"),
+                Acronym::from_str_unchecked("DP"),
             ]
         }
         .into_iter()
@@ -1001,8 +1015,7 @@ impl AccuracyChallengeOsu {
                 Acronym::from_str_unchecked("EZ"),
                 Acronym::from_str_unchecked("NF"),
                 Acronym::from_str_unchecked("PF"),
-                Acronym::from_str_unchecked("RX"),
-                Acronym::from_str_unchecked("AP"),
+                Acronym::from_str_unchecked("CN"),
             ]
         }
         .into_iter()
@@ -1093,6 +1106,7 @@ impl TargetPracticeOsu {
                 Acronym::from_str_unchecked("SO"),
                 Acronym::from_str_unchecked("TC"),
                 Acronym::from_str_unchecked("AD"),
+                Acronym::from_str_unchecked("DP"),
             ]
         }
         .into_iter()
@@ -1270,6 +1284,7 @@ pub struct ClassicOsu {
     pub classic_note_lock: Option<bool>,
     pub always_play_tail_sample: Option<bool>,
     pub fade_hit_circle_early: Option<bool>,
+    pub classic_health: Option<bool>,
 }
 impl ClassicOsu {
     /// The acronym of [`ClassicOsu`]
@@ -1302,6 +1317,7 @@ impl<'de> Deserialize<'de> for ClassicOsu {
                 let mut classic_note_lock = None;
                 let mut always_play_tail_sample = None;
                 let mut fade_hit_circle_early = None;
+                let mut classic_health = None;
                 while let Some(key) = map.next_key()? {
                     match key {
                         "no_slider_head_accuracy" => {
@@ -1312,6 +1328,7 @@ impl<'de> Deserialize<'de> for ClassicOsu {
                             always_play_tail_sample = Some(map.next_value()?)
                         }
                         "fade_hit_circle_early" => fade_hit_circle_early = Some(map.next_value()?),
+                        "classic_health" => classic_health = Some(map.next_value()?),
                         _ => {
                             let _: IgnoredAny = map.next_value()?;
                         }
@@ -1322,6 +1339,7 @@ impl<'de> Deserialize<'de> for ClassicOsu {
                     classic_note_lock: classic_note_lock.unwrap_or_default(),
                     always_play_tail_sample: always_play_tail_sample.unwrap_or_default(),
                     fade_hit_circle_early: fade_hit_circle_early.unwrap_or_default(),
+                    classic_health: classic_health.unwrap_or_default(),
                 })
             }
         }
@@ -1335,7 +1353,8 @@ impl serde::Serialize for ClassicOsu {
         let field_count = self.no_slider_head_accuracy.is_some() as usize
             + self.classic_note_lock.is_some() as usize
             + self.always_play_tail_sample.is_some() as usize
-            + self.fade_hit_circle_early.is_some() as usize;
+            + self.fade_hit_circle_early.is_some() as usize
+            + self.classic_health.is_some() as usize;
         let mut map = s.serialize_map(Some(field_count))?;
         if let Some(ref x) = self.no_slider_head_accuracy {
             map.serialize_entry("no_slider_head_accuracy", x)?;
@@ -1348,6 +1367,9 @@ impl serde::Serialize for ClassicOsu {
         }
         if let Some(ref x) = self.fade_hit_circle_early {
             map.serialize_entry("fade_hit_circle_early", x)?;
+        }
+        if let Some(ref x) = self.classic_health {
+            map.serialize_entry("classic_health", x)?;
         }
         map.end()
     }
@@ -1643,6 +1665,7 @@ impl AutoplayOsu {
                 Acronym::from_str_unchecked("MG"),
                 Acronym::from_str_unchecked("RP"),
                 Acronym::from_str_unchecked("AS"),
+                Acronym::from_str_unchecked("TD"),
             ]
         }
         .into_iter()
@@ -1703,6 +1726,10 @@ impl CinemaOsu {
     pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
         unsafe {
             [
+                Acronym::from_str_unchecked("NF"),
+                Acronym::from_str_unchecked("SD"),
+                Acronym::from_str_unchecked("PF"),
+                Acronym::from_str_unchecked("AC"),
                 Acronym::from_str_unchecked("AL"),
                 Acronym::from_str_unchecked("SG"),
                 Acronym::from_str_unchecked("AT"),
@@ -1712,6 +1739,7 @@ impl CinemaOsu {
                 Acronym::from_str_unchecked("MG"),
                 Acronym::from_str_unchecked("RP"),
                 Acronym::from_str_unchecked("AS"),
+                Acronym::from_str_unchecked("TD"),
             ]
         }
         .into_iter()
@@ -1772,10 +1800,6 @@ impl RelaxOsu {
     pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
         unsafe {
             [
-                Acronym::from_str_unchecked("NF"),
-                Acronym::from_str_unchecked("SD"),
-                Acronym::from_str_unchecked("PF"),
-                Acronym::from_str_unchecked("AC"),
                 Acronym::from_str_unchecked("AL"),
                 Acronym::from_str_unchecked("SG"),
                 Acronym::from_str_unchecked("AT"),
@@ -1842,16 +1866,13 @@ impl AutopilotOsu {
     pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
         unsafe {
             [
-                Acronym::from_str_unchecked("NF"),
-                Acronym::from_str_unchecked("SD"),
-                Acronym::from_str_unchecked("PF"),
-                Acronym::from_str_unchecked("AC"),
                 Acronym::from_str_unchecked("AT"),
                 Acronym::from_str_unchecked("CN"),
                 Acronym::from_str_unchecked("RX"),
                 Acronym::from_str_unchecked("SO"),
                 Acronym::from_str_unchecked("MG"),
                 Acronym::from_str_unchecked("RP"),
+                Acronym::from_str_unchecked("TD"),
             ]
         }
         .into_iter()
@@ -1979,6 +2000,8 @@ impl TransformOsu {
                 Acronym::from_str_unchecked("WG"),
                 Acronym::from_str_unchecked("MG"),
                 Acronym::from_str_unchecked("RP"),
+                Acronym::from_str_unchecked("FR"),
+                Acronym::from_str_unchecked("DP"),
             ]
         }
         .into_iter()
@@ -2037,6 +2060,7 @@ impl WiggleOsu {
                 Acronym::from_str_unchecked("TR"),
                 Acronym::from_str_unchecked("MG"),
                 Acronym::from_str_unchecked("RP"),
+                Acronym::from_str_unchecked("DP"),
             ]
         }
         .into_iter()
@@ -2110,6 +2134,7 @@ impl SpinInOsu {
                 Acronym::from_str_unchecked("DF"),
                 Acronym::from_str_unchecked("TC"),
                 Acronym::from_str_unchecked("AD"),
+                Acronym::from_str_unchecked("DP"),
             ]
         }
         .into_iter()
@@ -2169,6 +2194,7 @@ impl GrowOsu {
                 Acronym::from_str_unchecked("DF"),
                 Acronym::from_str_unchecked("TC"),
                 Acronym::from_str_unchecked("AD"),
+                Acronym::from_str_unchecked("DP"),
             ]
         }
         .into_iter()
@@ -2242,6 +2268,7 @@ impl DeflateOsu {
                 Acronym::from_str_unchecked("GR"),
                 Acronym::from_str_unchecked("TC"),
                 Acronym::from_str_unchecked("AD"),
+                Acronym::from_str_unchecked("DP"),
             ]
         }
         .into_iter()
@@ -2497,6 +2524,7 @@ impl TraceableOsu {
                 Acronym::from_str_unchecked("SI"),
                 Acronym::from_str_unchecked("GR"),
                 Acronym::from_str_unchecked("DF"),
+                Acronym::from_str_unchecked("DP"),
             ]
         }
         .into_iter()
@@ -2868,6 +2896,7 @@ impl MagnetisedOsu {
                 Acronym::from_str_unchecked("WG"),
                 Acronym::from_str_unchecked("RP"),
                 Acronym::from_str_unchecked("BU"),
+                Acronym::from_str_unchecked("DP"),
             ]
         }
         .into_iter()
@@ -2944,6 +2973,7 @@ impl RepelOsu {
                 Acronym::from_str_unchecked("WG"),
                 Acronym::from_str_unchecked("MG"),
                 Acronym::from_str_unchecked("BU"),
+                Acronym::from_str_unchecked("DP"),
             ]
         }
         .into_iter()
@@ -3095,7 +3125,14 @@ impl FreezeFrameOsu {
     }
     /// Iterator of [`Acronym`] for mods that are incompatible with [`FreezeFrameOsu`]
     pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
-        unsafe { [Acronym::from_str_unchecked("AD")] }.into_iter()
+        unsafe {
+            [
+                Acronym::from_str_unchecked("TR"),
+                Acronym::from_str_unchecked("AD"),
+                Acronym::from_str_unchecked("DP"),
+            ]
+        }
+        .into_iter()
     }
     /// The description of [`FreezeFrameOsu`]
     pub const fn description() -> &'static str {
@@ -3237,6 +3274,94 @@ impl serde::Serialize for SynesthesiaOsu {
         map.end()
     }
 }
+/// 3D. Almost.
+#[derive(Clone, Debug, Default, PartialEq)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
+pub struct DepthOsu {
+    pub max_depth: Option<f32>,
+    pub show_approach_circles: Option<bool>,
+}
+impl DepthOsu {
+    /// The acronym of [`DepthOsu`]
+    pub const fn acronym() -> Acronym {
+        unsafe { Acronym::from_str_unchecked("DP") }
+    }
+    /// Iterator of [`Acronym`] for mods that are incompatible with [`DepthOsu`]
+    pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
+        unsafe {
+            [
+                Acronym::from_str_unchecked("HD"),
+                Acronym::from_str_unchecked("TP"),
+                Acronym::from_str_unchecked("TR"),
+                Acronym::from_str_unchecked("WG"),
+                Acronym::from_str_unchecked("SI"),
+                Acronym::from_str_unchecked("GR"),
+                Acronym::from_str_unchecked("DF"),
+                Acronym::from_str_unchecked("TC"),
+                Acronym::from_str_unchecked("MG"),
+                Acronym::from_str_unchecked("RP"),
+                Acronym::from_str_unchecked("FR"),
+            ]
+        }
+        .into_iter()
+    }
+    /// The description of [`DepthOsu`]
+    pub const fn description() -> &'static str {
+        "3D. Almost."
+    }
+    /// The [`GameModKind`] of [`DepthOsu`]
+    pub const fn kind() -> GameModKind {
+        GameModKind::Fun
+    }
+}
+impl<'de> Deserialize<'de> for DepthOsu {
+    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        struct DepthOsuVisitor;
+        impl<'de> Visitor<'de> for DepthOsuVisitor {
+            type Value = DepthOsu;
+            fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+                f.write_str("DepthOsu")
+            }
+            fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
+                let mut max_depth = None;
+                let mut show_approach_circles = None;
+                while let Some(key) = map.next_key()? {
+                    match key {
+                        "max_depth" => max_depth = Some(map.next_value()?),
+                        "show_approach_circles" => show_approach_circles = Some(map.next_value()?),
+                        _ => {
+                            let _: IgnoredAny = map.next_value()?;
+                        }
+                    }
+                }
+                Ok(Self::Value {
+                    max_depth: max_depth.unwrap_or_default(),
+                    show_approach_circles: show_approach_circles.unwrap_or_default(),
+                })
+            }
+        }
+        d.deserialize_map(DepthOsuVisitor)
+    }
+}
+#[cfg(feature = "serialize")]
+impl serde::Serialize for DepthOsu {
+    fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        use serde::ser::SerializeMap;
+        let field_count =
+            self.max_depth.is_some() as usize + self.show_approach_circles.is_some() as usize;
+        let mut map = s.serialize_map(Some(field_count))?;
+        if let Some(ref x) = self.max_depth {
+            map.serialize_entry("max_depth", x)?;
+        }
+        if let Some(ref x) = self.show_approach_circles {
+            map.serialize_entry("show_approach_circles", x)?;
+        }
+        map.end()
+    }
+}
 /// Automatically applied to plays on devices with a touchscreen.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
 #[cfg_attr(
@@ -3252,7 +3377,14 @@ impl TouchDeviceOsu {
     }
     /// Iterator of [`Acronym`] for mods that are incompatible with [`TouchDeviceOsu`]
     pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
-        [].into_iter()
+        unsafe {
+            [
+                Acronym::from_str_unchecked("AT"),
+                Acronym::from_str_unchecked("CN"),
+                Acronym::from_str_unchecked("AP"),
+            ]
+        }
+        .into_iter()
     }
     /// The description of [`TouchDeviceOsu`]
     pub const fn description() -> &'static str {
@@ -3431,7 +3563,7 @@ impl NoFailTaiko {
                 Acronym::from_str_unchecked("SD"),
                 Acronym::from_str_unchecked("PF"),
                 Acronym::from_str_unchecked("AC"),
-                Acronym::from_str_unchecked("RX"),
+                Acronym::from_str_unchecked("CN"),
             ]
         }
         .into_iter()
@@ -3483,6 +3615,7 @@ impl serde::Serialize for NoFailTaiko {
 )]
 pub struct HalfTimeTaiko {
     pub speed_change: Option<f32>,
+    pub adjust_pitch: Option<bool>,
 }
 impl HalfTimeTaiko {
     /// The acronym of [`HalfTimeTaiko`]
@@ -3528,9 +3661,11 @@ impl<'de> Deserialize<'de> for HalfTimeTaiko {
             }
             fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
                 let mut speed_change = None;
+                let mut adjust_pitch = None;
                 while let Some(key) = map.next_key()? {
                     match key {
                         "speed_change" => speed_change = Some(map.next_value()?),
+                        "adjust_pitch" => adjust_pitch = Some(map.next_value()?),
                         _ => {
                             let _: IgnoredAny = map.next_value()?;
                         }
@@ -3538,6 +3673,7 @@ impl<'de> Deserialize<'de> for HalfTimeTaiko {
                 }
                 Ok(Self::Value {
                     speed_change: speed_change.unwrap_or_default(),
+                    adjust_pitch: adjust_pitch.unwrap_or_default(),
                 })
             }
         }
@@ -3548,10 +3684,14 @@ impl<'de> Deserialize<'de> for HalfTimeTaiko {
 impl serde::Serialize for HalfTimeTaiko {
     fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
         use serde::ser::SerializeMap;
-        let field_count = self.speed_change.is_some() as usize;
+        let field_count =
+            self.speed_change.is_some() as usize + self.adjust_pitch.is_some() as usize;
         let mut map = s.serialize_map(Some(field_count))?;
         if let Some(ref x) = self.speed_change {
             map.serialize_entry("speed_change", x)?;
+        }
+        if let Some(ref x) = self.adjust_pitch {
+            map.serialize_entry("adjust_pitch", x)?;
         }
         map.end()
     }
@@ -3713,7 +3853,7 @@ impl SuddenDeathTaiko {
             [
                 Acronym::from_str_unchecked("NF"),
                 Acronym::from_str_unchecked("PF"),
-                Acronym::from_str_unchecked("RX"),
+                Acronym::from_str_unchecked("CN"),
             ]
         }
         .into_iter()
@@ -3792,7 +3932,7 @@ impl PerfectTaiko {
                 Acronym::from_str_unchecked("NF"),
                 Acronym::from_str_unchecked("SD"),
                 Acronym::from_str_unchecked("AC"),
-                Acronym::from_str_unchecked("RX"),
+                Acronym::from_str_unchecked("CN"),
             ]
         }
         .into_iter()
@@ -3858,6 +3998,7 @@ impl serde::Serialize for PerfectTaiko {
 )]
 pub struct DoubleTimeTaiko {
     pub speed_change: Option<f32>,
+    pub adjust_pitch: Option<bool>,
 }
 impl DoubleTimeTaiko {
     /// The acronym of [`DoubleTimeTaiko`]
@@ -3903,9 +4044,11 @@ impl<'de> Deserialize<'de> for DoubleTimeTaiko {
             }
             fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
                 let mut speed_change = None;
+                let mut adjust_pitch = None;
                 while let Some(key) = map.next_key()? {
                     match key {
                         "speed_change" => speed_change = Some(map.next_value()?),
+                        "adjust_pitch" => adjust_pitch = Some(map.next_value()?),
                         _ => {
                             let _: IgnoredAny = map.next_value()?;
                         }
@@ -3913,6 +4056,7 @@ impl<'de> Deserialize<'de> for DoubleTimeTaiko {
                 }
                 Ok(Self::Value {
                     speed_change: speed_change.unwrap_or_default(),
+                    adjust_pitch: adjust_pitch.unwrap_or_default(),
                 })
             }
         }
@@ -3923,10 +4067,14 @@ impl<'de> Deserialize<'de> for DoubleTimeTaiko {
 impl serde::Serialize for DoubleTimeTaiko {
     fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
         use serde::ser::SerializeMap;
-        let field_count = self.speed_change.is_some() as usize;
+        let field_count =
+            self.speed_change.is_some() as usize + self.adjust_pitch.is_some() as usize;
         let mut map = s.serialize_map(Some(field_count))?;
         if let Some(ref x) = self.speed_change {
             map.serialize_entry("speed_change", x)?;
+        }
+        if let Some(ref x) = self.adjust_pitch {
+            map.serialize_entry("adjust_pitch", x)?;
         }
         map.end()
     }
@@ -4169,7 +4317,7 @@ impl AccuracyChallengeTaiko {
             [
                 Acronym::from_str_unchecked("NF"),
                 Acronym::from_str_unchecked("PF"),
-                Acronym::from_str_unchecked("RX"),
+                Acronym::from_str_unchecked("CN"),
             ]
         }
         .into_iter()
@@ -4639,6 +4787,10 @@ impl CinemaTaiko {
     pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
         unsafe {
             [
+                Acronym::from_str_unchecked("NF"),
+                Acronym::from_str_unchecked("SD"),
+                Acronym::from_str_unchecked("PF"),
+                Acronym::from_str_unchecked("AC"),
                 Acronym::from_str_unchecked("SG"),
                 Acronym::from_str_unchecked("AT"),
                 Acronym::from_str_unchecked("RX"),
@@ -4703,10 +4855,6 @@ impl RelaxTaiko {
     pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
         unsafe {
             [
-                Acronym::from_str_unchecked("NF"),
-                Acronym::from_str_unchecked("SD"),
-                Acronym::from_str_unchecked("PF"),
-                Acronym::from_str_unchecked("AC"),
                 Acronym::from_str_unchecked("SG"),
                 Acronym::from_str_unchecked("AT"),
                 Acronym::from_str_unchecked("CN"),
@@ -5263,7 +5411,7 @@ impl NoFailCatch {
                 Acronym::from_str_unchecked("SD"),
                 Acronym::from_str_unchecked("PF"),
                 Acronym::from_str_unchecked("AC"),
-                Acronym::from_str_unchecked("RX"),
+                Acronym::from_str_unchecked("CN"),
             ]
         }
         .into_iter()
@@ -5315,6 +5463,7 @@ impl serde::Serialize for NoFailCatch {
 )]
 pub struct HalfTimeCatch {
     pub speed_change: Option<f32>,
+    pub adjust_pitch: Option<bool>,
 }
 impl HalfTimeCatch {
     /// The acronym of [`HalfTimeCatch`]
@@ -5359,9 +5508,11 @@ impl<'de> Deserialize<'de> for HalfTimeCatch {
             }
             fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
                 let mut speed_change = None;
+                let mut adjust_pitch = None;
                 while let Some(key) = map.next_key()? {
                     match key {
                         "speed_change" => speed_change = Some(map.next_value()?),
+                        "adjust_pitch" => adjust_pitch = Some(map.next_value()?),
                         _ => {
                             let _: IgnoredAny = map.next_value()?;
                         }
@@ -5369,6 +5520,7 @@ impl<'de> Deserialize<'de> for HalfTimeCatch {
                 }
                 Ok(Self::Value {
                     speed_change: speed_change.unwrap_or_default(),
+                    adjust_pitch: adjust_pitch.unwrap_or_default(),
                 })
             }
         }
@@ -5379,10 +5531,14 @@ impl<'de> Deserialize<'de> for HalfTimeCatch {
 impl serde::Serialize for HalfTimeCatch {
     fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
         use serde::ser::SerializeMap;
-        let field_count = self.speed_change.is_some() as usize;
+        let field_count =
+            self.speed_change.is_some() as usize + self.adjust_pitch.is_some() as usize;
         let mut map = s.serialize_map(Some(field_count))?;
         if let Some(ref x) = self.speed_change {
             map.serialize_entry("speed_change", x)?;
+        }
+        if let Some(ref x) = self.adjust_pitch {
+            map.serialize_entry("adjust_pitch", x)?;
         }
         map.end()
     }
@@ -5543,7 +5699,7 @@ impl SuddenDeathCatch {
             [
                 Acronym::from_str_unchecked("NF"),
                 Acronym::from_str_unchecked("PF"),
-                Acronym::from_str_unchecked("RX"),
+                Acronym::from_str_unchecked("CN"),
             ]
         }
         .into_iter()
@@ -5622,7 +5778,7 @@ impl PerfectCatch {
                 Acronym::from_str_unchecked("NF"),
                 Acronym::from_str_unchecked("SD"),
                 Acronym::from_str_unchecked("AC"),
-                Acronym::from_str_unchecked("RX"),
+                Acronym::from_str_unchecked("CN"),
             ]
         }
         .into_iter()
@@ -5688,6 +5844,7 @@ impl serde::Serialize for PerfectCatch {
 )]
 pub struct DoubleTimeCatch {
     pub speed_change: Option<f32>,
+    pub adjust_pitch: Option<bool>,
 }
 impl DoubleTimeCatch {
     /// The acronym of [`DoubleTimeCatch`]
@@ -5732,9 +5889,11 @@ impl<'de> Deserialize<'de> for DoubleTimeCatch {
             }
             fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
                 let mut speed_change = None;
+                let mut adjust_pitch = None;
                 while let Some(key) = map.next_key()? {
                     match key {
                         "speed_change" => speed_change = Some(map.next_value()?),
+                        "adjust_pitch" => adjust_pitch = Some(map.next_value()?),
                         _ => {
                             let _: IgnoredAny = map.next_value()?;
                         }
@@ -5742,6 +5901,7 @@ impl<'de> Deserialize<'de> for DoubleTimeCatch {
                 }
                 Ok(Self::Value {
                     speed_change: speed_change.unwrap_or_default(),
+                    adjust_pitch: adjust_pitch.unwrap_or_default(),
                 })
             }
         }
@@ -5752,10 +5912,14 @@ impl<'de> Deserialize<'de> for DoubleTimeCatch {
 impl serde::Serialize for DoubleTimeCatch {
     fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
         use serde::ser::SerializeMap;
-        let field_count = self.speed_change.is_some() as usize;
+        let field_count =
+            self.speed_change.is_some() as usize + self.adjust_pitch.is_some() as usize;
         let mut map = s.serialize_map(Some(field_count))?;
         if let Some(ref x) = self.speed_change {
             map.serialize_entry("speed_change", x)?;
+        }
+        if let Some(ref x) = self.adjust_pitch {
+            map.serialize_entry("adjust_pitch", x)?;
         }
         map.end()
     }
@@ -5998,7 +6162,7 @@ impl AccuracyChallengeCatch {
                 Acronym::from_str_unchecked("EZ"),
                 Acronym::from_str_unchecked("NF"),
                 Acronym::from_str_unchecked("PF"),
-                Acronym::from_str_unchecked("RX"),
+                Acronym::from_str_unchecked("CN"),
             ]
         }
         .into_iter()
@@ -6360,6 +6524,10 @@ impl CinemaCatch {
     pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
         unsafe {
             [
+                Acronym::from_str_unchecked("NF"),
+                Acronym::from_str_unchecked("SD"),
+                Acronym::from_str_unchecked("PF"),
+                Acronym::from_str_unchecked("AC"),
                 Acronym::from_str_unchecked("AT"),
                 Acronym::from_str_unchecked("RX"),
             ]
@@ -6422,10 +6590,6 @@ impl RelaxCatch {
     pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
         unsafe {
             [
-                Acronym::from_str_unchecked("NF"),
-                Acronym::from_str_unchecked("SD"),
-                Acronym::from_str_unchecked("PF"),
-                Acronym::from_str_unchecked("AC"),
                 Acronym::from_str_unchecked("AT"),
                 Acronym::from_str_unchecked("CN"),
             ]
@@ -7009,6 +7173,7 @@ impl NoFailMania {
                 Acronym::from_str_unchecked("SD"),
                 Acronym::from_str_unchecked("PF"),
                 Acronym::from_str_unchecked("AC"),
+                Acronym::from_str_unchecked("CN"),
             ]
         }
         .into_iter()
@@ -7060,6 +7225,7 @@ impl serde::Serialize for NoFailMania {
 )]
 pub struct HalfTimeMania {
     pub speed_change: Option<f32>,
+    pub adjust_pitch: Option<bool>,
 }
 impl HalfTimeMania {
     /// The acronym of [`HalfTimeMania`]
@@ -7105,9 +7271,11 @@ impl<'de> Deserialize<'de> for HalfTimeMania {
             }
             fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
                 let mut speed_change = None;
+                let mut adjust_pitch = None;
                 while let Some(key) = map.next_key()? {
                     match key {
                         "speed_change" => speed_change = Some(map.next_value()?),
+                        "adjust_pitch" => adjust_pitch = Some(map.next_value()?),
                         _ => {
                             let _: IgnoredAny = map.next_value()?;
                         }
@@ -7115,6 +7283,7 @@ impl<'de> Deserialize<'de> for HalfTimeMania {
                 }
                 Ok(Self::Value {
                     speed_change: speed_change.unwrap_or_default(),
+                    adjust_pitch: adjust_pitch.unwrap_or_default(),
                 })
             }
         }
@@ -7125,10 +7294,14 @@ impl<'de> Deserialize<'de> for HalfTimeMania {
 impl serde::Serialize for HalfTimeMania {
     fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
         use serde::ser::SerializeMap;
-        let field_count = self.speed_change.is_some() as usize;
+        let field_count =
+            self.speed_change.is_some() as usize + self.adjust_pitch.is_some() as usize;
         let mut map = s.serialize_map(Some(field_count))?;
         if let Some(ref x) = self.speed_change {
             map.serialize_entry("speed_change", x)?;
+        }
+        if let Some(ref x) = self.adjust_pitch {
+            map.serialize_entry("adjust_pitch", x)?;
         }
         map.end()
     }
@@ -7290,6 +7463,7 @@ impl SuddenDeathMania {
             [
                 Acronym::from_str_unchecked("NF"),
                 Acronym::from_str_unchecked("PF"),
+                Acronym::from_str_unchecked("CN"),
             ]
         }
         .into_iter()
@@ -7368,6 +7542,7 @@ impl PerfectMania {
                 Acronym::from_str_unchecked("NF"),
                 Acronym::from_str_unchecked("SD"),
                 Acronym::from_str_unchecked("AC"),
+                Acronym::from_str_unchecked("CN"),
             ]
         }
         .into_iter()
@@ -7433,6 +7608,7 @@ impl serde::Serialize for PerfectMania {
 )]
 pub struct DoubleTimeMania {
     pub speed_change: Option<f32>,
+    pub adjust_pitch: Option<bool>,
 }
 impl DoubleTimeMania {
     /// The acronym of [`DoubleTimeMania`]
@@ -7478,9 +7654,11 @@ impl<'de> Deserialize<'de> for DoubleTimeMania {
             }
             fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
                 let mut speed_change = None;
+                let mut adjust_pitch = None;
                 while let Some(key) = map.next_key()? {
                     match key {
                         "speed_change" => speed_change = Some(map.next_value()?),
+                        "adjust_pitch" => adjust_pitch = Some(map.next_value()?),
                         _ => {
                             let _: IgnoredAny = map.next_value()?;
                         }
@@ -7488,6 +7666,7 @@ impl<'de> Deserialize<'de> for DoubleTimeMania {
                 }
                 Ok(Self::Value {
                     speed_change: speed_change.unwrap_or_default(),
+                    adjust_pitch: adjust_pitch.unwrap_or_default(),
                 })
             }
         }
@@ -7498,10 +7677,14 @@ impl<'de> Deserialize<'de> for DoubleTimeMania {
 impl serde::Serialize for DoubleTimeMania {
     fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
         use serde::ser::SerializeMap;
-        let field_count = self.speed_change.is_some() as usize;
+        let field_count =
+            self.speed_change.is_some() as usize + self.adjust_pitch.is_some() as usize;
         let mut map = s.serialize_map(Some(field_count))?;
         if let Some(ref x) = self.speed_change {
             map.serialize_entry("speed_change", x)?;
+        }
+        if let Some(ref x) = self.adjust_pitch {
+            map.serialize_entry("adjust_pitch", x)?;
         }
         map.end()
     }
@@ -7849,6 +8032,7 @@ impl AccuracyChallengeMania {
                 Acronym::from_str_unchecked("EZ"),
                 Acronym::from_str_unchecked("NF"),
                 Acronym::from_str_unchecked("PF"),
+                Acronym::from_str_unchecked("CN"),
             ]
         }
         .into_iter()
@@ -7911,690 +8095,6 @@ impl serde::Serialize for AccuracyChallengeMania {
         if let Some(ref x) = self.restart {
             map.serialize_entry("restart", x)?;
         }
-        map.end()
-    }
-}
-/// Play with four keys.
-#[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
-pub struct FourKeysMania {}
-impl FourKeysMania {
-    /// The acronym of [`FourKeysMania`]
-    pub const fn acronym() -> Acronym {
-        unsafe { Acronym::from_str_unchecked("4K") }
-    }
-    /// Iterator of [`Acronym`] for mods that are incompatible with [`FourKeysMania`]
-    pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
-        unsafe {
-            [
-                Acronym::from_str_unchecked("5K"),
-                Acronym::from_str_unchecked("6K"),
-                Acronym::from_str_unchecked("7K"),
-                Acronym::from_str_unchecked("8K"),
-                Acronym::from_str_unchecked("9K"),
-                Acronym::from_str_unchecked("10K"),
-                Acronym::from_str_unchecked("1K"),
-                Acronym::from_str_unchecked("2K"),
-                Acronym::from_str_unchecked("3K"),
-            ]
-        }
-        .into_iter()
-    }
-    /// The description of [`FourKeysMania`]
-    pub const fn description() -> &'static str {
-        "Play with four keys."
-    }
-    /// The [`GameModKind`] of [`FourKeysMania`]
-    pub const fn kind() -> GameModKind {
-        GameModKind::Conversion
-    }
-    /// Bit value of [`FourKeysMania`]
-    ///
-    /// See <https://github.com/ppy/osu-api/wiki#mods>
-    pub const fn bits() -> u32 {
-        32768
-    }
-}
-impl<'de> Deserialize<'de> for FourKeysMania {
-    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
-        struct FourKeysManiaVisitor;
-        impl<'de> Visitor<'de> for FourKeysManiaVisitor {
-            type Value = FourKeysMania;
-            fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
-                f.write_str("FourKeysMania")
-            }
-            fn visit_map<A: MapAccess<'de>>(self, _: A) -> Result<Self::Value, A::Error> {
-                Ok(Self::Value {})
-            }
-        }
-        d.deserialize_map(FourKeysManiaVisitor)
-    }
-}
-#[cfg(feature = "serialize")]
-impl serde::Serialize for FourKeysMania {
-    fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
-        use serde::ser::SerializeMap;
-        let field_count = 0;
-        let map = s.serialize_map(Some(field_count))?;
-        map.end()
-    }
-}
-/// Play with five keys.
-#[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
-pub struct FiveKeysMania {}
-impl FiveKeysMania {
-    /// The acronym of [`FiveKeysMania`]
-    pub const fn acronym() -> Acronym {
-        unsafe { Acronym::from_str_unchecked("5K") }
-    }
-    /// Iterator of [`Acronym`] for mods that are incompatible with [`FiveKeysMania`]
-    pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
-        unsafe {
-            [
-                Acronym::from_str_unchecked("4K"),
-                Acronym::from_str_unchecked("6K"),
-                Acronym::from_str_unchecked("7K"),
-                Acronym::from_str_unchecked("8K"),
-                Acronym::from_str_unchecked("9K"),
-                Acronym::from_str_unchecked("10K"),
-                Acronym::from_str_unchecked("1K"),
-                Acronym::from_str_unchecked("2K"),
-                Acronym::from_str_unchecked("3K"),
-            ]
-        }
-        .into_iter()
-    }
-    /// The description of [`FiveKeysMania`]
-    pub const fn description() -> &'static str {
-        "Play with five keys."
-    }
-    /// The [`GameModKind`] of [`FiveKeysMania`]
-    pub const fn kind() -> GameModKind {
-        GameModKind::Conversion
-    }
-    /// Bit value of [`FiveKeysMania`]
-    ///
-    /// See <https://github.com/ppy/osu-api/wiki#mods>
-    pub const fn bits() -> u32 {
-        65536
-    }
-}
-impl<'de> Deserialize<'de> for FiveKeysMania {
-    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
-        struct FiveKeysManiaVisitor;
-        impl<'de> Visitor<'de> for FiveKeysManiaVisitor {
-            type Value = FiveKeysMania;
-            fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
-                f.write_str("FiveKeysMania")
-            }
-            fn visit_map<A: MapAccess<'de>>(self, _: A) -> Result<Self::Value, A::Error> {
-                Ok(Self::Value {})
-            }
-        }
-        d.deserialize_map(FiveKeysManiaVisitor)
-    }
-}
-#[cfg(feature = "serialize")]
-impl serde::Serialize for FiveKeysMania {
-    fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
-        use serde::ser::SerializeMap;
-        let field_count = 0;
-        let map = s.serialize_map(Some(field_count))?;
-        map.end()
-    }
-}
-/// Play with six keys.
-#[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
-pub struct SixKeysMania {}
-impl SixKeysMania {
-    /// The acronym of [`SixKeysMania`]
-    pub const fn acronym() -> Acronym {
-        unsafe { Acronym::from_str_unchecked("6K") }
-    }
-    /// Iterator of [`Acronym`] for mods that are incompatible with [`SixKeysMania`]
-    pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
-        unsafe {
-            [
-                Acronym::from_str_unchecked("4K"),
-                Acronym::from_str_unchecked("5K"),
-                Acronym::from_str_unchecked("7K"),
-                Acronym::from_str_unchecked("8K"),
-                Acronym::from_str_unchecked("9K"),
-                Acronym::from_str_unchecked("10K"),
-                Acronym::from_str_unchecked("1K"),
-                Acronym::from_str_unchecked("2K"),
-                Acronym::from_str_unchecked("3K"),
-            ]
-        }
-        .into_iter()
-    }
-    /// The description of [`SixKeysMania`]
-    pub const fn description() -> &'static str {
-        "Play with six keys."
-    }
-    /// The [`GameModKind`] of [`SixKeysMania`]
-    pub const fn kind() -> GameModKind {
-        GameModKind::Conversion
-    }
-    /// Bit value of [`SixKeysMania`]
-    ///
-    /// See <https://github.com/ppy/osu-api/wiki#mods>
-    pub const fn bits() -> u32 {
-        131072
-    }
-}
-impl<'de> Deserialize<'de> for SixKeysMania {
-    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
-        struct SixKeysManiaVisitor;
-        impl<'de> Visitor<'de> for SixKeysManiaVisitor {
-            type Value = SixKeysMania;
-            fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
-                f.write_str("SixKeysMania")
-            }
-            fn visit_map<A: MapAccess<'de>>(self, _: A) -> Result<Self::Value, A::Error> {
-                Ok(Self::Value {})
-            }
-        }
-        d.deserialize_map(SixKeysManiaVisitor)
-    }
-}
-#[cfg(feature = "serialize")]
-impl serde::Serialize for SixKeysMania {
-    fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
-        use serde::ser::SerializeMap;
-        let field_count = 0;
-        let map = s.serialize_map(Some(field_count))?;
-        map.end()
-    }
-}
-/// Play with seven keys.
-#[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
-pub struct SevenKeysMania {}
-impl SevenKeysMania {
-    /// The acronym of [`SevenKeysMania`]
-    pub const fn acronym() -> Acronym {
-        unsafe { Acronym::from_str_unchecked("7K") }
-    }
-    /// Iterator of [`Acronym`] for mods that are incompatible with [`SevenKeysMania`]
-    pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
-        unsafe {
-            [
-                Acronym::from_str_unchecked("4K"),
-                Acronym::from_str_unchecked("5K"),
-                Acronym::from_str_unchecked("6K"),
-                Acronym::from_str_unchecked("8K"),
-                Acronym::from_str_unchecked("9K"),
-                Acronym::from_str_unchecked("10K"),
-                Acronym::from_str_unchecked("1K"),
-                Acronym::from_str_unchecked("2K"),
-                Acronym::from_str_unchecked("3K"),
-            ]
-        }
-        .into_iter()
-    }
-    /// The description of [`SevenKeysMania`]
-    pub const fn description() -> &'static str {
-        "Play with seven keys."
-    }
-    /// The [`GameModKind`] of [`SevenKeysMania`]
-    pub const fn kind() -> GameModKind {
-        GameModKind::Conversion
-    }
-    /// Bit value of [`SevenKeysMania`]
-    ///
-    /// See <https://github.com/ppy/osu-api/wiki#mods>
-    pub const fn bits() -> u32 {
-        262144
-    }
-}
-impl<'de> Deserialize<'de> for SevenKeysMania {
-    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
-        struct SevenKeysManiaVisitor;
-        impl<'de> Visitor<'de> for SevenKeysManiaVisitor {
-            type Value = SevenKeysMania;
-            fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
-                f.write_str("SevenKeysMania")
-            }
-            fn visit_map<A: MapAccess<'de>>(self, _: A) -> Result<Self::Value, A::Error> {
-                Ok(Self::Value {})
-            }
-        }
-        d.deserialize_map(SevenKeysManiaVisitor)
-    }
-}
-#[cfg(feature = "serialize")]
-impl serde::Serialize for SevenKeysMania {
-    fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
-        use serde::ser::SerializeMap;
-        let field_count = 0;
-        let map = s.serialize_map(Some(field_count))?;
-        map.end()
-    }
-}
-/// Play with eight keys.
-#[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
-pub struct EightKeysMania {}
-impl EightKeysMania {
-    /// The acronym of [`EightKeysMania`]
-    pub const fn acronym() -> Acronym {
-        unsafe { Acronym::from_str_unchecked("8K") }
-    }
-    /// Iterator of [`Acronym`] for mods that are incompatible with [`EightKeysMania`]
-    pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
-        unsafe {
-            [
-                Acronym::from_str_unchecked("4K"),
-                Acronym::from_str_unchecked("5K"),
-                Acronym::from_str_unchecked("6K"),
-                Acronym::from_str_unchecked("7K"),
-                Acronym::from_str_unchecked("9K"),
-                Acronym::from_str_unchecked("10K"),
-                Acronym::from_str_unchecked("1K"),
-                Acronym::from_str_unchecked("2K"),
-                Acronym::from_str_unchecked("3K"),
-            ]
-        }
-        .into_iter()
-    }
-    /// The description of [`EightKeysMania`]
-    pub const fn description() -> &'static str {
-        "Play with eight keys."
-    }
-    /// The [`GameModKind`] of [`EightKeysMania`]
-    pub const fn kind() -> GameModKind {
-        GameModKind::Conversion
-    }
-    /// Bit value of [`EightKeysMania`]
-    ///
-    /// See <https://github.com/ppy/osu-api/wiki#mods>
-    pub const fn bits() -> u32 {
-        524288
-    }
-}
-impl<'de> Deserialize<'de> for EightKeysMania {
-    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
-        struct EightKeysManiaVisitor;
-        impl<'de> Visitor<'de> for EightKeysManiaVisitor {
-            type Value = EightKeysMania;
-            fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
-                f.write_str("EightKeysMania")
-            }
-            fn visit_map<A: MapAccess<'de>>(self, _: A) -> Result<Self::Value, A::Error> {
-                Ok(Self::Value {})
-            }
-        }
-        d.deserialize_map(EightKeysManiaVisitor)
-    }
-}
-#[cfg(feature = "serialize")]
-impl serde::Serialize for EightKeysMania {
-    fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
-        use serde::ser::SerializeMap;
-        let field_count = 0;
-        let map = s.serialize_map(Some(field_count))?;
-        map.end()
-    }
-}
-/// Play with nine keys.
-#[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
-pub struct NineKeysMania {}
-impl NineKeysMania {
-    /// The acronym of [`NineKeysMania`]
-    pub const fn acronym() -> Acronym {
-        unsafe { Acronym::from_str_unchecked("9K") }
-    }
-    /// Iterator of [`Acronym`] for mods that are incompatible with [`NineKeysMania`]
-    pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
-        unsafe {
-            [
-                Acronym::from_str_unchecked("4K"),
-                Acronym::from_str_unchecked("5K"),
-                Acronym::from_str_unchecked("6K"),
-                Acronym::from_str_unchecked("7K"),
-                Acronym::from_str_unchecked("8K"),
-                Acronym::from_str_unchecked("10K"),
-                Acronym::from_str_unchecked("1K"),
-                Acronym::from_str_unchecked("2K"),
-                Acronym::from_str_unchecked("3K"),
-            ]
-        }
-        .into_iter()
-    }
-    /// The description of [`NineKeysMania`]
-    pub const fn description() -> &'static str {
-        "Play with nine keys."
-    }
-    /// The [`GameModKind`] of [`NineKeysMania`]
-    pub const fn kind() -> GameModKind {
-        GameModKind::Conversion
-    }
-    /// Bit value of [`NineKeysMania`]
-    ///
-    /// See <https://github.com/ppy/osu-api/wiki#mods>
-    pub const fn bits() -> u32 {
-        16777216
-    }
-}
-impl<'de> Deserialize<'de> for NineKeysMania {
-    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
-        struct NineKeysManiaVisitor;
-        impl<'de> Visitor<'de> for NineKeysManiaVisitor {
-            type Value = NineKeysMania;
-            fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
-                f.write_str("NineKeysMania")
-            }
-            fn visit_map<A: MapAccess<'de>>(self, _: A) -> Result<Self::Value, A::Error> {
-                Ok(Self::Value {})
-            }
-        }
-        d.deserialize_map(NineKeysManiaVisitor)
-    }
-}
-#[cfg(feature = "serialize")]
-impl serde::Serialize for NineKeysMania {
-    fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
-        use serde::ser::SerializeMap;
-        let field_count = 0;
-        let map = s.serialize_map(Some(field_count))?;
-        map.end()
-    }
-}
-/// Play with ten keys.
-#[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
-pub struct TenKeysMania {}
-impl TenKeysMania {
-    /// The acronym of [`TenKeysMania`]
-    pub const fn acronym() -> Acronym {
-        unsafe { Acronym::from_str_unchecked("10K") }
-    }
-    /// Iterator of [`Acronym`] for mods that are incompatible with [`TenKeysMania`]
-    pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
-        unsafe {
-            [
-                Acronym::from_str_unchecked("4K"),
-                Acronym::from_str_unchecked("5K"),
-                Acronym::from_str_unchecked("6K"),
-                Acronym::from_str_unchecked("7K"),
-                Acronym::from_str_unchecked("8K"),
-                Acronym::from_str_unchecked("9K"),
-                Acronym::from_str_unchecked("1K"),
-                Acronym::from_str_unchecked("2K"),
-                Acronym::from_str_unchecked("3K"),
-            ]
-        }
-        .into_iter()
-    }
-    /// The description of [`TenKeysMania`]
-    pub const fn description() -> &'static str {
-        "Play with ten keys."
-    }
-    /// The [`GameModKind`] of [`TenKeysMania`]
-    pub const fn kind() -> GameModKind {
-        GameModKind::Conversion
-    }
-}
-impl<'de> Deserialize<'de> for TenKeysMania {
-    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
-        struct TenKeysManiaVisitor;
-        impl<'de> Visitor<'de> for TenKeysManiaVisitor {
-            type Value = TenKeysMania;
-            fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
-                f.write_str("TenKeysMania")
-            }
-            fn visit_map<A: MapAccess<'de>>(self, _: A) -> Result<Self::Value, A::Error> {
-                Ok(Self::Value {})
-            }
-        }
-        d.deserialize_map(TenKeysManiaVisitor)
-    }
-}
-#[cfg(feature = "serialize")]
-impl serde::Serialize for TenKeysMania {
-    fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
-        use serde::ser::SerializeMap;
-        let field_count = 0;
-        let map = s.serialize_map(Some(field_count))?;
-        map.end()
-    }
-}
-/// Play with one key.
-#[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
-pub struct OneKeyMania {}
-impl OneKeyMania {
-    /// The acronym of [`OneKeyMania`]
-    pub const fn acronym() -> Acronym {
-        unsafe { Acronym::from_str_unchecked("1K") }
-    }
-    /// Iterator of [`Acronym`] for mods that are incompatible with [`OneKeyMania`]
-    pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
-        unsafe {
-            [
-                Acronym::from_str_unchecked("4K"),
-                Acronym::from_str_unchecked("5K"),
-                Acronym::from_str_unchecked("6K"),
-                Acronym::from_str_unchecked("7K"),
-                Acronym::from_str_unchecked("8K"),
-                Acronym::from_str_unchecked("9K"),
-                Acronym::from_str_unchecked("10K"),
-                Acronym::from_str_unchecked("2K"),
-                Acronym::from_str_unchecked("3K"),
-            ]
-        }
-        .into_iter()
-    }
-    /// The description of [`OneKeyMania`]
-    pub const fn description() -> &'static str {
-        "Play with one key."
-    }
-    /// The [`GameModKind`] of [`OneKeyMania`]
-    pub const fn kind() -> GameModKind {
-        GameModKind::Conversion
-    }
-    /// Bit value of [`OneKeyMania`]
-    ///
-    /// See <https://github.com/ppy/osu-api/wiki#mods>
-    pub const fn bits() -> u32 {
-        67108864
-    }
-}
-impl<'de> Deserialize<'de> for OneKeyMania {
-    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
-        struct OneKeyManiaVisitor;
-        impl<'de> Visitor<'de> for OneKeyManiaVisitor {
-            type Value = OneKeyMania;
-            fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
-                f.write_str("OneKeyMania")
-            }
-            fn visit_map<A: MapAccess<'de>>(self, _: A) -> Result<Self::Value, A::Error> {
-                Ok(Self::Value {})
-            }
-        }
-        d.deserialize_map(OneKeyManiaVisitor)
-    }
-}
-#[cfg(feature = "serialize")]
-impl serde::Serialize for OneKeyMania {
-    fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
-        use serde::ser::SerializeMap;
-        let field_count = 0;
-        let map = s.serialize_map(Some(field_count))?;
-        map.end()
-    }
-}
-/// Play with two keys.
-#[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
-pub struct TwoKeysMania {}
-impl TwoKeysMania {
-    /// The acronym of [`TwoKeysMania`]
-    pub const fn acronym() -> Acronym {
-        unsafe { Acronym::from_str_unchecked("2K") }
-    }
-    /// Iterator of [`Acronym`] for mods that are incompatible with [`TwoKeysMania`]
-    pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
-        unsafe {
-            [
-                Acronym::from_str_unchecked("4K"),
-                Acronym::from_str_unchecked("5K"),
-                Acronym::from_str_unchecked("6K"),
-                Acronym::from_str_unchecked("7K"),
-                Acronym::from_str_unchecked("8K"),
-                Acronym::from_str_unchecked("9K"),
-                Acronym::from_str_unchecked("10K"),
-                Acronym::from_str_unchecked("1K"),
-                Acronym::from_str_unchecked("3K"),
-            ]
-        }
-        .into_iter()
-    }
-    /// The description of [`TwoKeysMania`]
-    pub const fn description() -> &'static str {
-        "Play with two keys."
-    }
-    /// The [`GameModKind`] of [`TwoKeysMania`]
-    pub const fn kind() -> GameModKind {
-        GameModKind::Conversion
-    }
-    /// Bit value of [`TwoKeysMania`]
-    ///
-    /// See <https://github.com/ppy/osu-api/wiki#mods>
-    pub const fn bits() -> u32 {
-        268435456
-    }
-}
-impl<'de> Deserialize<'de> for TwoKeysMania {
-    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
-        struct TwoKeysManiaVisitor;
-        impl<'de> Visitor<'de> for TwoKeysManiaVisitor {
-            type Value = TwoKeysMania;
-            fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
-                f.write_str("TwoKeysMania")
-            }
-            fn visit_map<A: MapAccess<'de>>(self, _: A) -> Result<Self::Value, A::Error> {
-                Ok(Self::Value {})
-            }
-        }
-        d.deserialize_map(TwoKeysManiaVisitor)
-    }
-}
-#[cfg(feature = "serialize")]
-impl serde::Serialize for TwoKeysMania {
-    fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
-        use serde::ser::SerializeMap;
-        let field_count = 0;
-        let map = s.serialize_map(Some(field_count))?;
-        map.end()
-    }
-}
-/// Play with three keys.
-#[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
-pub struct ThreeKeysMania {}
-impl ThreeKeysMania {
-    /// The acronym of [`ThreeKeysMania`]
-    pub const fn acronym() -> Acronym {
-        unsafe { Acronym::from_str_unchecked("3K") }
-    }
-    /// Iterator of [`Acronym`] for mods that are incompatible with [`ThreeKeysMania`]
-    pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
-        unsafe {
-            [
-                Acronym::from_str_unchecked("4K"),
-                Acronym::from_str_unchecked("5K"),
-                Acronym::from_str_unchecked("6K"),
-                Acronym::from_str_unchecked("7K"),
-                Acronym::from_str_unchecked("8K"),
-                Acronym::from_str_unchecked("9K"),
-                Acronym::from_str_unchecked("10K"),
-                Acronym::from_str_unchecked("1K"),
-                Acronym::from_str_unchecked("2K"),
-            ]
-        }
-        .into_iter()
-    }
-    /// The description of [`ThreeKeysMania`]
-    pub const fn description() -> &'static str {
-        "Play with three keys."
-    }
-    /// The [`GameModKind`] of [`ThreeKeysMania`]
-    pub const fn kind() -> GameModKind {
-        GameModKind::Conversion
-    }
-    /// Bit value of [`ThreeKeysMania`]
-    ///
-    /// See <https://github.com/ppy/osu-api/wiki#mods>
-    pub const fn bits() -> u32 {
-        134217728
-    }
-}
-impl<'de> Deserialize<'de> for ThreeKeysMania {
-    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
-        struct ThreeKeysManiaVisitor;
-        impl<'de> Visitor<'de> for ThreeKeysManiaVisitor {
-            type Value = ThreeKeysMania;
-            fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
-                f.write_str("ThreeKeysMania")
-            }
-            fn visit_map<A: MapAccess<'de>>(self, _: A) -> Result<Self::Value, A::Error> {
-                Ok(Self::Value {})
-            }
-        }
-        d.deserialize_map(ThreeKeysManiaVisitor)
-    }
-}
-#[cfg(feature = "serialize")]
-impl serde::Serialize for ThreeKeysMania {
-    fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
-        use serde::ser::SerializeMap;
-        let field_count = 0;
-        let map = s.serialize_map(Some(field_count))?;
         map.end()
     }
 }
@@ -9068,6 +8568,690 @@ impl serde::Serialize for HoldOffMania {
         map.end()
     }
 }
+/// Play with one key.
+#[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
+pub struct OneKeyMania {}
+impl OneKeyMania {
+    /// The acronym of [`OneKeyMania`]
+    pub const fn acronym() -> Acronym {
+        unsafe { Acronym::from_str_unchecked("1K") }
+    }
+    /// Iterator of [`Acronym`] for mods that are incompatible with [`OneKeyMania`]
+    pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
+        unsafe {
+            [
+                Acronym::from_str_unchecked("2K"),
+                Acronym::from_str_unchecked("3K"),
+                Acronym::from_str_unchecked("4K"),
+                Acronym::from_str_unchecked("5K"),
+                Acronym::from_str_unchecked("6K"),
+                Acronym::from_str_unchecked("7K"),
+                Acronym::from_str_unchecked("8K"),
+                Acronym::from_str_unchecked("9K"),
+                Acronym::from_str_unchecked("10K"),
+            ]
+        }
+        .into_iter()
+    }
+    /// The description of [`OneKeyMania`]
+    pub const fn description() -> &'static str {
+        "Play with one key."
+    }
+    /// The [`GameModKind`] of [`OneKeyMania`]
+    pub const fn kind() -> GameModKind {
+        GameModKind::Conversion
+    }
+    /// Bit value of [`OneKeyMania`]
+    ///
+    /// See <https://github.com/ppy/osu-api/wiki#mods>
+    pub const fn bits() -> u32 {
+        67108864
+    }
+}
+impl<'de> Deserialize<'de> for OneKeyMania {
+    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        struct OneKeyManiaVisitor;
+        impl<'de> Visitor<'de> for OneKeyManiaVisitor {
+            type Value = OneKeyMania;
+            fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+                f.write_str("OneKeyMania")
+            }
+            fn visit_map<A: MapAccess<'de>>(self, _: A) -> Result<Self::Value, A::Error> {
+                Ok(Self::Value {})
+            }
+        }
+        d.deserialize_map(OneKeyManiaVisitor)
+    }
+}
+#[cfg(feature = "serialize")]
+impl serde::Serialize for OneKeyMania {
+    fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        use serde::ser::SerializeMap;
+        let field_count = 0;
+        let map = s.serialize_map(Some(field_count))?;
+        map.end()
+    }
+}
+/// Play with two keys.
+#[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
+pub struct TwoKeysMania {}
+impl TwoKeysMania {
+    /// The acronym of [`TwoKeysMania`]
+    pub const fn acronym() -> Acronym {
+        unsafe { Acronym::from_str_unchecked("2K") }
+    }
+    /// Iterator of [`Acronym`] for mods that are incompatible with [`TwoKeysMania`]
+    pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
+        unsafe {
+            [
+                Acronym::from_str_unchecked("1K"),
+                Acronym::from_str_unchecked("3K"),
+                Acronym::from_str_unchecked("4K"),
+                Acronym::from_str_unchecked("5K"),
+                Acronym::from_str_unchecked("6K"),
+                Acronym::from_str_unchecked("7K"),
+                Acronym::from_str_unchecked("8K"),
+                Acronym::from_str_unchecked("9K"),
+                Acronym::from_str_unchecked("10K"),
+            ]
+        }
+        .into_iter()
+    }
+    /// The description of [`TwoKeysMania`]
+    pub const fn description() -> &'static str {
+        "Play with two keys."
+    }
+    /// The [`GameModKind`] of [`TwoKeysMania`]
+    pub const fn kind() -> GameModKind {
+        GameModKind::Conversion
+    }
+    /// Bit value of [`TwoKeysMania`]
+    ///
+    /// See <https://github.com/ppy/osu-api/wiki#mods>
+    pub const fn bits() -> u32 {
+        268435456
+    }
+}
+impl<'de> Deserialize<'de> for TwoKeysMania {
+    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        struct TwoKeysManiaVisitor;
+        impl<'de> Visitor<'de> for TwoKeysManiaVisitor {
+            type Value = TwoKeysMania;
+            fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+                f.write_str("TwoKeysMania")
+            }
+            fn visit_map<A: MapAccess<'de>>(self, _: A) -> Result<Self::Value, A::Error> {
+                Ok(Self::Value {})
+            }
+        }
+        d.deserialize_map(TwoKeysManiaVisitor)
+    }
+}
+#[cfg(feature = "serialize")]
+impl serde::Serialize for TwoKeysMania {
+    fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        use serde::ser::SerializeMap;
+        let field_count = 0;
+        let map = s.serialize_map(Some(field_count))?;
+        map.end()
+    }
+}
+/// Play with three keys.
+#[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
+pub struct ThreeKeysMania {}
+impl ThreeKeysMania {
+    /// The acronym of [`ThreeKeysMania`]
+    pub const fn acronym() -> Acronym {
+        unsafe { Acronym::from_str_unchecked("3K") }
+    }
+    /// Iterator of [`Acronym`] for mods that are incompatible with [`ThreeKeysMania`]
+    pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
+        unsafe {
+            [
+                Acronym::from_str_unchecked("1K"),
+                Acronym::from_str_unchecked("2K"),
+                Acronym::from_str_unchecked("4K"),
+                Acronym::from_str_unchecked("5K"),
+                Acronym::from_str_unchecked("6K"),
+                Acronym::from_str_unchecked("7K"),
+                Acronym::from_str_unchecked("8K"),
+                Acronym::from_str_unchecked("9K"),
+                Acronym::from_str_unchecked("10K"),
+            ]
+        }
+        .into_iter()
+    }
+    /// The description of [`ThreeKeysMania`]
+    pub const fn description() -> &'static str {
+        "Play with three keys."
+    }
+    /// The [`GameModKind`] of [`ThreeKeysMania`]
+    pub const fn kind() -> GameModKind {
+        GameModKind::Conversion
+    }
+    /// Bit value of [`ThreeKeysMania`]
+    ///
+    /// See <https://github.com/ppy/osu-api/wiki#mods>
+    pub const fn bits() -> u32 {
+        134217728
+    }
+}
+impl<'de> Deserialize<'de> for ThreeKeysMania {
+    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        struct ThreeKeysManiaVisitor;
+        impl<'de> Visitor<'de> for ThreeKeysManiaVisitor {
+            type Value = ThreeKeysMania;
+            fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+                f.write_str("ThreeKeysMania")
+            }
+            fn visit_map<A: MapAccess<'de>>(self, _: A) -> Result<Self::Value, A::Error> {
+                Ok(Self::Value {})
+            }
+        }
+        d.deserialize_map(ThreeKeysManiaVisitor)
+    }
+}
+#[cfg(feature = "serialize")]
+impl serde::Serialize for ThreeKeysMania {
+    fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        use serde::ser::SerializeMap;
+        let field_count = 0;
+        let map = s.serialize_map(Some(field_count))?;
+        map.end()
+    }
+}
+/// Play with four keys.
+#[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
+pub struct FourKeysMania {}
+impl FourKeysMania {
+    /// The acronym of [`FourKeysMania`]
+    pub const fn acronym() -> Acronym {
+        unsafe { Acronym::from_str_unchecked("4K") }
+    }
+    /// Iterator of [`Acronym`] for mods that are incompatible with [`FourKeysMania`]
+    pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
+        unsafe {
+            [
+                Acronym::from_str_unchecked("1K"),
+                Acronym::from_str_unchecked("2K"),
+                Acronym::from_str_unchecked("3K"),
+                Acronym::from_str_unchecked("5K"),
+                Acronym::from_str_unchecked("6K"),
+                Acronym::from_str_unchecked("7K"),
+                Acronym::from_str_unchecked("8K"),
+                Acronym::from_str_unchecked("9K"),
+                Acronym::from_str_unchecked("10K"),
+            ]
+        }
+        .into_iter()
+    }
+    /// The description of [`FourKeysMania`]
+    pub const fn description() -> &'static str {
+        "Play with four keys."
+    }
+    /// The [`GameModKind`] of [`FourKeysMania`]
+    pub const fn kind() -> GameModKind {
+        GameModKind::Conversion
+    }
+    /// Bit value of [`FourKeysMania`]
+    ///
+    /// See <https://github.com/ppy/osu-api/wiki#mods>
+    pub const fn bits() -> u32 {
+        32768
+    }
+}
+impl<'de> Deserialize<'de> for FourKeysMania {
+    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        struct FourKeysManiaVisitor;
+        impl<'de> Visitor<'de> for FourKeysManiaVisitor {
+            type Value = FourKeysMania;
+            fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+                f.write_str("FourKeysMania")
+            }
+            fn visit_map<A: MapAccess<'de>>(self, _: A) -> Result<Self::Value, A::Error> {
+                Ok(Self::Value {})
+            }
+        }
+        d.deserialize_map(FourKeysManiaVisitor)
+    }
+}
+#[cfg(feature = "serialize")]
+impl serde::Serialize for FourKeysMania {
+    fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        use serde::ser::SerializeMap;
+        let field_count = 0;
+        let map = s.serialize_map(Some(field_count))?;
+        map.end()
+    }
+}
+/// Play with five keys.
+#[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
+pub struct FiveKeysMania {}
+impl FiveKeysMania {
+    /// The acronym of [`FiveKeysMania`]
+    pub const fn acronym() -> Acronym {
+        unsafe { Acronym::from_str_unchecked("5K") }
+    }
+    /// Iterator of [`Acronym`] for mods that are incompatible with [`FiveKeysMania`]
+    pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
+        unsafe {
+            [
+                Acronym::from_str_unchecked("1K"),
+                Acronym::from_str_unchecked("2K"),
+                Acronym::from_str_unchecked("3K"),
+                Acronym::from_str_unchecked("4K"),
+                Acronym::from_str_unchecked("6K"),
+                Acronym::from_str_unchecked("7K"),
+                Acronym::from_str_unchecked("8K"),
+                Acronym::from_str_unchecked("9K"),
+                Acronym::from_str_unchecked("10K"),
+            ]
+        }
+        .into_iter()
+    }
+    /// The description of [`FiveKeysMania`]
+    pub const fn description() -> &'static str {
+        "Play with five keys."
+    }
+    /// The [`GameModKind`] of [`FiveKeysMania`]
+    pub const fn kind() -> GameModKind {
+        GameModKind::Conversion
+    }
+    /// Bit value of [`FiveKeysMania`]
+    ///
+    /// See <https://github.com/ppy/osu-api/wiki#mods>
+    pub const fn bits() -> u32 {
+        65536
+    }
+}
+impl<'de> Deserialize<'de> for FiveKeysMania {
+    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        struct FiveKeysManiaVisitor;
+        impl<'de> Visitor<'de> for FiveKeysManiaVisitor {
+            type Value = FiveKeysMania;
+            fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+                f.write_str("FiveKeysMania")
+            }
+            fn visit_map<A: MapAccess<'de>>(self, _: A) -> Result<Self::Value, A::Error> {
+                Ok(Self::Value {})
+            }
+        }
+        d.deserialize_map(FiveKeysManiaVisitor)
+    }
+}
+#[cfg(feature = "serialize")]
+impl serde::Serialize for FiveKeysMania {
+    fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        use serde::ser::SerializeMap;
+        let field_count = 0;
+        let map = s.serialize_map(Some(field_count))?;
+        map.end()
+    }
+}
+/// Play with six keys.
+#[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
+pub struct SixKeysMania {}
+impl SixKeysMania {
+    /// The acronym of [`SixKeysMania`]
+    pub const fn acronym() -> Acronym {
+        unsafe { Acronym::from_str_unchecked("6K") }
+    }
+    /// Iterator of [`Acronym`] for mods that are incompatible with [`SixKeysMania`]
+    pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
+        unsafe {
+            [
+                Acronym::from_str_unchecked("1K"),
+                Acronym::from_str_unchecked("2K"),
+                Acronym::from_str_unchecked("3K"),
+                Acronym::from_str_unchecked("4K"),
+                Acronym::from_str_unchecked("5K"),
+                Acronym::from_str_unchecked("7K"),
+                Acronym::from_str_unchecked("8K"),
+                Acronym::from_str_unchecked("9K"),
+                Acronym::from_str_unchecked("10K"),
+            ]
+        }
+        .into_iter()
+    }
+    /// The description of [`SixKeysMania`]
+    pub const fn description() -> &'static str {
+        "Play with six keys."
+    }
+    /// The [`GameModKind`] of [`SixKeysMania`]
+    pub const fn kind() -> GameModKind {
+        GameModKind::Conversion
+    }
+    /// Bit value of [`SixKeysMania`]
+    ///
+    /// See <https://github.com/ppy/osu-api/wiki#mods>
+    pub const fn bits() -> u32 {
+        131072
+    }
+}
+impl<'de> Deserialize<'de> for SixKeysMania {
+    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        struct SixKeysManiaVisitor;
+        impl<'de> Visitor<'de> for SixKeysManiaVisitor {
+            type Value = SixKeysMania;
+            fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+                f.write_str("SixKeysMania")
+            }
+            fn visit_map<A: MapAccess<'de>>(self, _: A) -> Result<Self::Value, A::Error> {
+                Ok(Self::Value {})
+            }
+        }
+        d.deserialize_map(SixKeysManiaVisitor)
+    }
+}
+#[cfg(feature = "serialize")]
+impl serde::Serialize for SixKeysMania {
+    fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        use serde::ser::SerializeMap;
+        let field_count = 0;
+        let map = s.serialize_map(Some(field_count))?;
+        map.end()
+    }
+}
+/// Play with seven keys.
+#[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
+pub struct SevenKeysMania {}
+impl SevenKeysMania {
+    /// The acronym of [`SevenKeysMania`]
+    pub const fn acronym() -> Acronym {
+        unsafe { Acronym::from_str_unchecked("7K") }
+    }
+    /// Iterator of [`Acronym`] for mods that are incompatible with [`SevenKeysMania`]
+    pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
+        unsafe {
+            [
+                Acronym::from_str_unchecked("1K"),
+                Acronym::from_str_unchecked("2K"),
+                Acronym::from_str_unchecked("3K"),
+                Acronym::from_str_unchecked("4K"),
+                Acronym::from_str_unchecked("5K"),
+                Acronym::from_str_unchecked("6K"),
+                Acronym::from_str_unchecked("8K"),
+                Acronym::from_str_unchecked("9K"),
+                Acronym::from_str_unchecked("10K"),
+            ]
+        }
+        .into_iter()
+    }
+    /// The description of [`SevenKeysMania`]
+    pub const fn description() -> &'static str {
+        "Play with seven keys."
+    }
+    /// The [`GameModKind`] of [`SevenKeysMania`]
+    pub const fn kind() -> GameModKind {
+        GameModKind::Conversion
+    }
+    /// Bit value of [`SevenKeysMania`]
+    ///
+    /// See <https://github.com/ppy/osu-api/wiki#mods>
+    pub const fn bits() -> u32 {
+        262144
+    }
+}
+impl<'de> Deserialize<'de> for SevenKeysMania {
+    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        struct SevenKeysManiaVisitor;
+        impl<'de> Visitor<'de> for SevenKeysManiaVisitor {
+            type Value = SevenKeysMania;
+            fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+                f.write_str("SevenKeysMania")
+            }
+            fn visit_map<A: MapAccess<'de>>(self, _: A) -> Result<Self::Value, A::Error> {
+                Ok(Self::Value {})
+            }
+        }
+        d.deserialize_map(SevenKeysManiaVisitor)
+    }
+}
+#[cfg(feature = "serialize")]
+impl serde::Serialize for SevenKeysMania {
+    fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        use serde::ser::SerializeMap;
+        let field_count = 0;
+        let map = s.serialize_map(Some(field_count))?;
+        map.end()
+    }
+}
+/// Play with eight keys.
+#[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
+pub struct EightKeysMania {}
+impl EightKeysMania {
+    /// The acronym of [`EightKeysMania`]
+    pub const fn acronym() -> Acronym {
+        unsafe { Acronym::from_str_unchecked("8K") }
+    }
+    /// Iterator of [`Acronym`] for mods that are incompatible with [`EightKeysMania`]
+    pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
+        unsafe {
+            [
+                Acronym::from_str_unchecked("1K"),
+                Acronym::from_str_unchecked("2K"),
+                Acronym::from_str_unchecked("3K"),
+                Acronym::from_str_unchecked("4K"),
+                Acronym::from_str_unchecked("5K"),
+                Acronym::from_str_unchecked("6K"),
+                Acronym::from_str_unchecked("7K"),
+                Acronym::from_str_unchecked("9K"),
+                Acronym::from_str_unchecked("10K"),
+            ]
+        }
+        .into_iter()
+    }
+    /// The description of [`EightKeysMania`]
+    pub const fn description() -> &'static str {
+        "Play with eight keys."
+    }
+    /// The [`GameModKind`] of [`EightKeysMania`]
+    pub const fn kind() -> GameModKind {
+        GameModKind::Conversion
+    }
+    /// Bit value of [`EightKeysMania`]
+    ///
+    /// See <https://github.com/ppy/osu-api/wiki#mods>
+    pub const fn bits() -> u32 {
+        524288
+    }
+}
+impl<'de> Deserialize<'de> for EightKeysMania {
+    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        struct EightKeysManiaVisitor;
+        impl<'de> Visitor<'de> for EightKeysManiaVisitor {
+            type Value = EightKeysMania;
+            fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+                f.write_str("EightKeysMania")
+            }
+            fn visit_map<A: MapAccess<'de>>(self, _: A) -> Result<Self::Value, A::Error> {
+                Ok(Self::Value {})
+            }
+        }
+        d.deserialize_map(EightKeysManiaVisitor)
+    }
+}
+#[cfg(feature = "serialize")]
+impl serde::Serialize for EightKeysMania {
+    fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        use serde::ser::SerializeMap;
+        let field_count = 0;
+        let map = s.serialize_map(Some(field_count))?;
+        map.end()
+    }
+}
+/// Play with nine keys.
+#[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
+pub struct NineKeysMania {}
+impl NineKeysMania {
+    /// The acronym of [`NineKeysMania`]
+    pub const fn acronym() -> Acronym {
+        unsafe { Acronym::from_str_unchecked("9K") }
+    }
+    /// Iterator of [`Acronym`] for mods that are incompatible with [`NineKeysMania`]
+    pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
+        unsafe {
+            [
+                Acronym::from_str_unchecked("1K"),
+                Acronym::from_str_unchecked("2K"),
+                Acronym::from_str_unchecked("3K"),
+                Acronym::from_str_unchecked("4K"),
+                Acronym::from_str_unchecked("5K"),
+                Acronym::from_str_unchecked("6K"),
+                Acronym::from_str_unchecked("7K"),
+                Acronym::from_str_unchecked("8K"),
+                Acronym::from_str_unchecked("10K"),
+            ]
+        }
+        .into_iter()
+    }
+    /// The description of [`NineKeysMania`]
+    pub const fn description() -> &'static str {
+        "Play with nine keys."
+    }
+    /// The [`GameModKind`] of [`NineKeysMania`]
+    pub const fn kind() -> GameModKind {
+        GameModKind::Conversion
+    }
+    /// Bit value of [`NineKeysMania`]
+    ///
+    /// See <https://github.com/ppy/osu-api/wiki#mods>
+    pub const fn bits() -> u32 {
+        16777216
+    }
+}
+impl<'de> Deserialize<'de> for NineKeysMania {
+    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        struct NineKeysManiaVisitor;
+        impl<'de> Visitor<'de> for NineKeysManiaVisitor {
+            type Value = NineKeysMania;
+            fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+                f.write_str("NineKeysMania")
+            }
+            fn visit_map<A: MapAccess<'de>>(self, _: A) -> Result<Self::Value, A::Error> {
+                Ok(Self::Value {})
+            }
+        }
+        d.deserialize_map(NineKeysManiaVisitor)
+    }
+}
+#[cfg(feature = "serialize")]
+impl serde::Serialize for NineKeysMania {
+    fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        use serde::ser::SerializeMap;
+        let field_count = 0;
+        let map = s.serialize_map(Some(field_count))?;
+        map.end()
+    }
+}
+/// Play with ten keys.
+#[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
+pub struct TenKeysMania {}
+impl TenKeysMania {
+    /// The acronym of [`TenKeysMania`]
+    pub const fn acronym() -> Acronym {
+        unsafe { Acronym::from_str_unchecked("10K") }
+    }
+    /// Iterator of [`Acronym`] for mods that are incompatible with [`TenKeysMania`]
+    pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
+        unsafe {
+            [
+                Acronym::from_str_unchecked("1K"),
+                Acronym::from_str_unchecked("2K"),
+                Acronym::from_str_unchecked("3K"),
+                Acronym::from_str_unchecked("4K"),
+                Acronym::from_str_unchecked("5K"),
+                Acronym::from_str_unchecked("6K"),
+                Acronym::from_str_unchecked("7K"),
+                Acronym::from_str_unchecked("8K"),
+                Acronym::from_str_unchecked("9K"),
+            ]
+        }
+        .into_iter()
+    }
+    /// The description of [`TenKeysMania`]
+    pub const fn description() -> &'static str {
+        "Play with ten keys."
+    }
+    /// The [`GameModKind`] of [`TenKeysMania`]
+    pub const fn kind() -> GameModKind {
+        GameModKind::Conversion
+    }
+}
+impl<'de> Deserialize<'de> for TenKeysMania {
+    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        struct TenKeysManiaVisitor;
+        impl<'de> Visitor<'de> for TenKeysManiaVisitor {
+            type Value = TenKeysMania;
+            fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+                f.write_str("TenKeysMania")
+            }
+            fn visit_map<A: MapAccess<'de>>(self, _: A) -> Result<Self::Value, A::Error> {
+                Ok(Self::Value {})
+            }
+        }
+        d.deserialize_map(TenKeysManiaVisitor)
+    }
+}
+#[cfg(feature = "serialize")]
+impl serde::Serialize for TenKeysMania {
+    fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        use serde::ser::SerializeMap;
+        let field_count = 0;
+        let map = s.serialize_map(Some(field_count))?;
+        map.end()
+    }
+}
 /// Watch a perfect automated play through the song.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
 #[cfg_attr(
@@ -9147,6 +9331,10 @@ impl CinemaMania {
     pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
         unsafe {
             [
+                Acronym::from_str_unchecked("NF"),
+                Acronym::from_str_unchecked("SD"),
+                Acronym::from_str_unchecked("PF"),
+                Acronym::from_str_unchecked("AC"),
                 Acronym::from_str_unchecked("AT"),
                 Acronym::from_str_unchecked("AS"),
             ]
@@ -9643,6 +9831,7 @@ pub enum GameModIntermode {
     ConstantSpeed,
     Daycore,
     Deflate,
+    Depth,
     DifficultyAdjust,
     DoubleTime,
     DualStages,
@@ -9712,6 +9901,7 @@ impl GameModIntermode {
                 Self::ConstantSpeed => Acronym::from_str_unchecked("CS"),
                 Self::Daycore => Acronym::from_str_unchecked("DC"),
                 Self::Deflate => Acronym::from_str_unchecked("DF"),
+                Self::Depth => Acronym::from_str_unchecked("DP"),
                 Self::DifficultyAdjust => Acronym::from_str_unchecked("DA"),
                 Self::DoubleTime => Acronym::from_str_unchecked("DT"),
                 Self::DualStages => Acronym::from_str_unchecked("DS"),
@@ -9783,6 +9973,7 @@ impl GameModIntermode {
             Self::ConstantSpeed => None,
             Self::Daycore => None,
             Self::Deflate => None,
+            Self::Depth => None,
             Self::DifficultyAdjust => None,
             Self::DoubleTime => Some(64),
             Self::DualStages => Some(33554432),
@@ -9851,6 +10042,7 @@ impl GameModIntermode {
             Self::ConstantSpeed => GameModKind::Conversion,
             Self::Daycore => GameModKind::DifficultyReduction,
             Self::Deflate => GameModKind::Fun,
+            Self::Depth => GameModKind::Fun,
             Self::DifficultyAdjust => GameModKind::Conversion,
             Self::DoubleTime => GameModKind::DifficultyIncrease,
             Self::DualStages => GameModKind::Conversion,
@@ -9919,6 +10111,7 @@ impl GameModIntermode {
             "CS" => Some(Self::ConstantSpeed),
             "DC" => Some(Self::Daycore),
             "DF" => Some(Self::Deflate),
+            "DP" => Some(Self::Depth),
             "DA" => Some(Self::DifficultyAdjust),
             "DT" => Some(Self::DoubleTime),
             "DS" => Some(Self::DualStages),
@@ -10087,6 +10280,7 @@ impl From<&GameMod> for GameModOrder {
                 GameMod::FreezeFrameOsu(_) => arm!(Osu, FreezeFrameOsu, None, FreezeFrame),
                 GameMod::BubblesOsu(_) => arm!(Osu, BubblesOsu, None, Bubbles),
                 GameMod::SynesthesiaOsu(_) => arm!(Osu, SynesthesiaOsu, None, Synesthesia),
+                GameMod::DepthOsu(_) => arm!(Osu, DepthOsu, None, Depth),
                 GameMod::TouchDeviceOsu(_) => arm!(Osu, TouchDeviceOsu, Some(3), TouchDevice),
                 GameMod::ScoreV2Osu(_) => arm!(Osu, ScoreV2Osu, Some(30), ScoreV2),
                 GameMod::EasyTaiko(_) => arm!(Taiko, EasyTaiko, Some(2), Easy),
@@ -10165,16 +10359,6 @@ impl From<&GameMod> for GameModOrder {
                 GameMod::AccuracyChallengeMania(_) => {
                     arm!(Mania, AccuracyChallengeMania, None, AccuracyChallenge)
                 }
-                GameMod::FourKeysMania(_) => arm!(Mania, FourKeysMania, Some(16), FourKeys),
-                GameMod::FiveKeysMania(_) => arm!(Mania, FiveKeysMania, Some(17), FiveKeys),
-                GameMod::SixKeysMania(_) => arm!(Mania, SixKeysMania, Some(18), SixKeys),
-                GameMod::SevenKeysMania(_) => arm!(Mania, SevenKeysMania, Some(19), SevenKeys),
-                GameMod::EightKeysMania(_) => arm!(Mania, EightKeysMania, Some(20), EightKeys),
-                GameMod::NineKeysMania(_) => arm!(Mania, NineKeysMania, Some(25), NineKeys),
-                GameMod::TenKeysMania(_) => arm!(Mania, TenKeysMania, None, TenKeys),
-                GameMod::OneKeyMania(_) => arm!(Mania, OneKeyMania, Some(27), OneKey),
-                GameMod::TwoKeysMania(_) => arm!(Mania, TwoKeysMania, Some(29), TwoKeys),
-                GameMod::ThreeKeysMania(_) => arm!(Mania, ThreeKeysMania, Some(28), ThreeKeys),
                 GameMod::RandomMania(_) => arm!(Mania, RandomMania, Some(22), Random),
                 GameMod::DualStagesMania(_) => arm!(Mania, DualStagesMania, Some(26), DualStages),
                 GameMod::MirrorMania(_) => arm!(Mania, MirrorMania, Some(31), Mirror),
@@ -10187,6 +10371,16 @@ impl From<&GameMod> for GameModOrder {
                     arm!(Mania, ConstantSpeedMania, None, ConstantSpeed)
                 }
                 GameMod::HoldOffMania(_) => arm!(Mania, HoldOffMania, None, HoldOff),
+                GameMod::OneKeyMania(_) => arm!(Mania, OneKeyMania, Some(27), OneKey),
+                GameMod::TwoKeysMania(_) => arm!(Mania, TwoKeysMania, Some(29), TwoKeys),
+                GameMod::ThreeKeysMania(_) => arm!(Mania, ThreeKeysMania, Some(28), ThreeKeys),
+                GameMod::FourKeysMania(_) => arm!(Mania, FourKeysMania, Some(16), FourKeys),
+                GameMod::FiveKeysMania(_) => arm!(Mania, FiveKeysMania, Some(17), FiveKeys),
+                GameMod::SixKeysMania(_) => arm!(Mania, SixKeysMania, Some(18), SixKeys),
+                GameMod::SevenKeysMania(_) => arm!(Mania, SevenKeysMania, Some(19), SevenKeys),
+                GameMod::EightKeysMania(_) => arm!(Mania, EightKeysMania, Some(20), EightKeys),
+                GameMod::NineKeysMania(_) => arm!(Mania, NineKeysMania, Some(25), NineKeys),
+                GameMod::TenKeysMania(_) => arm!(Mania, TenKeysMania, None, TenKeys),
                 GameMod::AutoplayMania(_) => arm!(Mania, AutoplayMania, Some(12), Autoplay),
                 GameMod::CinemaMania(_) => arm!(Mania, CinemaMania, Some(23), Cinema),
                 GameMod::WindUpMania(_) => arm!(Mania, WindUpMania, None, WindUp),
@@ -10284,6 +10478,7 @@ pub enum GameMod {
     FreezeFrameOsu(FreezeFrameOsu),
     BubblesOsu(BubblesOsu),
     SynesthesiaOsu(SynesthesiaOsu),
+    DepthOsu(DepthOsu),
     TouchDeviceOsu(TouchDeviceOsu),
     ScoreV2Osu(ScoreV2Osu),
     EasyTaiko(EasyTaiko),
@@ -10348,16 +10543,6 @@ pub enum GameMod {
     HiddenMania(HiddenMania),
     FlashlightMania(FlashlightMania),
     AccuracyChallengeMania(AccuracyChallengeMania),
-    FourKeysMania(FourKeysMania),
-    FiveKeysMania(FiveKeysMania),
-    SixKeysMania(SixKeysMania),
-    SevenKeysMania(SevenKeysMania),
-    EightKeysMania(EightKeysMania),
-    NineKeysMania(NineKeysMania),
-    TenKeysMania(TenKeysMania),
-    OneKeyMania(OneKeyMania),
-    TwoKeysMania(TwoKeysMania),
-    ThreeKeysMania(ThreeKeysMania),
     RandomMania(RandomMania),
     DualStagesMania(DualStagesMania),
     MirrorMania(MirrorMania),
@@ -10366,6 +10551,16 @@ pub enum GameMod {
     InvertMania(InvertMania),
     ConstantSpeedMania(ConstantSpeedMania),
     HoldOffMania(HoldOffMania),
+    OneKeyMania(OneKeyMania),
+    TwoKeysMania(TwoKeysMania),
+    ThreeKeysMania(ThreeKeysMania),
+    FourKeysMania(FourKeysMania),
+    FiveKeysMania(FiveKeysMania),
+    SixKeysMania(SixKeysMania),
+    SevenKeysMania(SevenKeysMania),
+    EightKeysMania(EightKeysMania),
+    NineKeysMania(NineKeysMania),
+    TenKeysMania(TenKeysMania),
     AutoplayMania(AutoplayMania),
     CinemaMania(CinemaMania),
     WindUpMania(WindUpMania),
@@ -10424,6 +10619,7 @@ impl GameMod {
             ("FR", GameMode::Osu) => Some(Self::FreezeFrameOsu(Default::default())),
             ("BU", GameMode::Osu) => Some(Self::BubblesOsu(Default::default())),
             ("SY", GameMode::Osu) => Some(Self::SynesthesiaOsu(Default::default())),
+            ("DP", GameMode::Osu) => Some(Self::DepthOsu(Default::default())),
             ("TD", GameMode::Osu) => Some(Self::TouchDeviceOsu(Default::default())),
             ("SV2", GameMode::Osu) => Some(Self::ScoreV2Osu(Default::default())),
             ("EZ", GameMode::Taiko) => Some(Self::EasyTaiko(Default::default())),
@@ -10488,16 +10684,6 @@ impl GameMod {
             ("HD", GameMode::Mania) => Some(Self::HiddenMania(Default::default())),
             ("FL", GameMode::Mania) => Some(Self::FlashlightMania(Default::default())),
             ("AC", GameMode::Mania) => Some(Self::AccuracyChallengeMania(Default::default())),
-            ("4K", GameMode::Mania) => Some(Self::FourKeysMania(Default::default())),
-            ("5K", GameMode::Mania) => Some(Self::FiveKeysMania(Default::default())),
-            ("6K", GameMode::Mania) => Some(Self::SixKeysMania(Default::default())),
-            ("7K", GameMode::Mania) => Some(Self::SevenKeysMania(Default::default())),
-            ("8K", GameMode::Mania) => Some(Self::EightKeysMania(Default::default())),
-            ("9K", GameMode::Mania) => Some(Self::NineKeysMania(Default::default())),
-            ("10K", GameMode::Mania) => Some(Self::TenKeysMania(Default::default())),
-            ("1K", GameMode::Mania) => Some(Self::OneKeyMania(Default::default())),
-            ("2K", GameMode::Mania) => Some(Self::TwoKeysMania(Default::default())),
-            ("3K", GameMode::Mania) => Some(Self::ThreeKeysMania(Default::default())),
             ("RD", GameMode::Mania) => Some(Self::RandomMania(Default::default())),
             ("DS", GameMode::Mania) => Some(Self::DualStagesMania(Default::default())),
             ("MR", GameMode::Mania) => Some(Self::MirrorMania(Default::default())),
@@ -10506,6 +10692,16 @@ impl GameMod {
             ("IN", GameMode::Mania) => Some(Self::InvertMania(Default::default())),
             ("CS", GameMode::Mania) => Some(Self::ConstantSpeedMania(Default::default())),
             ("HO", GameMode::Mania) => Some(Self::HoldOffMania(Default::default())),
+            ("1K", GameMode::Mania) => Some(Self::OneKeyMania(Default::default())),
+            ("2K", GameMode::Mania) => Some(Self::TwoKeysMania(Default::default())),
+            ("3K", GameMode::Mania) => Some(Self::ThreeKeysMania(Default::default())),
+            ("4K", GameMode::Mania) => Some(Self::FourKeysMania(Default::default())),
+            ("5K", GameMode::Mania) => Some(Self::FiveKeysMania(Default::default())),
+            ("6K", GameMode::Mania) => Some(Self::SixKeysMania(Default::default())),
+            ("7K", GameMode::Mania) => Some(Self::SevenKeysMania(Default::default())),
+            ("8K", GameMode::Mania) => Some(Self::EightKeysMania(Default::default())),
+            ("9K", GameMode::Mania) => Some(Self::NineKeysMania(Default::default())),
+            ("10K", GameMode::Mania) => Some(Self::TenKeysMania(Default::default())),
             ("AT", GameMode::Mania) => Some(Self::AutoplayMania(Default::default())),
             ("CN", GameMode::Mania) => Some(Self::CinemaMania(Default::default())),
             ("WU", GameMode::Mania) => Some(Self::WindUpMania(Default::default())),
@@ -10563,6 +10759,7 @@ impl GameMod {
             Self::FreezeFrameOsu(_) => FreezeFrameOsu::acronym(),
             Self::BubblesOsu(_) => BubblesOsu::acronym(),
             Self::SynesthesiaOsu(_) => SynesthesiaOsu::acronym(),
+            Self::DepthOsu(_) => DepthOsu::acronym(),
             Self::TouchDeviceOsu(_) => TouchDeviceOsu::acronym(),
             Self::ScoreV2Osu(_) => ScoreV2Osu::acronym(),
             Self::EasyTaiko(_) => EasyTaiko::acronym(),
@@ -10627,16 +10824,6 @@ impl GameMod {
             Self::HiddenMania(_) => HiddenMania::acronym(),
             Self::FlashlightMania(_) => FlashlightMania::acronym(),
             Self::AccuracyChallengeMania(_) => AccuracyChallengeMania::acronym(),
-            Self::FourKeysMania(_) => FourKeysMania::acronym(),
-            Self::FiveKeysMania(_) => FiveKeysMania::acronym(),
-            Self::SixKeysMania(_) => SixKeysMania::acronym(),
-            Self::SevenKeysMania(_) => SevenKeysMania::acronym(),
-            Self::EightKeysMania(_) => EightKeysMania::acronym(),
-            Self::NineKeysMania(_) => NineKeysMania::acronym(),
-            Self::TenKeysMania(_) => TenKeysMania::acronym(),
-            Self::OneKeyMania(_) => OneKeyMania::acronym(),
-            Self::TwoKeysMania(_) => TwoKeysMania::acronym(),
-            Self::ThreeKeysMania(_) => ThreeKeysMania::acronym(),
             Self::RandomMania(_) => RandomMania::acronym(),
             Self::DualStagesMania(_) => DualStagesMania::acronym(),
             Self::MirrorMania(_) => MirrorMania::acronym(),
@@ -10645,6 +10832,16 @@ impl GameMod {
             Self::InvertMania(_) => InvertMania::acronym(),
             Self::ConstantSpeedMania(_) => ConstantSpeedMania::acronym(),
             Self::HoldOffMania(_) => HoldOffMania::acronym(),
+            Self::OneKeyMania(_) => OneKeyMania::acronym(),
+            Self::TwoKeysMania(_) => TwoKeysMania::acronym(),
+            Self::ThreeKeysMania(_) => ThreeKeysMania::acronym(),
+            Self::FourKeysMania(_) => FourKeysMania::acronym(),
+            Self::FiveKeysMania(_) => FiveKeysMania::acronym(),
+            Self::SixKeysMania(_) => SixKeysMania::acronym(),
+            Self::SevenKeysMania(_) => SevenKeysMania::acronym(),
+            Self::EightKeysMania(_) => EightKeysMania::acronym(),
+            Self::NineKeysMania(_) => NineKeysMania::acronym(),
+            Self::TenKeysMania(_) => TenKeysMania::acronym(),
             Self::AutoplayMania(_) => AutoplayMania::acronym(),
             Self::CinemaMania(_) => CinemaMania::acronym(),
             Self::WindUpMania(_) => WindUpMania::acronym(),
@@ -10701,6 +10898,7 @@ impl GameMod {
             Self::FreezeFrameOsu(_) => FreezeFrameOsu::incompatible_mods().collect(),
             Self::BubblesOsu(_) => BubblesOsu::incompatible_mods().collect(),
             Self::SynesthesiaOsu(_) => SynesthesiaOsu::incompatible_mods().collect(),
+            Self::DepthOsu(_) => DepthOsu::incompatible_mods().collect(),
             Self::TouchDeviceOsu(_) => TouchDeviceOsu::incompatible_mods().collect(),
             Self::ScoreV2Osu(_) => ScoreV2Osu::incompatible_mods().collect(),
             Self::EasyTaiko(_) => EasyTaiko::incompatible_mods().collect(),
@@ -10771,16 +10969,6 @@ impl GameMod {
             Self::AccuracyChallengeMania(_) => {
                 AccuracyChallengeMania::incompatible_mods().collect()
             }
-            Self::FourKeysMania(_) => FourKeysMania::incompatible_mods().collect(),
-            Self::FiveKeysMania(_) => FiveKeysMania::incompatible_mods().collect(),
-            Self::SixKeysMania(_) => SixKeysMania::incompatible_mods().collect(),
-            Self::SevenKeysMania(_) => SevenKeysMania::incompatible_mods().collect(),
-            Self::EightKeysMania(_) => EightKeysMania::incompatible_mods().collect(),
-            Self::NineKeysMania(_) => NineKeysMania::incompatible_mods().collect(),
-            Self::TenKeysMania(_) => TenKeysMania::incompatible_mods().collect(),
-            Self::OneKeyMania(_) => OneKeyMania::incompatible_mods().collect(),
-            Self::TwoKeysMania(_) => TwoKeysMania::incompatible_mods().collect(),
-            Self::ThreeKeysMania(_) => ThreeKeysMania::incompatible_mods().collect(),
             Self::RandomMania(_) => RandomMania::incompatible_mods().collect(),
             Self::DualStagesMania(_) => DualStagesMania::incompatible_mods().collect(),
             Self::MirrorMania(_) => MirrorMania::incompatible_mods().collect(),
@@ -10789,6 +10977,16 @@ impl GameMod {
             Self::InvertMania(_) => InvertMania::incompatible_mods().collect(),
             Self::ConstantSpeedMania(_) => ConstantSpeedMania::incompatible_mods().collect(),
             Self::HoldOffMania(_) => HoldOffMania::incompatible_mods().collect(),
+            Self::OneKeyMania(_) => OneKeyMania::incompatible_mods().collect(),
+            Self::TwoKeysMania(_) => TwoKeysMania::incompatible_mods().collect(),
+            Self::ThreeKeysMania(_) => ThreeKeysMania::incompatible_mods().collect(),
+            Self::FourKeysMania(_) => FourKeysMania::incompatible_mods().collect(),
+            Self::FiveKeysMania(_) => FiveKeysMania::incompatible_mods().collect(),
+            Self::SixKeysMania(_) => SixKeysMania::incompatible_mods().collect(),
+            Self::SevenKeysMania(_) => SevenKeysMania::incompatible_mods().collect(),
+            Self::EightKeysMania(_) => EightKeysMania::incompatible_mods().collect(),
+            Self::NineKeysMania(_) => NineKeysMania::incompatible_mods().collect(),
+            Self::TenKeysMania(_) => TenKeysMania::incompatible_mods().collect(),
             Self::AutoplayMania(_) => AutoplayMania::incompatible_mods().collect(),
             Self::CinemaMania(_) => CinemaMania::incompatible_mods().collect(),
             Self::WindUpMania(_) => WindUpMania::incompatible_mods().collect(),
@@ -10845,6 +11043,7 @@ impl GameMod {
             Self::FreezeFrameOsu(_) => FreezeFrameOsu::description(),
             Self::BubblesOsu(_) => BubblesOsu::description(),
             Self::SynesthesiaOsu(_) => SynesthesiaOsu::description(),
+            Self::DepthOsu(_) => DepthOsu::description(),
             Self::TouchDeviceOsu(_) => TouchDeviceOsu::description(),
             Self::ScoreV2Osu(_) => ScoreV2Osu::description(),
             Self::EasyTaiko(_) => EasyTaiko::description(),
@@ -10909,16 +11108,6 @@ impl GameMod {
             Self::HiddenMania(_) => HiddenMania::description(),
             Self::FlashlightMania(_) => FlashlightMania::description(),
             Self::AccuracyChallengeMania(_) => AccuracyChallengeMania::description(),
-            Self::FourKeysMania(_) => FourKeysMania::description(),
-            Self::FiveKeysMania(_) => FiveKeysMania::description(),
-            Self::SixKeysMania(_) => SixKeysMania::description(),
-            Self::SevenKeysMania(_) => SevenKeysMania::description(),
-            Self::EightKeysMania(_) => EightKeysMania::description(),
-            Self::NineKeysMania(_) => NineKeysMania::description(),
-            Self::TenKeysMania(_) => TenKeysMania::description(),
-            Self::OneKeyMania(_) => OneKeyMania::description(),
-            Self::TwoKeysMania(_) => TwoKeysMania::description(),
-            Self::ThreeKeysMania(_) => ThreeKeysMania::description(),
             Self::RandomMania(_) => RandomMania::description(),
             Self::DualStagesMania(_) => DualStagesMania::description(),
             Self::MirrorMania(_) => MirrorMania::description(),
@@ -10927,6 +11116,16 @@ impl GameMod {
             Self::InvertMania(_) => InvertMania::description(),
             Self::ConstantSpeedMania(_) => ConstantSpeedMania::description(),
             Self::HoldOffMania(_) => HoldOffMania::description(),
+            Self::OneKeyMania(_) => OneKeyMania::description(),
+            Self::TwoKeysMania(_) => TwoKeysMania::description(),
+            Self::ThreeKeysMania(_) => ThreeKeysMania::description(),
+            Self::FourKeysMania(_) => FourKeysMania::description(),
+            Self::FiveKeysMania(_) => FiveKeysMania::description(),
+            Self::SixKeysMania(_) => SixKeysMania::description(),
+            Self::SevenKeysMania(_) => SevenKeysMania::description(),
+            Self::EightKeysMania(_) => EightKeysMania::description(),
+            Self::NineKeysMania(_) => NineKeysMania::description(),
+            Self::TenKeysMania(_) => TenKeysMania::description(),
             Self::AutoplayMania(_) => AutoplayMania::description(),
             Self::CinemaMania(_) => CinemaMania::description(),
             Self::WindUpMania(_) => WindUpMania::description(),
@@ -10983,6 +11182,7 @@ impl GameMod {
             Self::FreezeFrameOsu(_) => FreezeFrameOsu::kind(),
             Self::BubblesOsu(_) => BubblesOsu::kind(),
             Self::SynesthesiaOsu(_) => SynesthesiaOsu::kind(),
+            Self::DepthOsu(_) => DepthOsu::kind(),
             Self::TouchDeviceOsu(_) => TouchDeviceOsu::kind(),
             Self::ScoreV2Osu(_) => ScoreV2Osu::kind(),
             Self::EasyTaiko(_) => EasyTaiko::kind(),
@@ -11047,16 +11247,6 @@ impl GameMod {
             Self::HiddenMania(_) => HiddenMania::kind(),
             Self::FlashlightMania(_) => FlashlightMania::kind(),
             Self::AccuracyChallengeMania(_) => AccuracyChallengeMania::kind(),
-            Self::FourKeysMania(_) => FourKeysMania::kind(),
-            Self::FiveKeysMania(_) => FiveKeysMania::kind(),
-            Self::SixKeysMania(_) => SixKeysMania::kind(),
-            Self::SevenKeysMania(_) => SevenKeysMania::kind(),
-            Self::EightKeysMania(_) => EightKeysMania::kind(),
-            Self::NineKeysMania(_) => NineKeysMania::kind(),
-            Self::TenKeysMania(_) => TenKeysMania::kind(),
-            Self::OneKeyMania(_) => OneKeyMania::kind(),
-            Self::TwoKeysMania(_) => TwoKeysMania::kind(),
-            Self::ThreeKeysMania(_) => ThreeKeysMania::kind(),
             Self::RandomMania(_) => RandomMania::kind(),
             Self::DualStagesMania(_) => DualStagesMania::kind(),
             Self::MirrorMania(_) => MirrorMania::kind(),
@@ -11065,6 +11255,16 @@ impl GameMod {
             Self::InvertMania(_) => InvertMania::kind(),
             Self::ConstantSpeedMania(_) => ConstantSpeedMania::kind(),
             Self::HoldOffMania(_) => HoldOffMania::kind(),
+            Self::OneKeyMania(_) => OneKeyMania::kind(),
+            Self::TwoKeysMania(_) => TwoKeysMania::kind(),
+            Self::ThreeKeysMania(_) => ThreeKeysMania::kind(),
+            Self::FourKeysMania(_) => FourKeysMania::kind(),
+            Self::FiveKeysMania(_) => FiveKeysMania::kind(),
+            Self::SixKeysMania(_) => SixKeysMania::kind(),
+            Self::SevenKeysMania(_) => SevenKeysMania::kind(),
+            Self::EightKeysMania(_) => EightKeysMania::kind(),
+            Self::NineKeysMania(_) => NineKeysMania::kind(),
+            Self::TenKeysMania(_) => TenKeysMania::kind(),
             Self::AutoplayMania(_) => AutoplayMania::kind(),
             Self::CinemaMania(_) => CinemaMania::kind(),
             Self::WindUpMania(_) => WindUpMania::kind(),
@@ -11140,18 +11340,18 @@ impl GameMod {
             Self::FadeInMania(_) => Some(FadeInMania::bits()),
             Self::HiddenMania(_) => Some(HiddenMania::bits()),
             Self::FlashlightMania(_) => Some(FlashlightMania::bits()),
+            Self::RandomMania(_) => Some(RandomMania::bits()),
+            Self::DualStagesMania(_) => Some(DualStagesMania::bits()),
+            Self::MirrorMania(_) => Some(MirrorMania::bits()),
+            Self::OneKeyMania(_) => Some(OneKeyMania::bits()),
+            Self::TwoKeysMania(_) => Some(TwoKeysMania::bits()),
+            Self::ThreeKeysMania(_) => Some(ThreeKeysMania::bits()),
             Self::FourKeysMania(_) => Some(FourKeysMania::bits()),
             Self::FiveKeysMania(_) => Some(FiveKeysMania::bits()),
             Self::SixKeysMania(_) => Some(SixKeysMania::bits()),
             Self::SevenKeysMania(_) => Some(SevenKeysMania::bits()),
             Self::EightKeysMania(_) => Some(EightKeysMania::bits()),
             Self::NineKeysMania(_) => Some(NineKeysMania::bits()),
-            Self::OneKeyMania(_) => Some(OneKeyMania::bits()),
-            Self::TwoKeysMania(_) => Some(TwoKeysMania::bits()),
-            Self::ThreeKeysMania(_) => Some(ThreeKeysMania::bits()),
-            Self::RandomMania(_) => Some(RandomMania::bits()),
-            Self::DualStagesMania(_) => Some(DualStagesMania::bits()),
-            Self::MirrorMania(_) => Some(MirrorMania::bits()),
             Self::AutoplayMania(_) => Some(AutoplayMania::bits()),
             Self::CinemaMania(_) => Some(CinemaMania::bits()),
             Self::ScoreV2Mania(_) => Some(ScoreV2Mania::bits()),
@@ -11205,6 +11405,7 @@ impl GameMod {
             | Self::FreezeFrameOsu(_)
             | Self::BubblesOsu(_)
             | Self::SynesthesiaOsu(_)
+            | Self::DepthOsu(_)
             | Self::TouchDeviceOsu(_)
             | Self::ScoreV2Osu(_) => GameMode::Osu,
             Self::EasyTaiko(_)
@@ -11269,16 +11470,6 @@ impl GameMod {
             | Self::HiddenMania(_)
             | Self::FlashlightMania(_)
             | Self::AccuracyChallengeMania(_)
-            | Self::FourKeysMania(_)
-            | Self::FiveKeysMania(_)
-            | Self::SixKeysMania(_)
-            | Self::SevenKeysMania(_)
-            | Self::EightKeysMania(_)
-            | Self::NineKeysMania(_)
-            | Self::TenKeysMania(_)
-            | Self::OneKeyMania(_)
-            | Self::TwoKeysMania(_)
-            | Self::ThreeKeysMania(_)
             | Self::RandomMania(_)
             | Self::DualStagesMania(_)
             | Self::MirrorMania(_)
@@ -11287,6 +11478,16 @@ impl GameMod {
             | Self::InvertMania(_)
             | Self::ConstantSpeedMania(_)
             | Self::HoldOffMania(_)
+            | Self::OneKeyMania(_)
+            | Self::TwoKeysMania(_)
+            | Self::ThreeKeysMania(_)
+            | Self::FourKeysMania(_)
+            | Self::FiveKeysMania(_)
+            | Self::SixKeysMania(_)
+            | Self::SevenKeysMania(_)
+            | Self::EightKeysMania(_)
+            | Self::NineKeysMania(_)
+            | Self::TenKeysMania(_)
             | Self::AutoplayMania(_)
             | Self::CinemaMania(_)
             | Self::WindUpMania(_)
@@ -11343,6 +11544,7 @@ impl GameMod {
             Self::FreezeFrameOsu(_) => GameModIntermode::FreezeFrame,
             Self::BubblesOsu(_) => GameModIntermode::Bubbles,
             Self::SynesthesiaOsu(_) => GameModIntermode::Synesthesia,
+            Self::DepthOsu(_) => GameModIntermode::Depth,
             Self::TouchDeviceOsu(_) => GameModIntermode::TouchDevice,
             Self::ScoreV2Osu(_) => GameModIntermode::ScoreV2,
             Self::EasyTaiko(_) => GameModIntermode::Easy,
@@ -11407,16 +11609,6 @@ impl GameMod {
             Self::HiddenMania(_) => GameModIntermode::Hidden,
             Self::FlashlightMania(_) => GameModIntermode::Flashlight,
             Self::AccuracyChallengeMania(_) => GameModIntermode::AccuracyChallenge,
-            Self::FourKeysMania(_) => GameModIntermode::FourKeys,
-            Self::FiveKeysMania(_) => GameModIntermode::FiveKeys,
-            Self::SixKeysMania(_) => GameModIntermode::SixKeys,
-            Self::SevenKeysMania(_) => GameModIntermode::SevenKeys,
-            Self::EightKeysMania(_) => GameModIntermode::EightKeys,
-            Self::NineKeysMania(_) => GameModIntermode::NineKeys,
-            Self::TenKeysMania(_) => GameModIntermode::TenKeys,
-            Self::OneKeyMania(_) => GameModIntermode::OneKey,
-            Self::TwoKeysMania(_) => GameModIntermode::TwoKeys,
-            Self::ThreeKeysMania(_) => GameModIntermode::ThreeKeys,
             Self::RandomMania(_) => GameModIntermode::Random,
             Self::DualStagesMania(_) => GameModIntermode::DualStages,
             Self::MirrorMania(_) => GameModIntermode::Mirror,
@@ -11425,6 +11617,16 @@ impl GameMod {
             Self::InvertMania(_) => GameModIntermode::Invert,
             Self::ConstantSpeedMania(_) => GameModIntermode::ConstantSpeed,
             Self::HoldOffMania(_) => GameModIntermode::HoldOff,
+            Self::OneKeyMania(_) => GameModIntermode::OneKey,
+            Self::TwoKeysMania(_) => GameModIntermode::TwoKeys,
+            Self::ThreeKeysMania(_) => GameModIntermode::ThreeKeys,
+            Self::FourKeysMania(_) => GameModIntermode::FourKeys,
+            Self::FiveKeysMania(_) => GameModIntermode::FiveKeys,
+            Self::SixKeysMania(_) => GameModIntermode::SixKeys,
+            Self::SevenKeysMania(_) => GameModIntermode::SevenKeys,
+            Self::EightKeysMania(_) => GameModIntermode::EightKeys,
+            Self::NineKeysMania(_) => GameModIntermode::NineKeys,
+            Self::TenKeysMania(_) => GameModIntermode::TenKeys,
             Self::AutoplayMania(_) => GameModIntermode::Autoplay,
             Self::CinemaMania(_) => GameModIntermode::Cinema,
             Self::WindUpMania(_) => GameModIntermode::WindUp,
@@ -11504,6 +11706,7 @@ impl<'de> Visitor<'de> for GameModSettings<'de> {
             ("FR", GameMode::Osu) => GameMod::FreezeFrameOsu(Deserialize::deserialize(d)?),
             ("BU", GameMode::Osu) => GameMod::BubblesOsu(Deserialize::deserialize(d)?),
             ("SY", GameMode::Osu) => GameMod::SynesthesiaOsu(Deserialize::deserialize(d)?),
+            ("DP", GameMode::Osu) => GameMod::DepthOsu(Deserialize::deserialize(d)?),
             ("TD", GameMode::Osu) => GameMod::TouchDeviceOsu(Deserialize::deserialize(d)?),
             ("SV2", GameMode::Osu) => GameMod::ScoreV2Osu(Deserialize::deserialize(d)?),
             ("EZ", GameMode::Taiko) => GameMod::EasyTaiko(Deserialize::deserialize(d)?),
@@ -11574,16 +11777,6 @@ impl<'de> Visitor<'de> for GameModSettings<'de> {
             ("AC", GameMode::Mania) => {
                 GameMod::AccuracyChallengeMania(Deserialize::deserialize(d)?)
             }
-            ("4K", GameMode::Mania) => GameMod::FourKeysMania(Deserialize::deserialize(d)?),
-            ("5K", GameMode::Mania) => GameMod::FiveKeysMania(Deserialize::deserialize(d)?),
-            ("6K", GameMode::Mania) => GameMod::SixKeysMania(Deserialize::deserialize(d)?),
-            ("7K", GameMode::Mania) => GameMod::SevenKeysMania(Deserialize::deserialize(d)?),
-            ("8K", GameMode::Mania) => GameMod::EightKeysMania(Deserialize::deserialize(d)?),
-            ("9K", GameMode::Mania) => GameMod::NineKeysMania(Deserialize::deserialize(d)?),
-            ("10K", GameMode::Mania) => GameMod::TenKeysMania(Deserialize::deserialize(d)?),
-            ("1K", GameMode::Mania) => GameMod::OneKeyMania(Deserialize::deserialize(d)?),
-            ("2K", GameMode::Mania) => GameMod::TwoKeysMania(Deserialize::deserialize(d)?),
-            ("3K", GameMode::Mania) => GameMod::ThreeKeysMania(Deserialize::deserialize(d)?),
             ("RD", GameMode::Mania) => GameMod::RandomMania(Deserialize::deserialize(d)?),
             ("DS", GameMode::Mania) => GameMod::DualStagesMania(Deserialize::deserialize(d)?),
             ("MR", GameMode::Mania) => GameMod::MirrorMania(Deserialize::deserialize(d)?),
@@ -11592,6 +11785,16 @@ impl<'de> Visitor<'de> for GameModSettings<'de> {
             ("IN", GameMode::Mania) => GameMod::InvertMania(Deserialize::deserialize(d)?),
             ("CS", GameMode::Mania) => GameMod::ConstantSpeedMania(Deserialize::deserialize(d)?),
             ("HO", GameMode::Mania) => GameMod::HoldOffMania(Deserialize::deserialize(d)?),
+            ("1K", GameMode::Mania) => GameMod::OneKeyMania(Deserialize::deserialize(d)?),
+            ("2K", GameMode::Mania) => GameMod::TwoKeysMania(Deserialize::deserialize(d)?),
+            ("3K", GameMode::Mania) => GameMod::ThreeKeysMania(Deserialize::deserialize(d)?),
+            ("4K", GameMode::Mania) => GameMod::FourKeysMania(Deserialize::deserialize(d)?),
+            ("5K", GameMode::Mania) => GameMod::FiveKeysMania(Deserialize::deserialize(d)?),
+            ("6K", GameMode::Mania) => GameMod::SixKeysMania(Deserialize::deserialize(d)?),
+            ("7K", GameMode::Mania) => GameMod::SevenKeysMania(Deserialize::deserialize(d)?),
+            ("8K", GameMode::Mania) => GameMod::EightKeysMania(Deserialize::deserialize(d)?),
+            ("9K", GameMode::Mania) => GameMod::NineKeysMania(Deserialize::deserialize(d)?),
+            ("10K", GameMode::Mania) => GameMod::TenKeysMania(Deserialize::deserialize(d)?),
             ("AT", GameMode::Mania) => GameMod::AutoplayMania(Deserialize::deserialize(d)?),
             ("CN", GameMode::Mania) => GameMod::CinemaMania(Deserialize::deserialize(d)?),
             ("WU", GameMode::Mania) => GameMod::WindUpMania(Deserialize::deserialize(d)?),
@@ -11657,7 +11860,7 @@ impl serde::Serialize for GameMod {
                 }
             }
             Self::HalfTimeOsu(m) => {
-                let has_some = m.speed_change.is_some();
+                let has_some = m.speed_change.is_some() || m.adjust_pitch.is_some();
                 if has_some {
                     s.serialize_entry("settings", m)?;
                 }
@@ -11681,7 +11884,7 @@ impl serde::Serialize for GameMod {
                 }
             }
             Self::DoubleTimeOsu(m) => {
-                let has_some = m.speed_change.is_some();
+                let has_some = m.speed_change.is_some() || m.adjust_pitch.is_some();
                 if has_some {
                     s.serialize_entry("settings", m)?;
                 }
@@ -11734,7 +11937,8 @@ impl serde::Serialize for GameMod {
                 let has_some = m.no_slider_head_accuracy.is_some()
                     || m.classic_note_lock.is_some()
                     || m.always_play_tail_sample.is_some()
-                    || m.fade_hit_circle_early.is_some();
+                    || m.fade_hit_circle_early.is_some()
+                    || m.classic_health.is_some();
                 if has_some {
                     s.serialize_entry("settings", m)?;
                 }
@@ -11828,8 +12032,14 @@ impl serde::Serialize for GameMod {
                     s.serialize_entry("settings", m)?;
                 }
             }
+            Self::DepthOsu(m) => {
+                let has_some = m.max_depth.is_some() || m.show_approach_circles.is_some();
+                if has_some {
+                    s.serialize_entry("settings", m)?;
+                }
+            }
             Self::HalfTimeTaiko(m) => {
-                let has_some = m.speed_change.is_some();
+                let has_some = m.speed_change.is_some() || m.adjust_pitch.is_some();
                 if has_some {
                     s.serialize_entry("settings", m)?;
                 }
@@ -11853,7 +12063,7 @@ impl serde::Serialize for GameMod {
                 }
             }
             Self::DoubleTimeTaiko(m) => {
-                let has_some = m.speed_change.is_some();
+                let has_some = m.speed_change.is_some() || m.adjust_pitch.is_some();
                 if has_some {
                     s.serialize_entry("settings", m)?;
                 }
@@ -11929,7 +12139,7 @@ impl serde::Serialize for GameMod {
                 }
             }
             Self::HalfTimeCatch(m) => {
-                let has_some = m.speed_change.is_some();
+                let has_some = m.speed_change.is_some() || m.adjust_pitch.is_some();
                 if has_some {
                     s.serialize_entry("settings", m)?;
                 }
@@ -11953,7 +12163,7 @@ impl serde::Serialize for GameMod {
                 }
             }
             Self::DoubleTimeCatch(m) => {
-                let has_some = m.speed_change.is_some();
+                let has_some = m.speed_change.is_some() || m.adjust_pitch.is_some();
                 if has_some {
                     s.serialize_entry("settings", m)?;
                 }
@@ -12025,7 +12235,7 @@ impl serde::Serialize for GameMod {
                 }
             }
             Self::HalfTimeMania(m) => {
-                let has_some = m.speed_change.is_some();
+                let has_some = m.speed_change.is_some() || m.adjust_pitch.is_some();
                 if has_some {
                     s.serialize_entry("settings", m)?;
                 }
@@ -12049,7 +12259,7 @@ impl serde::Serialize for GameMod {
                 }
             }
             Self::DoubleTimeMania(m) => {
-                let has_some = m.speed_change.is_some();
+                let has_some = m.speed_change.is_some() || m.adjust_pitch.is_some();
                 if has_some {
                     s.serialize_entry("settings", m)?;
                 }
@@ -12211,6 +12421,9 @@ macro_rules! mods_inner {
     };
     ( [ $( $mode:ident )? ] DF $( $rest:tt )* ) => {
         mods_inner!( [ $( $mode )? ] $( $rest )* Deflate )
+    };
+    ( [ $( $mode:ident )? ] DP $( $rest:tt )* ) => {
+        mods_inner!( [ $( $mode )? ] $( $rest )* Depth )
     };
     ( [ $( $mode:ident )? ] DS $( $rest:tt )* ) => {
         mods_inner!( [ $( $mode )? ] $( $rest )* DualStages )

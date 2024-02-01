@@ -142,8 +142,16 @@ impl<'de> Deserialize<'de> for Score {
             mapset: Option<Box<Beatmapset>>,
             rank_global: Option<u32>,
             user: Option<Box<User>>,
-            weight: Option<ScoreWeight>,
+            // TODO: This is just a temporary fix for <https://github.com/ppy/osu-web/issues/10932>.
+            // Once the issue is resolved, `Option<ScoreWeight>` can be used again.
+            weight: Option<MaybeWeight>,
         }
+
+        #[derive(Deserialize)]
+        struct MaybeWeight {
+            percentage: f32,
+            pp: Option<f32>,
+        };
 
         let score_raw = <ScoreRawMods as serde::Deserialize>::deserialize(d)?;
         let mut d = serde_json::Deserializer::from_str(score_raw.mods.get());
@@ -181,7 +189,12 @@ impl<'de> Deserialize<'de> for Score {
             mapset: score_raw.mapset,
             rank_global: score_raw.rank_global,
             user: score_raw.user,
-            weight: score_raw.weight,
+            weight: score_raw.weight.and_then(|weight| {
+                Some(ScoreWeight {
+                    percentage: weight.percentage,
+                    pp: weight.pp?,
+                })
+            }),
         })
     }
 }

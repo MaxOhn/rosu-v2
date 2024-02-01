@@ -51,6 +51,7 @@ impl BeatmapUserScore {
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct Score {
     pub ranked: Option<bool>,
+    pub preserve: Option<bool>,
     pub maximum_statistics: ScoreStatistics,
     pub mods: GameMods,
     pub statistics: ScoreStatistics,
@@ -102,6 +103,7 @@ impl<'de> Deserialize<'de> for Score {
         #[serde(deny_unknown_fields)]
         struct ScoreRawMods {
             ranked: Option<bool>,
+            preserve: Option<bool>,
             maximum_statistics: ScoreStatistics,
             mods: Box<RawValue>,
             statistics: ScoreStatistics,
@@ -158,6 +160,7 @@ impl<'de> Deserialize<'de> for Score {
 
         Ok(Score {
             ranked: score_raw.ranked,
+            preserve: score_raw.preserve,
             maximum_statistics: score_raw.maximum_statistics,
             mods: ModeAsSeed::<GameMods>::new(score_raw.mode)
                 .deserialize(&mut d)

@@ -513,6 +513,7 @@ mod types {
     pub(super) fn get_score() -> Score {
         Score {
             ranked: Some(true),
+            preserve: Some(true),
             accuracy: 98.76,
             ended_at: get_date(),
             passed: true,

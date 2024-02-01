@@ -828,6 +828,7 @@ mod tests {
 
         mods.insert(GameMod::DoubleTimeOsu(DoubleTimeOsu {
             speed_change: Some(1.25),
+            adjust_pitch: Some(false),
         }));
         assert_eq!(mods.clock_rate(), Some(1.25));
     }

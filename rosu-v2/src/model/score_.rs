@@ -223,10 +223,8 @@ impl Score {
     }
 
     /// Calculate the grade of the score.
-    /// Should only be used in case the score was modified and the internal `grade` field is no longer correct.
     ///
-    /// The accuracy is only required for `GameMode::Mania` and `GameMode::Catch` scores and is
-    /// calculated internally if not provided.
+    /// The accuracy is calculated internally if not provided.
     ///
     /// This method assumes the score to be a pass i.e. the amount of passed
     /// objects is equal to the beatmaps total amount of objects. Otherwise,
@@ -235,10 +233,28 @@ impl Score {
         let passed_objects = self.total_hits();
 
         match self.mode {
-            GameMode::Osu => osu_grade(self, passed_objects),
-            GameMode::Taiko => taiko_grade(self, passed_objects),
-            GameMode::Catch => ctb_grade(self, accuracy),
+            GameMode::Osu => osu_grade(self, passed_objects, accuracy),
+            GameMode::Taiko => taiko_grade(self, passed_objects, accuracy),
+            GameMode::Catch => catch_grade(self, accuracy),
             GameMode::Mania => mania_grade(self, passed_objects, accuracy),
+        }
+    }
+
+    /// Calculate the legacy grade of the score.
+    ///
+    /// The accuracy is calculated internally if not provided.
+    ///
+    /// This method assumes the score to be a pass i.e. the amount of passed
+    /// objects is equal to the beatmaps total amount of objects. Otherwise,
+    /// it may produce an incorrect grade.
+    pub fn legacy_grade(&self, accuracy: Option<f32>) -> Grade {
+        let passed_objects = self.total_hits();
+
+        match self.mode {
+            GameMode::Osu => osu_grade_legacy(self, passed_objects),
+            GameMode::Taiko => taiko_grade_legacy(self, passed_objects),
+            GameMode::Catch => catch_grade_legacy(self, accuracy),
+            GameMode::Mania => mania_grade_legacy(self, passed_objects, accuracy),
         }
     }
 }
@@ -464,117 +480,154 @@ pub struct UserAttributes {
     pub pin: Option<()>,
 }
 
-fn osu_grade(score: &Score, passed_objects: u32) -> Grade {
-    todo!()
-    // if score.statistics.count_300 == passed_objects {
-    //     return if score.mods.contains_any(mods!(HD FL)) {
-    //         Grade::XH
-    //     } else {
-    //         Grade::X
-    //     };
-    // }
-
-    // let stats = &score.statistics;
-
-    // let ratio300 = stats.count_300 as f32 / passed_objects as f32;
-    // let ratio50 = stats.count_50 as f32 / passed_objects as f32;
-
-    // if ratio300 > 0.9 && ratio50 < 0.01 && stats.count_miss == 0 {
-    //     if score.mods.contains_any(mods!(HD FL)) {
-    //         Grade::SH
-    //     } else {
-    //         Grade::S
-    //     }
-    // } else if ratio300 > 0.9 || (ratio300 > 0.8 && stats.count_miss == 0) {
-    //     Grade::A
-    // } else if ratio300 > 0.8 || (ratio300 > 0.7 && stats.count_miss == 0) {
-    //     Grade::B
-    // } else if ratio300 > 0.6 {
-    //     Grade::C
-    // } else {
-    //     Grade::D
-    // }
-}
-
-fn mania_grade(score: &Score, passed_objects: u32, accuracy: Option<f32>) -> Grade {
-    todo!()
-    // if score.statistics.count_geki == passed_objects {
-    //     return if score.mods.contains_any(mods!(HD FL FI)) {
-    //         Grade::XH
-    //     } else {
-    //         Grade::X
-    //     };
-    // }
-
-    // let accuracy = accuracy.unwrap_or_else(|| score.accuracy());
-
-    // if accuracy > 95.0 {
-    //     if score.mods.contains_any(mods!(HD FL FI)) {
-    //         Grade::SH
-    //     } else {
-    //         Grade::S
-    //     }
-    // } else if accuracy > 90.0 {
-    //     Grade::A
-    // } else if accuracy > 80.0 {
-    //     Grade::B
-    // } else if accuracy > 70.0 {
-    //     Grade::C
-    // } else {
-    //     Grade::D
-    // }
-}
-
-fn taiko_grade(score: &Score, passed_objects: u32) -> Grade {
-    todo!()
-    // if score.statistics.count_300 == passed_objects {
-    //     return if score.mods.contains_any(mods!(HD FL)) {
-    //         Grade::XH
-    //     } else {
-    //         Grade::X
-    //     };
-    // }
-
-    // let stats = &score.statistics;
-    // let ratio300 = stats.count_300 as f32 / passed_objects as f32;
-
-    // if ratio300 > 0.9 && stats.count_miss == 0 {
-    //     if score.mods.contains_any(mods!(HD FL)) {
-    //         Grade::SH
-    //     } else {
-    //         Grade::S
-    //     }
-    // } else if ratio300 > 0.9 || (ratio300 > 0.8 && stats.count_miss == 0) {
-    //     Grade::A
-    // } else if ratio300 > 0.8 || (ratio300 > 0.7 && stats.count_miss == 0) {
-    //     Grade::B
-    // } else if ratio300 > 0.6 {
-    //     Grade::C
-    // } else {
-    //     Grade::D
-    // }
-}
-
-fn ctb_grade(score: &Score, accuracy: Option<f32>) -> Grade {
-    let accuracy = accuracy.unwrap_or_else(|| score.accuracy());
-
-    if (100.0 - accuracy).abs() <= std::f32::EPSILON {
-        if score.mods.contains_any(mods!(HD FL)) {
+fn osu_grade(score: &Score, passed_objects: u32, accuracy: Option<f32>) -> Grade {
+    if score.statistics.great == passed_objects {
+        return if score.mods.contains_any(mods!(HD FL)) {
             Grade::XH
         } else {
             Grade::X
+        };
+    }
+
+    let accuracy = accuracy.unwrap_or_else(|| score.accuracy());
+
+    if accuracy >= 95.0 && score.statistics.miss == 0 {
+        if score.mods.contains_any(mods!(HD FL FI)) {
+            Grade::SH
+        } else {
+            Grade::S
         }
-    } else if accuracy > 98.0 {
+    } else if accuracy >= 90.0 {
+        Grade::A
+    } else if accuracy >= 80.0 {
+        Grade::B
+    } else if accuracy >= 70.0 {
+        Grade::C
+    } else {
+        Grade::D
+    }
+}
+
+fn taiko_grade(score: &Score, passed_objects: u32, accuracy: Option<f32>) -> Grade {
+    osu_grade(score, passed_objects, accuracy)
+}
+
+fn catch_grade(score: &Score, accuracy: Option<f32>) -> Grade {
+    catch_grade_legacy(score, accuracy)
+}
+
+fn mania_grade(score: &Score, passed_objects: u32, accuracy: Option<f32>) -> Grade {
+    mania_grade_legacy(score, passed_objects, accuracy)
+}
+
+fn osu_grade_legacy(score: &Score, passed_objects: u32) -> Grade {
+    if score.statistics.great == passed_objects {
+        return if score.mods.contains_any(mods!(HD FL)) {
+            Grade::XH
+        } else {
+            Grade::X
+        };
+    }
+
+    let stats = &score.statistics;
+
+    let ratio300 = stats.great as f32 / passed_objects as f32;
+    let ratio50 = stats.meh as f32 / passed_objects as f32;
+
+    if ratio300 > 0.9 && ratio50 < 0.01 && stats.miss == 0 {
         if score.mods.contains_any(mods!(HD FL)) {
             Grade::SH
         } else {
             Grade::S
         }
-    } else if accuracy > 94.0 {
+    } else if ratio300 > 0.9 || (ratio300 > 0.8 && stats.miss == 0) {
         Grade::A
-    } else if accuracy > 90.0 {
+    } else if ratio300 > 0.8 || (ratio300 > 0.7 && stats.miss == 0) {
         Grade::B
-    } else if accuracy > 85.0 {
+    } else if ratio300 > 0.6 {
+        Grade::C
+    } else {
+        Grade::D
+    }
+}
+
+fn taiko_grade_legacy(score: &Score, passed_objects: u32) -> Grade {
+    if score.statistics.great == passed_objects {
+        return if score.mods.contains_any(mods!(HD FL)) {
+            Grade::XH
+        } else {
+            Grade::X
+        };
+    }
+
+    let stats = &score.statistics;
+    let ratio300 = stats.great as f32 / passed_objects as f32;
+
+    if ratio300 > 0.9 && stats.miss == 0 {
+        if score.mods.contains_any(mods!(HD FL)) {
+            Grade::SH
+        } else {
+            Grade::S
+        }
+    } else if ratio300 > 0.9 || (ratio300 > 0.8 && stats.miss == 0) {
+        Grade::A
+    } else if ratio300 > 0.8 || (ratio300 > 0.7 && stats.miss == 0) {
+        Grade::B
+    } else if ratio300 > 0.6 {
+        Grade::C
+    } else {
+        Grade::D
+    }
+}
+
+fn catch_grade_legacy(score: &Score, accuracy: Option<f32>) -> Grade {
+    let accuracy = accuracy.unwrap_or_else(|| score.accuracy());
+
+    if (100.0 - accuracy).abs() < std::f32::EPSILON {
+        if score.mods.contains_any(mods!(HD FL)) {
+            Grade::XH
+        } else {
+            Grade::X
+        }
+    } else if accuracy >= 98.0 {
+        if score.mods.contains_any(mods!(HD FL)) {
+            Grade::SH
+        } else {
+            Grade::S
+        }
+    } else if accuracy >= 94.0 {
+        Grade::A
+    } else if accuracy >= 90.0 {
+        Grade::B
+    } else if accuracy >= 85.0 {
+        Grade::C
+    } else {
+        Grade::D
+    }
+}
+
+fn mania_grade_legacy(score: &Score, passed_objects: u32, accuracy: Option<f32>) -> Grade {
+    if score.statistics.perfect == passed_objects {
+        return if score.mods.contains_any(mods!(HD FL FI)) {
+            Grade::XH
+        } else {
+            Grade::X
+        };
+    }
+
+    let accuracy = accuracy.unwrap_or_else(|| score.accuracy());
+
+    if accuracy >= 95.0 {
+        if score.mods.contains_any(mods!(HD FL FI)) {
+            Grade::SH
+        } else {
+            Grade::S
+        }
+    } else if accuracy >= 90.0 {
+        Grade::A
+    } else if accuracy >= 80.0 {
+        Grade::B
+    } else if accuracy >= 70.0 {
         Grade::C
     } else {
         Grade::D

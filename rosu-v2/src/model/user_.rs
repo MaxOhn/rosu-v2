@@ -193,7 +193,7 @@ pub struct Medal {
     pub description: String,
     pub grouping: String,
     pub icon_url: String,
-    pub instructions: String,
+    pub instructions: Option<String>,
     #[serde(rename = "id")]
     pub medal_id: u32,
     #[serde(default, skip_serializing_if = "Option::is_none")]

@@ -15,13 +15,11 @@ use crate::{
     Osu,
 };
 
+use futures::future::TryFutureExt;
 use itoa::Buffer;
 use serde::Serialize;
 use smallstr::SmallString;
 use std::fmt;
-
-#[cfg(feature = "cache")]
-use {futures::future::TryFutureExt, std::mem};
 
 /// Either a user id as u32 or a username as String.
 ///
@@ -314,7 +312,7 @@ impl<'a> GetUserBeatmapsets<'a> {
 
         #[cfg(feature = "cache")]
         {
-            let user_id = mem::replace(&mut self.user_id, UserId::Id(0));
+            let user_id = std::mem::replace(&mut self.user_id, UserId::Id(0));
 
             let fut = osu
                 .cache_user(user_id)
@@ -407,7 +405,7 @@ impl<'a> GetUserKudosu<'a> {
 
         #[cfg(feature = "cache")]
         {
-            let user_id = mem::replace(&mut self.user_id, UserId::Id(0));
+            let user_id = std::mem::replace(&mut self.user_id, UserId::Id(0));
 
             let fut = osu
                 .cache_user(user_id)
@@ -502,7 +500,7 @@ impl<'a> GetUserMostPlayed<'a> {
 
         #[cfg(feature = "cache")]
         {
-            let user_id = mem::replace(&mut self.user_id, UserId::Id(0));
+            let user_id = std::mem::replace(&mut self.user_id, UserId::Id(0));
 
             let fut = osu
                 .cache_user(user_id)
@@ -599,7 +597,7 @@ impl<'a> GetRecentEvents<'a> {
 
         #[cfg(feature = "cache")]
         {
-            let user_id = mem::replace(&mut self.user_id, UserId::Id(0));
+            let user_id = std::mem::replace(&mut self.user_id, UserId::Id(0));
 
             let fut = osu
                 .cache_user(user_id)
@@ -802,7 +800,7 @@ impl<'a> GetUserScores<'a> {
         {
             let score_type = self.score_type;
             let legacy_scores = self.legacy_scores;
-            let user_id = mem::replace(&mut self.user_id, UserId::Id(0));
+            let user_id = std::mem::replace(&mut self.user_id, UserId::Id(0));
 
             let fut = osu
                 .cache_user(user_id)
@@ -873,8 +871,8 @@ impl<'a> GetUsers<'a> {
 
         let fut = osu.request::<Users>(req);
 
-        #[cfg(feature = "cache")]
         let fut = fut.map_ok(|users| {
+            #[cfg(feature = "cache")]
             for user in users.users.iter() {
                 osu.update_cache(user.user_id, &user.username);
             }

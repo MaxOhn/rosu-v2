@@ -119,8 +119,8 @@ impl OsuBuilder {
     ///
     /// For more info, check out <https://osu.ppy.sh/docs/index.html#client-credentials-grant>
     #[inline]
-    pub fn client_id(mut self, client_id: u64) -> Self {
-        self.client_id.replace(client_id);
+    pub const fn client_id(mut self, client_id: u64) -> Self {
+        self.client_id = Some(client_id);
 
         self
     }
@@ -130,7 +130,7 @@ impl OsuBuilder {
     /// For more info, check out <https://osu.ppy.sh/docs/index.html#client-credentials-grant>
     #[inline]
     pub fn client_secret(mut self, client_secret: impl Into<String>) -> Self {
-        self.client_secret.replace(client_secret.into());
+        self.client_secret = Some(client_secret.into());
 
         self
     }
@@ -156,7 +156,7 @@ impl OsuBuilder {
 
     /// In case the request times out, retry up to this many times, defaults to 2.
     #[inline]
-    pub fn retries(mut self, retries: usize) -> Self {
+    pub const fn retries(mut self, retries: usize) -> Self {
         self.retries = retries;
 
         self
@@ -164,7 +164,7 @@ impl OsuBuilder {
 
     /// Set the timeout for requests, defaults to 10 seconds.
     #[inline]
-    pub fn timeout(mut self, duration: Duration) -> Self {
+    pub const fn timeout(mut self, duration: Duration) -> Self {
         self.timeout = duration;
 
         self

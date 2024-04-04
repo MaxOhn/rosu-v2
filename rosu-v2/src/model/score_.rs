@@ -228,7 +228,7 @@ impl Score {
     ///
     /// Note: Includes tiny droplet (misses) for `GameMode::Catch`.
     #[inline]
-    pub fn total_hits(&self) -> u32 {
+    pub const fn total_hits(&self) -> u32 {
         self.statistics.total_hits(self.mode)
     }
 
@@ -359,7 +359,7 @@ impl ScoreStatistics {
     /// Count all hitobjects of the score i.e. for `GameMode::Osu` the amount 300s, 100s, 50s, and misses.
     ///
     /// Note: Includes tiny droplet (misses) for `GameMode::Catch`.
-    pub fn total_hits(&self, mode: GameMode) -> u32 {
+    pub const fn total_hits(&self, mode: GameMode) -> u32 {
         match mode {
             GameMode::Osu => self.ok + self.meh + self.great + self.miss,
             GameMode::Taiko => self.ok + self.great + self.miss,
@@ -402,7 +402,7 @@ impl ScoreStatistics {
     }
 
     /// Turn [`ScoreStatistics`] into [`LegacyScoreStatistics`]
-    pub fn as_legacy(&self, mode: GameMode) -> LegacyScoreStatistics {
+    pub const fn as_legacy(&self, mode: GameMode) -> LegacyScoreStatistics {
         let mut count_geki = 0;
         let mut count_katu = 0;
         let count_300 = self.great;

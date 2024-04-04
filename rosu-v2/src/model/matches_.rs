@@ -103,7 +103,7 @@ pub enum MatchEvent {
 
 impl MatchEvent {
     /// Return the id of the event
-    pub fn event_id(&self) -> u64 {
+    pub const fn event_id(&self) -> u64 {
         match self {
             Self::Create { event_id, .. } => *event_id,
             Self::Disbanded { event_id, .. } => *event_id,
@@ -116,7 +116,7 @@ impl MatchEvent {
     }
 
     /// Return the timestamp of the event
-    pub fn timestamp(&self) -> OffsetDateTime {
+    pub const fn timestamp(&self) -> OffsetDateTime {
         match self {
             Self::Create { timestamp, .. } => *timestamp,
             Self::Disbanded { timestamp, .. } => *timestamp,
@@ -129,7 +129,7 @@ impl MatchEvent {
     }
 
     /// Return the user id of the user associated with the event
-    pub fn user_id(&self) -> Option<u32> {
+    pub const fn user_id(&self) -> Option<u32> {
         match self {
             Self::Create { user_id, .. } => *user_id,
             Self::Disbanded { .. } => None,
@@ -238,7 +238,7 @@ impl<'de> Visitor<'de> for MatchEventVisitor {
                     kind = Some(detail.kind);
 
                     if !detail.match_name.is_empty() {
-                        match_name.replace(detail.match_name);
+                        match_name = Some(detail.match_name);
                     }
                 }
                 "user_id" => user_id = map.next_value()?,
@@ -407,7 +407,7 @@ pub struct MatchGameIter<'m> {
 }
 
 impl<'m> MatchGameIter<'m> {
-    fn new(iter: Iter<'m, MatchEvent>) -> Self {
+    const fn new(iter: Iter<'m, MatchEvent>) -> Self {
         Self { iter }
     }
 }
@@ -515,7 +515,7 @@ impl MatchList {
     /// Returns whether there is a next page of match results,
     /// retrievable via [`get_next`](MatchList::get_next).
     #[inline]
-    pub fn has_more(&self) -> bool {
+    pub const fn has_more(&self) -> bool {
         self.cursor.is_some()
     }
 
@@ -938,8 +938,8 @@ impl<'de> Visitor<'de> for OsuMatchVisitor {
                     let info: MatchInfo = map.next_value()?;
 
                     end_time = Some(OptionDateTimeWrapper(info.end_time));
-                    match_id.replace(info.match_id);
-                    name.replace(info.name);
+                    match_id = Some(info.match_id);
+                    name = Some(info.name);
                     start_time = Some(DateTimeWrapper(info.start_time));
                 }
                 "match_id" => match_id = Some(map.next_value()?),

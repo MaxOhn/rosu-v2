@@ -130,7 +130,7 @@ impl CommentBundle {
     /// Returns whether there is a next page of comments,
     /// retrievable via [`get_next`](CommentBundle::get_next).
     #[inline]
-    pub fn has_more(&self) -> bool {
+    pub const fn has_more(&self) -> bool {
         self.has_more
     }
 
@@ -165,7 +165,7 @@ pub enum CommentSort {
 }
 
 impl CommentSort {
-    pub fn as_str(self) -> &'static str {
+    pub const fn as_str(self) -> &'static str {
         match self {
             Self::New => "new",
             Self::Old => "old",

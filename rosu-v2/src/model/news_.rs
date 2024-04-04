@@ -25,7 +25,7 @@ impl News {
     /// Returns whether there is a next page of news results,
     /// retrievable via [`get_next`](News::get_next).
     #[inline]
-    pub fn has_more(&self) -> bool {
+    pub const fn has_more(&self) -> bool {
         self.cursor.is_some()
     }
 

@@ -30,7 +30,7 @@ pub struct GetMatch<'a> {
 
 impl<'a> GetMatch<'a> {
     #[inline]
-    pub(crate) fn new(osu: &'a Osu, match_id: u32) -> Self {
+    pub(crate) const fn new(osu: &'a Osu, match_id: u32) -> Self {
         Self {
             fut: None,
             osu,
@@ -45,8 +45,8 @@ impl<'a> GetMatch<'a> {
     ///
     /// Note: The given event id won't be included.
     #[inline]
-    pub fn after(mut self, after: u64) -> Self {
-        self.after.replace(after);
+    pub const fn after(mut self, after: u64) -> Self {
+        self.after = Some(after);
 
         self
     }
@@ -55,16 +55,16 @@ impl<'a> GetMatch<'a> {
     ///
     /// Note: The given event id won't be included.
     #[inline]
-    pub fn before(mut self, before: u64) -> Self {
-        self.before.replace(before);
+    pub const fn before(mut self, before: u64) -> Self {
+        self.before = Some(before);
 
         self
     }
 
     /// Get the match state after at most `limit` many new events.
     #[inline]
-    pub fn limit(mut self, limit: usize) -> Self {
-        self.limit.replace(limit);
+    pub const fn limit(mut self, limit: usize) -> Self {
+        self.limit = Some(limit);
 
         self
     }
@@ -118,7 +118,7 @@ impl<'a> GetMatches<'a> {
 
     #[inline]
     pub(crate) fn cursor(mut self, cursor: Cursor) -> Self {
-        self.cursor.replace(cursor);
+        self.cursor = Some(cursor);
 
         self
     }

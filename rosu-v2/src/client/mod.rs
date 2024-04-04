@@ -68,7 +68,7 @@ impl Osu {
     /// have these options filled: `legacy_thread_url`, `ratings`,
     /// `ranked_date` (if not unranked) and `submitted_date` (if submitted).
     #[inline]
-    pub fn beatmap(&self) -> GetBeatmap<'_> {
+    pub const fn beatmap(&self) -> GetBeatmap<'_> {
         GetBeatmap::new(self)
     }
 
@@ -92,7 +92,7 @@ impl Osu {
     /// The scores' contained [`User`](crate::model::user::User)
     /// will have the `country` and `cover` options filled.
     #[inline]
-    pub fn beatmap_scores(&self, map_id: u32) -> GetBeatmapScores<'_> {
+    pub const fn beatmap_scores(&self, map_id: u32) -> GetBeatmapScores<'_> {
         GetBeatmapScores::new(self, map_id)
     }
 
@@ -108,7 +108,7 @@ impl Osu {
     /// `map` and `user` options filled.
     #[cfg(not(feature = "cache"))]
     #[inline]
-    pub fn beatmap_user_score(&self, map_id: u32, user_id: u32) -> GetBeatmapUserScore<'_> {
+    pub const fn beatmap_user_score(&self, map_id: u32, user_id: u32) -> GetBeatmapUserScore<'_> {
         GetBeatmapUserScore::new(self, map_id, user_id)
     }
 
@@ -119,7 +119,7 @@ impl Osu {
     /// for `pp` in case of a ranked map.
     #[cfg(not(feature = "cache"))]
     #[inline]
-    pub fn beatmap_user_scores(&self, map_id: u32, user_id: u32) -> GetBeatmapUserScores<'_> {
+    pub const fn beatmap_user_scores(&self, map_id: u32, user_id: u32) -> GetBeatmapUserScores<'_> {
         GetBeatmapUserScores::new(self, map_id, user_id)
     }
 
@@ -219,14 +219,14 @@ impl Osu {
     /// let query = "status=loved artist=camellia stars>8";
     /// ```
     #[inline]
-    pub fn beatmapset_search(&self) -> GetBeatmapsetSearch<'_> {
+    pub const fn beatmapset_search(&self) -> GetBeatmapsetSearch<'_> {
         GetBeatmapsetSearch::new(self)
     }
 
     /// Get a list of comments and their replies up to two levels deep
     /// in form of a [`CommentBundle`](crate::model::comments::CommentBundle) .
     #[inline]
-    pub fn comments(&self) -> GetComments<'_> {
+    pub const fn comments(&self) -> GetComments<'_> {
         GetComments::new(self)
     }
 
@@ -242,7 +242,7 @@ impl Osu {
     /// The statistics vector is ordered by `ranked_score`.
     /// The `user` option is filled.
     #[inline]
-    pub fn chart_rankings(&self, mode: GameMode) -> GetChartRankings<'_> {
+    pub const fn chart_rankings(&self, mode: GameMode) -> GetChartRankings<'_> {
         GetChartRankings::new(self, mode)
     }
 
@@ -250,13 +250,13 @@ impl Osu {
     /// containing a vec of [`CountryRanking`](crate::model::ranking::CountryRanking)s
     /// which will be sorted by the country's total pp.
     #[inline]
-    pub fn country_rankings(&self, mode: GameMode) -> GetCountryRankings<'_> {
+    pub const fn country_rankings(&self, mode: GameMode) -> GetCountryRankings<'_> {
         GetCountryRankings::new(self, mode)
     }
 
     /// Get a [`ForumPosts`](crate::model::forum::ForumPosts) struct for a forum topic
     #[inline]
-    pub fn forum_posts(&self, topic_id: u64) -> GetForumPosts<'_> {
+    pub const fn forum_posts(&self, topic_id: u64) -> GetForumPosts<'_> {
         GetForumPosts::new(self, topic_id)
     }
 
@@ -264,7 +264,7 @@ impl Osu {
     /// [`KudosuHistory`](crate::model::kudosu::KudosuHistory).
     #[cfg(not(feature = "cache"))]
     #[inline]
-    pub fn kudosu(&self, user_id: u32) -> GetUserKudosu<'_> {
+    pub const fn kudosu(&self, user_id: u32) -> GetUserKudosu<'_> {
         GetUserKudosu::new(self, user_id)
     }
 
@@ -284,7 +284,7 @@ impl Osu {
 
     /// Get an [`OsuMatch`](crate::model::matches::OsuMatch).
     #[inline]
-    pub fn osu_match(&self, match_id: u32) -> GetMatch<'_> {
+    pub const fn osu_match(&self, match_id: u32) -> GetMatch<'_> {
         GetMatch::new(self, match_id)
     }
 
@@ -302,7 +302,7 @@ impl Osu {
     ///
     /// See [`OsuBuilder::with_authorization`](crate::OsuBuilder::with_authorization).
     #[inline]
-    pub fn own_data(&self) -> GetOwnData<'_> {
+    pub const fn own_data(&self) -> GetOwnData<'_> {
         GetOwnData::new(self)
     }
 
@@ -310,7 +310,7 @@ impl Osu {
     /// [`User`](crate::model::user::User)s are sorted
     /// by their pp, i.e. the current pp leaderboard.
     #[inline]
-    pub fn performance_rankings(&self, mode: GameMode) -> GetPerformanceRankings<'_> {
+    pub const fn performance_rankings(&self, mode: GameMode) -> GetPerformanceRankings<'_> {
         GetPerformanceRankings::new(self, mode)
     }
 
@@ -318,7 +318,7 @@ impl Osu {
     /// [`RecentEvent`](crate::model::recent_event::RecentEvent)s.
     #[cfg(not(feature = "cache"))]
     #[inline]
-    pub fn recent_events(&self, user_id: u32) -> GetRecentEvents<'_> {
+    pub const fn recent_events(&self, user_id: u32) -> GetRecentEvents<'_> {
         GetRecentEvents::new(self, user_id)
     }
 
@@ -361,7 +361,7 @@ impl Osu {
     /// (if ranked), `rank_global` (if on leaderboard map) and `user`
     /// (will contain `last_visited`, `country`, `cover` and `groups`)
     #[inline]
-    pub fn score(&self, score_id: u64, mode: GameMode) -> GetScore<'_> {
+    pub const fn score(&self, score_id: u64, mode: GameMode) -> GetScore<'_> {
         GetScore::new(self, score_id, mode)
     }
 
@@ -369,7 +369,7 @@ impl Osu {
     /// [`User`](crate::model::user::User)s are sorted
     /// by their ranked score, i.e. the current ranked score leaderboard.
     #[inline]
-    pub fn score_rankings(&self, mode: GameMode) -> GetScoreRankings<'_> {
+    pub const fn score_rankings(&self, mode: GameMode) -> GetScoreRankings<'_> {
         GetScoreRankings::new(self, mode)
     }
 
@@ -416,7 +416,7 @@ impl Osu {
     /// All options of the contained [`BeatmapExtended`](crate::model::beatmap::BeatmapExtended)s will be `None`.
     #[cfg(not(feature = "cache"))]
     #[inline]
-    pub fn user_beatmapsets(&self, user_id: u32) -> GetUserBeatmapsets<'_> {
+    pub const fn user_beatmapsets(&self, user_id: u32) -> GetUserBeatmapsets<'_> {
         GetUserBeatmapsets::new(self, user_id)
     }
 
@@ -441,7 +441,7 @@ impl Osu {
     /// The API provides at most 100 results, defaults to 5.
     #[cfg(not(feature = "cache"))]
     #[inline]
-    pub fn user_most_played(&self, user_id: u32) -> GetUserMostPlayed<'_> {
+    pub const fn user_most_played(&self, user_id: u32) -> GetUserMostPlayed<'_> {
         GetUserMostPlayed::new(self, user_id)
     }
 
@@ -486,7 +486,7 @@ impl Osu {
     /// is not loved.
     #[cfg(not(feature = "cache"))]
     #[inline]
-    pub fn user_scores(&self, user_id: u32) -> GetUserScores<'_> {
+    pub const fn user_scores(&self, user_id: u32) -> GetUserScores<'_> {
         GetUserScores::new(self, user_id)
     }
 
@@ -809,11 +809,11 @@ fn clone_req(req: &HyperRequest<BodyBytes>) -> HyperRequest<BodyBytes> {
 struct BodyBytes(Bytes);
 
 impl BodyBytes {
-    fn is_empty(&self) -> bool {
+    const fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
 
-    fn len(&self) -> usize {
+    const fn len(&self) -> usize {
         self.0.len()
     }
 }

@@ -145,7 +145,7 @@ pub enum Scope {
 }
 
 impl Scope {
-    pub fn as_str(self) -> &'static str {
+    pub const fn as_str(self) -> &'static str {
         match self {
             Scope::ChatWrite => "chat.write",
             Scope::Delegate => "delegate",

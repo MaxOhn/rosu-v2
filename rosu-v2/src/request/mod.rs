@@ -61,11 +61,11 @@ pub(crate) struct Request {
 impl Request {
     const API_VERSION: u32 = 20220705;
 
-    fn new(route: Route) -> Self {
+    const fn new(route: Route) -> Self {
         Self::with_body(route, Body::new())
     }
 
-    fn with_body(route: Route, body: Body) -> Self {
+    const fn with_body(route: Route, body: Body) -> Self {
         Self {
             query: None,
             route,
@@ -74,11 +74,11 @@ impl Request {
         }
     }
 
-    fn with_query(route: Route, query: String) -> Self {
+    const fn with_query(route: Route, query: String) -> Self {
         Self::with_query_and_body(route, query, Body::new())
     }
 
-    fn with_query_and_body(route: Route, query: String, body: Body) -> Self {
+    const fn with_query_and_body(route: Route, query: String, body: Body) -> Self {
         Self {
             query: Some(query),
             route,
@@ -97,7 +97,7 @@ pub(crate) struct Body {
 }
 
 impl Body {
-    pub(crate) fn new() -> Self {
+    pub(crate) const fn new() -> Self {
         Self { inner: Vec::new() }
     }
 

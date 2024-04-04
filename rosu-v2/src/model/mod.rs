@@ -354,7 +354,7 @@ use std::marker::PhantomData;
 struct EnumVisitor<T>(PhantomData<T>);
 
 impl<T> EnumVisitor<T> {
-    fn new() -> Self {
+    const fn new() -> Self {
         Self(PhantomData)
     }
 }

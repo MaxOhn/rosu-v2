@@ -221,7 +221,7 @@ impl<'de> Visitor<'de> for UserStatsVisitor {
             total_score,
         };
 
-        user.statistics.replace(stats);
+        user.statistics = Some(stats);
 
         Ok(user)
     }
@@ -517,7 +517,7 @@ pub(crate) enum RankingType {
 }
 
 impl RankingType {
-    pub(crate) fn as_str(self) -> &'static str {
+    pub(crate) const fn as_str(self) -> &'static str {
         match self {
             Self::Charts => "charts",
             Self::Country => "country",
@@ -578,7 +578,7 @@ impl<'de> Visitor<'de> for RankingsCursorVisitor {
         while let Some(key) = map.next_key()? {
             match key {
                 "page" => {
-                    page.replace(map.next_value()?);
+                    page = Some(map.next_value()?);
                 }
                 _ => {
                     let _: IgnoredAny = map.next_value()?;

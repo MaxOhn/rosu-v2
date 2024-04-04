@@ -610,8 +610,6 @@ static MY_USER_AGENT: &str = concat!(
 const APPLICATION_JSON: &str = "application/json";
 const X_API_VERSION: &str = "x-api-version";
 
-const API_VERSION: u32 = 20220705;
-
 impl OsuRef {
     async fn request_token(&self) -> OsuResult<TokenResponse> {
         let mut body = Body::new();
@@ -666,7 +664,13 @@ impl OsuRef {
     }
 
     async fn request_raw(&self, req: Request) -> OsuResult<Bytes> {
-        let Request { query, route, body } = req;
+        let Request {
+            query,
+            route,
+            body,
+            api_version,
+        } = req;
+
         let (method, path) = route.to_parts();
 
         #[cfg(feature = "metrics")]
@@ -679,7 +683,7 @@ impl OsuRef {
             url.push_str(query);
         }
 
-        let resp = self.raw(url, method, body).await?;
+        let resp = self.raw(url, method, body, api_version).await?;
         let bytes = self.handle_status(resp).await?;
 
         #[cfg(feature = "metrics")]
@@ -688,7 +692,13 @@ impl OsuRef {
         Ok(bytes)
     }
 
-    async fn raw(&self, url: String, method: Method, body: Body) -> OsuResult<Response<HyperBody>> {
+    async fn raw(
+        &self,
+        url: String,
+        method: Method,
+        body: Body,
+        api_version: u32,
+    ) -> OsuResult<Response<HyperBody>> {
         let url = Url::parse(&url).map_err(|source| OsuError::Url { source, url })?;
         debug!("URL: {url}");
 
@@ -703,7 +713,7 @@ impl OsuRef {
                 .uri(url.as_str())
                 .header(AUTHORIZATION, value)
                 .header(USER_AGENT, MY_USER_AGENT)
-                .header(X_API_VERSION, API_VERSION)
+                .header(X_API_VERSION, api_version)
                 .header(ACCEPT, APPLICATION_JSON)
                 .header(CONTENT_LENGTH, bytes.len());
 

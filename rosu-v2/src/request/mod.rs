@@ -55,9 +55,12 @@ pub(crate) struct Request {
     pub query: Option<String>,
     pub route: Route,
     pub body: Body,
+    pub api_version: u32,
 }
 
 impl Request {
+    const API_VERSION: u32 = 20220705;
+
     fn new(route: Route) -> Self {
         Self::with_body(route, Body::new())
     }
@@ -67,6 +70,7 @@ impl Request {
             query: None,
             route,
             body,
+            api_version: Self::API_VERSION,
         }
     }
 
@@ -79,7 +83,12 @@ impl Request {
             query: Some(query),
             route,
             body,
+            api_version: Self::API_VERSION,
         }
+    }
+
+    fn api_version(&mut self, api_version: u32) {
+        self.api_version = api_version;
     }
 }
 

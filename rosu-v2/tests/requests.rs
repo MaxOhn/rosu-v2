@@ -499,6 +499,24 @@ async fn user_scores() -> Result<()> {
 }
 
 #[tokio::test]
+async fn user_scores_legacy() -> Result<()> {
+    let scores = OSU
+        .get()
+        .await?
+        .user_scores(BADEWANNE3)
+        .mode(GameMode::Taiko)
+        .limit(9)
+        .offset(1)
+        .best()
+        .legacy_scores(true)
+        .await?;
+
+    assert_eq!(scores.len(), 9);
+
+    Ok(())
+}
+
+#[tokio::test]
 #[ignore = "currently unavailable"]
 async fn users() -> Result<()> {
     #[allow(deprecated)]

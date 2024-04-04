@@ -657,6 +657,8 @@ pub struct GetUserScores<'a> {
     include_fails: Option<bool>,
     #[serde(serialize_with = "maybe_mode_as_str")]
     mode: Option<GameMode>,
+    #[serde(skip)]
+    legacy_scores: bool,
 
     #[cfg(not(feature = "cache"))]
     #[serde(skip)]
@@ -680,6 +682,7 @@ impl<'a> GetUserScores<'a> {
             offset: None,
             include_fails: None,
             mode: None,
+            legacy_scores: false,
         }
     }
 
@@ -695,6 +698,7 @@ impl<'a> GetUserScores<'a> {
             offset: None,
             include_fails: None,
             mode: None,
+            legacy_scores: false,
         }
     }
 
@@ -765,6 +769,17 @@ impl<'a> GetUserScores<'a> {
         self
     }
 
+    /// Specify whether the scores should contain legacy data or not.
+    ///
+    /// Legacy data consists of a different grade calculation, less
+    /// populated statistics, legacy mods, and a different score kind.
+    #[inline]
+    pub fn legacy_scores(mut self, legacy_scores: bool) -> Self {
+        self.legacy_scores = legacy_scores;
+
+        self
+    }
+
     fn start(&mut self) -> Pending<'a, Vec<Score>> {
         let query = Query::encode(self);
         let osu = self.osu;
@@ -776,7 +791,11 @@ impl<'a> GetUserScores<'a> {
                 score_type: self.score_type,
             };
 
-            let req = Request::with_query(route, query);
+            let mut req = Request::with_query(route, query);
+
+            if self.legacy_scores {
+                req.api_version(0);
+            }
 
             Box::pin(osu.request(req))
         }
@@ -784,6 +803,7 @@ impl<'a> GetUserScores<'a> {
         #[cfg(feature = "cache")]
         {
             let score_type = self.score_type;
+            let legacy_scores = self.legacy_scores;
             let user_id = mem::replace(&mut self.user_id, UserId::Id(0));
 
             let fut = osu
@@ -794,7 +814,13 @@ impl<'a> GetUserScores<'a> {
                         score_type,
                     };
 
-                    Request::with_query(route, query)
+                    let mut req = Request::with_query(route, query);
+
+                    if legacy_scores {
+                        req.api_version(0);
+                    }
+
+                    req
                 })
                 .and_then(move |req| osu.request::<Vec<Score>>(req));
 

@@ -12,7 +12,7 @@ use crate::{mods, prelude::ModeAsSeed, request::GetUser, Osu};
 use serde::{
     de::{
         value::{MapAccessDeserializer, MapDeserializer},
-        DeserializeSeed, Error as DeError, MapAccess, Visitor,
+        DeserializeSeed, Error as DeError, IgnoredAny, MapAccess, Visitor,
     },
     Deserialize, Deserializer,
 };
@@ -104,11 +104,12 @@ impl<'de> Deserialize<'de> for Score {
         struct ScoreRawMods {
             ranked: Option<bool>,
             preserve: Option<bool>,
+            #[serde(default)]
             maximum_statistics: ScoreStatistics,
             mods: Box<RawValue>,
             statistics: ScoreStatistics,
             #[serde(rename = "beatmap_id")]
-            map_id: u32,
+            map_id: Option<u32>, // not available in legacy scores
             best_id: Option<u64>,
             id: u64,
             #[serde(rename = "rank")]
@@ -119,22 +120,25 @@ impl<'de> Deserialize<'de> for Score {
             #[serde(with = "serde_::adjust_acc")]
             accuracy: f32,
             build_id: Option<u32>,
-            #[serde(with = "serde_::datetime")]
+            #[serde(alias = "created_at", with = "serde_::datetime")]
             ended_at: OffsetDateTime,
-            has_replay: bool,
-            is_perfect_combo: bool,
+            has_replay: Option<bool>,       // not available in legacy scores
+            is_perfect_combo: Option<bool>, // not available in legacy scores
+            #[serde(alias = "perfect")]
             legacy_perfect: Option<bool>,
             legacy_score_id: Option<u64>,
-            #[serde(rename = "legacy_total_score")]
-            legacy_score: u32,
+            #[serde(default, rename = "legacy_total_score")]
+            legacy_score: u32, // not available in legacy scores
             max_combo: u32,
             passed: bool,
             pp: Option<f32>,
-            #[serde(rename = "ruleset_id")]
+            #[serde(rename = "mode")]
+            _mode: Option<IgnoredAny>, // only available in legacy scores
+            #[serde(rename = "ruleset_id", alias = "mode_int")]
             mode: GameMode,
-            #[serde(with = "serde_::option_datetime")]
+            #[serde(default, with = "serde_::option_datetime")]
             started_at: Option<OffsetDateTime>,
-            #[serde(rename = "total_score")]
+            #[serde(rename = "total_score", alias = "score")]
             score: u32,
             replay: bool,
             current_user_attributes: UserAttributes,
@@ -158,6 +162,11 @@ impl<'de> Deserialize<'de> for Score {
         let score_raw = <ScoreRawMods as serde::Deserialize>::deserialize(d)?;
         let mut d = serde_json::Deserializer::from_str(score_raw.mods.get());
 
+        // Lazer scores don't have `mode` specified; only `ruleset_id`
+        // so we use that to determine if the score is legacy.
+        // Maybe using `type` would be better? As of now it seems unreliable.
+        let is_legacy = score_raw._mode.is_some();
+
         Ok(Score {
             ranked: score_raw.ranked,
             preserve: score_raw.preserve,
@@ -166,7 +175,10 @@ impl<'de> Deserialize<'de> for Score {
                 .deserialize(&mut d)
                 .map_err(DeError::custom)?,
             statistics: score_raw.statistics,
-            map_id: score_raw.map_id,
+            map_id: score_raw
+                .map_id
+                .or_else(|| score_raw.map.as_ref().map(|map| map.map_id))
+                .unwrap_or(0),
             best_id: score_raw.best_id,
             id: score_raw.id,
             grade: score_raw.grade,
@@ -175,11 +187,20 @@ impl<'de> Deserialize<'de> for Score {
             accuracy: score_raw.accuracy,
             build_id: score_raw.build_id,
             ended_at: score_raw.ended_at,
-            has_replay: score_raw.has_replay,
-            is_perfect_combo: score_raw.is_perfect_combo,
+            has_replay: score_raw.has_replay.unwrap_or(score_raw.replay),
+            is_perfect_combo: score_raw
+                .is_perfect_combo
+                .or(score_raw.legacy_perfect)
+                .unwrap_or(false),
             legacy_perfect: score_raw.legacy_perfect,
-            legacy_score_id: score_raw.legacy_score_id,
-            legacy_score: score_raw.legacy_score,
+            legacy_score_id: score_raw
+                .legacy_score_id
+                .or_else(|| is_legacy.then_some(score_raw.id)),
+            legacy_score: if is_legacy {
+                score_raw.score
+            } else {
+                score_raw.legacy_score
+            },
             max_combo: score_raw.max_combo,
             passed: score_raw.passed,
             pp: score_raw.pp,
@@ -279,17 +300,41 @@ pub(crate) struct Scores {
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct ScoreStatistics {
-    #[serde(default)]
+    #[serde(
+        default,
+        alias = "count_miss",
+        deserialize_with = "serde_::from_option::deserialize"
+    )]
     pub miss: u32,
-    #[serde(default)]
+    #[serde(
+        default,
+        alias = "count_50",
+        deserialize_with = "serde_::from_option::deserialize"
+    )]
     pub meh: u32,
-    #[serde(default)]
+    #[serde(
+        default,
+        alias = "count_100",
+        deserialize_with = "serde_::from_option::deserialize"
+    )]
     pub ok: u32,
-    #[serde(default)]
+    #[serde(
+        default,
+        alias = "count_katu",
+        deserialize_with = "serde_::from_option::deserialize"
+    )]
     pub good: u32,
-    #[serde(default)]
+    #[serde(
+        default,
+        alias = "count_300",
+        deserialize_with = "serde_::from_option::deserialize"
+    )]
     pub great: u32,
-    #[serde(default)]
+    #[serde(
+        default,
+        alias = "count_geki",
+        deserialize_with = "serde_::from_option::deserialize"
+    )]
     pub perfect: u32,
     #[serde(default)]
     pub large_tick_hit: u32,

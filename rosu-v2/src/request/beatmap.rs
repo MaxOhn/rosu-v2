@@ -249,6 +249,8 @@ pub struct GetBeatmapScores<'a> {
     #[serde(flatten, serialize_with = "maybe_mods_as_list")]
     mods: Option<GameModsIntermode>,
     limit: Option<u32>,
+    #[serde(skip)]
+    legacy_scores: bool,
     // ! Currently not working
     // offset: Option<u32>,
 }
@@ -264,6 +266,7 @@ impl<'a> GetBeatmapScores<'a> {
             mode: None,
             mods: None,
             limit: None,
+            legacy_scores: false,
             // offset: None,
         }
     }
@@ -312,6 +315,17 @@ impl<'a> GetBeatmapScores<'a> {
         self
     }
 
+    /// Specify whether the scores should contain legacy data or not.
+    ///
+    /// Legacy data consists of a different grade calculation, less
+    /// populated statistics, legacy mods, and a different score kind.
+    #[inline]
+    pub fn legacy_scores(mut self, legacy_scores: bool) -> Self {
+        self.legacy_scores = legacy_scores;
+
+        self
+    }
+
     // #[inline]
     // pub fn offset(mut self, offset: u32) -> Self {
     //     self.offset.replace(offset);
@@ -326,7 +340,12 @@ impl<'a> GetBeatmapScores<'a> {
             map_id: self.map_id,
         };
 
-        let req = Request::with_query(route, query);
+        let mut req = Request::with_query(route, query);
+
+        if self.legacy_scores {
+            req.api_version(0);
+        }
+
         let osu = self.osu;
         let fut = osu.request::<BeatmapScores>(req).map_ok(|s| s.scores);
 
@@ -363,6 +382,8 @@ pub struct GetBeatmapUserScore<'a> {
     mode: Option<GameMode>,
     #[serde(flatten, serialize_with = "maybe_mods_as_list")]
     mods: Option<GameModsIntermode>,
+    #[serde(skip)]
+    legacy_scores: bool,
 
     #[cfg(not(feature = "cache"))]
     #[serde(skip)]
@@ -384,6 +405,7 @@ impl<'a> GetBeatmapUserScore<'a> {
             user_id,
             mode: None,
             mods: None,
+            legacy_scores: false,
         }
     }
 
@@ -397,6 +419,7 @@ impl<'a> GetBeatmapUserScore<'a> {
             user_id,
             mode: None,
             mods: None,
+            legacy_scores: false,
         }
     }
 
@@ -419,6 +442,17 @@ impl<'a> GetBeatmapUserScore<'a> {
         self
     }
 
+    /// Specify whether the score should contain legacy data or not.
+    ///
+    /// Legacy data consists of a different grade calculation, less
+    /// populated statistics, legacy mods, and a different score kind.
+    #[inline]
+    pub fn legacy_scores(mut self, legacy_scores: bool) -> Self {
+        self.legacy_scores = legacy_scores;
+
+        self
+    }
+
     fn start(&mut self) -> Pending<'a, BeatmapUserScore> {
         let query = Query::encode(self);
 
@@ -431,7 +465,11 @@ impl<'a> GetBeatmapUserScore<'a> {
                 map_id: self.map_id,
             };
 
-            let req = Request::with_query(route, query);
+            let mut req = Request::with_query(route, query);
+
+            if self.legacy_scores {
+                req.api_version(0);
+            }
 
             Box::pin(osu.request(req))
         }
@@ -439,13 +477,21 @@ impl<'a> GetBeatmapUserScore<'a> {
         #[cfg(feature = "cache")]
         {
             let map_id = self.map_id;
+            let legacy_scores = self.legacy_scores;
             let user_id = mem::replace(&mut self.user_id, UserId::Id(0));
 
             let fut = self
                 .osu
                 .cache_user(user_id)
                 .map_ok(move |user_id| {
-                    Request::with_query(Route::GetBeatmapUserScore { user_id, map_id }, query)
+                    let mut req =
+                        Request::with_query(Route::GetBeatmapUserScore { user_id, map_id }, query);
+
+                    if legacy_scores {
+                        req.api_version(0);
+                    }
+
+                    req
                 })
                 .and_then(move |req| osu.request::<BeatmapUserScore>(req))
                 .inspect_ok(move |score| {
@@ -474,6 +520,8 @@ pub struct GetBeatmapUserScores<'a> {
     map_id: u32,
     #[serde(serialize_with = "maybe_mode_as_str")]
     mode: Option<GameMode>,
+    #[serde(skip)]
+    legacy_scores: bool,
 
     #[cfg(not(feature = "cache"))]
     #[serde(skip)]
@@ -494,6 +542,7 @@ impl<'a> GetBeatmapUserScores<'a> {
             map_id,
             user_id,
             mode: None,
+            legacy_scores: false,
         }
     }
 
@@ -506,6 +555,7 @@ impl<'a> GetBeatmapUserScores<'a> {
             map_id,
             user_id,
             mode: None,
+            legacy_scores: false,
         }
     }
 
@@ -513,6 +563,17 @@ impl<'a> GetBeatmapUserScores<'a> {
     #[inline]
     pub fn mode(mut self, mode: GameMode) -> Self {
         self.mode.replace(mode);
+
+        self
+    }
+
+    /// Specify whether the scores should contain legacy data or not.
+    ///
+    /// Legacy data consists of a different grade calculation, less
+    /// populated statistics, legacy mods, and a different score kind.
+    #[inline]
+    pub fn legacy_scores(mut self, legacy_scores: bool) -> Self {
+        self.legacy_scores = legacy_scores;
 
         self
     }
@@ -529,7 +590,12 @@ impl<'a> GetBeatmapUserScores<'a> {
                 map_id: self.map_id,
             };
 
-            let req = Request::with_query(route, query);
+            let mut req = Request::with_query(route, query);
+
+            if self.legacy_scores {
+                req.api_version(0);
+            }
+
             let fut = osu.request::<Scores>(req).map_ok(|scores| scores.scores);
 
             Box::pin(fut)
@@ -538,13 +604,21 @@ impl<'a> GetBeatmapUserScores<'a> {
         #[cfg(feature = "cache")]
         {
             let map_id = self.map_id;
+            let legacy_scores = self.legacy_scores;
             let user_id = mem::replace(&mut self.user_id, UserId::Id(0));
 
             let fut = self
                 .osu
                 .cache_user(user_id)
                 .map_ok(move |user_id| {
-                    Request::with_query(Route::GetBeatmapUserScores { user_id, map_id }, query)
+                    let mut req =
+                        Request::with_query(Route::GetBeatmapUserScores { user_id, map_id }, query);
+
+                    if legacy_scores {
+                        req.api_version(0);
+                    }
+
+                    req
                 })
                 .and_then(move |req| osu.request::<Scores>(req))
                 .map_ok(|scores| scores.scores)
@@ -946,6 +1020,7 @@ pub struct GetScore<'a> {
     osu: &'a Osu,
     mode: GameMode,
     score_id: u64,
+    legacy_scores: bool,
 }
 
 impl<'a> GetScore<'a> {
@@ -956,7 +1031,19 @@ impl<'a> GetScore<'a> {
             osu,
             mode,
             score_id,
+            legacy_scores: false,
         }
+    }
+
+    /// Specify whether the score should contain legacy data or not.
+    ///
+    /// Legacy data consists of a different grade calculation, less
+    /// populated statistics, legacy mods, and a different score kind.
+    #[inline]
+    pub fn legacy_scores(mut self, legacy_scores: bool) -> Self {
+        self.legacy_scores = legacy_scores;
+
+        self
     }
 
     fn start(&mut self) -> Pending<'a, Score> {
@@ -966,7 +1053,13 @@ impl<'a> GetScore<'a> {
         };
 
         let osu = self.osu;
-        let fut = osu.request::<Score>(Request::new(route));
+        let mut req = Request::new(route);
+
+        if self.legacy_scores {
+            req.api_version(0);
+        }
+
+        let fut = osu.request::<Score>(req);
 
         #[cfg(feature = "cache")]
         let fut = fut.inspect_ok(move |score| {

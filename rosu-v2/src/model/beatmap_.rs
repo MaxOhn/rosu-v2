@@ -78,7 +78,7 @@ pub struct BeatmapExtended {
 impl BeatmapExtended {
     /// Return the amount of hit objects in this map.
     #[inline]
-    pub fn count_objects(&self) -> u32 {
+    pub const fn count_objects(&self) -> u32 {
         self.count_circles + self.count_sliders + self.count_spinners
     }
 
@@ -1266,7 +1266,7 @@ impl BeatmapsetSearchResult {
     /// Returns whether there is a next page of search results,
     /// retrievable via [`get_next`](BeatmapsetSearchResult::get_next).
     #[inline]
-    pub fn has_more(&self) -> bool {
+    pub const fn has_more(&self) -> bool {
         self.cursor.is_some()
     }
 

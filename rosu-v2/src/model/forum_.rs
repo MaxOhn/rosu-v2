@@ -30,7 +30,7 @@ impl ForumPosts {
     /// [`Cursor`] to [`GetForumPosts::cursor`](crate::request::GetForumPosts::cursor).
     /// Be sure all other parameters stay the same.
     #[inline]
-    pub fn has_more(&self) -> bool {
+    pub const fn has_more(&self) -> bool {
         self.cursor.is_some()
     }
 }
@@ -114,8 +114,8 @@ impl<'de> Visitor<'de> for ForumPostVisitor {
                 "body" => {
                     let body: ForumPostBody = map.next_value()?;
 
-                    html.replace(body.html);
-                    raw.replace(body.raw);
+                    html = Some(body.html);
+                    raw = Some(body.raw);
                 }
                 "created_at" => created_at = Some(map.next_value()?),
                 "deleted_at" => deleted_at = Some(map.next_value()?),

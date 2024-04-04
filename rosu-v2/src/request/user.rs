@@ -97,7 +97,7 @@ pub struct GetOwnData<'a> {
 
 impl<'a> GetOwnData<'a> {
     #[inline]
-    pub(crate) fn new(osu: &'a Osu) -> Self {
+    pub(crate) const fn new(osu: &'a Osu) -> Self {
         Self {
             fut: None,
             osu,
@@ -107,8 +107,8 @@ impl<'a> GetOwnData<'a> {
 
     /// Specify the mode for which the user data should be retrieved
     #[inline]
-    pub fn mode(mut self, mode: GameMode) -> Self {
-        self.mode.replace(mode);
+    pub const fn mode(mut self, mode: GameMode) -> Self {
+        self.mode = Some(mode);
 
         self
     }
@@ -154,8 +154,8 @@ impl<'a> GetUser<'a> {
 
     /// Specify the mode for which the user data should be retrieved
     #[inline]
-    pub fn mode(mut self, mode: GameMode) -> Self {
-        self.mode.replace(mode);
+    pub const fn mode(mut self, mode: GameMode) -> Self {
+        self.mode = Some(mode);
 
         self
     }
@@ -215,7 +215,7 @@ pub struct GetUserBeatmapsets<'a> {
 impl<'a> GetUserBeatmapsets<'a> {
     #[cfg(not(feature = "cache"))]
     #[inline]
-    pub(crate) fn new(osu: &'a Osu, user_id: u32) -> Self {
+    pub(crate) const fn new(osu: &'a Osu, user_id: u32) -> Self {
         Self {
             fut: None,
             osu,
@@ -228,7 +228,7 @@ impl<'a> GetUserBeatmapsets<'a> {
 
     #[cfg(feature = "cache")]
     #[inline]
-    pub(crate) fn new(osu: &'a Osu, user_id: UserId) -> Self {
+    pub(crate) const fn new(osu: &'a Osu, user_id: UserId) -> Self {
         Self {
             fut: None,
             osu,
@@ -241,8 +241,8 @@ impl<'a> GetUserBeatmapsets<'a> {
 
     /// Limit the amount of results in the response
     #[inline]
-    pub fn limit(mut self, limit: usize) -> Self {
-        self.limit.replace(limit);
+    pub const fn limit(mut self, limit: usize) -> Self {
+        self.limit = Some(limit);
 
         self
     }
@@ -250,15 +250,15 @@ impl<'a> GetUserBeatmapsets<'a> {
     /// Set an offset for the requested elements
     /// e.g. skip the first `offset` amount in the list
     #[inline]
-    pub fn offset(mut self, offset: usize) -> Self {
-        self.offset.replace(offset);
+    pub const fn offset(mut self, offset: usize) -> Self {
+        self.offset = Some(offset);
 
         self
     }
 
     /// Only include mapsets with the specified status
     #[inline]
-    pub fn status(mut self, map_type: RankStatus) -> Self {
+    pub const fn status(mut self, map_type: RankStatus) -> Self {
         self.map_type = match map_type {
             RankStatus::Approved | RankStatus::Ranked => "ranked",
             RankStatus::Graveyard => "graveyard",
@@ -271,7 +271,7 @@ impl<'a> GetUserBeatmapsets<'a> {
 
     /// Require mapset rank status to be `loved`
     #[inline]
-    pub fn loved(mut self) -> Self {
+    pub const fn loved(mut self) -> Self {
         self.map_type = "loved";
 
         self
@@ -279,7 +279,7 @@ impl<'a> GetUserBeatmapsets<'a> {
 
     /// Require mapset rank status to be `graveyard`
     #[inline]
-    pub fn graveyard(mut self) -> Self {
+    pub const fn graveyard(mut self) -> Self {
         self.map_type = "graveyard";
 
         self
@@ -287,7 +287,7 @@ impl<'a> GetUserBeatmapsets<'a> {
 
     /// Require mapset rank status to be either `ranked` or `approved`
     #[inline]
-    pub fn ranked(mut self) -> Self {
+    pub const fn ranked(mut self) -> Self {
         self.map_type = "ranked";
 
         self
@@ -295,7 +295,7 @@ impl<'a> GetUserBeatmapsets<'a> {
 
     /// Require mapset rank status to be `pending`
     #[inline]
-    pub fn pending(mut self) -> Self {
+    pub const fn pending(mut self) -> Self {
         self.map_type = "pending";
 
         self
@@ -356,7 +356,7 @@ pub struct GetUserKudosu<'a> {
 impl<'a> GetUserKudosu<'a> {
     #[cfg(not(feature = "cache"))]
     #[inline]
-    pub(crate) fn new(osu: &'a Osu, user_id: u32) -> Self {
+    pub(crate) const fn new(osu: &'a Osu, user_id: u32) -> Self {
         Self {
             fut: None,
             osu,
@@ -368,7 +368,7 @@ impl<'a> GetUserKudosu<'a> {
 
     #[cfg(feature = "cache")]
     #[inline]
-    pub(crate) fn new(osu: &'a Osu, user_id: UserId) -> Self {
+    pub(crate) const fn new(osu: &'a Osu, user_id: UserId) -> Self {
         Self {
             fut: None,
             osu,
@@ -380,8 +380,8 @@ impl<'a> GetUserKudosu<'a> {
 
     /// Limit the amount of results in the response
     #[inline]
-    pub fn limit(mut self, limit: usize) -> Self {
-        self.limit.replace(limit);
+    pub const fn limit(mut self, limit: usize) -> Self {
+        self.limit = Some(limit);
 
         self
     }
@@ -389,8 +389,8 @@ impl<'a> GetUserKudosu<'a> {
     /// Set an offset for the requested elements
     /// e.g. skip the first `offset` amount in the list
     #[inline]
-    pub fn offset(mut self, offset: usize) -> Self {
-        self.offset.replace(offset);
+    pub const fn offset(mut self, offset: usize) -> Self {
+        self.offset = Some(offset);
 
         self
     }
@@ -447,7 +447,7 @@ pub struct GetUserMostPlayed<'a> {
 impl<'a> GetUserMostPlayed<'a> {
     #[cfg(not(feature = "cache"))]
     #[inline]
-    pub(crate) fn new(osu: &'a Osu, user_id: u32) -> Self {
+    pub(crate) const fn new(osu: &'a Osu, user_id: u32) -> Self {
         Self {
             fut: None,
             osu,
@@ -459,7 +459,7 @@ impl<'a> GetUserMostPlayed<'a> {
 
     #[cfg(feature = "cache")]
     #[inline]
-    pub(crate) fn new(osu: &'a Osu, user_id: UserId) -> Self {
+    pub(crate) const fn new(osu: &'a Osu, user_id: UserId) -> Self {
         Self {
             fut: None,
             osu,
@@ -471,8 +471,8 @@ impl<'a> GetUserMostPlayed<'a> {
 
     /// The API provides at most 51 results per requests.
     #[inline]
-    pub fn limit(mut self, limit: usize) -> Self {
-        self.limit.replace(limit);
+    pub const fn limit(mut self, limit: usize) -> Self {
+        self.limit = Some(limit);
 
         self
     }
@@ -480,8 +480,8 @@ impl<'a> GetUserMostPlayed<'a> {
     /// Set an offset for the requested elements
     /// e.g. skip the first `offset` amount in the list
     #[inline]
-    pub fn offset(mut self, offset: usize) -> Self {
-        self.offset.replace(offset);
+    pub const fn offset(mut self, offset: usize) -> Self {
+        self.offset = Some(offset);
 
         self
     }
@@ -548,7 +548,7 @@ pub struct GetRecentEvents<'a> {
 impl<'a> GetRecentEvents<'a> {
     #[cfg(not(feature = "cache"))]
     #[inline]
-    pub(crate) fn new(osu: &'a Osu, user_id: u32) -> Self {
+    pub(crate) const fn new(osu: &'a Osu, user_id: u32) -> Self {
         Self {
             fut: None,
             osu,
@@ -560,7 +560,7 @@ impl<'a> GetRecentEvents<'a> {
 
     #[cfg(feature = "cache")]
     #[inline]
-    pub(crate) fn new(osu: &'a Osu, user_id: UserId) -> Self {
+    pub(crate) const fn new(osu: &'a Osu, user_id: UserId) -> Self {
         Self {
             fut: None,
             osu,
@@ -572,8 +572,8 @@ impl<'a> GetRecentEvents<'a> {
 
     /// Limit the amount of results in the response
     #[inline]
-    pub fn limit(mut self, limit: usize) -> Self {
-        self.limit.replace(limit);
+    pub const fn limit(mut self, limit: usize) -> Self {
+        self.limit = Some(limit);
 
         self
     }
@@ -581,8 +581,8 @@ impl<'a> GetRecentEvents<'a> {
     /// Set an offset for the requested elements
     /// e.g. skip the first `offset` amount in the list
     #[inline]
-    pub fn offset(mut self, offset: usize) -> Self {
-        self.offset.replace(offset);
+    pub const fn offset(mut self, offset: usize) -> Self {
+        self.offset = Some(offset);
 
         self
     }
@@ -626,7 +626,7 @@ pub(crate) enum ScoreType {
 }
 
 impl ScoreType {
-    pub(crate) fn as_str(self) -> &'static str {
+    pub(crate) const fn as_str(self) -> &'static str {
         match self {
             Self::Best => "best",
             Self::First => "firsts",
@@ -672,7 +672,7 @@ pub struct GetUserScores<'a> {
 impl<'a> GetUserScores<'a> {
     #[cfg(not(feature = "cache"))]
     #[inline]
-    pub(crate) fn new(osu: &'a Osu, user_id: u32) -> Self {
+    pub(crate) const fn new(osu: &'a Osu, user_id: u32) -> Self {
         Self {
             fut: None,
             osu,
@@ -688,7 +688,7 @@ impl<'a> GetUserScores<'a> {
 
     #[cfg(feature = "cache")]
     #[inline]
-    pub(crate) fn new(osu: &'a Osu, user_id: UserId) -> Self {
+    pub(crate) const fn new(osu: &'a Osu, user_id: UserId) -> Self {
         Self {
             fut: None,
             osu,
@@ -704,8 +704,8 @@ impl<'a> GetUserScores<'a> {
 
     /// The API provides at most 100 results per requests.
     #[inline]
-    pub fn limit(mut self, limit: usize) -> Self {
-        self.limit.replace(limit);
+    pub const fn limit(mut self, limit: usize) -> Self {
+        self.limit = Some(limit);
 
         self
     }
@@ -713,16 +713,16 @@ impl<'a> GetUserScores<'a> {
     /// Set an offset for the requested elements
     /// e.g. skip the first `offset` amount in the list
     #[inline]
-    pub fn offset(mut self, offset: usize) -> Self {
-        self.offset.replace(offset);
+    pub const fn offset(mut self, offset: usize) -> Self {
+        self.offset = Some(offset);
 
         self
     }
 
     /// Specify the mode of the scores
     #[inline]
-    pub fn mode(mut self, mode: GameMode) -> Self {
-        self.mode.replace(mode);
+    pub const fn mode(mut self, mode: GameMode) -> Self {
+        self.mode = Some(mode);
 
         self
     }
@@ -731,15 +731,15 @@ impl<'a> GetUserScores<'a> {
     ///
     /// Only relevant for [`recent`](GetUserScores::recent)
     #[inline]
-    pub fn include_fails(mut self, include_fails: bool) -> Self {
-        self.include_fails.replace(include_fails);
+    pub const fn include_fails(mut self, include_fails: bool) -> Self {
+        self.include_fails = Some(include_fails);
 
         self
     }
 
     /// Get top scores of a user
     #[inline]
-    pub fn best(mut self) -> Self {
+    pub const fn best(mut self) -> Self {
         self.score_type = ScoreType::Best;
 
         self
@@ -747,7 +747,7 @@ impl<'a> GetUserScores<'a> {
 
     /// Get global #1 scores of a user.
     #[inline]
-    pub fn firsts(mut self) -> Self {
+    pub const fn firsts(mut self) -> Self {
         self.score_type = ScoreType::First;
 
         self
@@ -755,7 +755,7 @@ impl<'a> GetUserScores<'a> {
 
     /// Get the pinned scores of a user.
     #[inline]
-    pub fn pinned(mut self) -> Self {
+    pub const fn pinned(mut self) -> Self {
         self.score_type = ScoreType::Pinned;
 
         self
@@ -763,7 +763,7 @@ impl<'a> GetUserScores<'a> {
 
     /// Get recent scores of a user.
     #[inline]
-    pub fn recent(mut self) -> Self {
+    pub const fn recent(mut self) -> Self {
         self.score_type = ScoreType::Recent;
 
         self
@@ -774,7 +774,7 @@ impl<'a> GetUserScores<'a> {
     /// Legacy data consists of a different grade calculation, less
     /// populated statistics, legacy mods, and a different score kind.
     #[inline]
-    pub fn legacy_scores(mut self, legacy_scores: bool) -> Self {
+    pub const fn legacy_scores(mut self, legacy_scores: bool) -> Self {
         self.legacy_scores = legacy_scores;
 
         self

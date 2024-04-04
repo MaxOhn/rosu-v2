@@ -28,14 +28,14 @@ impl<T> Clone for ModeAsSeed<T> {
 impl<T> Copy for ModeAsSeed<T> {}
 
 impl<T> ModeAsSeed<T> {
-    pub fn new(mode: GameMode) -> Self {
+    pub const fn new(mode: GameMode) -> Self {
         Self {
             mode,
             phantom: PhantomData,
         }
     }
 
-    pub fn cast<U>(self) -> ModeAsSeed<U> {
+    pub const fn cast<U>(self) -> ModeAsSeed<U> {
         ModeAsSeed::new(self.mode)
     }
 }

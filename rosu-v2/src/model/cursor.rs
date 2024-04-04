@@ -19,7 +19,7 @@ pub struct Cursor {
 impl Cursor {
     /// Create a cursor
     #[inline]
-    pub fn new(cursor: Value) -> Self {
+    pub const fn new(cursor: Value) -> Self {
         Self { cursor }
     }
 

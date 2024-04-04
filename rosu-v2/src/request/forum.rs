@@ -27,7 +27,7 @@ pub struct GetForumPosts<'a> {
 
 impl<'a> GetForumPosts<'a> {
     #[inline]
-    pub(crate) fn new(osu: &'a Osu, topic_id: u64) -> Self {
+    pub(crate) const fn new(osu: &'a Osu, topic_id: u64) -> Self {
         Self {
             fut: None,
             osu,
@@ -43,23 +43,23 @@ impl<'a> GetForumPosts<'a> {
     /// Maximum number of posts to be returned (20 default, 50 at most)
     #[inline]
     pub fn limit(mut self, limit: usize) -> Self {
-        self.limit.replace(limit.min(50));
+        self.limit = Some(limit.min(50));
 
         self
     }
 
     /// Sort by ascending post ids. This is the default.
     #[inline]
-    pub fn sort_ascending(mut self) -> Self {
-        self.sort.replace("id_asc");
+    pub const fn sort_ascending(mut self) -> Self {
+        self.sort = Some("id_asc");
 
         self
     }
 
     /// Sort by descending post ids
     #[inline]
-    pub fn sort_descending(mut self) -> Self {
-        self.sort.replace("id_desc");
+    pub const fn sort_descending(mut self) -> Self {
+        self.sort = Some("id_desc");
 
         self
     }
@@ -67,8 +67,8 @@ impl<'a> GetForumPosts<'a> {
     /// First post id to be returned if sorted ascendingly.
     /// Parameter is ignored if `cursor` is specified.
     #[inline]
-    pub fn start_id(mut self, start: u64) -> Self {
-        self.start.replace(start);
+    pub const fn start_id(mut self, start: u64) -> Self {
+        self.start = Some(start);
 
         self
     }
@@ -76,8 +76,8 @@ impl<'a> GetForumPosts<'a> {
     /// First post id to be returned if sorted descendingly.
     /// Parameter is ignored if `cursor` is specified.
     #[inline]
-    pub fn end_id(mut self, end: u64) -> Self {
-        self.end.replace(end);
+    pub const fn end_id(mut self, end: u64) -> Self {
+        self.end = Some(end);
 
         self
     }
@@ -85,7 +85,7 @@ impl<'a> GetForumPosts<'a> {
     /// Specify a page by providing a cursor
     #[inline]
     pub fn cursor(mut self, cursor: Cursor) -> Self {
-        self.cursor.replace(cursor);
+        self.cursor = Some(cursor);
 
         self
     }

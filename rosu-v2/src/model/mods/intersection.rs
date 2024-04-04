@@ -11,7 +11,7 @@ pub(super) enum IntersectionInner<I, A> {
 }
 
 impl<I, A> IntersectionInner<I, A> {
-    pub(super) fn new_stitch(a: I, b: I) -> Self {
+    pub(super) const fn new_stitch(a: I, b: I) -> Self {
         Self::Stitch(Stitch { a, b })
     }
 }

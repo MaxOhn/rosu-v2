@@ -37,7 +37,7 @@ pub struct GetChartRankings<'a> {
 
 impl<'a> GetChartRankings<'a> {
     #[inline]
-    pub(crate) fn new(osu: &'a Osu, mode: GameMode) -> Self {
+    pub(crate) const fn new(osu: &'a Osu, mode: GameMode) -> Self {
         Self {
             fut: None,
             osu,
@@ -49,8 +49,8 @@ impl<'a> GetChartRankings<'a> {
     /// Specify the spotlight id. If none is given,
     /// the latest spotlight will be returned.
     #[inline]
-    pub fn spotlight(mut self, spotlight_id: u32) -> Self {
-        self.spotlight.replace(spotlight_id);
+    pub const fn spotlight(mut self, spotlight_id: u32) -> Self {
+        self.spotlight = Some(spotlight_id);
 
         self
     }
@@ -98,7 +98,7 @@ pub struct GetCountryRankings<'a> {
 
 impl<'a> GetCountryRankings<'a> {
     #[inline]
-    pub(crate) fn new(osu: &'a Osu, mode: GameMode) -> Self {
+    pub(crate) const fn new(osu: &'a Osu, mode: GameMode) -> Self {
         Self {
             fut: None,
             osu,
@@ -109,8 +109,8 @@ impl<'a> GetCountryRankings<'a> {
 
     /// Specify a page
     #[inline]
-    pub fn page(mut self, page: u32) -> Self {
-        self.page.replace(page);
+    pub const fn page(mut self, page: u32) -> Self {
+        self.page = Some(page);
 
         self
     }
@@ -151,7 +151,7 @@ pub struct GetPerformanceRankings<'a> {
 
 impl<'a> GetPerformanceRankings<'a> {
     #[inline]
-    pub(crate) fn new(osu: &'a Osu, mode: GameMode) -> Self {
+    pub(crate) const fn new(osu: &'a Osu, mode: GameMode) -> Self {
         Self {
             fut: None,
             osu,
@@ -165,31 +165,31 @@ impl<'a> GetPerformanceRankings<'a> {
     /// Specify a country code.
     #[inline]
     pub fn country(mut self, country: impl Into<CountryCode>) -> Self {
-        self.country.replace(country.into());
+        self.country = Some(country.into());
 
         self
     }
 
     /// Consider only 4K scores. Only relevant for osu!mania.
     #[inline]
-    pub fn variant_4k(mut self) -> Self {
-        self.variant.replace("4k");
+    pub const fn variant_4k(mut self) -> Self {
+        self.variant = Some("4k");
 
         self
     }
 
     /// Consider only 7K scores. Only relevant for osu!mania.
     #[inline]
-    pub fn variant_7k(mut self) -> Self {
-        self.variant.replace("7k");
+    pub const fn variant_7k(mut self) -> Self {
+        self.variant = Some("7k");
 
         self
     }
 
     /// Pages range from 1 to 200.
     #[inline]
-    pub fn page(mut self, page: u32) -> Self {
-        self.page.replace(page);
+    pub const fn page(mut self, page: u32) -> Self {
+        self.page = Some(page);
 
         self
     }
@@ -209,10 +209,12 @@ impl<'a> GetPerformanceRankings<'a> {
         let fut = osu
             .request::<Rankings>(req)
             .map_ok(move |mut rankings: Rankings| {
-                rankings.mode.replace(mode);
+                rankings.mode = Some(mode);
 
                 #[cfg(not(feature = "rkyv"))]
-                rankings.ranking_type.replace(RankingType::Performance);
+                {
+                    rankings.ranking_type = Some(RankingType::Performance);
+                }
 
                 #[cfg(feature = "cache")]
                 for user in rankings.ranking.iter() {
@@ -246,7 +248,7 @@ pub struct GetScoreRankings<'a> {
 
 impl<'a> GetScoreRankings<'a> {
     #[inline]
-    pub(crate) fn new(osu: &'a Osu, mode: GameMode) -> Self {
+    pub(crate) const fn new(osu: &'a Osu, mode: GameMode) -> Self {
         Self {
             fut: None,
             osu,
@@ -257,8 +259,8 @@ impl<'a> GetScoreRankings<'a> {
 
     /// Pages range from 1 to 200.
     #[inline]
-    pub fn page(mut self, page: u32) -> Self {
-        self.page.replace(page);
+    pub const fn page(mut self, page: u32) -> Self {
+        self.page = Some(page);
 
         self
     }
@@ -278,10 +280,12 @@ impl<'a> GetScoreRankings<'a> {
         let fut = osu
             .request::<Rankings>(req)
             .map_ok(move |mut rankings: Rankings| {
-                rankings.mode.replace(mode);
+                rankings.mode = Some(mode);
 
                 #[cfg(not(feature = "rkyv"))]
-                rankings.ranking_type.replace(RankingType::Score);
+                {
+                    rankings.ranking_type = Some(RankingType::Score);
+                }
 
                 #[cfg(feature = "cache")]
                 for user in rankings.ranking.iter() {

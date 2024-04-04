@@ -22,7 +22,7 @@ macro_rules! mods_iter {
         }
 
         impl $( < $outer_lifetime > )? $name $( < $outer_lifetime > )? {
-            pub(super) fn new(inner: $inner < $( $inner_generic ),* >) -> Self {
+            pub(super) const fn new(inner: $inner < $( $inner_generic ),* >) -> Self {
                 Self { inner }
             }
         }

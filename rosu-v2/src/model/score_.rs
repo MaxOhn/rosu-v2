@@ -1,7 +1,5 @@
-use std::fmt::{Formatter, Result as FmtResult};
-
 use super::{
-    beatmap_::{Beatmap, BeatmapExtended, Beatmapset},
+    beatmap_::{BeatmapExtended, Beatmapset},
     mods::GameMods,
     serde_,
     user::User,
@@ -10,10 +8,7 @@ use super::{
 use crate::{mods, prelude::ModeAsSeed, request::GetUser, Osu};
 
 use serde::{
-    de::{
-        value::{MapAccessDeserializer, MapDeserializer},
-        DeserializeSeed, Error as DeError, IgnoredAny, MapAccess, Visitor,
-    },
+    de::{DeserializeSeed, Error as DeError, IgnoredAny},
     Deserialize, Deserializer,
 };
 
@@ -157,7 +152,7 @@ impl<'de> Deserialize<'de> for Score {
         struct MaybeWeight {
             percentage: f32,
             pp: Option<f32>,
-        };
+        }
 
         let score_raw = <ScoreRawMods as serde::Deserialize>::deserialize(d)?;
         let mut d = serde_json::Deserializer::from_str(score_raw.mods.get());
@@ -233,7 +228,7 @@ impl Score {
     ///
     /// Note: Includes tiny droplet (misses) for `GameMode::Catch`.
     #[inline]
-    pub fn total_hits(&self) -> u32 {
+    pub const fn total_hits(&self) -> u32 {
         self.statistics.total_hits(self.mode)
     }
 
@@ -364,7 +359,7 @@ impl ScoreStatistics {
     /// Count all hitobjects of the score i.e. for `GameMode::Osu` the amount 300s, 100s, 50s, and misses.
     ///
     /// Note: Includes tiny droplet (misses) for `GameMode::Catch`.
-    pub fn total_hits(&self, mode: GameMode) -> u32 {
+    pub const fn total_hits(&self, mode: GameMode) -> u32 {
         match mode {
             GameMode::Osu => self.ok + self.meh + self.great + self.miss,
             GameMode::Taiko => self.ok + self.great + self.miss,
@@ -407,13 +402,13 @@ impl ScoreStatistics {
     }
 
     /// Turn [`ScoreStatistics`] into [`LegacyScoreStatistics`]
-    pub fn as_legacy(&self, mode: GameMode) -> LegacyScoreStatistics {
+    pub const fn as_legacy(&self, mode: GameMode) -> LegacyScoreStatistics {
         let mut count_geki = 0;
         let mut count_katu = 0;
-        let mut count_300 = self.great;
-        let mut count_100 = 0;
+        let count_300 = self.great;
+        let count_100;
         let mut count_50 = 0;
-        let mut count_miss = self.miss;
+        let count_miss = self.miss;
 
         match mode {
             GameMode::Osu => {

@@ -33,7 +33,7 @@ pub struct GetComments<'a> {
 
 impl<'a> GetComments<'a> {
     #[inline]
-    pub(crate) fn new(osu: &'a Osu) -> Self {
+    pub(crate) const fn new(osu: &'a Osu) -> Self {
         Self {
             fut: None,
             osu,
@@ -47,40 +47,40 @@ impl<'a> GetComments<'a> {
 
     /// Sort the result by date, newest first
     #[inline]
-    pub fn sort_new(mut self) -> Self {
-        self.sort.replace(CommentSort::New);
+    pub const fn sort_new(mut self) -> Self {
+        self.sort = Some(CommentSort::New);
 
         self
     }
 
     /// Sort the result by vote count
     #[inline]
-    pub fn sort_top(mut self) -> Self {
-        self.sort.replace(CommentSort::Top);
+    pub const fn sort_top(mut self) -> Self {
+        self.sort = Some(CommentSort::Top);
 
         self
     }
 
     /// Sort the result by date, oldest first
     #[inline]
-    pub fn sort_old(mut self) -> Self {
-        self.sort.replace(CommentSort::Old);
+    pub const fn sort_old(mut self) -> Self {
+        self.sort = Some(CommentSort::Old);
 
         self
     }
 
     /// Limit to comments which are reply to the specified id. Specify 0 to get top level comments
     #[inline]
-    pub fn parent(mut self, parent_id: u32) -> Self {
-        self.parent_id.replace(parent_id);
+    pub const fn parent(mut self, parent_id: u32) -> Self {
+        self.parent_id = Some(parent_id);
 
         self
     }
 
     /// The id of the resource to get comments for
     #[inline]
-    pub fn commentable_id(mut self, commentable_id: u32) -> Self {
-        self.commentable_id.replace(commentable_id);
+    pub const fn commentable_id(mut self, commentable_id: u32) -> Self {
+        self.commentable_id = Some(commentable_id);
 
         self
     }
@@ -88,14 +88,14 @@ impl<'a> GetComments<'a> {
     /// The type of resource to get comments for
     #[inline]
     pub fn commentable_type(mut self, commentable_type: impl Into<String>) -> Self {
-        self.commentable_type.replace(commentable_type.into());
+        self.commentable_type = Some(commentable_type.into());
 
         self
     }
 
     #[inline]
     pub(crate) fn cursor(mut self, cursor: Cursor) -> Self {
-        self.cursor.replace(cursor);
+        self.cursor = Some(cursor);
 
         self
     }

@@ -46,7 +46,7 @@ pub struct GetBeatmap<'a> {
 
 impl<'a> GetBeatmap<'a> {
     #[inline]
-    pub(crate) fn new(osu: &'a Osu) -> Self {
+    pub(crate) const fn new(osu: &'a Osu) -> Self {
         Self {
             fut: None,
             osu,
@@ -59,7 +59,7 @@ impl<'a> GetBeatmap<'a> {
     /// Specify a beatmap checksum
     #[inline]
     pub fn checksum(mut self, checksum: impl Into<String>) -> Self {
-        self.checksum.replace(checksum.into());
+        self.checksum = Some(checksum.into());
 
         self
     }
@@ -67,15 +67,15 @@ impl<'a> GetBeatmap<'a> {
     /// Specify a beatmap filename
     #[inline]
     pub fn filename(mut self, filename: impl Into<String>) -> Self {
-        self.filename.replace(filename.into());
+        self.filename = Some(filename.into());
 
         self
     }
 
     /// Specify a beatmap id
     #[inline]
-    pub fn map_id(mut self, map_id: u32) -> Self {
-        self.map_id.replace(map_id);
+    pub const fn map_id(mut self, map_id: u32) -> Self {
+        self.map_id = Some(map_id);
 
         self
     }
@@ -165,7 +165,7 @@ impl<'a> GetBeatmapDifficultyAttributes<'a> {
 
     /// Specify the mode
     #[inline]
-    pub fn mode(mut self, mode: GameMode) -> Self {
+    pub const fn mode(mut self, mode: GameMode) -> Self {
         self.mode = Some(mode);
 
         self
@@ -217,7 +217,7 @@ enum ScoreType {
 }
 
 impl ScoreType {
-    fn as_str(&self) -> &'static str {
+    const fn as_str(&self) -> &'static str {
         match self {
             Self::Country => "country",
             Self::Global => "global",
@@ -257,7 +257,7 @@ pub struct GetBeatmapScores<'a> {
 
 impl<'a> GetBeatmapScores<'a> {
     #[inline]
-    pub(crate) fn new(osu: &'a Osu, map_id: u32) -> Self {
+    pub(crate) const fn new(osu: &'a Osu, map_id: u32) -> Self {
         Self {
             fut: None,
             osu,
@@ -273,8 +273,8 @@ impl<'a> GetBeatmapScores<'a> {
 
     /// Specify the mode of the scores
     #[inline]
-    pub fn mode(mut self, mode: GameMode) -> Self {
-        self.mode.replace(mode);
+    pub const fn mode(mut self, mode: GameMode) -> Self {
+        self.mode = Some(mode);
 
         self
     }
@@ -292,7 +292,7 @@ impl<'a> GetBeatmapScores<'a> {
 
     /// Specify that the global leaderboard should be requested.
     #[inline]
-    pub fn global(mut self) -> Self {
+    pub const fn global(mut self) -> Self {
         self.score_type = Some(ScoreType::Global);
 
         self
@@ -302,15 +302,15 @@ impl<'a> GetBeatmapScores<'a> {
     ///
     /// Note that you must be authenticated through OAuth and have osu!supporter to use this.
     #[inline]
-    pub fn country(mut self) -> Self {
+    pub const fn country(mut self) -> Self {
         self.score_type = Some(ScoreType::Country);
 
         self
     }
 
     #[inline]
-    pub fn limit(mut self, limit: u32) -> Self {
-        self.limit.replace(limit);
+    pub const fn limit(mut self, limit: u32) -> Self {
+        self.limit = Some(limit);
 
         self
     }
@@ -320,7 +320,7 @@ impl<'a> GetBeatmapScores<'a> {
     /// Legacy data consists of a different grade calculation, less
     /// populated statistics, legacy mods, and a different score kind.
     #[inline]
-    pub fn legacy_scores(mut self, legacy_scores: bool) -> Self {
+    pub const fn legacy_scores(mut self, legacy_scores: bool) -> Self {
         self.legacy_scores = legacy_scores;
 
         self
@@ -328,7 +328,7 @@ impl<'a> GetBeatmapScores<'a> {
 
     // #[inline]
     // pub fn offset(mut self, offset: u32) -> Self {
-    //     self.offset.replace(offset);
+    //     self.offset = Some(offset);
 
     //     self
     // }
@@ -397,7 +397,7 @@ pub struct GetBeatmapUserScore<'a> {
 impl<'a> GetBeatmapUserScore<'a> {
     #[cfg(not(feature = "cache"))]
     #[inline]
-    pub(crate) fn new(osu: &'a Osu, map_id: u32, user_id: u32) -> Self {
+    pub(crate) const fn new(osu: &'a Osu, map_id: u32, user_id: u32) -> Self {
         Self {
             fut: None,
             osu,
@@ -411,7 +411,7 @@ impl<'a> GetBeatmapUserScore<'a> {
 
     #[cfg(feature = "cache")]
     #[inline]
-    pub(crate) fn new(osu: &'a Osu, map_id: u32, user_id: UserId) -> Self {
+    pub(crate) const fn new(osu: &'a Osu, map_id: u32, user_id: UserId) -> Self {
         Self {
             fut: None,
             osu,
@@ -425,8 +425,8 @@ impl<'a> GetBeatmapUserScore<'a> {
 
     /// Specify the mode
     #[inline]
-    pub fn mode(mut self, mode: GameMode) -> Self {
-        self.mode.replace(mode);
+    pub const fn mode(mut self, mode: GameMode) -> Self {
+        self.mode = Some(mode);
 
         self
     }
@@ -437,7 +437,7 @@ impl<'a> GetBeatmapUserScore<'a> {
     where
         GameModsIntermode: From<M>,
     {
-        self.mods.replace(GameModsIntermode::from(mods));
+        self.mods = Some(GameModsIntermode::from(mods));
 
         self
     }
@@ -447,7 +447,7 @@ impl<'a> GetBeatmapUserScore<'a> {
     /// Legacy data consists of a different grade calculation, less
     /// populated statistics, legacy mods, and a different score kind.
     #[inline]
-    pub fn legacy_scores(mut self, legacy_scores: bool) -> Self {
+    pub const fn legacy_scores(mut self, legacy_scores: bool) -> Self {
         self.legacy_scores = legacy_scores;
 
         self
@@ -535,7 +535,7 @@ pub struct GetBeatmapUserScores<'a> {
 impl<'a> GetBeatmapUserScores<'a> {
     #[cfg(not(feature = "cache"))]
     #[inline]
-    pub(crate) fn new(osu: &'a Osu, map_id: u32, user_id: u32) -> Self {
+    pub(crate) const fn new(osu: &'a Osu, map_id: u32, user_id: u32) -> Self {
         Self {
             fut: None,
             osu,
@@ -548,7 +548,7 @@ impl<'a> GetBeatmapUserScores<'a> {
 
     #[cfg(feature = "cache")]
     #[inline]
-    pub(crate) fn new(osu: &'a Osu, map_id: u32, user_id: UserId) -> Self {
+    pub(crate) const fn new(osu: &'a Osu, map_id: u32, user_id: UserId) -> Self {
         Self {
             fut: None,
             osu,
@@ -561,8 +561,8 @@ impl<'a> GetBeatmapUserScores<'a> {
 
     /// Specify the mode
     #[inline]
-    pub fn mode(mut self, mode: GameMode) -> Self {
-        self.mode.replace(mode);
+    pub const fn mode(mut self, mode: GameMode) -> Self {
+        self.mode = Some(mode);
 
         self
     }
@@ -572,7 +572,7 @@ impl<'a> GetBeatmapUserScores<'a> {
     /// Legacy data consists of a different grade calculation, less
     /// populated statistics, legacy mods, and a different score kind.
     #[inline]
-    pub fn legacy_scores(mut self, legacy_scores: bool) -> Self {
+    pub const fn legacy_scores(mut self, legacy_scores: bool) -> Self {
         self.legacy_scores = legacy_scores;
 
         self
@@ -774,7 +774,7 @@ pub struct GetBeatmapsetSearch<'a> {
 
 impl<'a> GetBeatmapsetSearch<'a> {
     #[inline]
-    pub(crate) fn new(osu: &'a Osu) -> Self {
+    pub(crate) const fn new(osu: &'a Osu) -> Self {
         Self {
             fut: None,
             osu,
@@ -795,15 +795,15 @@ impl<'a> GetBeatmapsetSearch<'a> {
     /// Specify a search query.
     #[inline]
     pub fn query(mut self, query: impl Into<String>) -> Self {
-        self.query.replace(query.into());
+        self.query = Some(query.into());
 
         self
     }
 
     /// Specify the mode for which the mapsets has to have at least one map.
     #[inline]
-    pub fn mode(mut self, mode: GameMode) -> Self {
-        self.mode.replace(mode as u8);
+    pub const fn mode(mut self, mode: GameMode) -> Self {
+        self.mode = Some(mode as u8);
 
         self
     }
@@ -811,8 +811,8 @@ impl<'a> GetBeatmapsetSearch<'a> {
     /// Allow any status for mapsets. To specify a specific one, use the
     /// [`status`](crate::request::GetBeatmapsetSearch::status) method.
     #[inline]
-    pub fn any_status(mut self) -> Self {
-        self.status.replace(SearchRankStatus::Any);
+    pub const fn any_status(mut self) -> Self {
+        self.status = Some(SearchRankStatus::Any);
 
         self
     }
@@ -829,30 +829,30 @@ impl<'a> GetBeatmapsetSearch<'a> {
             status = RankStatus::Pending;
         }
 
-        self.status.replace(SearchRankStatus::Specific(status));
+        self.status = Some(SearchRankStatus::Specific(status));
 
         self
     }
 
     /// Specify a genre for the mapsets, defaults to `Any`.
     #[inline]
-    pub fn genre(mut self, genre: Genre) -> Self {
-        self.genre.replace(genre as u8);
+    pub const fn genre(mut self, genre: Genre) -> Self {
+        self.genre = Some(genre as u8);
 
         self
     }
 
     /// Specify a language for the mapsets, defaults to `Any`.
     #[inline]
-    pub fn language(mut self, language: Language) -> Self {
-        self.language.replace(language as u8);
+    pub const fn language(mut self, language: Language) -> Self {
+        self.language = Some(language as u8);
 
         self
     }
 
     /// Specify whether mapsets can have a video, defaults to `false`.
     #[inline]
-    pub fn video(mut self, video: bool) -> Self {
+    pub const fn video(mut self, video: bool) -> Self {
         self.video = video;
 
         self
@@ -860,7 +860,7 @@ impl<'a> GetBeatmapsetSearch<'a> {
 
     /// Specify whether mapsets can have a storyboard, defaults to `false`.
     #[inline]
-    pub fn storyboard(mut self, storyboard: bool) -> Self {
+    pub const fn storyboard(mut self, storyboard: bool) -> Self {
         self.storyboard = storyboard;
 
         self
@@ -868,7 +868,7 @@ impl<'a> GetBeatmapsetSearch<'a> {
 
     /// Specify whether mapsets can be NSFW, defaults to `true`.
     #[inline]
-    pub fn nsfw(mut self, nsfw: bool) -> Self {
+    pub const fn nsfw(mut self, nsfw: bool) -> Self {
         self.nsfw = nsfw;
 
         self
@@ -876,8 +876,8 @@ impl<'a> GetBeatmapsetSearch<'a> {
 
     /// Specify how the result should be sorted
     #[inline]
-    pub fn sort(mut self, sort: BeatmapsetSearchSort, descending: bool) -> Self {
-        self.sort.replace(sort);
+    pub const fn sort(mut self, sort: BeatmapsetSearchSort, descending: bool) -> Self {
+        self.sort = Some(sort);
         self.descending = descending;
 
         self
@@ -885,7 +885,7 @@ impl<'a> GetBeatmapsetSearch<'a> {
 
     #[inline]
     pub(crate) fn cursor(mut self, cursor: Cursor) -> Self {
-        self.cursor.replace(cursor);
+        self.cursor = Some(cursor);
 
         self
     }
@@ -1025,7 +1025,7 @@ pub struct GetScore<'a> {
 
 impl<'a> GetScore<'a> {
     #[inline]
-    pub(crate) fn new(osu: &'a Osu, score_id: u64, mode: GameMode) -> Self {
+    pub(crate) const fn new(osu: &'a Osu, score_id: u64, mode: GameMode) -> Self {
         Self {
             fut: None,
             osu,
@@ -1040,7 +1040,7 @@ impl<'a> GetScore<'a> {
     /// Legacy data consists of a different grade calculation, less
     /// populated statistics, legacy mods, and a different score kind.
     #[inline]
-    pub fn legacy_scores(mut self, legacy_scores: bool) -> Self {
+    pub const fn legacy_scores(mut self, legacy_scores: bool) -> Self {
         self.legacy_scores = legacy_scores;
 
         self

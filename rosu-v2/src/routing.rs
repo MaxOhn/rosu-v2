@@ -192,7 +192,7 @@ impl Route {
     }
 
     #[cfg(feature = "metrics")]
-    pub(crate) fn name(&self) -> &'static str {
+    pub(crate) const fn name(&self) -> &'static str {
         match self {
             Self::GetBeatmap => "GetBeatmap",
             Self::GetBeatmaps => "GetBeatmaps",

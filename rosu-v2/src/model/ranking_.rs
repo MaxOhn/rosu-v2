@@ -269,16 +269,16 @@ impl<'u> serde::Serialize for UserCompactBorrowed<'u> {
         s.serialize_field("replays_watched_by_others", &stats.replays_watched)?;
         s.serialize_field("total_hits", &stats.total_hits)?;
         s.serialize_field("total_score", &stats.total_score)?;
-        s.serialize_field("user", &UserCompactWithoutStats::new(user))?;
+        s.serialize_field("user", &UserWithoutStats::new(user))?;
 
         s.end()
     }
 }
 
-// Serializing a UserCompact reference without statistics
+// Serializing a `User` reference without statistics
 #[cfg(feature = "serialize")]
 #[derive(serde::Serialize)]
-struct UserCompactWithoutStats<'u> {
+struct UserWithoutStats<'u> {
     pub avatar_url: &'u String,
     pub country_code: &'u CountryCode,
     pub default_group: &'u String,
@@ -388,8 +388,8 @@ struct UserCompactWithoutStats<'u> {
 }
 
 #[cfg(feature = "serialize")]
-impl<'u> UserCompactWithoutStats<'u> {
-    fn new(user: &'u User) -> Self {
+impl<'u> UserWithoutStats<'u> {
+    const fn new(user: &'u User) -> Self {
         let User {
             avatar_url,
             country_code,
@@ -435,6 +435,7 @@ impl<'u> UserCompactWithoutStats<'u> {
             scores_first_count,
             scores_recent_count,
             statistics: _,
+            statistics_modes: _,
             support_level,
             pending_mapset_count,
         } = user;

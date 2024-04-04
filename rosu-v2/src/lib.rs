@@ -119,8 +119,7 @@
 //!
 
 #![deny(rustdoc::broken_intra_doc_links, rustdoc::missing_crate_level_docs)]
-#![deny(clippy::all, nonstandard_style, rust_2018_idioms, warnings)]
-#![allow(unused)] // TODO
+#![warn(clippy::missing_const_for_fn)]
 
 mod client;
 mod routing;

@@ -805,6 +805,14 @@ pub struct UserStatistics {
     /// Hit accuracy percentage
     #[serde(rename = "hit_accuracy")]
     pub accuracy: f32,
+    /// Total number of n300s
+    pub count_300: u32,
+    /// Total number of n100s
+    pub count_100: u32,
+    /// Total number of n50s
+    pub count_50: u32,
+    /// Total number of misses
+    pub count_miss: u32,
     /// Current country rank according to pp
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub country_rank: Option<u32>,

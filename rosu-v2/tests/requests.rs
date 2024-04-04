@@ -517,10 +517,8 @@ async fn user_scores_legacy() -> Result<()> {
 }
 
 #[tokio::test]
-#[ignore = "currently unavailable"]
 async fn users() -> Result<()> {
-    #[allow(deprecated)]
-    let users = OSU.get().await?.users(&[BADEWANNE3, SYLAS]).await?;
+    let users = OSU.get().await?.users([BADEWANNE3, SYLAS]).await?;
     println!("Received {} users", users.len());
 
     Ok(())

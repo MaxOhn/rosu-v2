@@ -1,14 +1,12 @@
 use crate::{
-    error::OsuError,
     model::{
         beatmap::{BeatmapsetExtended, MostPlayedMap, RankStatus},
         kudosu_::KudosuHistory,
         recent_event_::RecentEvent,
         score_::Score,
-        user_::{User, UserExtended},
+        user_::{User, UserExtended, Username, Users},
         GameMode,
     },
-    prelude::Username,
     request::{
         serialize::{maybe_bool_as_u8, maybe_mode_as_str, maybe_user_id_type},
         Pending, Query, Request,
@@ -17,13 +15,11 @@ use crate::{
     Osu,
 };
 
+use futures::future::TryFutureExt;
 use itoa::Buffer;
 use serde::Serialize;
 use smallstr::SmallString;
 use std::fmt;
-
-#[cfg(feature = "cache")]
-use {futures::future::TryFutureExt, std::mem};
 
 /// Either a user id as u32 or a username as String.
 ///
@@ -316,7 +312,7 @@ impl<'a> GetUserBeatmapsets<'a> {
 
         #[cfg(feature = "cache")]
         {
-            let user_id = mem::replace(&mut self.user_id, UserId::Id(0));
+            let user_id = std::mem::replace(&mut self.user_id, UserId::Id(0));
 
             let fut = osu
                 .cache_user(user_id)
@@ -409,7 +405,7 @@ impl<'a> GetUserKudosu<'a> {
 
         #[cfg(feature = "cache")]
         {
-            let user_id = mem::replace(&mut self.user_id, UserId::Id(0));
+            let user_id = std::mem::replace(&mut self.user_id, UserId::Id(0));
 
             let fut = osu
                 .cache_user(user_id)
@@ -504,7 +500,7 @@ impl<'a> GetUserMostPlayed<'a> {
 
         #[cfg(feature = "cache")]
         {
-            let user_id = mem::replace(&mut self.user_id, UserId::Id(0));
+            let user_id = std::mem::replace(&mut self.user_id, UserId::Id(0));
 
             let fut = osu
                 .cache_user(user_id)
@@ -601,7 +597,7 @@ impl<'a> GetRecentEvents<'a> {
 
         #[cfg(feature = "cache")]
         {
-            let user_id = mem::replace(&mut self.user_id, UserId::Id(0));
+            let user_id = std::mem::replace(&mut self.user_id, UserId::Id(0));
 
             let fut = osu
                 .cache_user(user_id)
@@ -804,7 +800,7 @@ impl<'a> GetUserScores<'a> {
         {
             let score_type = self.score_type;
             let legacy_scores = self.legacy_scores;
-            let user_id = mem::replace(&mut self.user_id, UserId::Id(0));
+            let user_id = std::mem::replace(&mut self.user_id, UserId::Id(0));
 
             let fut = osu
                 .cache_user(user_id)
@@ -837,23 +833,26 @@ poll_req!(GetUserScores => Vec<Score>);
 pub struct GetUsers<'a> {
     fut: Option<Pending<'a, Vec<User>>>,
     osu: &'a Osu,
-    form: Option<String>,
+    query: Option<String>,
 }
 
 impl<'a> GetUsers<'a> {
     #[inline]
-    pub(crate) fn new(osu: &'a Osu, user_ids: &[u32]) -> Self {
+    pub(crate) fn new<I>(osu: &'a Osu, user_ids: I) -> Self
+    where
+        I: IntoIterator<Item = u32>,
+    {
         let mut query = String::new();
         let mut buf = Buffer::new();
 
-        let mut iter = user_ids.iter().take(50).copied();
+        let mut iter = user_ids.into_iter().take(50);
 
         if let Some(user_id) = iter.next() {
-            query.push_str("id[]=");
+            query.push_str("ids[]=");
             query.push_str(buf.format(user_id));
 
             for user_id in iter {
-                query.push_str("&id[]=");
+                query.push_str("&ids[]=");
                 query.push_str(buf.format(user_id));
             }
         }
@@ -861,18 +860,27 @@ impl<'a> GetUsers<'a> {
         Self {
             fut: None,
             osu,
-            form: Some(query),
+            query: Some(query),
         }
     }
 
     fn start(&mut self) -> Pending<'a, Vec<User>> {
-        Box::pin(async { Err(OsuError::UnavailableEndpoint) })
+        let query = self.query.take().unwrap();
+        let req = Request::with_query(Route::GetUsers, query);
+        let osu = self.osu;
 
-        // let query = self.query.take().unwrap();
-        // let req = Request::from((query, Route::GetUsers));
+        let fut = osu.request::<Users>(req);
 
-        // // TODO: cache users
-        // Box::pin(self.osu.request(req))
+        let fut = fut.map_ok(|users| {
+            #[cfg(feature = "cache")]
+            for user in users.users.iter() {
+                osu.update_cache(user.user_id, &user.username);
+            }
+
+            users.users
+        });
+
+        Box::pin(fut)
     }
 }
 

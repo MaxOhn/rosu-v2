@@ -522,9 +522,11 @@ impl Osu {
     }
 
     /// Get a vec of [`User`](crate::model::user::User).
-    #[deprecated = "The API currently doesn't allow this endpoint for public use"]
     #[inline]
-    pub fn users(&self, user_ids: &[u32]) -> GetUsers<'_> {
+    pub fn users<I>(&self, user_ids: I) -> GetUsers<'_>
+    where
+        I: IntoIterator<Item = u32>,
+    {
         GetUsers::new(self, user_ids)
     }
 

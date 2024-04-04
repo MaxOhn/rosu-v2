@@ -24,7 +24,7 @@
 //! The following endpoints are currently supported:
 //!
 //! - `beatmaps/lookup`: A specific beatmap including its beatmapset
-//! - `beatmaps`: Up to 50 beatmaps at once including their beatmapsets.
+//! - `beatmaps`: Up to 50 beatmaps at once including their beatmapsets
 //! - `beatmaps/{map_id}/attributes`: The difficulty attributes of a beatmap
 //! - `beatmaps/{map_id}/scores`: The global score leaderboard for a beatmap
 //! - `beatmaps/{map_id}/scores/users/{user_id}[/all]`: Get (all) top score(s) of a user on a beatmap. Defaults to the play with the __max score__, not pp
@@ -46,6 +46,7 @@
 //! - `users/{user_id}/{beatmapsets/{map_type}`: List of beatmapsets either created, favourited, or most played by the user
 //! - `users/{user_id}/kudosu`: A user's recent kudosu transfers
 //! - `users/{user_id}/scores/{score_type}`: Either top, recent, pinned, or global #1 scores of a user
+//! - `users`: Up to 50 users at once including statistics for all modes
 //! - `wiki/{locale}[/{path}]`: The general wiki page or a specific topic if the path is specified
 //!
 //! The api itself provides a bunch more endpoints which are not yet implemented because they're really niche and/or missing any documentation.

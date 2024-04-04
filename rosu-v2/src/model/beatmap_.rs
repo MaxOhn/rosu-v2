@@ -441,6 +441,7 @@ fn deser_mapset_user<'de, D: Deserializer<'de>>(d: D) -> Result<Option<Box<User>
                 scores_first_count: None,
                 scores_recent_count: None,
                 statistics: None,
+                statistics_modes: None,
                 support_level: None,
                 pending_mapset_count: None,
             })))

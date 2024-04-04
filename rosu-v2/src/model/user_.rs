@@ -643,6 +643,12 @@ pub struct User {
     pub scores_recent_count: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub statistics: Option<UserStatistics>,
+    #[serde(
+        default,
+        alias = "statistics_rulesets",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub statistics_modes: Option<UserStatisticsModes>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub support_level: Option<u8>,
     #[serde(
@@ -700,10 +706,16 @@ impl From<UserExtended> for User {
             scores_first_count: user.scores_first_count,
             scores_recent_count: user.scores_recent_count,
             statistics: user.statistics,
+            statistics_modes: None,
             support_level: user.support_level,
             pending_mapset_count: user.pending_mapset_count,
         }
     }
+}
+
+#[derive(Deserialize)]
+pub(crate) struct Users {
+    pub(crate) users: Vec<User>,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
@@ -840,6 +852,17 @@ fn maybe_u32<'de, D: Deserializer<'de>>(d: D) -> Result<u32, D::Error> {
 #[inline]
 fn rank_history_vec<'de, D: Deserializer<'de>>(d: D) -> Result<Option<Vec<u32>>, D::Error> {
     d.deserialize_option(RankHistoryVisitor)
+}
+
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
+pub struct UserStatisticsModes {
+    pub osu: UserStatistics,
+    pub taiko: UserStatistics,
+    #[serde(alias = "fruits")]
+    pub catch: UserStatistics,
+    pub mania: UserStatistics,
 }
 
 struct RankHistoryVisitor;

@@ -735,6 +735,7 @@ poll_req!(GetBeatmapsetEvents => BeatmapsetEvents);
 /// - genre: any
 /// - language: any
 /// - extra: does neither contain "have video" nor "have storyboard"
+/// - general: recommended, converts, follows, spotlights, and featured artists are all disabled
 /// - nsfw: allowed
 /// - sort: by relevance, descending
 ///
@@ -766,9 +767,15 @@ pub struct GetBeatmapsetSearch<'a> {
     language: Option<u8>,
     video: bool,
     storyboard: bool,
+    recommended: bool,
+    converts: bool,
+    follows: bool,
+    spotlights: bool,
+    featured_artists: bool,
     nsfw: bool,
     sort: Option<BeatmapsetSearchSort>,
     descending: bool,
+    page: Option<u32>,
     cursor: Option<Cursor>,
 }
 
@@ -785,9 +792,15 @@ impl<'a> GetBeatmapsetSearch<'a> {
             language: None,
             video: false,
             storyboard: false,
+            recommended: false,
+            converts: false,
+            follows: false,
+            spotlights: false,
+            featured_artists: false,
             nsfw: true,
             sort: None,
             descending: true,
+            page: None,
             cursor: None,
         }
     }
@@ -866,10 +879,66 @@ impl<'a> GetBeatmapsetSearch<'a> {
         self
     }
 
-    /// Specify whether mapsets can be NSFW, defaults to `true`.
+    /// Only include mapsets containing a beatmap around the authorized user's
+    /// recommended difficulty level.
+    ///
+    /// This has only an effect for oauth-clients.
+    #[inline]
+    pub const fn recommended(mut self, recommended: bool) -> Self {
+        self.recommended = recommended;
+
+        self
+    }
+
+    /// Specify whether converted mapsets should be included, defaults to
+    /// `false`.
+    #[inline]
+    pub const fn converts(mut self, converts: bool) -> Self {
+        self.converts = converts;
+
+        self
+    }
+
+    /// Only include mapsets of mappers that the authorized user follows.
+    ///
+    /// This has only an effect for oauth-clients.
+    #[inline]
+    pub const fn follows(mut self, follows: bool) -> Self {
+        self.follows = follows;
+
+        self
+    }
+
+    /// Specify whether only mapsets that are currently spotlighted should be
+    /// included, defaults to `false`.
+    #[inline]
+    pub const fn spotlights(mut self, spotlights: bool) -> Self {
+        self.spotlights = spotlights;
+
+        self
+    }
+
+    /// Specify whether only mapsets of featured artists should be included,
+    /// defaults to `false`.
+    #[inline]
+    pub const fn featured_artists(mut self, featured_artists: bool) -> Self {
+        self.featured_artists = featured_artists;
+
+        self
+    }
+
+    /// Specify whether mapsets *can* be NSFW, defaults to `true`.
     #[inline]
     pub const fn nsfw(mut self, nsfw: bool) -> Self {
         self.nsfw = nsfw;
+
+        self
+    }
+
+    /// Specify a page
+    #[inline]
+    pub const fn page(mut self, page: u32) -> Self {
+        self.page = Some(page);
 
         self
     }
@@ -900,6 +969,11 @@ impl<'a> GetBeatmapsetSearch<'a> {
         let language = self.language;
         let video = self.video;
         let storyboard = self.storyboard;
+        let recommended = self.recommended;
+        let converts = self.converts;
+        let follows = self.follows;
+        let spotlights = self.spotlights;
+        let featured_artists = self.featured_artists;
         let nsfw = self.nsfw;
 
         let req = Request::with_query(Route::GetBeatmapsetSearch, query);
@@ -916,6 +990,11 @@ impl<'a> GetBeatmapsetSearch<'a> {
                 params.language = language;
                 params.video = video;
                 params.storyboard = storyboard;
+                params.recommended = recommended;
+                params.converts = converts;
+                params.follows = follows;
+                params.spotlights = spotlights;
+                params.featured_artists = featured_artists;
                 params.nsfw = nsfw;
 
                 search_result
@@ -985,7 +1064,38 @@ impl Serialize for GetBeatmapsetSearch<'_> {
             map.serialize_entry("e", extra)?;
         }
 
+        let mut general = None::<String>;
+
+        let mut add_general = |should_add: bool, value: &str| {
+            if !should_add {
+                return;
+            }
+
+            let is_some = general.is_some();
+            let general = general.get_or_insert_with(String::new);
+
+            if is_some {
+                general.push('.');
+            }
+
+            general.push_str(value);
+        };
+
+        add_general(self.recommended, "recommended");
+        add_general(self.converts, "converts");
+        add_general(self.follows, "follows");
+        add_general(self.spotlights, "spotlights");
+        add_general(self.featured_artists, "featured_artists");
+
+        if let Some(ref general) = general {
+            map.serialize_entry("c", general)?;
+        }
+
         map.serialize_entry("nsfw", &self.nsfw)?;
+
+        if let Some(ref page) = self.page {
+            map.serialize_entry("page", page)?;
+        }
 
         if let Some(ref cursor) = self.cursor {
             struct SerializeWith<'a>(&'a Cursor);

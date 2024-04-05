@@ -202,6 +202,10 @@ async fn beatmapset_search() -> Result<()> {
         .query("artist=camellia stars>8 ar>9 length<400")
         .status(RankStatus::Graveyard)
         .mode(GameMode::Osu)
+        .converts(true)
+        .featured_artists(true)
+        .page(2)
+        .recommended(false)
         .nsfw(false)
         .sort(BeatmapsetSearchSort::Favourites, false)
         .await?;

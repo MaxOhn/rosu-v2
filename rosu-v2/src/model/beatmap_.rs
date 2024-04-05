@@ -1140,6 +1140,11 @@ pub(crate) struct BeatmapsetSearchParameters {
     pub(crate) language: Option<u8>,
     pub(crate) video: bool,
     pub(crate) storyboard: bool,
+    pub(crate) recommended: bool,
+    pub(crate) converts: bool,
+    pub(crate) follows: bool,
+    pub(crate) spotlights: bool,
+    pub(crate) featured_artists: bool,
     pub(crate) nsfw: bool,
     #[cfg_attr(feature = "serialize", serde(rename(serialize = "_sort")))]
     sort: BeatmapsetSearchSort,
@@ -1157,6 +1162,11 @@ impl Default for BeatmapsetSearchParameters {
             language: None,
             video: false,
             storyboard: false,
+            recommended: false,
+            converts: false,
+            follows: false,
+            spotlights: false,
+            featured_artists: false,
             nsfw: true,
             sort: BeatmapsetSearchSort::default(),
             descending: true,
@@ -1183,6 +1193,11 @@ impl<'de> Visitor<'de> for BeatmapsetSearchParametersVisitor {
         let mut language = None;
         let mut video = None;
         let mut storyboard = None;
+        let mut recommended = None;
+        let mut converts = None;
+        let mut follows = None;
+        let mut spotlights = None;
+        let mut featured_artists = None;
         let mut nsfw = None;
         let mut sort = None;
         let mut descending = None;
@@ -1205,6 +1220,11 @@ impl<'de> Visitor<'de> for BeatmapsetSearchParametersVisitor {
                 "language" => language = Some(map.next_value()?),
                 "video" => video = Some(map.next_value()?),
                 "storyboard" => storyboard = Some(map.next_value()?),
+                "recommended" => recommended = Some(map.next_value()?),
+                "converts" => converts = Some(map.next_value()?),
+                "follows" => follows = Some(map.next_value()?),
+                "spotlights" => spotlights = Some(map.next_value()?),
+                "featured_artists" => featured_artists = Some(map.next_value()?),
                 "nsfw" => nsfw = Some(map.next_value()?),
                 "_sort" => sort = Some(map.next_value()?),
                 "descending" => descending = Some(map.next_value()?),
@@ -1221,6 +1241,12 @@ impl<'de> Visitor<'de> for BeatmapsetSearchParametersVisitor {
         let sort = sort.ok_or_else(|| Error::missing_field("sort or _sort"))?;
         let video = video.ok_or_else(|| Error::missing_field("sort or video"))?;
         let storyboard = storyboard.ok_or_else(|| Error::missing_field("sort or storyboard"))?;
+        let recommended = recommended.ok_or_else(|| Error::missing_field("sort or recommended"))?;
+        let converts = converts.ok_or_else(|| Error::missing_field("sort or converts"))?;
+        let follows = follows.ok_or_else(|| Error::missing_field("sort or follows"))?;
+        let spotlights = spotlights.ok_or_else(|| Error::missing_field("sort or spotlights"))?;
+        let featured_artists =
+            featured_artists.ok_or_else(|| Error::missing_field("sort or featured_artists"))?;
         let nsfw = nsfw.ok_or_else(|| Error::missing_field("sort or nsfw"))?;
         let descending = descending.ok_or_else(|| Error::missing_field("sort or descending"))?;
 
@@ -1232,6 +1258,11 @@ impl<'de> Visitor<'de> for BeatmapsetSearchParametersVisitor {
             language,
             video,
             storyboard,
+            recommended,
+            converts,
+            follows,
+            spotlights,
+            featured_artists,
             nsfw,
             sort,
             descending,
@@ -1283,6 +1314,11 @@ impl BeatmapsetSearchResult {
             .cursor(cursor)
             .video(params.video)
             .storyboard(params.storyboard)
+            .recommended(params.recommended)
+            .converts(params.converts)
+            .follows(params.follows)
+            .spotlights(params.spotlights)
+            .featured_artists(params.featured_artists)
             .nsfw(params.nsfw)
             .sort(params.sort, params.descending);
 
@@ -1296,8 +1332,8 @@ impl BeatmapsetSearchResult {
 
         match params.status {
             None => {}
-            Some(SearchRankStatus::Specific(status)) => fut = fut.status(status),
-            Some(SearchRankStatus::Any) => fut = fut.any_status(),
+            Some(SearchRankStatus::Specific(status)) => fut = fut.status(Some(status)),
+            Some(SearchRankStatus::Any) => fut = fut.status(None),
         }
 
         if let Some(genre) = params.genre {
@@ -1428,14 +1464,17 @@ macro_rules! search_sort_enum {
 
 search_sort_enum! {
     Artist => "artist",
+    Creator => "creator",
     Favourites => "favourites",
+    Nominations => "nominations",
     Playcount => "plays",
-    RankedDate => "ranked",
+    ApprovedDate => "ranked",
     Rating => "rating",
     #[default]
     Relevance => "relevance",
     Stars => "difficulty",
     Title => "title",
+    LastUpdate => "updated",
 }
 
 struct SubSort {
@@ -1811,8 +1850,13 @@ mod serde_tests {
                 language: Some(5),
                 video: true,
                 storyboard: false,
+                recommended: true,
+                converts: true,
+                follows: true,
+                spotlights: false,
+                featured_artists: false,
                 nsfw: false,
-                sort: BeatmapsetSearchSort::RankedDate,
+                sort: BeatmapsetSearchSort::ApprovedDate,
                 descending: false,
             },
             total: 42,
@@ -1834,6 +1878,11 @@ mod serde_tests {
                 language: Some(5),
                 video: true,
                 storyboard: false,
+                recommended: false,
+                converts: false,
+                follows: true,
+                spotlights: true,
+                featured_artists: true,
                 nsfw: true,
                 sort: BeatmapsetSearchSort::Playcount,
                 descending: true,

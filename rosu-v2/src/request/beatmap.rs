@@ -829,7 +829,7 @@ impl<'a> GetBeatmapsetSearch<'a> {
     /// The API does not seem to filter for the `RankStatus::Approved` status
     /// specifically.
     #[inline]
-    pub fn status(mut self, status: Option<RankStatus>) -> Self {
+    pub const fn status(mut self, status: Option<RankStatus>) -> Self {
         let status = match status {
             Some(RankStatus::WIP) => SearchRankStatus::Specific(RankStatus::Pending),
             Some(status) => SearchRankStatus::Specific(status),

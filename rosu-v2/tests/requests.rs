@@ -200,7 +200,7 @@ async fn beatmapset_search() -> Result<()> {
     let search_result = osu
         .beatmapset_search()
         .query("artist=camellia stars>8 ar>9 length<400")
-        .status(RankStatus::Graveyard)
+        .status(Some(RankStatus::Graveyard))
         .mode(GameMode::Osu)
         .converts(true)
         .featured_artists(true)

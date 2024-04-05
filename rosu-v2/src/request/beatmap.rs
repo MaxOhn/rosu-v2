@@ -821,28 +821,22 @@ impl<'a> GetBeatmapsetSearch<'a> {
         self
     }
 
-    /// Allow any status for mapsets. To specify a specific one, use the
-    /// [`status`](crate::request::GetBeatmapsetSearch::status) method.
-    #[inline]
-    pub const fn any_status(mut self) -> Self {
-        self.status = Some(SearchRankStatus::Any);
-
-        self
-    }
-
     /// Specify a status for the mapsets, defaults to `has_leaderboard`
-    /// i.e. ranked, loved, approved, and qualified. To allow any status, use the
-    /// [`any_status`](crate::request::GetBeatmapsetSearch::any_status) method.
+    /// i.e. ranked, loved, approved, and qualified. To allow any status,
+    /// specify `None`.
     ///
     /// ## Note
-    /// The API does not seem to filter for the `RankStatus::Approved` status specifically.
+    /// The API does not seem to filter for the `RankStatus::Approved` status
+    /// specifically.
     #[inline]
-    pub fn status(mut self, mut status: RankStatus) -> Self {
-        if status == RankStatus::WIP {
-            status = RankStatus::Pending;
-        }
+    pub fn status(mut self, status: Option<RankStatus>) -> Self {
+        let status = match status {
+            Some(RankStatus::WIP) => SearchRankStatus::Specific(RankStatus::Pending),
+            Some(status) => SearchRankStatus::Specific(status),
+            None => SearchRankStatus::Any,
+        };
 
-        self.status = Some(SearchRankStatus::Specific(status));
+        self.status = Some(status);
 
         self
     }

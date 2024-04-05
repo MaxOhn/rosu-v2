@@ -1332,8 +1332,8 @@ impl BeatmapsetSearchResult {
 
         match params.status {
             None => {}
-            Some(SearchRankStatus::Specific(status)) => fut = fut.status(status),
-            Some(SearchRankStatus::Any) => fut = fut.any_status(),
+            Some(SearchRankStatus::Specific(status)) => fut = fut.status(Some(status)),
+            Some(SearchRankStatus::Any) => fut = fut.status(None),
         }
 
         if let Some(genre) = params.genre {

@@ -836,6 +836,10 @@ mod types {
     pub(super) fn get_user_stats() -> UserStatistics {
         UserStatistics {
             accuracy: 99.11,
+            count_300: 12,
+            count_100: 34,
+            count_50: 56,
+            count_miss: 78,
             country_rank: Some(1),
             global_rank: Some(1),
             grade_counts: GradeCounts {

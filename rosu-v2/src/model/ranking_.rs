@@ -119,7 +119,7 @@ impl<'de> Visitor<'de> for UserStatsVecVisitor {
     fn visit_seq<A: SeqAccess<'de>>(self, mut seq: A) -> Result<Self::Value, A::Error> {
         let mut users = Vec::with_capacity(seq.size_hint().unwrap_or_default());
 
-        while let Some(UserCompactWrapper(user)) = seq.next_element()? {
+        while let Some(UserWrapper(user)) = seq.next_element()? {
             users.push(user);
         }
 
@@ -127,12 +127,12 @@ impl<'de> Visitor<'de> for UserStatsVecVisitor {
     }
 }
 
-struct UserCompactWrapper(User);
+struct UserWrapper(User);
 
-impl<'de> Deserialize<'de> for UserCompactWrapper {
+impl<'de> Deserialize<'de> for UserWrapper {
     #[inline]
     fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
-        d.deserialize_map(UserStatsVisitor).map(UserCompactWrapper)
+        d.deserialize_map(UserStatsVisitor).map(UserWrapper)
     }
 }
 
@@ -148,6 +148,10 @@ impl<'de> Visitor<'de> for UserStatsVisitor {
 
     fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
         let mut accuracy = None;
+        let mut count_300 = None;
+        let mut count_100 = None;
+        let mut count_50 = None;
+        let mut count_miss = None;
         let mut country_rank = None;
         let mut global_rank = None;
         let mut grade_counts = None;
@@ -166,6 +170,10 @@ impl<'de> Visitor<'de> for UserStatsVisitor {
 
         while let Some(key) = map.next_key()? {
             match key {
+                "count_300" => count_300 = Some(map.next_value()?),
+                "count_100" => count_100 = Some(map.next_value()?),
+                "count_50" => count_50 = Some(map.next_value()?),
+                "count_miss" => count_miss = Some(map.next_value()?),
                 "hit_accuracy" => accuracy = Some(map.next_value()?),
                 "country_rank" => country_rank = map.next_value()?,
                 "global_rank" => global_rank = map.next_value()?,
@@ -190,6 +198,10 @@ impl<'de> Visitor<'de> for UserStatsVisitor {
         }
 
         let accuracy = accuracy.ok_or_else(|| Error::missing_field("hit_accuracy"))?;
+        let count_300 = count_300.ok_or_else(|| Error::missing_field("count_300"))?;
+        let count_100 = count_100.ok_or_else(|| Error::missing_field("count_100"))?;
+        let count_50 = count_50.ok_or_else(|| Error::missing_field("count_50"))?;
+        let count_miss = count_miss.ok_or_else(|| Error::missing_field("count_miss"))?;
         let grade_counts = grade_counts.ok_or_else(|| Error::missing_field("grade_counts"))?;
         let is_ranked = is_ranked.ok_or_else(|| Error::missing_field("is_ranked"))?;
         let level = level.ok_or_else(|| Error::missing_field("level"))?;
@@ -206,6 +218,10 @@ impl<'de> Visitor<'de> for UserStatsVisitor {
 
         let stats = UserStatistics {
             accuracy,
+            count_300,
+            count_100,
+            count_50,
+            count_miss,
             country_rank,
             global_rank,
             grade_counts,

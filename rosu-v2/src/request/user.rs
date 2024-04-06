@@ -1,10 +1,11 @@
 use crate::{
     model::{
         beatmap::{BeatmapsetExtended, MostPlayedMap, RankStatus},
-        kudosu_::KudosuHistory,
-        recent_event_::RecentEvent,
-        score_::Score,
-        user_::{User, UserExtended, Username, Users},
+        event::Event,
+        kudosu::KudosuHistory,
+        score::Score,
+        user::{User, UserExtended, Username},
+        user_::Users,
         GameMode,
     },
     request::{
@@ -521,12 +522,12 @@ impl<'a> GetUserMostPlayed<'a> {
 
 poll_req!(GetUserMostPlayed => Vec<MostPlayedMap>);
 
-/// Get a vec of [`RecentEvent`](crate::model::recent_event::RecentEvent) of a user by their id.
+/// Get a vec of [`Event`](crate::model::event::Event) of a user by their id.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 #[derive(Serialize)]
-pub struct GetRecentEvents<'a> {
+pub struct GetRecentActivity<'a> {
     #[serde(skip)]
-    fut: Option<Pending<'a, Vec<RecentEvent>>>,
+    fut: Option<Pending<'a, Vec<Event>>>,
     #[serde(skip)]
     osu: &'a Osu,
     limit: Option<usize>,
@@ -541,7 +542,7 @@ pub struct GetRecentEvents<'a> {
     user_id: UserId,
 }
 
-impl<'a> GetRecentEvents<'a> {
+impl<'a> GetRecentActivity<'a> {
     #[cfg(not(feature = "cache"))]
     #[inline]
     pub(crate) const fn new(osu: &'a Osu, user_id: u32) -> Self {
@@ -583,14 +584,14 @@ impl<'a> GetRecentEvents<'a> {
         self
     }
 
-    fn start(&mut self) -> Pending<'a, Vec<RecentEvent>> {
+    fn start(&mut self) -> Pending<'a, Vec<Event>> {
         let query = Query::encode(self);
         let osu = self.osu;
 
         #[cfg(not(feature = "cache"))]
         {
             let user_id = self.user_id;
-            let req = Request::with_query(Route::GetRecentEvents { user_id }, query);
+            let req = Request::with_query(Route::GetRecentActivity { user_id }, query);
 
             Box::pin(osu.request(req))
         }
@@ -602,7 +603,7 @@ impl<'a> GetRecentEvents<'a> {
             let fut = osu
                 .cache_user(user_id)
                 .map_ok(move |user_id| {
-                    Request::with_query(Route::GetRecentEvents { user_id }, query)
+                    Request::with_query(Route::GetRecentActivity { user_id }, query)
                 })
                 .and_then(move |req| osu.request(req));
 
@@ -611,7 +612,7 @@ impl<'a> GetRecentEvents<'a> {
     }
 }
 
-poll_req!(GetRecentEvents => Vec<RecentEvent>);
+poll_req!(GetRecentActivity => Vec<Event>);
 
 #[derive(Copy, Clone, Debug)]
 pub(crate) enum ScoreType {

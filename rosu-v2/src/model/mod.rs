@@ -168,12 +168,12 @@ mod rkyv_impls;
 
 pub(crate) mod beatmap_;
 pub(crate) mod comments_;
+pub(crate) mod event_;
 pub(crate) mod forum_;
 pub(crate) mod kudosu_;
 pub(crate) mod matches_;
 pub(crate) mod news_;
 pub(crate) mod ranking_;
-pub(crate) mod recent_event_;
 pub(crate) mod score_;
 pub(crate) mod seasonal_backgrounds_;
 pub(crate) mod user_;
@@ -231,9 +231,9 @@ pub mod ranking {
 }
 
 /// User event related types
-pub mod recent_event {
-    pub use super::recent_event_::{
-        EventBeatmap, EventBeatmapset, EventType, EventUser, RecentEvent,
+pub mod event {
+    pub use super::event_::{
+        Event, EventBeatmap, EventBeatmapset, EventSort, EventType, EventUser, Events,
     };
 }
 
@@ -291,6 +291,13 @@ pub mod rkyv {
         CommentableMetaResolver,
     };
 
+    pub use super::event_::{
+        ArchivedEvent, ArchivedEventBeatmap, ArchivedEventBeatmapset, ArchivedEventSort,
+        ArchivedEventType, ArchivedEventUser, ArchivedEvents, EventBeatmapResolver,
+        EventBeatmapsetResolver, EventResolver, EventSortResolver, EventTypeResolver,
+        EventUserResolver, EventsResolver,
+    };
+
     pub use super::forum_::{
         ArchivedForumPost, ArchivedForumPostsSearch, ArchivedForumTopic, ForumPostResolver,
         ForumPostsSearchResolver, ForumTopicResolver,
@@ -313,12 +320,6 @@ pub mod rkyv {
         ArchivedChartRankings, ArchivedCountryRanking, ArchivedCountryRankings, ArchivedRankings,
         ArchivedSpotlight, ChartRankingsResolver, CountryRankingResolver, CountryRankingsResolver,
         RankingsResolver, SpotlightResolver,
-    };
-
-    pub use super::recent_event_::{
-        ArchivedEventBeatmap, ArchivedEventBeatmapset, ArchivedEventType, ArchivedEventUser,
-        ArchivedRecentEvent, EventBeatmapResolver, EventBeatmapsetResolver, EventTypeResolver,
-        EventUserResolver, RecentEventResolver,
     };
 
     pub use super::score_::{

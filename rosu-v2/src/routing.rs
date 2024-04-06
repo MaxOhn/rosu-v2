@@ -32,6 +32,7 @@ pub(crate) enum Route {
     GetBeatmapsetEvents,
     GetBeatmapsetSearch,
     GetComments,
+    GetEvents,
     GetForumPosts {
         topic_id: u64,
     },
@@ -111,6 +112,7 @@ impl Route {
             Self::GetBeatmapsetEvents => (Method::GET, "beatmapsets/events".into()),
             Self::GetBeatmapsetSearch => (Method::GET, "beatmapsets/search".into()),
             Self::GetComments => (Method::GET, "comments".into()),
+            Self::GetEvents => (Method::GET, "events".into()),
             Self::GetForumPosts { topic_id } => {
                 (Method::GET, format!("forums/topics/{topic_id}").into())
             }
@@ -205,6 +207,7 @@ impl Route {
             Self::GetBeatmapsetEvents => "GetBeatmapsetEvents",
             Self::GetBeatmapsetSearch => "GetBeatmapsetSearch",
             Self::GetComments => "GetComments",
+            Self::Events => "GetEvents",
             Self::GetForumPosts { .. } => "GetForumPosts",
             Self::GetMatch { match_id } => match match_id {
                 Some(_) => "GetMatch/match_id",

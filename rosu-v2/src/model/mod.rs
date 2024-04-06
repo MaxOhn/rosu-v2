@@ -232,7 +232,9 @@ pub mod ranking {
 
 /// User event related types
 pub mod event {
-    pub use super::event_::{Event, EventBeatmap, EventBeatmapset, EventType, EventUser};
+    pub use super::event_::{
+        Event, EventBeatmap, EventBeatmapset, EventSort, EventType, EventUser, Events,
+    };
 }
 
 /// Score related types
@@ -290,9 +292,10 @@ pub mod rkyv {
     };
 
     pub use super::event_::{
-        ArchivedEvent, ArchivedEventBeatmap, ArchivedEventBeatmapset, ArchivedEventType,
-        ArchivedEventUser, EventBeatmapResolver, EventBeatmapsetResolver, EventResolver,
-        EventTypeResolver, EventUserResolver,
+        ArchivedEvent, ArchivedEventBeatmap, ArchivedEventBeatmapset, ArchivedEventSort,
+        ArchivedEventType, ArchivedEventUser, ArchivedEvents, EventBeatmapResolver,
+        EventBeatmapsetResolver, EventResolver, EventSortResolver, EventTypeResolver,
+        EventUserResolver, EventsResolver,
     };
 
     pub use super::forum_::{

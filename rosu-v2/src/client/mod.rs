@@ -254,6 +254,12 @@ impl Osu {
         GetCountryRankings::new(self, mode)
     }
 
+    /// Get a vec of [`Event`](crate::model::event::Event).
+    #[inline]
+    pub const fn events(&self) -> GetEvents<'_> {
+        GetEvents::new(self)
+    }
+
     /// Get a [`ForumPosts`](crate::model::forum::ForumPosts) struct for a forum topic
     #[inline]
     pub const fn forum_posts(&self, topic_id: u64) -> GetForumPosts<'_> {

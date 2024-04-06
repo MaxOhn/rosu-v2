@@ -32,6 +32,7 @@
 //! - `beatmapsets/events`: Various events around a beatmapset such as status, genre, or language updates, kudosu transfers, or new issues
 //! - `beatmapsets/search`: Search for beatmapsets; the same search as on the osu! website
 //! - `comments`: Most recent comments and their replies up to two levels deep
+//! - `events`: Collection of events in order of creation time
 //! - `forums/topics/{topic_id}`: A forum topic and its posts
 //! - `matches`: List of currently open multiplayer lobbies
 //! - `matches/{match_id}`: More specific data about a specific multiplayer lobby including participating players and occured events

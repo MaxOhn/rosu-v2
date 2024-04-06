@@ -15,6 +15,7 @@ use rosu_v2::{
         beatmap::{BeatmapsetSearchSort, RankStatus},
         GameMode,
     },
+    prelude::EventSort,
     Osu,
 };
 use tokio::sync::{Mutex, MutexGuard};
@@ -261,6 +262,33 @@ async fn country_rankings() -> Result<()> {
         countries.ranking.len(),
         countries.total
     );
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn events() -> Result<()> {
+    let osu = OSU.get().await?;
+
+    let initial = osu.events().sort(EventSort::IdAscending).await?;
+    println!("Initial ascending events: {}", initial.events.len());
+
+    let next = initial.get_next(&osu).await.unwrap()?;
+    println!("Next ascending events: {}", next.events.len());
+
+    assert!(initial.events.last().unwrap().event_id < next.events.first().unwrap().event_id);
+
+    let initial = osu.events().await?;
+    println!("Initial descending events: {}", initial.events.len());
+
+    let next = osu
+        .events()
+        .cursor(initial.cursor.as_deref().unwrap())
+        .sort(EventSort::IdDescending)
+        .await?;
+    println!("Next descending events: {}", next.events.len());
+
+    assert!(initial.events.last().unwrap().event_id > next.events.first().unwrap().event_id);
 
     Ok(())
 }

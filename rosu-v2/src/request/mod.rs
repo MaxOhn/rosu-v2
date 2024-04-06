@@ -22,6 +22,7 @@ macro_rules! poll_req {
 
 mod beatmap;
 mod comments;
+mod event;
 mod forum;
 mod matches;
 mod news;
@@ -34,6 +35,7 @@ mod wiki;
 
 pub use beatmap::*;
 pub use comments::*;
+pub use event::*;
 pub use forum::*;
 pub use matches::*;
 pub use news::*;

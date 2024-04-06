@@ -318,16 +318,16 @@ impl Osu {
     /// [`RecentEvent`](crate::model::recent_event::RecentEvent)s.
     #[cfg(not(feature = "cache"))]
     #[inline]
-    pub const fn recent_events(&self, user_id: u32) -> GetRecentEvents<'_> {
-        GetRecentEvents::new(self, user_id)
+    pub const fn recent_activity(&self, user_id: u32) -> GetRecentActivity<'_> {
+        GetRecentActivity::new(self, user_id)
     }
 
     /// Get the recent activity of a user in form of a vec of
     /// [`RecentEvent`](crate::model::recent_event::RecentEvent)s.
     #[cfg(feature = "cache")]
     #[inline]
-    pub fn recent_events(&self, user_id: impl Into<UserId>) -> GetRecentEvents<'_> {
-        GetRecentEvents::new(self, user_id.into())
+    pub fn recent_activity(&self, user_id: impl Into<UserId>) -> GetRecentActivity<'_> {
+        GetRecentActivity::new(self, user_id.into())
     }
 
     /// Get the replay of a score in form of a [`Replay`](osu_db::Replay).

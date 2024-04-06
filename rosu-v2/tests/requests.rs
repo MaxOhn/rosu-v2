@@ -286,7 +286,7 @@ async fn recent_events() -> Result<()> {
     let events = OSU
         .get()
         .await?
-        .recent_events("badewanne3")
+        .recent_activity("badewanne3")
         .limit(10)
         .offset(2)
         .await?;

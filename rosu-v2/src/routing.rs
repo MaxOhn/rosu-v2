@@ -48,7 +48,7 @@ pub(crate) enum Route {
         mode: GameMode,
         ranking_type: RankingType,
     },
-    GetRecentEvents {
+    GetRecentActivity {
         user_id: u32,
     },
     GetReplay {
@@ -142,7 +142,7 @@ impl Route {
                 Method::GET,
                 format!("rankings/{mode}/{}", ranking_type.as_str()).into(),
             ),
-            Self::GetRecentEvents { user_id } => (
+            Self::GetRecentActivity { user_id } => (
                 Method::GET,
                 format!("users/{user_id}/recent_activity").into(),
             ),
@@ -218,7 +218,7 @@ impl Route {
                 RankingType::Performance => "GetRankings/Performance",
                 RankingType::Score => "GetRankings/Score",
             },
-            Self::GetRecentEvents { .. } => "GetRecentEvents",
+            Self::GetRecentActivity { .. } => "GetRecentActivity",
             Self::GetReplay { .. } => "GetReplay",
             Self::GetScore { .. } => "GetScore",
             Self::GetSeasonalBackgrounds => "GetSeasonalBackgrounds",

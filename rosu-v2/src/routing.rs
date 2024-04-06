@@ -207,7 +207,7 @@ impl Route {
             Self::GetBeatmapsetEvents => "GetBeatmapsetEvents",
             Self::GetBeatmapsetSearch => "GetBeatmapsetSearch",
             Self::GetComments => "GetComments",
-            Self::Events => "GetEvents",
+            Self::GetEvents => "GetEvents",
             Self::GetForumPosts { .. } => "GetForumPosts",
             Self::GetMatch { match_id } => match match_id {
                 Some(_) => "GetMatch/match_id",

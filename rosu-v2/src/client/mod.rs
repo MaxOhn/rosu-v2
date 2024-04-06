@@ -315,7 +315,7 @@ impl Osu {
     }
 
     /// Get the recent activity of a user in form of a vec of
-    /// [`RecentEvent`](crate::model::recent_event::RecentEvent)s.
+    /// [`Event`](crate::model::event::Event)s.
     #[cfg(not(feature = "cache"))]
     #[inline]
     pub const fn recent_activity(&self, user_id: u32) -> GetRecentActivity<'_> {
@@ -323,7 +323,7 @@ impl Osu {
     }
 
     /// Get the recent activity of a user in form of a vec of
-    /// [`RecentEvent`](crate::model::recent_event::RecentEvent)s.
+    /// [`Event`](crate::model::event::Event)s.
     #[cfg(feature = "cache")]
     #[inline]
     pub fn recent_activity(&self, user_id: impl Into<UserId>) -> GetRecentActivity<'_> {

@@ -149,8 +149,8 @@ pub mod prelude {
         client::Scope,
         error::OsuError,
         model::{
-            beatmap::*, comments::*, forum::*, kudosu::*, matches::*, mods::*, news::*, ranking::*,
-            recent_event::*, score::*, seasonal_backgrounds::*, user::*, wiki::*, Cursor, GameMode,
+            beatmap::*, comments::*, event::*, forum::*, kudosu::*, matches::*, mods::*, news::*,
+            ranking::*, score::*, seasonal_backgrounds::*, user::*, wiki::*, Cursor, GameMode,
             Grade,
         },
         mods,

@@ -1,10 +1,11 @@
 use crate::{
     model::{
         beatmap::{BeatmapsetExtended, MostPlayedMap, RankStatus},
-        kudosu_::KudosuHistory,
-        recent_event_::RecentEvent,
-        score_::Score,
-        user_::{User, UserExtended, Username, Users},
+        event::Event,
+        kudosu::KudosuHistory,
+        score::Score,
+        user::{User, UserExtended, Username},
+        user_::Users,
         GameMode,
     },
     request::{
@@ -521,12 +522,12 @@ impl<'a> GetUserMostPlayed<'a> {
 
 poll_req!(GetUserMostPlayed => Vec<MostPlayedMap>);
 
-/// Get a vec of [`RecentEvent`](crate::model::recent_event::RecentEvent) of a user by their id.
+/// Get a vec of [`Event`](crate::model::event::Event) of a user by their id.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 #[derive(Serialize)]
 pub struct GetRecentActivity<'a> {
     #[serde(skip)]
-    fut: Option<Pending<'a, Vec<RecentEvent>>>,
+    fut: Option<Pending<'a, Vec<Event>>>,
     #[serde(skip)]
     osu: &'a Osu,
     limit: Option<usize>,
@@ -583,7 +584,7 @@ impl<'a> GetRecentActivity<'a> {
         self
     }
 
-    fn start(&mut self) -> Pending<'a, Vec<RecentEvent>> {
+    fn start(&mut self) -> Pending<'a, Vec<Event>> {
         let query = Query::encode(self);
         let osu = self.osu;
 
@@ -611,7 +612,7 @@ impl<'a> GetRecentActivity<'a> {
     }
 }
 
-poll_req!(GetRecentActivity => Vec<RecentEvent>);
+poll_req!(GetRecentActivity => Vec<Event>);
 
 #[derive(Copy, Clone, Debug)]
 pub(crate) enum ScoreType {

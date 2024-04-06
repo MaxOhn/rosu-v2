@@ -282,7 +282,7 @@ async fn forum_posts() -> Result<()> {
 
 #[cfg(feature = "cache")]
 #[tokio::test]
-async fn recent_events() -> Result<()> {
+async fn recent_activity() -> Result<()> {
     let events = OSU
         .get()
         .await?

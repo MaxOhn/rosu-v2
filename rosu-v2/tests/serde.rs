@@ -27,12 +27,6 @@ mod types {
         }
     }
 
-    pub(super) fn get_cursor() -> Cursor {
-        let json = r#"{"cursor":{"a":123,"b":"henlo","c":true,"d":[1, 2, 3]}}"#;
-
-        serde_json::from_str(json).unwrap()
-    }
-
     pub(super) fn get_date() -> OffsetDateTime {
         let mut now = OffsetDateTime::now_utc();
         now -= Duration::nanoseconds(now.nanosecond() as i64);
@@ -42,7 +36,7 @@ mod types {
 
     pub(super) fn get_forum_posts() -> ForumPosts {
         ForumPosts {
-            cursor: Some(get_cursor()),
+            cursor: Some("my cursor".to_owned()),
             posts: vec![ForumPost {
                 created_at: get_date(),
                 deleted_at: Some(get_date()),

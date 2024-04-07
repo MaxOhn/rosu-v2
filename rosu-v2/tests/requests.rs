@@ -217,6 +217,8 @@ async fn beatmapset_search() -> Result<()> {
         search_result.total,
     );
 
+    let first_mapset_id = search_result.mapsets[0].mapset_id;
+
     let search_result = search_result.get_next(&osu).await.unwrap()?;
 
     println!(
@@ -224,6 +226,23 @@ async fn beatmapset_search() -> Result<()> {
         search_result.mapsets.len(),
         search_result.total,
     );
+
+    let next_mapset_id = search_result.mapsets[0].mapset_id;
+    assert_ne!(first_mapset_id, next_mapset_id);
+
+    let search_result = osu
+        .beatmapset_search()
+        .query("artist='definitely no such name abc'")
+        .page(2)
+        .await?;
+
+    println!(
+        "Received search result containing {} out of {} mapsets",
+        search_result.mapsets.len(),
+        search_result.total,
+    );
+
+    assert!(!search_result.has_more());
 
     Ok(())
 }

@@ -1,4 +1,4 @@
-use super::{serde_, Cursor};
+use super::serde_;
 
 use serde::{
     de::{Deserializer, Error, IgnoredAny, MapAccess, Visitor},
@@ -12,11 +12,14 @@ use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-// TODO
-// #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct ForumPosts {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub cursor: Option<Cursor>,
+    #[serde(
+        default,
+        rename = "cursor_string",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub cursor: Option<String>,
     pub posts: Vec<ForumPost>,
     pub search: ForumPostsSearch,
     pub topic: ForumTopic,
@@ -26,8 +29,8 @@ impl ForumPosts {
     /// Checks whether the cursor field is `Some` which in turn
     /// can be used to retrieve the next set of posts.
     ///
-    /// The next set can then be retrieved by providing this
-    /// [`Cursor`] to [`GetForumPosts::cursor`](crate::request::GetForumPosts::cursor).
+    /// The next set can then be retrieved by providing this cursor to
+    /// [`GetForumPosts::cursor`](crate::request::GetForumPosts::cursor).
     /// Be sure all other parameters stay the same.
     #[inline]
     pub const fn has_more(&self) -> bool {

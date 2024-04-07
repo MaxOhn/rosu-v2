@@ -1,6 +1,5 @@
 use super::{
-    beatmap::Beatmap, mods::GameMods, score_::LegacyScoreStatistics, serde_, user_::User, Cursor,
-    GameMode,
+    beatmap::Beatmap, mods::GameMods, score_::LegacyScoreStatistics, serde_, user_::User, GameMode,
 };
 use crate::{
     prelude::{GameModsIntermode, ModeAsSeed},
@@ -502,11 +501,14 @@ impl Eq for MatchInfo {}
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-// TODO
-// #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct MatchList {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub(crate) cursor: Option<Cursor>,
+    #[serde(
+        default,
+        rename = "cursor_string",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub(crate) cursor: Option<Box<str>>,
     pub matches: Vec<MatchInfo>,
     pub params: MatchListParams,
 }
@@ -519,11 +521,12 @@ impl MatchList {
         self.cursor.is_some()
     }
 
-    /// If [`has_more`](MatchList::has_more) is true, the API can provide the next set of matches and this method will request them.
-    /// Otherwise, this method returns `None`.
+    /// If [`has_more`](MatchList::has_more) is true, the API can provide the
+    /// next set of matches and this method will request them. Otherwise, this
+    /// method returns `None`.
     #[inline]
     pub async fn get_next(&self, osu: &Osu) -> Option<OsuResult<MatchList>> {
-        Some(osu.osu_matches().cursor(self.cursor.clone()?).await)
+        Some(osu.osu_matches().cursor(self.cursor.as_deref()?).await)
     }
 }
 

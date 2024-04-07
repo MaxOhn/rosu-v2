@@ -1,9 +1,6 @@
 use crate::{
-    model::{
-        matches_::{MatchList, OsuMatch},
-        Cursor,
-    },
-    request::{serialize::maybe_cursor, Pending, Query, Request},
+    model::matches_::{MatchList, OsuMatch},
+    request::{Pending, Query, Request},
     routing::Route,
     Osu,
 };
@@ -102,8 +99,8 @@ pub struct GetMatches<'a> {
     fut: Option<Pending<'a, MatchList>>,
     #[serde(skip)]
     osu: &'a Osu,
-    #[serde(flatten, serialize_with = "maybe_cursor")]
-    cursor: Option<Cursor>,
+    #[serde(rename = "cursor_string")]
+    cursor: Option<&'a str>,
 }
 
 impl<'a> GetMatches<'a> {
@@ -117,7 +114,7 @@ impl<'a> GetMatches<'a> {
     }
 
     #[inline]
-    pub(crate) fn cursor(mut self, cursor: Cursor) -> Self {
+    pub(crate) const fn cursor(mut self, cursor: &'a str) -> Self {
         self.cursor = Some(cursor);
 
         self

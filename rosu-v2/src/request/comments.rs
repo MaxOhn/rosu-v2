@@ -1,12 +1,6 @@
 use crate::{
-    model::{
-        comments_::{CommentBundle, CommentSort},
-        Cursor,
-    },
-    request::{
-        serialize::{maybe_comment_sort, maybe_cursor},
-        Pending, Query, Request,
-    },
+    model::comments_::{CommentBundle, CommentSort},
+    request::{serialize::maybe_comment_sort, Pending, Query, Request},
     routing::Route,
     Osu,
 };
@@ -27,8 +21,8 @@ pub struct GetComments<'a> {
     parent_id: Option<u32>,
     #[serde(serialize_with = "maybe_comment_sort")]
     sort: Option<CommentSort>,
-    #[serde(flatten, serialize_with = "maybe_cursor")]
-    cursor: Option<Cursor>,
+    #[serde(rename = "cursor_string")]
+    cursor: Option<&'a str>,
 }
 
 impl<'a> GetComments<'a> {
@@ -94,7 +88,7 @@ impl<'a> GetComments<'a> {
     }
 
     #[inline]
-    pub(crate) fn cursor(mut self, cursor: Cursor) -> Self {
+    pub(crate) const fn cursor(mut self, cursor: &'a str) -> Self {
         self.cursor = Some(cursor);
 
         self

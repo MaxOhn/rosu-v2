@@ -151,8 +151,7 @@ pub mod prelude {
         error::OsuError,
         model::{
             beatmap::*, comments::*, event::*, forum::*, kudosu::*, matches::*, mods::*, news::*,
-            ranking::*, score::*, seasonal_backgrounds::*, user::*, wiki::*, Cursor, GameMode,
-            Grade,
+            ranking::*, score::*, seasonal_backgrounds::*, user::*, wiki::*, GameMode, Grade,
         },
         mods,
         request::UserId,

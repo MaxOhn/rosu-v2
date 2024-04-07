@@ -1,4 +1,4 @@
-use super::{serde_, user_::User, Cursor, GameMode};
+use super::{serde_, user_::User, GameMode};
 use crate::{
     error::ParsingError,
     prelude::{CountryCode, OsuError, Username},
@@ -1045,6 +1045,7 @@ pub struct BeatmapsetReviewsConfig {
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub(crate) enum SearchRankStatus {
     Any,
     Specific(RankStatus),
@@ -1127,6 +1128,7 @@ impl serde::Serialize for SearchRankStatus {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub(crate) struct BeatmapsetSearchParameters {
     #[cfg_attr(feature = "serialize", serde(skip_serializing_if = "Option::is_none"))]
     pub(crate) query: Option<String>,
@@ -1281,10 +1283,10 @@ impl<'de> Deserialize<'de> for BeatmapsetSearchParameters {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-// TODO
-// #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct BeatmapsetSearchResult {
-    cursor: Option<Cursor>,
+    #[cfg_attr(feature = "serialize", serde(rename = "cursor_string"))]
+    cursor: Option<Box<str>>,
     /// All mapsets of the current page
     #[cfg_attr(feature = "serialize", serde(rename(serialize = "beatmapsets")))]
     pub mapsets: Vec<BeatmapsetExtended>,
@@ -1306,7 +1308,7 @@ impl BeatmapsetSearchResult {
     /// the next set of search results and this method will request them.
     /// Otherwise, this method returns `None`.
     pub async fn get_next(&self, osu: &Osu) -> Option<OsuResult<BeatmapsetSearchResult>> {
-        let cursor = self.cursor.as_ref()?.to_owned();
+        let cursor = self.cursor.as_deref()?;
         let params = &self.params;
 
         let mut fut = osu
@@ -1366,7 +1368,7 @@ impl<'de> Visitor<'de> for BeatmapsetSearchResultVisitor {
         while let Some(key) = map.next_key()? {
             match key {
                 "beatmapsets" => mapsets = Some(map.next_value()?),
-                "cursor" => cursor = map.next_value()?,
+                "cursor_string" => cursor = map.next_value()?,
                 "search" => params = Some(map.next_value()?),
                 "total" => total = Some(map.next_value()?),
                 _ => {

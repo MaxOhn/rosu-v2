@@ -1,6 +1,6 @@
 use crate::{
-    model::{news_::News, Cursor},
-    request::{serialize::maybe_cursor, Pending, Query, Request},
+    model::news_::News,
+    request::{Pending, Query, Request},
     routing::Route,
     Osu,
 };
@@ -16,8 +16,8 @@ pub struct GetNews<'a> {
     #[serde(skip)]
     osu: &'a Osu,
     news: Option<()>, // TODO
-    #[serde(flatten, serialize_with = "maybe_cursor")]
-    cursor: Option<Cursor>,
+    #[serde(rename = "cursor_string")]
+    cursor: Option<&'a str>,
 }
 
 impl<'a> GetNews<'a> {
@@ -40,7 +40,7 @@ impl<'a> GetNews<'a> {
     // }
 
     #[inline]
-    pub(crate) fn cursor(mut self, cursor: Cursor) -> Self {
+    pub(crate) const fn cursor(mut self, cursor: &'a str) -> Self {
         self.cursor = Some(cursor);
 
         self

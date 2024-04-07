@@ -9,7 +9,7 @@ use crate::{
             SearchRankStatus,
         },
         score_::{BeatmapScores, BeatmapUserScore, Score, Scores},
-        Cursor, GameMode,
+        GameMode,
     },
     prelude::{Beatmap, GameModsIntermode},
     request::{
@@ -776,7 +776,7 @@ pub struct GetBeatmapsetSearch<'a> {
     sort: Option<BeatmapsetSearchSort>,
     descending: bool,
     page: Option<u32>,
-    cursor: Option<Cursor>,
+    cursor: Option<&'a str>,
 }
 
 impl<'a> GetBeatmapsetSearch<'a> {
@@ -947,7 +947,7 @@ impl<'a> GetBeatmapsetSearch<'a> {
     }
 
     #[inline]
-    pub(crate) fn cursor(mut self, cursor: Cursor) -> Self {
+    pub(crate) const fn cursor(mut self, cursor: &'a str) -> Self {
         self.cursor = Some(cursor);
 
         self
@@ -1091,17 +1091,8 @@ impl Serialize for GetBeatmapsetSearch<'_> {
             map.serialize_entry("page", page)?;
         }
 
-        if let Some(ref cursor) = self.cursor {
-            struct SerializeWith<'a>(&'a Cursor);
-
-            impl Serialize for SerializeWith<'_> {
-                fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-                    self.0.serialize_as_query(serializer)
-                }
-            }
-
-            let flatten_serializer = serde::__private::ser::FlatMapSerializer(&mut map);
-            SerializeWith(cursor).serialize(flatten_serializer)?;
+        if let Some(cursor) = self.cursor {
+            map.serialize_entry("cursor_string", cursor)?;
         }
 
         if let Some(ref sort) = self.sort {

@@ -1,4 +1,4 @@
-use super::{serde_, user_::User, Cursor};
+use super::{serde_, user_::User};
 use crate::{prelude::Username, request::GetUser, Osu, OsuResult};
 
 use serde::{Deserialize, Serializer};
@@ -92,15 +92,18 @@ impl Eq for Comment {}
 /// Comments and related data.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-// TODO
-// #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct CommentBundle {
     /// ID of the object the comment is attached to
     pub commentable_meta: Vec<CommentableMeta>,
     /// List of comments ordered according to `sort`
     pub comments: Vec<Comment>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub(crate) cursor: Option<Cursor>,
+    #[serde(
+        default,
+        rename = "cursor_string",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub(crate) cursor: Option<Box<str>>,
     /// If there are more comments or replies available
     pub(crate) has_more: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -134,13 +137,14 @@ impl CommentBundle {
         self.has_more
     }
 
-    /// If [`has_more`](CommentBundle::has_more) is true, the API can provide the next set of comments and this method will request them.
-    /// Otherwise, this method returns `None`.
+    /// If [`has_more`](CommentBundle::has_more) is true, the API can provide
+    /// the next set of comments and this method will request them. Otherwise,
+    /// this method returns `None`.
     #[inline]
     pub async fn get_next(&self, osu: &Osu) -> Option<OsuResult<CommentBundle>> {
         debug_assert!(self.has_more == self.cursor.is_some());
 
-        Some(osu.comments().cursor(self.cursor.clone()?).await)
+        Some(osu.comments().cursor(self.cursor.as_deref()?).await)
     }
 }
 

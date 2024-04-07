@@ -1,4 +1,4 @@
-use super::{serde_, Cursor};
+use super::serde_;
 use crate::{prelude::Username, Osu, OsuResult};
 
 use serde::Deserialize;
@@ -9,11 +9,14 @@ use time::OffsetDateTime;
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-// TODO
-// #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct News {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub(crate) cursor: Option<Cursor>,
+    #[serde(
+        default,
+        rename = "cursor_string",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub(crate) cursor: Option<String>,
     #[serde(rename = "news_posts")]
     pub posts: Vec<NewsPost>,
     pub search: NewsSearch,
@@ -33,7 +36,7 @@ impl News {
     /// Otherwise, this method returns `None`.
     #[inline]
     pub async fn get_next(&self, osu: &Osu) -> Option<OsuResult<News>> {
-        Some(osu.news().cursor(self.cursor.clone()?).await)
+        Some(osu.news().cursor(self.cursor.as_deref()?).await)
     }
 }
 
@@ -78,11 +81,14 @@ impl Eq for NewsPost {}
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-// TODO
-// #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct NewsSearch {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub(crate) cursor: Option<Cursor>,
+    #[serde(
+        default,
+        rename = "cursor_string",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub(crate) cursor: Option<Box<str>>,
     pub limit: u32,
 }
 

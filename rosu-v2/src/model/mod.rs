@@ -158,7 +158,6 @@ macro_rules! def_enum {
     }
 }
 
-mod cursor;
 mod grade;
 mod mode;
 mod serde_;
@@ -274,21 +273,22 @@ pub mod rkyv {
         ArchivedBeatmapsetCommentKudosuGain, ArchivedBeatmapsetCommentNominate,
         ArchivedBeatmapsetCommentOwnerChange, ArchivedBeatmapsetCovers,
         ArchivedBeatmapsetDiscussion, ArchivedBeatmapsetEvent, ArchivedBeatmapsetEvents,
-        ArchivedBeatmapsetExtended, ArchivedBeatmapsetPost, ArchivedFailTimes,
-        ArchivedMostPlayedMap, ArchivedRankStatus, BeatmapDifficultyAttributesResolver,
-        BeatmapExtendedResolver, BeatmapResolver, BeatmapsetAvailabilityResolver,
-        BeatmapsetCommentEditResolver, BeatmapsetCommentIdResolver,
+        ArchivedBeatmapsetExtended, ArchivedBeatmapsetPost, ArchivedBeatmapsetSearchResult,
+        ArchivedFailTimes, ArchivedMostPlayedMap, ArchivedRankStatus,
+        BeatmapDifficultyAttributesResolver, BeatmapExtendedResolver, BeatmapResolver,
+        BeatmapsetAvailabilityResolver, BeatmapsetCommentEditResolver, BeatmapsetCommentIdResolver,
         BeatmapsetCommentKudosuGainResolver, BeatmapsetCommentNominateResolver,
         BeatmapsetCommentOwnerChangeResolver, BeatmapsetCoversResolver,
         BeatmapsetDiscussionResolver, BeatmapsetEventResolver, BeatmapsetEventsResolver,
         BeatmapsetHypeResolver, BeatmapsetNominationsResolver, BeatmapsetPostResolver,
-        BeatmapsetResolver, BeatmapsetReviewsConfigResolver, BeatmapsetVoteResolver,
-        FailTimesResolver, GameModeAttributesResolver, MostPlayedMapResolver, RankStatusResolver,
+        BeatmapsetResolver, BeatmapsetReviewsConfigResolver, BeatmapsetSearchResultResolver,
+        BeatmapsetVoteResolver, FailTimesResolver, GameModeAttributesResolver,
+        MostPlayedMapResolver, RankStatusResolver,
     };
 
     pub use super::comments_::{
-        ArchivedComment, ArchivedCommentableMeta, CommentResolver, CommentSortResolver,
-        CommentableMetaResolver,
+        ArchivedComment, ArchivedCommentBundle, ArchivedCommentableMeta, CommentBundleResolver,
+        CommentResolver, CommentSortResolver, CommentableMetaResolver,
     };
 
     pub use super::event_::{
@@ -299,8 +299,8 @@ pub mod rkyv {
     };
 
     pub use super::forum_::{
-        ArchivedForumPost, ArchivedForumPostsSearch, ArchivedForumTopic, ForumPostResolver,
-        ForumPostsSearchResolver, ForumTopicResolver,
+        ArchivedForumPost, ArchivedForumPosts, ArchivedForumPostsSearch, ArchivedForumTopic,
+        ForumPostResolver, ForumPostsResolver, ForumPostsSearchResolver, ForumTopicResolver,
     };
 
     pub use super::grade::GradeResolver;
@@ -313,7 +313,8 @@ pub mod rkyv {
     pub use super::mode::GameModeResolver;
 
     pub use super::news_::{
-        ArchivedNewsPost, ArchivedNewsSidebar, NewsPostResolver, NewsSidebarResolver,
+        ArchivedNews, ArchivedNewsPost, ArchivedNewsSearch, ArchivedNewsSidebar, NewsPostResolver,
+        NewsResolver, NewsSearchResolver, NewsSidebarResolver,
     };
 
     pub use super::ranking_::{
@@ -348,7 +349,6 @@ pub mod rkyv {
     pub use super::wiki_::{ArchivedWikiPage, WikiPageResolver};
 }
 
-pub use cursor::Cursor;
 pub use grade::Grade;
 pub use mode::GameMode;
 

@@ -1,6 +1,6 @@
 use crate::{
-    model::{forum_::ForumPosts, Cursor},
-    request::{serialize::maybe_cursor, Pending, Query, Request},
+    model::forum_::ForumPosts,
+    request::{Pending, Query, Request},
     routing::Route,
     Osu,
 };
@@ -21,8 +21,8 @@ pub struct GetForumPosts<'a> {
     limit: Option<usize>,
     start: Option<u64>,
     end: Option<u64>,
-    #[serde(flatten, serialize_with = "maybe_cursor")]
-    cursor: Option<Cursor>,
+    #[serde(rename = "cursor_string")]
+    cursor: Option<&'a str>,
 }
 
 impl<'a> GetForumPosts<'a> {
@@ -84,7 +84,7 @@ impl<'a> GetForumPosts<'a> {
 
     /// Specify a page by providing a cursor
     #[inline]
-    pub fn cursor(mut self, cursor: Cursor) -> Self {
+    pub const fn cursor(mut self, cursor: &'a str) -> Self {
         self.cursor = Some(cursor);
 
         self

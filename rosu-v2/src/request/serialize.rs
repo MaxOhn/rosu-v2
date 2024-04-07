@@ -1,4 +1,4 @@
-use crate::model::{Cursor, GameMode};
+use crate::model::GameMode;
 use crate::prelude::{CommentSort, GameModsIntermode};
 
 use crate::request::UserId;
@@ -52,13 +52,6 @@ pub(crate) fn mods_as_list<S: Serializer>(
     }
 
     map.end()
-}
-
-pub(crate) fn maybe_cursor<S: Serializer>(
-    cursor: &Option<Cursor>,
-    serializer: S,
-) -> Result<S::Ok, S::Error> {
-    maybe(cursor, serializer, Cursor::serialize_as_query)
 }
 
 pub(crate) fn maybe_comment_sort<S: Serializer>(

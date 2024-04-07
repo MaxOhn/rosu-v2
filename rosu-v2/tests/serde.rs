@@ -1015,11 +1015,10 @@ mod rkyv_tests {
         roundtrip(&get_country_ranking());
     }
 
-    // TODO
-    // #[test]
-    // fn serde_forum_posts() {
-    //     roundtrip(&get_forum_posts());
-    // }
+    #[test]
+    fn serde_forum_posts() {
+        roundtrip(&get_forum_posts());
+    }
 
     #[test]
     fn serde_match() {

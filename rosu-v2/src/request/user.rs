@@ -654,6 +654,7 @@ pub struct GetUserScores<'a> {
     include_fails: Option<bool>,
     #[serde(serialize_with = "maybe_mode_as_str")]
     mode: Option<GameMode>,
+    legacy_only: bool,
     #[serde(skip)]
     legacy_scores: bool,
 
@@ -679,6 +680,7 @@ impl<'a> GetUserScores<'a> {
             offset: None,
             include_fails: None,
             mode: None,
+            legacy_only: false,
             legacy_scores: false,
         }
     }
@@ -695,6 +697,7 @@ impl<'a> GetUserScores<'a> {
             offset: None,
             include_fails: None,
             mode: None,
+            legacy_only: false,
             legacy_scores: false,
         }
     }
@@ -762,6 +765,14 @@ impl<'a> GetUserScores<'a> {
     #[inline]
     pub const fn recent(mut self) -> Self {
         self.score_type = ScoreType::Recent;
+
+        self
+    }
+
+    /// Whether or not to exclude lazer scores.
+    #[inline]
+    pub const fn legacy_only(mut self, legacy_only: bool) -> Self {
+        self.legacy_only = legacy_only;
 
         self
     }

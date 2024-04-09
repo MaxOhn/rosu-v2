@@ -249,6 +249,7 @@ pub struct GetBeatmapScores<'a> {
     #[serde(flatten, serialize_with = "maybe_mods_as_list")]
     mods: Option<GameModsIntermode>,
     limit: Option<u32>,
+    legacy_only: bool,
     #[serde(skip)]
     legacy_scores: bool,
     // ! Currently not working
@@ -266,6 +267,7 @@ impl<'a> GetBeatmapScores<'a> {
             mode: None,
             mods: None,
             limit: None,
+            legacy_only: false,
             legacy_scores: false,
             // offset: None,
         }
@@ -311,6 +313,14 @@ impl<'a> GetBeatmapScores<'a> {
     #[inline]
     pub const fn limit(mut self, limit: u32) -> Self {
         self.limit = Some(limit);
+
+        self
+    }
+
+    /// Whether or not to exclude lazer scores.
+    #[inline]
+    pub const fn legacy_only(mut self, legacy_only: bool) -> Self {
+        self.legacy_only = legacy_only;
 
         self
     }
@@ -382,6 +392,7 @@ pub struct GetBeatmapUserScore<'a> {
     mode: Option<GameMode>,
     #[serde(flatten, serialize_with = "maybe_mods_as_list")]
     mods: Option<GameModsIntermode>,
+    legacy_only: bool,
     #[serde(skip)]
     legacy_scores: bool,
 
@@ -419,6 +430,7 @@ impl<'a> GetBeatmapUserScore<'a> {
             user_id,
             mode: None,
             mods: None,
+            legacy_only: false,
             legacy_scores: false,
         }
     }
@@ -438,6 +450,14 @@ impl<'a> GetBeatmapUserScore<'a> {
         GameModsIntermode: From<M>,
     {
         self.mods = Some(GameModsIntermode::from(mods));
+
+        self
+    }
+
+    /// Whether or not to exclude lazer scores.
+    #[inline]
+    pub const fn legacy_only(mut self, legacy_only: bool) -> Self {
+        self.legacy_only = legacy_only;
 
         self
     }
@@ -520,6 +540,7 @@ pub struct GetBeatmapUserScores<'a> {
     map_id: u32,
     #[serde(serialize_with = "maybe_mode_as_str")]
     mode: Option<GameMode>,
+    legacy_only: bool,
     #[serde(skip)]
     legacy_scores: bool,
 
@@ -542,6 +563,7 @@ impl<'a> GetBeatmapUserScores<'a> {
             map_id,
             user_id,
             mode: None,
+            legacy_only: false,
             legacy_scores: false,
         }
     }
@@ -555,6 +577,7 @@ impl<'a> GetBeatmapUserScores<'a> {
             map_id,
             user_id,
             mode: None,
+            legacy_only: false,
             legacy_scores: false,
         }
     }
@@ -563,6 +586,14 @@ impl<'a> GetBeatmapUserScores<'a> {
     #[inline]
     pub const fn mode(mut self, mode: GameMode) -> Self {
         self.mode = Some(mode);
+
+        self
+    }
+
+    /// Whether or not to exclude lazer scores.
+    #[inline]
+    pub const fn legacy_only(mut self, legacy_only: bool) -> Self {
+        self.legacy_only = legacy_only;
 
         self
     }

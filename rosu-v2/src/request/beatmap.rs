@@ -416,6 +416,7 @@ impl<'a> GetBeatmapUserScore<'a> {
             user_id,
             mode: None,
             mods: None,
+            legacy_only: false,
             legacy_scores: false,
         }
     }

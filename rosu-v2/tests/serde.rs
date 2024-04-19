@@ -809,12 +809,12 @@ mod types {
             scores_first_count: Some(34),
             scores_recent_count: Some(34),
             statistics: Some(get_user_stats()),
-            statistics_modes: Some(UserStatisticsModes {
-                osu: get_user_stats(),
-                taiko: get_user_stats(),
-                catch: get_user_stats(),
-                mania: get_user_stats(),
-            }),
+            statistics_modes: UserStatisticsModes {
+                osu: Some(get_user_stats()),
+                taiko: None,
+                catch: Some(get_user_stats()),
+                mania: Some(get_user_stats()),
+            },
             support_level: Some(1),
             pending_mapset_count: Some(34),
         }

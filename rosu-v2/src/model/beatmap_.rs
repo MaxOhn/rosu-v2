@@ -1,7 +1,7 @@
 use super::{serde_, user_::User, GameMode};
 use crate::{
     error::ParsingError,
-    prelude::{CountryCode, OsuError, Username},
+    prelude::{CountryCode, OsuError, UserStatisticsModes, Username},
     request::{GetBeatmapDifficultyAttributes, GetUser},
     Osu, OsuResult,
 };
@@ -441,7 +441,7 @@ fn deser_mapset_user<'de, D: Deserializer<'de>>(d: D) -> Result<Option<Box<User>
                 scores_first_count: None,
                 scores_recent_count: None,
                 statistics: None,
-                statistics_modes: None,
+                statistics_modes: UserStatisticsModes::default(),
                 support_level: None,
                 pending_mapset_count: None,
             })))

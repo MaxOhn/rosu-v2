@@ -47,6 +47,7 @@ impl BeatmapUserScore {
 pub struct Score {
     pub ranked: Option<bool>,
     pub preserve: Option<bool>,
+    pub processed: Option<bool>,
     pub maximum_statistics: ScoreStatistics,
     pub mods: GameMods,
     pub statistics: ScoreStatistics,
@@ -99,6 +100,7 @@ impl<'de> Deserialize<'de> for Score {
         struct ScoreRawMods {
             ranked: Option<bool>,
             preserve: Option<bool>,
+            processed: Option<bool>,
             #[serde(default)]
             maximum_statistics: ScoreStatistics,
             mods: Box<RawValue>,
@@ -165,6 +167,7 @@ impl<'de> Deserialize<'de> for Score {
         Ok(Score {
             ranked: score_raw.ranked,
             preserve: score_raw.preserve,
+            processed: score_raw.processed,
             maximum_statistics: score_raw.maximum_statistics,
             mods: ModeAsSeed::<GameMods>::new(score_raw.mode)
                 .deserialize(&mut d)

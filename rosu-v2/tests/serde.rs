@@ -508,6 +508,7 @@ mod types {
         Score {
             ranked: Some(true),
             preserve: Some(true),
+            processed: Some(false),
             accuracy: 98.76,
             ended_at: get_date(),
             passed: true,

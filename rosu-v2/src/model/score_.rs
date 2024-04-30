@@ -520,7 +520,15 @@ pub struct ScoreWeight {
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct UserAttributes {
-    pub pin: Option<()>,
+    pub pin: Option<UserAttributesPin>,
+}
+
+#[derive(Copy, Clone, Debug, Deserialize, PartialEq, Eq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
+pub struct UserAttributesPin {
+    pub is_pinned: bool,
+    pub score_id: u64,
 }
 
 fn osu_grade(score: &Score, passed_objects: u32, accuracy: Option<f32>) -> Grade {

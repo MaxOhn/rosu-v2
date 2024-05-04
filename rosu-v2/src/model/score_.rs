@@ -420,9 +420,17 @@ impl ScoreStatistics {
             }
             GameMode::Taiko => count_100 = self.ok,
             GameMode::Catch => {
-                count_100 = self.large_tick_hit;
-                count_50 = self.small_tick_hit;
-                count_katu = self.small_tick_miss;
+                const fn max(a: u32, b: u32) -> u32 {
+                    if a > b {
+                        a
+                    } else {
+                        b
+                    }
+                }
+
+                count_100 = max(self.large_tick_hit, self.ok);
+                count_50 = max(self.small_tick_hit, self.meh);
+                count_katu = max(self.small_tick_miss, self.good);
             }
             GameMode::Mania => {
                 count_geki = self.perfect;

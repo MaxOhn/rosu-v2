@@ -7771,14 +7771,13 @@ impl serde::Serialize for NightcoreMania {
     }
 }
 /// Keys appear out of nowhere!
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
 #[cfg_attr(
     feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
 )]
-pub struct FadeInMania {
-    pub coverage: Option<f32>,
-}
+pub struct FadeInMania {}
 impl FadeInMania {
     /// The acronym of [`FadeInMania`]
     pub const fn acronym() -> Acronym {
@@ -7789,6 +7788,7 @@ impl FadeInMania {
         unsafe {
             [
                 Acronym::from_str_unchecked("HD"),
+                Acronym::from_str_unchecked("CO"),
                 Acronym::from_str_unchecked("FL"),
             ]
         }
@@ -7817,19 +7817,8 @@ impl<'de> Deserialize<'de> for FadeInMania {
             fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
                 f.write_str("FadeInMania")
             }
-            fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
-                let mut coverage = None;
-                while let Some(key) = map.next_key()? {
-                    match key {
-                        "coverage" => coverage = Some(map.next_value()?),
-                        _ => {
-                            let _: IgnoredAny = map.next_value()?;
-                        }
-                    }
-                }
-                Ok(Self::Value {
-                    coverage: coverage.unwrap_or_default(),
-                })
+            fn visit_map<A: MapAccess<'de>>(self, _: A) -> Result<Self::Value, A::Error> {
+                Ok(Self::Value {})
             }
         }
         d.deserialize_map(FadeInManiaVisitor)
@@ -7839,23 +7828,19 @@ impl<'de> Deserialize<'de> for FadeInMania {
 impl serde::Serialize for FadeInMania {
     fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
         use serde::ser::SerializeMap;
-        let field_count = self.coverage.is_some() as usize;
-        let mut map = s.serialize_map(Some(field_count))?;
-        if let Some(ref x) = self.coverage {
-            map.serialize_entry("coverage", x)?;
-        }
+        let field_count = 0;
+        let map = s.serialize_map(Some(field_count))?;
         map.end()
     }
 }
 /// Keys fade out before you hit them!
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
 #[cfg_attr(
     feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
 )]
-pub struct HiddenMania {
-    pub coverage: Option<f32>,
-}
+pub struct HiddenMania {}
 impl HiddenMania {
     /// The acronym of [`HiddenMania`]
     pub const fn acronym() -> Acronym {
@@ -7866,6 +7851,7 @@ impl HiddenMania {
         unsafe {
             [
                 Acronym::from_str_unchecked("FI"),
+                Acronym::from_str_unchecked("CO"),
                 Acronym::from_str_unchecked("FL"),
             ]
         }
@@ -7894,19 +7880,8 @@ impl<'de> Deserialize<'de> for HiddenMania {
             fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
                 f.write_str("HiddenMania")
             }
-            fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
-                let mut coverage = None;
-                while let Some(key) = map.next_key()? {
-                    match key {
-                        "coverage" => coverage = Some(map.next_value()?),
-                        _ => {
-                            let _: IgnoredAny = map.next_value()?;
-                        }
-                    }
-                }
-                Ok(Self::Value {
-                    coverage: coverage.unwrap_or_default(),
-                })
+            fn visit_map<A: MapAccess<'de>>(self, _: A) -> Result<Self::Value, A::Error> {
+                Ok(Self::Value {})
             }
         }
         d.deserialize_map(HiddenManiaVisitor)
@@ -7916,10 +7891,86 @@ impl<'de> Deserialize<'de> for HiddenMania {
 impl serde::Serialize for HiddenMania {
     fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
         use serde::ser::SerializeMap;
-        let field_count = self.coverage.is_some() as usize;
+        let field_count = 0;
+        let map = s.serialize_map(Some(field_count))?;
+        map.end()
+    }
+}
+/// Decrease the playfield's viewing area.
+#[derive(Clone, Debug, Default, PartialEq)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
+pub struct CoverMania {
+    pub coverage: Option<f32>,
+    pub direction: Option<String>,
+}
+impl CoverMania {
+    /// The acronym of [`CoverMania`]
+    pub const fn acronym() -> Acronym {
+        unsafe { Acronym::from_str_unchecked("CO") }
+    }
+    /// Iterator of [`Acronym`] for mods that are incompatible with [`CoverMania`]
+    pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
+        unsafe {
+            [
+                Acronym::from_str_unchecked("FI"),
+                Acronym::from_str_unchecked("HD"),
+                Acronym::from_str_unchecked("FL"),
+            ]
+        }
+        .into_iter()
+    }
+    /// The description of [`CoverMania`]
+    pub const fn description() -> &'static str {
+        "Decrease the playfield's viewing area."
+    }
+    /// The [`GameModKind`] of [`CoverMania`]
+    pub const fn kind() -> GameModKind {
+        GameModKind::DifficultyIncrease
+    }
+}
+impl<'de> Deserialize<'de> for CoverMania {
+    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        struct CoverManiaVisitor;
+        impl<'de> Visitor<'de> for CoverManiaVisitor {
+            type Value = CoverMania;
+            fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+                f.write_str("CoverMania")
+            }
+            fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
+                let mut coverage = None;
+                let mut direction = None;
+                while let Some(key) = map.next_key()? {
+                    match key {
+                        "coverage" => coverage = Some(map.next_value()?),
+                        "direction" => direction = Some(map.next_value()?),
+                        _ => {
+                            let _: IgnoredAny = map.next_value()?;
+                        }
+                    }
+                }
+                Ok(Self::Value {
+                    coverage: coverage.unwrap_or_default(),
+                    direction: direction.unwrap_or_default(),
+                })
+            }
+        }
+        d.deserialize_map(CoverManiaVisitor)
+    }
+}
+#[cfg(feature = "serialize")]
+impl serde::Serialize for CoverMania {
+    fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        use serde::ser::SerializeMap;
+        let field_count = self.coverage.is_some() as usize + self.direction.is_some() as usize;
         let mut map = s.serialize_map(Some(field_count))?;
         if let Some(ref x) = self.coverage {
             map.serialize_entry("coverage", x)?;
+        }
+        if let Some(ref x) = self.direction {
+            map.serialize_entry("direction", x)?;
         }
         map.end()
     }
@@ -7945,6 +7996,7 @@ impl FlashlightMania {
             [
                 Acronym::from_str_unchecked("FI"),
                 Acronym::from_str_unchecked("HD"),
+                Acronym::from_str_unchecked("CO"),
             ]
         }
         .into_iter()
@@ -9829,6 +9881,7 @@ pub enum GameModIntermode {
     Cinema,
     Classic,
     ConstantSpeed,
+    Cover,
     Daycore,
     Deflate,
     Depth,
@@ -9899,6 +9952,7 @@ impl GameModIntermode {
                 Self::Cinema => Acronym::from_str_unchecked("CN"),
                 Self::Classic => Acronym::from_str_unchecked("CL"),
                 Self::ConstantSpeed => Acronym::from_str_unchecked("CS"),
+                Self::Cover => Acronym::from_str_unchecked("CO"),
                 Self::Daycore => Acronym::from_str_unchecked("DC"),
                 Self::Deflate => Acronym::from_str_unchecked("DF"),
                 Self::Depth => Acronym::from_str_unchecked("DP"),
@@ -9971,6 +10025,7 @@ impl GameModIntermode {
             Self::Cinema => Some(4194304),
             Self::Classic => None,
             Self::ConstantSpeed => None,
+            Self::Cover => None,
             Self::Daycore => None,
             Self::Deflate => None,
             Self::Depth => None,
@@ -10040,6 +10095,7 @@ impl GameModIntermode {
             Self::Cinema => GameModKind::Automation,
             Self::Classic => GameModKind::Conversion,
             Self::ConstantSpeed => GameModKind::Conversion,
+            Self::Cover => GameModKind::DifficultyIncrease,
             Self::Daycore => GameModKind::DifficultyReduction,
             Self::Deflate => GameModKind::Fun,
             Self::Depth => GameModKind::Fun,
@@ -10109,6 +10165,7 @@ impl GameModIntermode {
             "CN" => Some(Self::Cinema),
             "CL" => Some(Self::Classic),
             "CS" => Some(Self::ConstantSpeed),
+            "CO" => Some(Self::Cover),
             "DC" => Some(Self::Daycore),
             "DF" => Some(Self::Deflate),
             "DP" => Some(Self::Depth),
@@ -10355,6 +10412,7 @@ impl From<&GameMod> for GameModOrder {
                 GameMod::NightcoreMania(_) => arm!(Mania, NightcoreMania, Some(10), Nightcore),
                 GameMod::FadeInMania(_) => arm!(Mania, FadeInMania, Some(21), FadeIn),
                 GameMod::HiddenMania(_) => arm!(Mania, HiddenMania, Some(4), Hidden),
+                GameMod::CoverMania(_) => arm!(Mania, CoverMania, None, Cover),
                 GameMod::FlashlightMania(_) => arm!(Mania, FlashlightMania, Some(11), Flashlight),
                 GameMod::AccuracyChallengeMania(_) => {
                     arm!(Mania, AccuracyChallengeMania, None, AccuracyChallenge)
@@ -10541,6 +10599,7 @@ pub enum GameMod {
     NightcoreMania(NightcoreMania),
     FadeInMania(FadeInMania),
     HiddenMania(HiddenMania),
+    CoverMania(CoverMania),
     FlashlightMania(FlashlightMania),
     AccuracyChallengeMania(AccuracyChallengeMania),
     RandomMania(RandomMania),
@@ -10682,6 +10741,7 @@ impl GameMod {
             ("NC", GameMode::Mania) => Some(Self::NightcoreMania(Default::default())),
             ("FI", GameMode::Mania) => Some(Self::FadeInMania(Default::default())),
             ("HD", GameMode::Mania) => Some(Self::HiddenMania(Default::default())),
+            ("CO", GameMode::Mania) => Some(Self::CoverMania(Default::default())),
             ("FL", GameMode::Mania) => Some(Self::FlashlightMania(Default::default())),
             ("AC", GameMode::Mania) => Some(Self::AccuracyChallengeMania(Default::default())),
             ("RD", GameMode::Mania) => Some(Self::RandomMania(Default::default())),
@@ -10822,6 +10882,7 @@ impl GameMod {
             Self::NightcoreMania(_) => NightcoreMania::acronym(),
             Self::FadeInMania(_) => FadeInMania::acronym(),
             Self::HiddenMania(_) => HiddenMania::acronym(),
+            Self::CoverMania(_) => CoverMania::acronym(),
             Self::FlashlightMania(_) => FlashlightMania::acronym(),
             Self::AccuracyChallengeMania(_) => AccuracyChallengeMania::acronym(),
             Self::RandomMania(_) => RandomMania::acronym(),
@@ -10965,6 +11026,7 @@ impl GameMod {
             Self::NightcoreMania(_) => NightcoreMania::incompatible_mods().collect(),
             Self::FadeInMania(_) => FadeInMania::incompatible_mods().collect(),
             Self::HiddenMania(_) => HiddenMania::incompatible_mods().collect(),
+            Self::CoverMania(_) => CoverMania::incompatible_mods().collect(),
             Self::FlashlightMania(_) => FlashlightMania::incompatible_mods().collect(),
             Self::AccuracyChallengeMania(_) => {
                 AccuracyChallengeMania::incompatible_mods().collect()
@@ -11106,6 +11168,7 @@ impl GameMod {
             Self::NightcoreMania(_) => NightcoreMania::description(),
             Self::FadeInMania(_) => FadeInMania::description(),
             Self::HiddenMania(_) => HiddenMania::description(),
+            Self::CoverMania(_) => CoverMania::description(),
             Self::FlashlightMania(_) => FlashlightMania::description(),
             Self::AccuracyChallengeMania(_) => AccuracyChallengeMania::description(),
             Self::RandomMania(_) => RandomMania::description(),
@@ -11245,6 +11308,7 @@ impl GameMod {
             Self::NightcoreMania(_) => NightcoreMania::kind(),
             Self::FadeInMania(_) => FadeInMania::kind(),
             Self::HiddenMania(_) => HiddenMania::kind(),
+            Self::CoverMania(_) => CoverMania::kind(),
             Self::FlashlightMania(_) => FlashlightMania::kind(),
             Self::AccuracyChallengeMania(_) => AccuracyChallengeMania::kind(),
             Self::RandomMania(_) => RandomMania::kind(),
@@ -11468,6 +11532,7 @@ impl GameMod {
             | Self::NightcoreMania(_)
             | Self::FadeInMania(_)
             | Self::HiddenMania(_)
+            | Self::CoverMania(_)
             | Self::FlashlightMania(_)
             | Self::AccuracyChallengeMania(_)
             | Self::RandomMania(_)
@@ -11607,6 +11672,7 @@ impl GameMod {
             Self::NightcoreMania(_) => GameModIntermode::Nightcore,
             Self::FadeInMania(_) => GameModIntermode::FadeIn,
             Self::HiddenMania(_) => GameModIntermode::Hidden,
+            Self::CoverMania(_) => GameModIntermode::Cover,
             Self::FlashlightMania(_) => GameModIntermode::Flashlight,
             Self::AccuracyChallengeMania(_) => GameModIntermode::AccuracyChallenge,
             Self::RandomMania(_) => GameModIntermode::Random,
@@ -11773,6 +11839,7 @@ impl<'de> Visitor<'de> for GameModSettings<'de> {
             ("NC", GameMode::Mania) => GameMod::NightcoreMania(Deserialize::deserialize(d)?),
             ("FI", GameMode::Mania) => GameMod::FadeInMania(Deserialize::deserialize(d)?),
             ("HD", GameMode::Mania) => GameMod::HiddenMania(Deserialize::deserialize(d)?),
+            ("CO", GameMode::Mania) => GameMod::CoverMania(Deserialize::deserialize(d)?),
             ("FL", GameMode::Mania) => GameMod::FlashlightMania(Deserialize::deserialize(d)?),
             ("AC", GameMode::Mania) => {
                 GameMod::AccuracyChallengeMania(Deserialize::deserialize(d)?)
@@ -12270,14 +12337,8 @@ impl serde::Serialize for GameMod {
                     s.serialize_entry("settings", m)?;
                 }
             }
-            Self::FadeInMania(m) => {
-                let has_some = m.coverage.is_some();
-                if has_some {
-                    s.serialize_entry("settings", m)?;
-                }
-            }
-            Self::HiddenMania(m) => {
-                let has_some = m.coverage.is_some();
+            Self::CoverMania(m) => {
+                let has_some = m.coverage.is_some() || m.direction.is_some();
                 if has_some {
                     s.serialize_entry("settings", m)?;
                 }
@@ -12409,6 +12470,9 @@ macro_rules! mods_inner {
     };
     ( [ $( $mode:ident )? ] CN $( $rest:tt )* ) => {
         mods_inner!( [ $( $mode )? ] $( $rest )* Cinema )
+    };
+    ( [ $( $mode:ident )? ] CO $( $rest:tt )* ) => {
+        mods_inner!( [ $( $mode )? ] $( $rest )* Cover )
     };
     ( [ $( $mode:ident )? ] CS $( $rest:tt )* ) => {
         mods_inner!( [ $( $mode )? ] $( $rest )* ConstantSpeed )

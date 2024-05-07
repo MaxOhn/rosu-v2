@@ -125,9 +125,6 @@ pub enum ParsingError {
     /// Failed to parse a str into an [`Acronym`](crate::model::mods::Acronym)
     #[error("failed to parse `{}` into an Acronym", .0)]
     Acronym(Box<str>),
-    /// Failed to parse a str into [`GameModsIntermode`](crate::model::mods::GameModsIntermode)
-    #[error("failed to parse `{}` into GameModsIntermode", .0)]
-    GameModsIntermode(Box<str>),
     /// Failed to parse a u8 into a [`Genre`](crate::model::beatmap::Genre)
     #[error("failed to parse {} into Genre", .0)]
     Genre(u8),

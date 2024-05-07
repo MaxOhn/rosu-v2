@@ -1,11 +1,20 @@
 use std::{
+    cmp::Ordering,
     fmt::{Debug, Display, Formatter, Result as FmtResult},
     str::FromStr,
 };
 
 use crate::error::ParsingError;
 
+/// The acronym of a [`GameMod`].
+///
+/// [`GameMod`]: crate::model::mods::GameMod
 #[derive(Copy, Clone, PartialEq, Eq, Hash)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
+    archive(as = "Self")
+)]
 pub struct Acronym([u8; 3]);
 
 impl Acronym {
@@ -91,5 +100,17 @@ impl FromStr for Acronym {
                 })
                 .map_err(|_| ParsingError::Acronym(Box::from(s))),
         }
+    }
+}
+
+impl PartialOrd for Acronym {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Acronym {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.as_str().cmp(other.as_str())
     }
 }

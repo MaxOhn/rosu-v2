@@ -9844,6 +9844,69 @@ impl serde::Serialize for ScoreV2Mania {
         map.end()
     }
 }
+/// Any mod unknown to `rosu-v2`
+#[derive(Copy, Eq, Clone, Debug, PartialEq, PartialOrd, Ord, Hash)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
+    archive(as = "Self")
+)]
+pub struct UnknownMod {
+    pub acronym: Acronym,
+}
+impl UnknownMod {
+    /// The default [`Acronym`] for an unknown mod without specific
+    /// acronym.
+    pub const UNKNOWN_ACRONYM: Acronym = unsafe { Acronym::from_str_unchecked("??") };
+    /// A custom [`Acronym`] for any unknown mod
+    pub const fn acronym(self) -> Acronym {
+        self.acronym
+    }
+    /// Returns an empty iterator
+    pub const fn incompatible_mods() -> std::iter::Empty<Acronym> {
+        std::iter::empty()
+    }
+    /// A custom description for any unknown mod
+    pub const fn description() -> &'static str {
+        "Any mod unknown to the rosu-v2 crate"
+    }
+    /// A manually assigned [`GameModKind`] for any unknown mod
+    pub const fn kind() -> GameModKind {
+        GameModKind::System
+    }
+}
+impl Default for UnknownMod {
+    fn default() -> Self {
+        Self {
+            acronym: Self::UNKNOWN_ACRONYM,
+        }
+    }
+}
+impl<'de> Deserialize<'de> for UnknownMod {
+    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        struct UnknownModVisitor;
+        impl<'de> Visitor<'de> for UnknownModVisitor {
+            type Value = UnknownMod;
+            fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+                f.write_str("any unknown mod")
+            }
+            fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
+                while map.next_entry::<IgnoredAny, IgnoredAny>()?.is_some() {}
+                Ok(UnknownMod {
+                    acronym: UnknownMod::UNKNOWN_ACRONYM,
+                })
+            }
+        }
+        d.deserialize_map(UnknownModVisitor)
+    }
+}
+#[cfg(feature = "serialize")]
+impl serde::Serialize for UnknownMod {
+    fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        s.serialize_map(Some(0))
+            .and_then(serde::ser::SerializeMap::end)
+    }
+}
 /// The different types of a [`GameMod`]
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
@@ -9934,6 +9997,7 @@ pub enum GameModIntermode {
     Wiggle,
     WindDown,
     WindUp,
+    Unknown(UnknownMod),
 }
 impl GameModIntermode {
     /// The [`Acronym`] of this [`GameModIntermode`]
@@ -10005,6 +10069,7 @@ impl GameModIntermode {
                 Self::Wiggle => Acronym::from_str_unchecked("WG"),
                 Self::WindDown => Acronym::from_str_unchecked("WD"),
                 Self::WindUp => Acronym::from_str_unchecked("WU"),
+                Self::Unknown(m) => m.acronym(),
             }
         }
     }
@@ -10078,6 +10143,7 @@ impl GameModIntermode {
             Self::Wiggle => None,
             Self::WindDown => None,
             Self::WindUp => None,
+            Self::Unknown(_) => None,
         }
     }
     /// The [`GameModKind`] of this [`GameModIntermode`]
@@ -10148,77 +10214,78 @@ impl GameModIntermode {
             Self::Wiggle => GameModKind::Fun,
             Self::WindDown => GameModKind::Fun,
             Self::WindUp => GameModKind::Fun,
+            Self::Unknown(_) => GameModKind::System,
         }
     }
-    /// Try to parse an [`Acronym`] into a [`GameModIntermode`]
-    pub fn from_acronym(acronym: Acronym) -> Option<Self> {
+    /// Parse an [`Acronym`] into a [`GameModIntermode`]
+    pub fn from_acronym(acronym: Acronym) -> Self {
         match acronym.as_str() {
-            "AC" => Some(Self::AccuracyChallenge),
-            "AS" => Some(Self::AdaptiveSpeed),
-            "AL" => Some(Self::Alternate),
-            "AD" => Some(Self::ApproachDifferent),
-            "AP" => Some(Self::Autopilot),
-            "AT" => Some(Self::Autoplay),
-            "BR" => Some(Self::BarrelRoll),
-            "BL" => Some(Self::Blinds),
-            "BU" => Some(Self::Bubbles),
-            "CN" => Some(Self::Cinema),
-            "CL" => Some(Self::Classic),
-            "CS" => Some(Self::ConstantSpeed),
-            "CO" => Some(Self::Cover),
-            "DC" => Some(Self::Daycore),
-            "DF" => Some(Self::Deflate),
-            "DP" => Some(Self::Depth),
-            "DA" => Some(Self::DifficultyAdjust),
-            "DT" => Some(Self::DoubleTime),
-            "DS" => Some(Self::DualStages),
-            "EZ" => Some(Self::Easy),
-            "8K" => Some(Self::EightKeys),
-            "FI" => Some(Self::FadeIn),
-            "5K" => Some(Self::FiveKeys),
-            "FL" => Some(Self::Flashlight),
-            "FF" => Some(Self::FloatingFruits),
-            "4K" => Some(Self::FourKeys),
-            "FR" => Some(Self::FreezeFrame),
-            "GR" => Some(Self::Grow),
-            "HT" => Some(Self::HalfTime),
-            "HR" => Some(Self::HardRock),
-            "HD" => Some(Self::Hidden),
-            "HO" => Some(Self::HoldOff),
-            "IN" => Some(Self::Invert),
-            "MG" => Some(Self::Magnetised),
-            "MR" => Some(Self::Mirror),
-            "MU" => Some(Self::Muted),
-            "NC" => Some(Self::Nightcore),
-            "9K" => Some(Self::NineKeys),
-            "NF" => Some(Self::NoFail),
-            "NS" => Some(Self::NoScope),
-            "1K" => Some(Self::OneKey),
-            "PF" => Some(Self::Perfect),
-            "RD" => Some(Self::Random),
-            "RX" => Some(Self::Relax),
-            "RP" => Some(Self::Repel),
-            "SV2" => Some(Self::ScoreV2),
-            "7K" => Some(Self::SevenKeys),
-            "SG" => Some(Self::SingleTap),
-            "6K" => Some(Self::SixKeys),
-            "SI" => Some(Self::SpinIn),
-            "SO" => Some(Self::SpunOut),
-            "ST" => Some(Self::StrictTracking),
-            "SD" => Some(Self::SuddenDeath),
-            "SW" => Some(Self::Swap),
-            "SY" => Some(Self::Synesthesia),
-            "TP" => Some(Self::TargetPractice),
-            "10K" => Some(Self::TenKeys),
-            "3K" => Some(Self::ThreeKeys),
-            "TD" => Some(Self::TouchDevice),
-            "TC" => Some(Self::Traceable),
-            "TR" => Some(Self::Transform),
-            "2K" => Some(Self::TwoKeys),
-            "WG" => Some(Self::Wiggle),
-            "WD" => Some(Self::WindDown),
-            "WU" => Some(Self::WindUp),
-            _ => None,
+            "AC" => Self::AccuracyChallenge,
+            "AS" => Self::AdaptiveSpeed,
+            "AL" => Self::Alternate,
+            "AD" => Self::ApproachDifferent,
+            "AP" => Self::Autopilot,
+            "AT" => Self::Autoplay,
+            "BR" => Self::BarrelRoll,
+            "BL" => Self::Blinds,
+            "BU" => Self::Bubbles,
+            "CN" => Self::Cinema,
+            "CL" => Self::Classic,
+            "CS" => Self::ConstantSpeed,
+            "CO" => Self::Cover,
+            "DC" => Self::Daycore,
+            "DF" => Self::Deflate,
+            "DP" => Self::Depth,
+            "DA" => Self::DifficultyAdjust,
+            "DT" => Self::DoubleTime,
+            "DS" => Self::DualStages,
+            "EZ" => Self::Easy,
+            "8K" => Self::EightKeys,
+            "FI" => Self::FadeIn,
+            "5K" => Self::FiveKeys,
+            "FL" => Self::Flashlight,
+            "FF" => Self::FloatingFruits,
+            "4K" => Self::FourKeys,
+            "FR" => Self::FreezeFrame,
+            "GR" => Self::Grow,
+            "HT" => Self::HalfTime,
+            "HR" => Self::HardRock,
+            "HD" => Self::Hidden,
+            "HO" => Self::HoldOff,
+            "IN" => Self::Invert,
+            "MG" => Self::Magnetised,
+            "MR" => Self::Mirror,
+            "MU" => Self::Muted,
+            "NC" => Self::Nightcore,
+            "9K" => Self::NineKeys,
+            "NF" => Self::NoFail,
+            "NS" => Self::NoScope,
+            "1K" => Self::OneKey,
+            "PF" => Self::Perfect,
+            "RD" => Self::Random,
+            "RX" => Self::Relax,
+            "RP" => Self::Repel,
+            "SV2" => Self::ScoreV2,
+            "7K" => Self::SevenKeys,
+            "SG" => Self::SingleTap,
+            "6K" => Self::SixKeys,
+            "SI" => Self::SpinIn,
+            "SO" => Self::SpunOut,
+            "ST" => Self::StrictTracking,
+            "SD" => Self::SuddenDeath,
+            "SW" => Self::Swap,
+            "SY" => Self::Synesthesia,
+            "TP" => Self::TargetPractice,
+            "10K" => Self::TenKeys,
+            "3K" => Self::ThreeKeys,
+            "TD" => Self::TouchDevice,
+            "TC" => Self::Traceable,
+            "TR" => Self::Transform,
+            "2K" => Self::TwoKeys,
+            "WG" => Self::Wiggle,
+            "WD" => Self::WindDown,
+            "WU" => Self::WindUp,
+            _ => Self::Unknown(UnknownMod { acronym }),
         }
     }
 }
@@ -10340,6 +10407,11 @@ impl From<&GameMod> for GameModOrder {
                 GameMod::DepthOsu(_) => arm!(Osu, DepthOsu, None, Depth),
                 GameMod::TouchDeviceOsu(_) => arm!(Osu, TouchDeviceOsu, Some(3), TouchDevice),
                 GameMod::ScoreV2Osu(_) => arm!(Osu, ScoreV2Osu, Some(30), ScoreV2),
+                GameMod::UnknownOsu(m) => GameModOrder {
+                    mode: GameMode::Osu,
+                    index: None,
+                    intermode: GameModIntermode::Unknown(*m),
+                },
                 GameMod::EasyTaiko(_) => arm!(Taiko, EasyTaiko, Some(2), Easy),
                 GameMod::NoFailTaiko(_) => arm!(Taiko, NoFailTaiko, Some(1), NoFail),
                 GameMod::HalfTimeTaiko(_) => arm!(Taiko, HalfTimeTaiko, Some(9), HalfTime),
@@ -10371,6 +10443,11 @@ impl From<&GameMod> for GameModOrder {
                     arm!(Taiko, AdaptiveSpeedTaiko, None, AdaptiveSpeed)
                 }
                 GameMod::ScoreV2Taiko(_) => arm!(Taiko, ScoreV2Taiko, Some(30), ScoreV2),
+                GameMod::UnknownTaiko(m) => GameModOrder {
+                    mode: GameMode::Taiko,
+                    index: None,
+                    intermode: GameModIntermode::Unknown(*m),
+                },
                 GameMod::EasyCatch(_) => arm!(Catch, EasyCatch, Some(2), Easy),
                 GameMod::NoFailCatch(_) => arm!(Catch, NoFailCatch, Some(1), NoFail),
                 GameMod::HalfTimeCatch(_) => arm!(Catch, HalfTimeCatch, Some(9), HalfTime),
@@ -10401,6 +10478,11 @@ impl From<&GameMod> for GameModOrder {
                 GameMod::MutedCatch(_) => arm!(Catch, MutedCatch, None, Muted),
                 GameMod::NoScopeCatch(_) => arm!(Catch, NoScopeCatch, None, NoScope),
                 GameMod::ScoreV2Catch(_) => arm!(Catch, ScoreV2Catch, Some(30), ScoreV2),
+                GameMod::UnknownCatch(m) => GameModOrder {
+                    mode: GameMode::Catch,
+                    index: None,
+                    intermode: GameModIntermode::Unknown(*m),
+                },
                 GameMod::EasyMania(_) => arm!(Mania, EasyMania, Some(2), Easy),
                 GameMod::NoFailMania(_) => arm!(Mania, NoFailMania, Some(1), NoFail),
                 GameMod::HalfTimeMania(_) => arm!(Mania, HalfTimeMania, Some(9), HalfTime),
@@ -10448,6 +10530,11 @@ impl From<&GameMod> for GameModOrder {
                     arm!(Mania, AdaptiveSpeedMania, None, AdaptiveSpeed)
                 }
                 GameMod::ScoreV2Mania(_) => arm!(Mania, ScoreV2Mania, Some(30), ScoreV2),
+                GameMod::UnknownMania(m) => GameModOrder {
+                    mode: GameMode::Mania,
+                    index: None,
+                    intermode: GameModIntermode::Unknown(*m),
+                },
             }
         }
         inner(gamemod)
@@ -10539,6 +10626,7 @@ pub enum GameMod {
     DepthOsu(DepthOsu),
     TouchDeviceOsu(TouchDeviceOsu),
     ScoreV2Osu(ScoreV2Osu),
+    UnknownOsu(UnknownMod),
     EasyTaiko(EasyTaiko),
     NoFailTaiko(NoFailTaiko),
     HalfTimeTaiko(HalfTimeTaiko),
@@ -10564,6 +10652,7 @@ pub enum GameMod {
     MutedTaiko(MutedTaiko),
     AdaptiveSpeedTaiko(AdaptiveSpeedTaiko),
     ScoreV2Taiko(ScoreV2Taiko),
+    UnknownTaiko(UnknownMod),
     EasyCatch(EasyCatch),
     NoFailCatch(NoFailCatch),
     HalfTimeCatch(HalfTimeCatch),
@@ -10588,6 +10677,7 @@ pub enum GameMod {
     MutedCatch(MutedCatch),
     NoScopeCatch(NoScopeCatch),
     ScoreV2Catch(ScoreV2Catch),
+    UnknownCatch(UnknownMod),
     EasyMania(EasyMania),
     NoFailMania(NoFailMania),
     HalfTimeMania(HalfTimeMania),
@@ -10627,149 +10717,158 @@ pub enum GameMod {
     MutedMania(MutedMania),
     AdaptiveSpeedMania(AdaptiveSpeedMania),
     ScoreV2Mania(ScoreV2Mania),
+    UnknownMania(UnknownMod),
 }
 impl GameMod {
     /// Create a new [`GameMod`]
-    ///
-    /// Returns `None` if no [`GameMod`] matches the given acronym and mode.
-    pub fn new(acronym: &str, mode: GameMode) -> Option<Self> {
+    pub fn new(acronym: &str, mode: GameMode) -> Self {
         match (acronym, mode) {
-            ("EZ", GameMode::Osu) => Some(Self::EasyOsu(Default::default())),
-            ("NF", GameMode::Osu) => Some(Self::NoFailOsu(Default::default())),
-            ("HT", GameMode::Osu) => Some(Self::HalfTimeOsu(Default::default())),
-            ("DC", GameMode::Osu) => Some(Self::DaycoreOsu(Default::default())),
-            ("HR", GameMode::Osu) => Some(Self::HardRockOsu(Default::default())),
-            ("SD", GameMode::Osu) => Some(Self::SuddenDeathOsu(Default::default())),
-            ("PF", GameMode::Osu) => Some(Self::PerfectOsu(Default::default())),
-            ("DT", GameMode::Osu) => Some(Self::DoubleTimeOsu(Default::default())),
-            ("NC", GameMode::Osu) => Some(Self::NightcoreOsu(Default::default())),
-            ("HD", GameMode::Osu) => Some(Self::HiddenOsu(Default::default())),
-            ("FL", GameMode::Osu) => Some(Self::FlashlightOsu(Default::default())),
-            ("BL", GameMode::Osu) => Some(Self::BlindsOsu(Default::default())),
-            ("ST", GameMode::Osu) => Some(Self::StrictTrackingOsu(Default::default())),
-            ("AC", GameMode::Osu) => Some(Self::AccuracyChallengeOsu(Default::default())),
-            ("TP", GameMode::Osu) => Some(Self::TargetPracticeOsu(Default::default())),
-            ("DA", GameMode::Osu) => Some(Self::DifficultyAdjustOsu(Default::default())),
-            ("CL", GameMode::Osu) => Some(Self::ClassicOsu(Default::default())),
-            ("RD", GameMode::Osu) => Some(Self::RandomOsu(Default::default())),
-            ("MR", GameMode::Osu) => Some(Self::MirrorOsu(Default::default())),
-            ("AL", GameMode::Osu) => Some(Self::AlternateOsu(Default::default())),
-            ("SG", GameMode::Osu) => Some(Self::SingleTapOsu(Default::default())),
-            ("AT", GameMode::Osu) => Some(Self::AutoplayOsu(Default::default())),
-            ("CN", GameMode::Osu) => Some(Self::CinemaOsu(Default::default())),
-            ("RX", GameMode::Osu) => Some(Self::RelaxOsu(Default::default())),
-            ("AP", GameMode::Osu) => Some(Self::AutopilotOsu(Default::default())),
-            ("SO", GameMode::Osu) => Some(Self::SpunOutOsu(Default::default())),
-            ("TR", GameMode::Osu) => Some(Self::TransformOsu(Default::default())),
-            ("WG", GameMode::Osu) => Some(Self::WiggleOsu(Default::default())),
-            ("SI", GameMode::Osu) => Some(Self::SpinInOsu(Default::default())),
-            ("GR", GameMode::Osu) => Some(Self::GrowOsu(Default::default())),
-            ("DF", GameMode::Osu) => Some(Self::DeflateOsu(Default::default())),
-            ("WU", GameMode::Osu) => Some(Self::WindUpOsu(Default::default())),
-            ("WD", GameMode::Osu) => Some(Self::WindDownOsu(Default::default())),
-            ("TC", GameMode::Osu) => Some(Self::TraceableOsu(Default::default())),
-            ("BR", GameMode::Osu) => Some(Self::BarrelRollOsu(Default::default())),
-            ("AD", GameMode::Osu) => Some(Self::ApproachDifferentOsu(Default::default())),
-            ("MU", GameMode::Osu) => Some(Self::MutedOsu(Default::default())),
-            ("NS", GameMode::Osu) => Some(Self::NoScopeOsu(Default::default())),
-            ("MG", GameMode::Osu) => Some(Self::MagnetisedOsu(Default::default())),
-            ("RP", GameMode::Osu) => Some(Self::RepelOsu(Default::default())),
-            ("AS", GameMode::Osu) => Some(Self::AdaptiveSpeedOsu(Default::default())),
-            ("FR", GameMode::Osu) => Some(Self::FreezeFrameOsu(Default::default())),
-            ("BU", GameMode::Osu) => Some(Self::BubblesOsu(Default::default())),
-            ("SY", GameMode::Osu) => Some(Self::SynesthesiaOsu(Default::default())),
-            ("DP", GameMode::Osu) => Some(Self::DepthOsu(Default::default())),
-            ("TD", GameMode::Osu) => Some(Self::TouchDeviceOsu(Default::default())),
-            ("SV2", GameMode::Osu) => Some(Self::ScoreV2Osu(Default::default())),
-            ("EZ", GameMode::Taiko) => Some(Self::EasyTaiko(Default::default())),
-            ("NF", GameMode::Taiko) => Some(Self::NoFailTaiko(Default::default())),
-            ("HT", GameMode::Taiko) => Some(Self::HalfTimeTaiko(Default::default())),
-            ("DC", GameMode::Taiko) => Some(Self::DaycoreTaiko(Default::default())),
-            ("HR", GameMode::Taiko) => Some(Self::HardRockTaiko(Default::default())),
-            ("SD", GameMode::Taiko) => Some(Self::SuddenDeathTaiko(Default::default())),
-            ("PF", GameMode::Taiko) => Some(Self::PerfectTaiko(Default::default())),
-            ("DT", GameMode::Taiko) => Some(Self::DoubleTimeTaiko(Default::default())),
-            ("NC", GameMode::Taiko) => Some(Self::NightcoreTaiko(Default::default())),
-            ("HD", GameMode::Taiko) => Some(Self::HiddenTaiko(Default::default())),
-            ("FL", GameMode::Taiko) => Some(Self::FlashlightTaiko(Default::default())),
-            ("AC", GameMode::Taiko) => Some(Self::AccuracyChallengeTaiko(Default::default())),
-            ("RD", GameMode::Taiko) => Some(Self::RandomTaiko(Default::default())),
-            ("DA", GameMode::Taiko) => Some(Self::DifficultyAdjustTaiko(Default::default())),
-            ("CL", GameMode::Taiko) => Some(Self::ClassicTaiko(Default::default())),
-            ("SW", GameMode::Taiko) => Some(Self::SwapTaiko(Default::default())),
-            ("SG", GameMode::Taiko) => Some(Self::SingleTapTaiko(Default::default())),
-            ("AT", GameMode::Taiko) => Some(Self::AutoplayTaiko(Default::default())),
-            ("CN", GameMode::Taiko) => Some(Self::CinemaTaiko(Default::default())),
-            ("RX", GameMode::Taiko) => Some(Self::RelaxTaiko(Default::default())),
-            ("WU", GameMode::Taiko) => Some(Self::WindUpTaiko(Default::default())),
-            ("WD", GameMode::Taiko) => Some(Self::WindDownTaiko(Default::default())),
-            ("MU", GameMode::Taiko) => Some(Self::MutedTaiko(Default::default())),
-            ("AS", GameMode::Taiko) => Some(Self::AdaptiveSpeedTaiko(Default::default())),
-            ("SV2", GameMode::Taiko) => Some(Self::ScoreV2Taiko(Default::default())),
-            ("EZ", GameMode::Catch) => Some(Self::EasyCatch(Default::default())),
-            ("NF", GameMode::Catch) => Some(Self::NoFailCatch(Default::default())),
-            ("HT", GameMode::Catch) => Some(Self::HalfTimeCatch(Default::default())),
-            ("DC", GameMode::Catch) => Some(Self::DaycoreCatch(Default::default())),
-            ("HR", GameMode::Catch) => Some(Self::HardRockCatch(Default::default())),
-            ("SD", GameMode::Catch) => Some(Self::SuddenDeathCatch(Default::default())),
-            ("PF", GameMode::Catch) => Some(Self::PerfectCatch(Default::default())),
-            ("DT", GameMode::Catch) => Some(Self::DoubleTimeCatch(Default::default())),
-            ("NC", GameMode::Catch) => Some(Self::NightcoreCatch(Default::default())),
-            ("HD", GameMode::Catch) => Some(Self::HiddenCatch(Default::default())),
-            ("FL", GameMode::Catch) => Some(Self::FlashlightCatch(Default::default())),
-            ("AC", GameMode::Catch) => Some(Self::AccuracyChallengeCatch(Default::default())),
-            ("DA", GameMode::Catch) => Some(Self::DifficultyAdjustCatch(Default::default())),
-            ("CL", GameMode::Catch) => Some(Self::ClassicCatch(Default::default())),
-            ("MR", GameMode::Catch) => Some(Self::MirrorCatch(Default::default())),
-            ("AT", GameMode::Catch) => Some(Self::AutoplayCatch(Default::default())),
-            ("CN", GameMode::Catch) => Some(Self::CinemaCatch(Default::default())),
-            ("RX", GameMode::Catch) => Some(Self::RelaxCatch(Default::default())),
-            ("WU", GameMode::Catch) => Some(Self::WindUpCatch(Default::default())),
-            ("WD", GameMode::Catch) => Some(Self::WindDownCatch(Default::default())),
-            ("FF", GameMode::Catch) => Some(Self::FloatingFruitsCatch(Default::default())),
-            ("MU", GameMode::Catch) => Some(Self::MutedCatch(Default::default())),
-            ("NS", GameMode::Catch) => Some(Self::NoScopeCatch(Default::default())),
-            ("SV2", GameMode::Catch) => Some(Self::ScoreV2Catch(Default::default())),
-            ("EZ", GameMode::Mania) => Some(Self::EasyMania(Default::default())),
-            ("NF", GameMode::Mania) => Some(Self::NoFailMania(Default::default())),
-            ("HT", GameMode::Mania) => Some(Self::HalfTimeMania(Default::default())),
-            ("DC", GameMode::Mania) => Some(Self::DaycoreMania(Default::default())),
-            ("HR", GameMode::Mania) => Some(Self::HardRockMania(Default::default())),
-            ("SD", GameMode::Mania) => Some(Self::SuddenDeathMania(Default::default())),
-            ("PF", GameMode::Mania) => Some(Self::PerfectMania(Default::default())),
-            ("DT", GameMode::Mania) => Some(Self::DoubleTimeMania(Default::default())),
-            ("NC", GameMode::Mania) => Some(Self::NightcoreMania(Default::default())),
-            ("FI", GameMode::Mania) => Some(Self::FadeInMania(Default::default())),
-            ("HD", GameMode::Mania) => Some(Self::HiddenMania(Default::default())),
-            ("CO", GameMode::Mania) => Some(Self::CoverMania(Default::default())),
-            ("FL", GameMode::Mania) => Some(Self::FlashlightMania(Default::default())),
-            ("AC", GameMode::Mania) => Some(Self::AccuracyChallengeMania(Default::default())),
-            ("RD", GameMode::Mania) => Some(Self::RandomMania(Default::default())),
-            ("DS", GameMode::Mania) => Some(Self::DualStagesMania(Default::default())),
-            ("MR", GameMode::Mania) => Some(Self::MirrorMania(Default::default())),
-            ("DA", GameMode::Mania) => Some(Self::DifficultyAdjustMania(Default::default())),
-            ("CL", GameMode::Mania) => Some(Self::ClassicMania(Default::default())),
-            ("IN", GameMode::Mania) => Some(Self::InvertMania(Default::default())),
-            ("CS", GameMode::Mania) => Some(Self::ConstantSpeedMania(Default::default())),
-            ("HO", GameMode::Mania) => Some(Self::HoldOffMania(Default::default())),
-            ("1K", GameMode::Mania) => Some(Self::OneKeyMania(Default::default())),
-            ("2K", GameMode::Mania) => Some(Self::TwoKeysMania(Default::default())),
-            ("3K", GameMode::Mania) => Some(Self::ThreeKeysMania(Default::default())),
-            ("4K", GameMode::Mania) => Some(Self::FourKeysMania(Default::default())),
-            ("5K", GameMode::Mania) => Some(Self::FiveKeysMania(Default::default())),
-            ("6K", GameMode::Mania) => Some(Self::SixKeysMania(Default::default())),
-            ("7K", GameMode::Mania) => Some(Self::SevenKeysMania(Default::default())),
-            ("8K", GameMode::Mania) => Some(Self::EightKeysMania(Default::default())),
-            ("9K", GameMode::Mania) => Some(Self::NineKeysMania(Default::default())),
-            ("10K", GameMode::Mania) => Some(Self::TenKeysMania(Default::default())),
-            ("AT", GameMode::Mania) => Some(Self::AutoplayMania(Default::default())),
-            ("CN", GameMode::Mania) => Some(Self::CinemaMania(Default::default())),
-            ("WU", GameMode::Mania) => Some(Self::WindUpMania(Default::default())),
-            ("WD", GameMode::Mania) => Some(Self::WindDownMania(Default::default())),
-            ("MU", GameMode::Mania) => Some(Self::MutedMania(Default::default())),
-            ("AS", GameMode::Mania) => Some(Self::AdaptiveSpeedMania(Default::default())),
-            ("SV2", GameMode::Mania) => Some(Self::ScoreV2Mania(Default::default())),
-            _ => None,
+            ("EZ", GameMode::Osu) => Self::EasyOsu(Default::default()),
+            ("NF", GameMode::Osu) => Self::NoFailOsu(Default::default()),
+            ("HT", GameMode::Osu) => Self::HalfTimeOsu(Default::default()),
+            ("DC", GameMode::Osu) => Self::DaycoreOsu(Default::default()),
+            ("HR", GameMode::Osu) => Self::HardRockOsu(Default::default()),
+            ("SD", GameMode::Osu) => Self::SuddenDeathOsu(Default::default()),
+            ("PF", GameMode::Osu) => Self::PerfectOsu(Default::default()),
+            ("DT", GameMode::Osu) => Self::DoubleTimeOsu(Default::default()),
+            ("NC", GameMode::Osu) => Self::NightcoreOsu(Default::default()),
+            ("HD", GameMode::Osu) => Self::HiddenOsu(Default::default()),
+            ("FL", GameMode::Osu) => Self::FlashlightOsu(Default::default()),
+            ("BL", GameMode::Osu) => Self::BlindsOsu(Default::default()),
+            ("ST", GameMode::Osu) => Self::StrictTrackingOsu(Default::default()),
+            ("AC", GameMode::Osu) => Self::AccuracyChallengeOsu(Default::default()),
+            ("TP", GameMode::Osu) => Self::TargetPracticeOsu(Default::default()),
+            ("DA", GameMode::Osu) => Self::DifficultyAdjustOsu(Default::default()),
+            ("CL", GameMode::Osu) => Self::ClassicOsu(Default::default()),
+            ("RD", GameMode::Osu) => Self::RandomOsu(Default::default()),
+            ("MR", GameMode::Osu) => Self::MirrorOsu(Default::default()),
+            ("AL", GameMode::Osu) => Self::AlternateOsu(Default::default()),
+            ("SG", GameMode::Osu) => Self::SingleTapOsu(Default::default()),
+            ("AT", GameMode::Osu) => Self::AutoplayOsu(Default::default()),
+            ("CN", GameMode::Osu) => Self::CinemaOsu(Default::default()),
+            ("RX", GameMode::Osu) => Self::RelaxOsu(Default::default()),
+            ("AP", GameMode::Osu) => Self::AutopilotOsu(Default::default()),
+            ("SO", GameMode::Osu) => Self::SpunOutOsu(Default::default()),
+            ("TR", GameMode::Osu) => Self::TransformOsu(Default::default()),
+            ("WG", GameMode::Osu) => Self::WiggleOsu(Default::default()),
+            ("SI", GameMode::Osu) => Self::SpinInOsu(Default::default()),
+            ("GR", GameMode::Osu) => Self::GrowOsu(Default::default()),
+            ("DF", GameMode::Osu) => Self::DeflateOsu(Default::default()),
+            ("WU", GameMode::Osu) => Self::WindUpOsu(Default::default()),
+            ("WD", GameMode::Osu) => Self::WindDownOsu(Default::default()),
+            ("TC", GameMode::Osu) => Self::TraceableOsu(Default::default()),
+            ("BR", GameMode::Osu) => Self::BarrelRollOsu(Default::default()),
+            ("AD", GameMode::Osu) => Self::ApproachDifferentOsu(Default::default()),
+            ("MU", GameMode::Osu) => Self::MutedOsu(Default::default()),
+            ("NS", GameMode::Osu) => Self::NoScopeOsu(Default::default()),
+            ("MG", GameMode::Osu) => Self::MagnetisedOsu(Default::default()),
+            ("RP", GameMode::Osu) => Self::RepelOsu(Default::default()),
+            ("AS", GameMode::Osu) => Self::AdaptiveSpeedOsu(Default::default()),
+            ("FR", GameMode::Osu) => Self::FreezeFrameOsu(Default::default()),
+            ("BU", GameMode::Osu) => Self::BubblesOsu(Default::default()),
+            ("SY", GameMode::Osu) => Self::SynesthesiaOsu(Default::default()),
+            ("DP", GameMode::Osu) => Self::DepthOsu(Default::default()),
+            ("TD", GameMode::Osu) => Self::TouchDeviceOsu(Default::default()),
+            ("SV2", GameMode::Osu) => Self::ScoreV2Osu(Default::default()),
+            ("EZ", GameMode::Taiko) => Self::EasyTaiko(Default::default()),
+            ("NF", GameMode::Taiko) => Self::NoFailTaiko(Default::default()),
+            ("HT", GameMode::Taiko) => Self::HalfTimeTaiko(Default::default()),
+            ("DC", GameMode::Taiko) => Self::DaycoreTaiko(Default::default()),
+            ("HR", GameMode::Taiko) => Self::HardRockTaiko(Default::default()),
+            ("SD", GameMode::Taiko) => Self::SuddenDeathTaiko(Default::default()),
+            ("PF", GameMode::Taiko) => Self::PerfectTaiko(Default::default()),
+            ("DT", GameMode::Taiko) => Self::DoubleTimeTaiko(Default::default()),
+            ("NC", GameMode::Taiko) => Self::NightcoreTaiko(Default::default()),
+            ("HD", GameMode::Taiko) => Self::HiddenTaiko(Default::default()),
+            ("FL", GameMode::Taiko) => Self::FlashlightTaiko(Default::default()),
+            ("AC", GameMode::Taiko) => Self::AccuracyChallengeTaiko(Default::default()),
+            ("RD", GameMode::Taiko) => Self::RandomTaiko(Default::default()),
+            ("DA", GameMode::Taiko) => Self::DifficultyAdjustTaiko(Default::default()),
+            ("CL", GameMode::Taiko) => Self::ClassicTaiko(Default::default()),
+            ("SW", GameMode::Taiko) => Self::SwapTaiko(Default::default()),
+            ("SG", GameMode::Taiko) => Self::SingleTapTaiko(Default::default()),
+            ("AT", GameMode::Taiko) => Self::AutoplayTaiko(Default::default()),
+            ("CN", GameMode::Taiko) => Self::CinemaTaiko(Default::default()),
+            ("RX", GameMode::Taiko) => Self::RelaxTaiko(Default::default()),
+            ("WU", GameMode::Taiko) => Self::WindUpTaiko(Default::default()),
+            ("WD", GameMode::Taiko) => Self::WindDownTaiko(Default::default()),
+            ("MU", GameMode::Taiko) => Self::MutedTaiko(Default::default()),
+            ("AS", GameMode::Taiko) => Self::AdaptiveSpeedTaiko(Default::default()),
+            ("SV2", GameMode::Taiko) => Self::ScoreV2Taiko(Default::default()),
+            ("EZ", GameMode::Catch) => Self::EasyCatch(Default::default()),
+            ("NF", GameMode::Catch) => Self::NoFailCatch(Default::default()),
+            ("HT", GameMode::Catch) => Self::HalfTimeCatch(Default::default()),
+            ("DC", GameMode::Catch) => Self::DaycoreCatch(Default::default()),
+            ("HR", GameMode::Catch) => Self::HardRockCatch(Default::default()),
+            ("SD", GameMode::Catch) => Self::SuddenDeathCatch(Default::default()),
+            ("PF", GameMode::Catch) => Self::PerfectCatch(Default::default()),
+            ("DT", GameMode::Catch) => Self::DoubleTimeCatch(Default::default()),
+            ("NC", GameMode::Catch) => Self::NightcoreCatch(Default::default()),
+            ("HD", GameMode::Catch) => Self::HiddenCatch(Default::default()),
+            ("FL", GameMode::Catch) => Self::FlashlightCatch(Default::default()),
+            ("AC", GameMode::Catch) => Self::AccuracyChallengeCatch(Default::default()),
+            ("DA", GameMode::Catch) => Self::DifficultyAdjustCatch(Default::default()),
+            ("CL", GameMode::Catch) => Self::ClassicCatch(Default::default()),
+            ("MR", GameMode::Catch) => Self::MirrorCatch(Default::default()),
+            ("AT", GameMode::Catch) => Self::AutoplayCatch(Default::default()),
+            ("CN", GameMode::Catch) => Self::CinemaCatch(Default::default()),
+            ("RX", GameMode::Catch) => Self::RelaxCatch(Default::default()),
+            ("WU", GameMode::Catch) => Self::WindUpCatch(Default::default()),
+            ("WD", GameMode::Catch) => Self::WindDownCatch(Default::default()),
+            ("FF", GameMode::Catch) => Self::FloatingFruitsCatch(Default::default()),
+            ("MU", GameMode::Catch) => Self::MutedCatch(Default::default()),
+            ("NS", GameMode::Catch) => Self::NoScopeCatch(Default::default()),
+            ("SV2", GameMode::Catch) => Self::ScoreV2Catch(Default::default()),
+            ("EZ", GameMode::Mania) => Self::EasyMania(Default::default()),
+            ("NF", GameMode::Mania) => Self::NoFailMania(Default::default()),
+            ("HT", GameMode::Mania) => Self::HalfTimeMania(Default::default()),
+            ("DC", GameMode::Mania) => Self::DaycoreMania(Default::default()),
+            ("HR", GameMode::Mania) => Self::HardRockMania(Default::default()),
+            ("SD", GameMode::Mania) => Self::SuddenDeathMania(Default::default()),
+            ("PF", GameMode::Mania) => Self::PerfectMania(Default::default()),
+            ("DT", GameMode::Mania) => Self::DoubleTimeMania(Default::default()),
+            ("NC", GameMode::Mania) => Self::NightcoreMania(Default::default()),
+            ("FI", GameMode::Mania) => Self::FadeInMania(Default::default()),
+            ("HD", GameMode::Mania) => Self::HiddenMania(Default::default()),
+            ("CO", GameMode::Mania) => Self::CoverMania(Default::default()),
+            ("FL", GameMode::Mania) => Self::FlashlightMania(Default::default()),
+            ("AC", GameMode::Mania) => Self::AccuracyChallengeMania(Default::default()),
+            ("RD", GameMode::Mania) => Self::RandomMania(Default::default()),
+            ("DS", GameMode::Mania) => Self::DualStagesMania(Default::default()),
+            ("MR", GameMode::Mania) => Self::MirrorMania(Default::default()),
+            ("DA", GameMode::Mania) => Self::DifficultyAdjustMania(Default::default()),
+            ("CL", GameMode::Mania) => Self::ClassicMania(Default::default()),
+            ("IN", GameMode::Mania) => Self::InvertMania(Default::default()),
+            ("CS", GameMode::Mania) => Self::ConstantSpeedMania(Default::default()),
+            ("HO", GameMode::Mania) => Self::HoldOffMania(Default::default()),
+            ("1K", GameMode::Mania) => Self::OneKeyMania(Default::default()),
+            ("2K", GameMode::Mania) => Self::TwoKeysMania(Default::default()),
+            ("3K", GameMode::Mania) => Self::ThreeKeysMania(Default::default()),
+            ("4K", GameMode::Mania) => Self::FourKeysMania(Default::default()),
+            ("5K", GameMode::Mania) => Self::FiveKeysMania(Default::default()),
+            ("6K", GameMode::Mania) => Self::SixKeysMania(Default::default()),
+            ("7K", GameMode::Mania) => Self::SevenKeysMania(Default::default()),
+            ("8K", GameMode::Mania) => Self::EightKeysMania(Default::default()),
+            ("9K", GameMode::Mania) => Self::NineKeysMania(Default::default()),
+            ("10K", GameMode::Mania) => Self::TenKeysMania(Default::default()),
+            ("AT", GameMode::Mania) => Self::AutoplayMania(Default::default()),
+            ("CN", GameMode::Mania) => Self::CinemaMania(Default::default()),
+            ("WU", GameMode::Mania) => Self::WindUpMania(Default::default()),
+            ("WD", GameMode::Mania) => Self::WindDownMania(Default::default()),
+            ("MU", GameMode::Mania) => Self::MutedMania(Default::default()),
+            ("AS", GameMode::Mania) => Self::AdaptiveSpeedMania(Default::default()),
+            ("SV2", GameMode::Mania) => Self::ScoreV2Mania(Default::default()),
+            _ => {
+                let acronym = <Acronym as std::str::FromStr>::from_str(acronym)
+                    .unwrap_or(UnknownMod::UNKNOWN_ACRONYM);
+                let unknown = UnknownMod { acronym };
+                match mode {
+                    GameMode::Osu => GameMod::UnknownOsu(unknown),
+                    GameMode::Taiko => GameMod::UnknownTaiko(unknown),
+                    GameMode::Catch => GameMod::UnknownCatch(unknown),
+                    GameMode::Mania => GameMod::UnknownMania(unknown),
+                }
+            }
         }
     }
     /// The acronym of this [`GameMod`]
@@ -10910,6 +11009,10 @@ impl GameMod {
             Self::MutedMania(_) => MutedMania::acronym(),
             Self::AdaptiveSpeedMania(_) => AdaptiveSpeedMania::acronym(),
             Self::ScoreV2Mania(_) => ScoreV2Mania::acronym(),
+            Self::UnknownOsu(m)
+            | Self::UnknownTaiko(m)
+            | Self::UnknownCatch(m)
+            | Self::UnknownMania(m) => m.acronym(),
         }
     }
     /// List of [`Acronym`] for mods that are incompatible with this [`GameMod`]
@@ -11056,6 +11159,7 @@ impl GameMod {
             Self::MutedMania(_) => MutedMania::incompatible_mods().collect(),
             Self::AdaptiveSpeedMania(_) => AdaptiveSpeedMania::incompatible_mods().collect(),
             Self::ScoreV2Mania(_) => ScoreV2Mania::incompatible_mods().collect(),
+            _ => UnknownMod::incompatible_mods().collect(),
         }
     }
     /// The description of this [`GameMod`]
@@ -11196,6 +11300,7 @@ impl GameMod {
             Self::MutedMania(_) => MutedMania::description(),
             Self::AdaptiveSpeedMania(_) => AdaptiveSpeedMania::description(),
             Self::ScoreV2Mania(_) => ScoreV2Mania::description(),
+            _ => UnknownMod::description(),
         }
     }
     /// The [`GameModKind`] of this [`GameMod`]
@@ -11336,6 +11441,7 @@ impl GameMod {
             Self::MutedMania(_) => MutedMania::kind(),
             Self::AdaptiveSpeedMania(_) => AdaptiveSpeedMania::kind(),
             Self::ScoreV2Mania(_) => ScoreV2Mania::kind(),
+            _ => UnknownMod::kind(),
         }
     }
     /// Optional bit value of this [`GameMod`]
@@ -11471,7 +11577,8 @@ impl GameMod {
             | Self::SynesthesiaOsu(_)
             | Self::DepthOsu(_)
             | Self::TouchDeviceOsu(_)
-            | Self::ScoreV2Osu(_) => GameMode::Osu,
+            | Self::ScoreV2Osu(_)
+            | Self::UnknownOsu(_) => GameMode::Osu,
             Self::EasyTaiko(_)
             | Self::NoFailTaiko(_)
             | Self::HalfTimeTaiko(_)
@@ -11496,7 +11603,8 @@ impl GameMod {
             | Self::WindDownTaiko(_)
             | Self::MutedTaiko(_)
             | Self::AdaptiveSpeedTaiko(_)
-            | Self::ScoreV2Taiko(_) => GameMode::Taiko,
+            | Self::ScoreV2Taiko(_)
+            | Self::UnknownTaiko(_) => GameMode::Taiko,
             Self::EasyCatch(_)
             | Self::NoFailCatch(_)
             | Self::HalfTimeCatch(_)
@@ -11520,7 +11628,8 @@ impl GameMod {
             | Self::FloatingFruitsCatch(_)
             | Self::MutedCatch(_)
             | Self::NoScopeCatch(_)
-            | Self::ScoreV2Catch(_) => GameMode::Catch,
+            | Self::ScoreV2Catch(_)
+            | Self::UnknownCatch(_) => GameMode::Catch,
             Self::EasyMania(_)
             | Self::NoFailMania(_)
             | Self::HalfTimeMania(_)
@@ -11559,7 +11668,8 @@ impl GameMod {
             | Self::WindDownMania(_)
             | Self::MutedMania(_)
             | Self::AdaptiveSpeedMania(_)
-            | Self::ScoreV2Mania(_) => GameMode::Mania,
+            | Self::ScoreV2Mania(_)
+            | Self::UnknownMania(_) => GameMode::Mania,
         }
     }
     /// The kind of a [`GameMod`] when ignoring the mode
@@ -11700,6 +11810,10 @@ impl GameMod {
             Self::MutedMania(_) => GameModIntermode::Muted,
             Self::AdaptiveSpeedMania(_) => GameModIntermode::AdaptiveSpeed,
             Self::ScoreV2Mania(_) => GameModIntermode::ScoreV2,
+            Self::UnknownOsu(m)
+            | Self::UnknownTaiko(m)
+            | Self::UnknownCatch(m)
+            | Self::UnknownMania(m) => GameModIntermode::Unknown(*m),
         }
     }
 }
@@ -11870,10 +11984,21 @@ impl<'de> Visitor<'de> for GameModSettings<'de> {
             ("AS", GameMode::Mania) => GameMod::AdaptiveSpeedMania(Deserialize::deserialize(d)?),
             ("SV2", GameMode::Mania) => GameMod::ScoreV2Mania(Deserialize::deserialize(d)?),
             _ => {
-                return Err(DeError::custom(format!(
-                    "unknown acronym {} for mode {:?}",
-                    self.acronym, self.mode
-                )))
+                let acronym = <Acronym as std::str::FromStr>::from_str(self.acronym)
+                    .map_err(DeError::custom)?;
+                // All fields are specified already but we still want to clear
+                // out content from the deserializer.
+                #[allow(clippy::needless_update)]
+                let unknown = UnknownMod {
+                    acronym,
+                    ..Deserialize::deserialize(d)?
+                };
+                match self.mode {
+                    GameMode::Osu => GameMod::UnknownOsu(unknown),
+                    GameMode::Taiko => GameMod::UnknownTaiko(unknown),
+                    GameMode::Catch => GameMod::UnknownCatch(unknown),
+                    GameMode::Mania => GameMod::UnknownMania(unknown),
+                }
             }
         };
         Ok(res)
@@ -11885,9 +12010,7 @@ impl<'de> Visitor<'de> for ModeAsSeed<GameMod> {
         f.write_str("a GameMod")
     }
     fn visit_str<E: DeError>(self, v: &str) -> Result<Self::Value, E> {
-        GameMod::new(v, self.mode).ok_or_else(|| {
-            DeError::custom(format!("invalid acronym `{v}` for mode {:?}", self.mode))
-        })
+        Ok(GameMod::new(v, self.mode))
     }
     fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
         // Using RawValue avoids an allocation since serde_json generally
@@ -11908,9 +12031,7 @@ impl<'de> Visitor<'de> for ModeAsSeed<GameMod> {
                 let _: IgnoredAny = map.next_value()?;
             }
         }
-        gamemod
-            .or_else(|| GameMod::new(acronym, self.mode))
-            .ok_or_else(|| DeError::missing_field("settings"))
+        Ok(gamemod.unwrap_or_else(|| GameMod::new(acronym, self.mode)))
     }
 }
 #[cfg(feature = "serialize")]

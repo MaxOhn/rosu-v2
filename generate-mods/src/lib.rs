@@ -54,6 +54,8 @@ pub fn define_gamemod_structs(
         }
     }
 
+    write_unknown_mod(writer)?;
+
     Ok(())
 }
 
@@ -137,6 +139,7 @@ pub fn define_gamemod_intermode(
         writer.write(b',')?;
     }
 
+    writer.write("Unknown(UnknownMod),")?;
     writer.write(b'}')?;
 
     writer.write(
@@ -156,7 +159,9 @@ pub fn define_gamemod_intermode(
 
     writer.write(
         "\
-                } }\
+                        Self::Unknown(m) => m.acronym(),\
+                    }\
+                }\
             }\
             /// Bit value of the [`GameModIntermode`]\n\
             ///\n\
@@ -184,6 +189,7 @@ pub fn define_gamemod_intermode(
 
     writer.write(
         "\
+                    Self::Unknown(_) => None,\
                 }\
             }\
             /// The [`GameModKind`] of this [`GameModIntermode`]\n\
@@ -201,24 +207,25 @@ pub fn define_gamemod_intermode(
 
     writer.write(
         "\
+                    Self::Unknown(_) => GameModKind::System,\
                 }\
             }\
-            /// Try to parse an [`Acronym`] into a [`GameModIntermode`]\n\
-            pub fn from_acronym(acronym: Acronym) -> Option<Self> {\
+            /// Parse an [`Acronym`] into a [`GameModIntermode`]\n\
+            pub fn from_acronym(acronym: Acronym) -> Self {\
                 match acronym.as_str() {",
     )?;
 
     for (name, (_, acronym, _)) in mods.iter() {
         writer.write(b'"')?;
         writer.write(acronym.as_str())?;
-        writer.write("\" => Some(Self::")?;
+        writer.write("\" => Self::")?;
         writer.write(*name)?;
-        writer.write("),")?;
+        writer.write(b',')?;
     }
 
     writer.write(
         "\
-                    _ => None,\
+                    _ => Self::Unknown(UnknownMod { acronym }),\
                 }\
             }\
         }",
@@ -327,6 +334,20 @@ pub fn define_gamemod_order(
             writer.write(intermode)?;
             writer.write("),")?;
         }
+
+        writer.write("GameMod::Unknown")?;
+        writer.write(ruleset_str)?;
+        writer.write(
+            "(m) => GameModOrder {\
+                mode: GameMode::",
+        )?;
+        writer.write(ruleset_str)?;
+        writer.write(
+            ",\
+                index: None,\
+                intermode: GameModIntermode::Unknown(*m),\
+            },",
+        )?;
     }
 
     writer.write(
@@ -385,6 +406,10 @@ pub fn define_gamemod_enum(rulesets: &[RulesetMods], writer: &mut Writer) -> Gen
             writer.write(&gamemod.name)?;
             writer.write("),")?;
         }
+
+        writer.write("Unknown")?;
+        writer.write(ruleset.name.as_capitalized_str())?;
+        writer.write("(UnknownMod),")?;
     }
 
     writer.write(b'}')
@@ -405,12 +430,75 @@ pub fn define_gamemod_fns(rulesets: &[RulesetMods], writer: &mut Writer) -> GenR
     writer.write(b'}')
 }
 
+fn write_unknown_mod(writer: &mut Writer) -> GenResult {
+    writer.write(
+        "/// Any mod unknown to `rosu-v2`\n\
+        #[derive(Copy, Eq, Clone, Debug, PartialEq, PartialOrd, Ord, Hash)]\
+        #[cfg_attr(\
+            feature = \"rkyv\",\
+            derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),\
+            archive(as = \"Self\"),\
+        )]\
+        pub struct UnknownMod {\
+            pub acronym: Acronym,\
+        }\
+        impl UnknownMod {\
+            /// The default [`Acronym`] for an unknown mod without specific\n\
+            /// acronym.\n\
+            pub const UNKNOWN_ACRONYM: Acronym = unsafe { Acronym::from_str_unchecked(\"??\") };\n\
+            /// A custom [`Acronym`] for any unknown mod\n\
+            pub const fn acronym(self) -> Acronym {\
+                self.acronym\
+            }\
+            /// Returns an empty iterator\n\
+            pub const fn incompatible_mods() -> std::iter::Empty<Acronym> {\
+                std::iter::empty()\
+            }\
+            /// A custom description for any unknown mod\n\
+            pub const fn description() -> &'static str {\
+                \"Any mod unknown to the rosu-v2 crate\"\
+            }\
+            /// A manually assigned [`GameModKind`] for any unknown mod\n\
+            pub const fn kind() -> GameModKind {\
+                GameModKind::System\
+            }\
+        }\
+        impl Default for UnknownMod {\
+            fn default() -> Self {\
+                Self {\
+                    acronym: Self::UNKNOWN_ACRONYM,\
+                }\
+            }\
+        }\
+        impl<'de> Deserialize<'de> for UnknownMod {\
+            fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {\
+                struct UnknownModVisitor;\
+                impl<'de> Visitor<'de> for UnknownModVisitor {\
+                    type Value = UnknownMod;\
+                    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {\
+                        f.write_str(\"any unknown mod\")\
+                    }\
+                    fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {\
+                        while map.next_entry::<IgnoredAny, IgnoredAny>()?.is_some() {}\
+                        Ok(UnknownMod { acronym: UnknownMod::UNKNOWN_ACRONYM })\
+                    }\
+                }\
+                d.deserialize_map(UnknownModVisitor)\
+            }\
+        }\
+        #[cfg(feature = \"serialize\")]\
+        impl serde::Serialize for UnknownMod {\
+            fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {\
+                s.serialize_map(Some(0)).and_then(serde::ser::SerializeMap::end)\
+            }\
+        }"
+    )
+}
+
 fn define_gamemod_fn_new(rulesets: &[RulesetMods], writer: &mut Writer) -> GenResult {
     writer.write(
         "/// Create a new [`GameMod`]\n\
-        ///\n\
-        /// Returns `None` if no [`GameMod`] matches the given acronym and mode.\n\
-        pub fn new(acronym: &str, mode: GameMode) -> Option<Self> {\
+        pub fn new(acronym: &str, mode: GameMode) -> Self {\
             match (acronym, mode) {",
     )?;
 
@@ -422,15 +510,33 @@ fn define_gamemod_fn_new(rulesets: &[RulesetMods], writer: &mut Writer) -> GenRe
             writer.write(gamemod.acronym.as_str())?;
             writer.write("\", GameMode::")?;
             writer.write(ruleset_str)?;
-            writer.write(") => Some(Self::")?;
+            writer.write(") => Self::")?;
             writer.write(&gamemod.name)?;
-            writer.write("(Default::default())),")?;
+            writer.write("(Default::default()),")?;
         }
     }
 
     writer.write(
+        "_ => {\
+            let acronym = <Acronym as std::str::FromStr>::from_str(acronym)\
+                .unwrap_or(UnknownMod::UNKNOWN_ACRONYM);\
+            let unknown = UnknownMod { acronym };\
+            match mode {",
+    )?;
+
+    for ruleset in rulesets {
+        let ruleset_str = ruleset.name.as_capitalized_str();
+        writer.write("GameMode::")?;
+        writer.write(ruleset_str)?;
+        writer.write(" => GameMod::Unknown")?;
+        writer.write(ruleset_str)?;
+        writer.write("(unknown),")?;
+    }
+
+    writer.write(
         "\
-                _ => None,\
+                    }\
+                }\
             }\
         }",
     )
@@ -451,6 +557,22 @@ fn define_gamemod_fn_acronym(rulesets: &[RulesetMods], writer: &mut Writer) -> G
             writer.write(&gamemod.name)?;
             writer.write("::acronym(),")?;
         }
+    }
+
+    let mut rulesets_iter = rulesets.iter();
+
+    if let Some(ruleset) = rulesets_iter.next() {
+        writer.write("Self::Unknown")?;
+        writer.write(ruleset.name.as_capitalized_str())?;
+        writer.write("(m)")?;
+
+        for ruleset in rulesets_iter {
+            writer.write(" | Self::Unknown")?;
+            writer.write(ruleset.name.as_capitalized_str())?;
+            writer.write("(m)")?;
+        }
+
+        writer.write(" => m.acronym(),")?;
     }
 
     writer.write(
@@ -477,6 +599,8 @@ fn define_gamemod_fn_incompatible_mods(rulesets: &[RulesetMods], writer: &mut Wr
         }
     }
 
+    writer.write("_ => UnknownMod::incompatible_mods().collect(),")?;
+
     writer.write("}}")
 }
 
@@ -497,6 +621,8 @@ fn define_gamemod_fn_description(rulesets: &[RulesetMods], writer: &mut Writer) 
         }
     }
 
+    writer.write("_ => UnknownMod::description(),")?;
+
     writer.write("}}")
 }
 
@@ -516,6 +642,8 @@ fn define_gamemod_fn_kind(rulesets: &[RulesetMods], writer: &mut Writer) -> GenR
             writer.write("::kind(),")?;
         }
     }
+
+    writer.write("_ => UnknownMod::kind(),")?;
 
     writer.write(
         "\
@@ -574,6 +702,22 @@ fn define_gamemod_fn_intermode(rulesets: &[RulesetMods], writer: &mut Writer) ->
         }
     }
 
+    let mut ruleset_iter = rulesets.iter();
+
+    if let Some(ruleset) = ruleset_iter.next() {
+        writer.write("Self::Unknown")?;
+        writer.write(ruleset.name.as_capitalized_str())?;
+        writer.write("(m)")?;
+
+        for ruleset in ruleset_iter {
+            writer.write(" | Self::Unknown")?;
+            writer.write(ruleset.name.as_capitalized_str())?;
+            writer.write("(m)")?;
+        }
+
+        writer.write(" => GameModIntermode::Unknown(*m),")?;
+    }
+
     writer.write(
         "\
             }\
@@ -589,20 +733,17 @@ fn define_gamemod_fn_mode(rulesets: &[RulesetMods], writer: &mut Writer) -> GenR
     )?;
 
     for ruleset in rulesets {
-        let mut mods = ruleset.mods.iter();
-
-        if let Some(gamemod) = mods.next() {
+        for gamemod in ruleset.mods.iter() {
             writer.write("Self::")?;
             writer.write(&gamemod.name)?;
-
-            for gamemod in mods {
-                writer.write("(_) | Self::")?;
-                writer.write(&gamemod.name)?;
-            }
+            writer.write("(_) | ")?;
         }
 
+        let ruleset_str = ruleset.name.as_capitalized_str();
+        writer.write("Self::Unknown")?;
+        writer.write(ruleset_str)?;
         writer.write("(_) => GameMode::")?;
-        writer.write(ruleset.name.as_capitalized_str())?;
+        writer.write(ruleset_str)?;
         writer.write(b',')?;
     }
 
@@ -648,11 +789,13 @@ pub fn impl_serde(rulesets: &[RulesetMods], writer: &mut Writer) -> GenResult {
     )?;
 
     for ruleset in rulesets {
+        let ruleset_str = ruleset.name.as_capitalized_str();
+
         for gamemod in ruleset.mods.iter() {
             writer.write("(\"")?;
             writer.write(gamemod.acronym.as_str())?;
             writer.write("\", GameMode::")?;
-            writer.write(ruleset.name.as_capitalized_str())?;
+            writer.write(ruleset_str)?;
             writer.write(") => GameMod::")?;
             writer.write(&gamemod.name)?;
             writer.write("(Deserialize::deserialize(d)?),")?;
@@ -660,10 +803,31 @@ pub fn impl_serde(rulesets: &[RulesetMods], writer: &mut Writer) -> GenResult {
     }
 
     writer.write(
+        "_ => {\
+            let acronym = <Acronym as std::str::FromStr>::from_str(self.acronym).map_err(DeError::custom)?;\n\
+            // All fields are specified already but we still want to clear\n\
+            // out content from the deserializer.\n\
+            #[allow(clippy::needless_update)]\
+            let unknown = UnknownMod {\
+                acronym,\
+                ..Deserialize::deserialize(d)?\
+            };\
+            match self.mode {",
+    )?;
+
+    for ruleset in rulesets {
+        let ruleset_str = ruleset.name.as_capitalized_str();
+        writer.write("GameMode::")?;
+        writer.write(ruleset_str)?;
+        writer.write(" => GameMod::Unknown")?;
+        writer.write(ruleset_str)?;
+        writer.write("(unknown),")?;
+    }
+
+    writer.write(
         "\
-                    _ => return Err(DeError::custom(\
-                        format!(\"unknown acronym {} for mode {:?}\", self.acronym, self.mode)\
-                    )),\
+                        }\
+                    }\
                 };\
                 Ok(res)\
             }\
@@ -677,9 +841,7 @@ pub fn impl_serde(rulesets: &[RulesetMods], writer: &mut Writer) -> GenResult {
                 f.write_str(\"a GameMod\")\
             }\
             fn visit_str<E: DeError>(self, v: &str) -> Result<Self::Value, E> {\
-                GameMod::new(v, self.mode).ok_or_else(|| {\
-                    DeError::custom(format!(\"invalid acronym `{v}` for mode {:?}\", self.mode))\
-                })\
+                Ok(GameMod::new(v, self.mode))\
             }\
             fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {\
                 // Using RawValue avoids an allocation since serde_json generally\n\
@@ -697,9 +859,7 @@ pub fn impl_serde(rulesets: &[RulesetMods], writer: &mut Writer) -> GenResult {
                         let _: IgnoredAny = map.next_value()?;\
                     }\
                 }\
-                gamemod\
-                    .or_else(|| GameMod::new(acronym, self.mode))\
-                    .ok_or_else(|| DeError::missing_field(\"settings\"))\
+                Ok(gamemod.unwrap_or_else(|| GameMod::new(acronym, self.mode)))\
             }\
         }",
     )?;

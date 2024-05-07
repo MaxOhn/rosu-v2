@@ -507,22 +507,41 @@ impl GameMods {
             .try_fold(1.0, |clock_rate, next| next.map(|next| clock_rate * next))
     }
 
-    /// Create [`GameMods`] from a [`GameModsIntermode`].
+    /// Tries to create [`GameMods`] from a [`GameModsIntermode`].
     ///
-    /// Returns `None` if any contained [`GameModIntermode`]
-    /// does not belong to the given [`GameMode`].
+    /// Returns `None` if any contained [`GameModIntermode`] is unknown for the
+    /// given [`GameMode`].
     ///
     /// # Example
     /// ```rust
     /// use rosu_v2::prelude::{mods, GameMods, GameModsIntermode, GameMode};
     ///
     /// let intermode: GameModsIntermode = mods!(DT FI);
-    /// let mods = GameMods::from_intermode(intermode.clone(), GameMode::Mania).unwrap();
+    /// let mods = GameMods::try_from_intermode(intermode.clone(), GameMode::Mania).unwrap();
     ///
     /// // The FadeIn mod doesn't exist in Taiko
-    /// assert!(GameMods::from_intermode(intermode, GameMode::Taiko).is_none());
+    /// assert!(GameMods::try_from_intermode(intermode, GameMode::Taiko).is_none());
     /// ```
-    pub fn from_intermode(mods: GameModsIntermode, mode: GameMode) -> Option<Self> {
+    pub fn try_from_intermode(mods: GameModsIntermode, mode: GameMode) -> Option<Self> {
+        mods.try_with_mode(mode)
+    }
+
+    /// Create [`GameMods`] from a [`GameModsIntermode`].
+    ///
+    /// Any contained [`GameModIntermode`] that's unknown for the given
+    /// [`GameMode`] will be replaced with `GameModIntermode::Unknown`.
+    ///
+    /// # Example
+    /// ```rust
+    /// use rosu_v2::prelude::{mods, GameMods, GameModsIntermode, GameMode};
+    ///
+    /// let intermode: GameModsIntermode = mods!(DT FI);
+    /// let mods = GameMods::from_intermode(intermode.clone(), GameMode::Mania);
+    ///
+    /// // The FadeIn mod doesn't exist in Taiko
+    /// let dt = GameMods::from_intermode(intermode, GameMode::Taiko);
+    /// ```
+    pub fn from_intermode(mods: GameModsIntermode, mode: GameMode) -> Self {
         mods.with_mode(mode)
     }
 
@@ -593,7 +612,7 @@ impl GameMods {
 
             for gamemod in mods {
                 for &excluded in gamemod.incompatible_mods().iter() {
-                    let intermode = GameModIntermode::from_acronym(excluded).unwrap();
+                    let intermode = GameModIntermode::from_acronym(excluded);
 
                     if self.contains_intermode(intermode) {
                         self.inner.retain(|key, _| *key != intermode);
@@ -621,7 +640,7 @@ impl Display for GameMods {
             f.write_str("NM")
         } else {
             for gamemod in self.iter() {
-                write!(f, "{}", gamemod.acronym())?;
+                f.write_str(gamemod.acronym().as_str())?;
             }
 
             Ok(())

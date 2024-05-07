@@ -2,6 +2,7 @@ use std::{
     borrow::Cow,
     cmp::Ordering,
     collections::BTreeSet,
+    convert::Infallible,
     fmt::{Debug, Display, Formatter, Result as FmtResult},
     ops::{BitOr, BitOrAssign, Sub, SubAssign},
     str::FromStr,
@@ -12,10 +13,7 @@ use serde::{
     Deserialize, Deserializer,
 };
 
-use crate::{
-    error::ParsingError,
-    prelude::{DoubleTimeOsu, GameMode, NightcoreOsu, PerfectOsu, SuddenDeathOsu},
-};
+use crate::prelude::{DoubleTimeOsu, GameMode, NightcoreOsu, PerfectOsu, SuddenDeathOsu};
 
 use super::{
     intersection::{GameModsIntermodeIntersection, IntersectionInner},
@@ -307,46 +305,31 @@ impl GameModsIntermode {
         Self { inner }
     }
 
-    /// Parse a combination of mod acronyms into [`GameModsIntermode`].
+    /// Try to parse a combination of mod acronyms into [`GameModsIntermode`].
     ///
-    /// Returns `None` if an invalid acronym was detected.
+    /// Returns `None` if an unknown acronym was encountered.
     ///
     /// # Example
     /// ```rust
     /// use rosu_v2::prelude::GameModsIntermode;
     ///
-    /// let hdhrwu = GameModsIntermode::from_acronyms("HRWUHD").unwrap();
+    /// let hdhrwu = GameModsIntermode::try_from_acronyms("HRWUHD").unwrap();
     /// assert_eq!(hdhrwu.to_string(), "HDHRWU");
     ///
-    /// assert!(GameModsIntermode::from_acronyms("QQQ").is_none());
+    /// assert!(GameModsIntermode::try_from_acronyms("QQQ").is_none());
     /// ```
-    pub fn from_acronyms(s: &str) -> Option<Self> {
-        /// Splits the first `N` characters off
-        fn split_prefix<const N: usize>(s: &str) -> (&str, &str) {
-            let end_idx = s
-                .char_indices()
-                .nth(N - 1)
-                .map_or_else(|| s.len(), |(idx, c)| idx + c.len_utf8());
-
-            s.split_at(end_idx)
-        }
-
-        /// Put a `&str` into ASCII uppercase. Doesn't allocate if it already is uppercase.
-        fn to_uppercase(s: &str) -> Cow<'_, str> {
-            match s.char_indices().find(|(_, c)| c.is_ascii_lowercase()) {
-                Some((pos, _)) => {
-                    let mut output = s.to_owned();
-
-                    // SAFETY: `char_indices` is guaranteed to provide a valid index
-                    unsafe { output.get_unchecked_mut(pos..) }.make_ascii_uppercase();
-
-                    Cow::Owned(output)
-                }
-                None => Cow::Borrowed(s),
-            }
-        }
-
+    pub fn try_from_acronyms(s: &str) -> Option<Self> {
         let uppercased = to_uppercase(s);
+
+        if uppercased == "NM" {
+            return Some(Self::new());
+        }
+
+        // We currently don't allow a gamemod to have an acronym of length 1
+        if s.len() == 1 {
+            return None;
+        }
+
         let mut remaining = uppercased.as_ref();
         let mut mods = BTreeSet::new();
 
@@ -356,14 +339,13 @@ impl GameModsIntermode {
 
             // SAFETY: `candidate` is guaranteed to be of length 2 and has been capitalized
             let acronym = unsafe { Acronym::from_str_unchecked(candidate) };
+            let gamemod = GameModIntermode::from_acronym(acronym);
 
-            if let Some(gamemod) = GameModIntermode::from_acronym(acronym) {
+            if !matches!(gamemod, GameModIntermode::Unknown(_)) && rest.len() != 1 {
                 mods.insert(gamemod);
                 remaining = rest;
 
                 continue;
-            } else if uppercased == "NM" {
-                return Some(Self::new());
             }
 
             // Repeat for the first three characters
@@ -371,13 +353,86 @@ impl GameModsIntermode {
 
             // SAFETY: `candidate` is guaranteed to be of length 3 and has been capitalized
             let acronym = unsafe { Acronym::from_str_unchecked(candidate) };
+            let gamemod = GameModIntermode::from_acronym(acronym);
 
-            let gamemod = GameModIntermode::from_acronym(acronym)?;
+            if matches!(gamemod, GameModIntermode::Unknown(_)) {
+                return None;
+            }
+
             mods.insert(gamemod);
             remaining = rest;
         }
 
         Some(Self { inner: mods })
+    }
+
+    /// Parse a combination of mod acronyms into [`GameModsIntermode`].
+    ///
+    /// # Example
+    /// ```rust
+    /// use rosu_v2::prelude::GameModsIntermode;
+    ///
+    /// let hdhrwu = GameModsIntermode::from_acronyms("HRWUHD");
+    /// assert_eq!(hdhrwu.len(), 3);
+    /// assert_eq!(hdhrwu.to_string(), "HDHRWU");
+    ///
+    /// let mut iter = GameModsIntermode::from_acronyms("QQhdQ").into_iter();
+    /// assert_eq!(iter.next().unwrap().to_string(), "HDQ"); // unknown mod
+    /// assert_eq!(iter.next().unwrap().to_string(), "QQ");  // unknown mod
+    /// assert!(iter.next().is_none());
+    /// ```
+    pub fn from_acronyms(s: &str) -> Self {
+        let uppercased = to_uppercase(s);
+
+        if uppercased == "NM" {
+            return Self::new();
+        }
+
+        let mut mods = BTreeSet::new();
+
+        // We currently don't allow a gamemod to have an acronym of length 1
+        let mut remaining = if s.len() == 1 {
+            mods.insert(GameModIntermode::Unknown(Default::default()));
+
+            ""
+        } else {
+            uppercased.as_ref()
+        };
+
+        while !remaining.is_empty() {
+            // Split off the first two characters and check if it's an acronym
+            let (candidate, rest) = split_prefix::<2>(remaining);
+
+            // SAFETY: `candidate` is guaranteed to be of length 2 and has been capitalized
+            let acronym = unsafe { Acronym::from_str_unchecked(candidate) };
+            let gamemod = GameModIntermode::from_acronym(acronym);
+
+            if !matches!(gamemod, GameModIntermode::Unknown(_)) && rest.len() != 1 {
+                mods.insert(gamemod);
+                remaining = rest;
+
+                continue;
+            }
+
+            // Repeat for the first three characters
+            let (candidate, three_letter_rest) = split_prefix::<3>(remaining);
+
+            // SAFETY: `candidate` is guaranteed to be of length 3 and has been capitalized
+            let acronym = unsafe { Acronym::from_str_unchecked(candidate) };
+            let three_letter_gamemod = GameModIntermode::from_acronym(acronym);
+
+            if !matches!(three_letter_gamemod, GameModIntermode::Unknown(_))
+                || three_letter_rest.is_empty()
+            {
+                mods.insert(three_letter_gamemod);
+                remaining = three_letter_rest;
+            } else {
+                mods.insert(gamemod);
+                remaining = rest;
+            }
+        }
+
+        Self { inner: mods }
     }
 
     /// Returns an iterator over all mods that appear in both [`GameModsIntermode`].
@@ -478,22 +533,57 @@ impl GameModsIntermode {
         GameModsIntermodeIter::new(self.inner.iter().copied())
     }
 
-    /// Turn a [`GameModsIntermode`] into a [`GameMods`].
+    /// Tries to turn a [`GameModsIntermode`] into a [`GameMods`].
     ///
-    /// Returns `None` if any contained [`GameModIntermode`]
-    /// does not belong to the given [`GameMode`].
+    /// Returns `None` if any contained [`GameModIntermode`] is unknown for the
+    /// given [`GameMode`].
     ///
     /// # Example
     /// ```rust
     /// use rosu_v2::prelude::{mods, GameMods, GameMode};
     ///
-    /// let dtfi: GameMods = mods!(DT FI).with_mode(GameMode::Mania).unwrap();
+    /// let dtfi: GameMods = mods!(DT FI).try_with_mode(GameMode::Mania).unwrap();
     ///
     /// // The FadeIn mod doesn't exist in Taiko
-    /// assert!(mods!(DT FI).with_mode(GameMode::Taiko).is_none());
+    /// assert!(mods!(DT FI).try_with_mode(GameMode::Taiko).is_none());
     /// ```
-    #[inline]
-    pub fn with_mode(self, mode: GameMode) -> Option<GameMods> {
+    pub fn try_with_mode(self, mode: GameMode) -> Option<GameMods> {
+        self.inner
+            .into_iter()
+            .map(|gamemod| GameMod::new(gamemod.acronym().as_str(), mode))
+            .try_fold(GameMods::default(), |mut mods, next| {
+                if matches!(
+                    next,
+                    GameMod::UnknownOsu(_)
+                        | GameMod::UnknownTaiko(_)
+                        | GameMod::UnknownCatch(_)
+                        | GameMod::UnknownMania(_)
+                ) {
+                    None
+                } else {
+                    mods.insert(next);
+
+                    Some(mods)
+                }
+            })
+    }
+
+    /// Turn a [`GameModsIntermode`] into a [`GameMods`].
+    ///
+    /// Any contained [`GameModIntermode`] that's unknown for the given
+    /// [`GameMode`] will be replaced with `GameModIntermode::Unknown`.
+    ///
+    /// # Example
+    /// ```rust
+    /// use rosu_v2::prelude::{mods, GameMods, GameMode};
+    ///
+    /// let dtfi: GameMods = mods!(DT FI).with_mode(GameMode::Mania);
+    ///
+    /// // The FadeIn mod doesn't exist in Taiko
+    /// let dt_unknown: GameMods = mods!(DT FI).with_mode(GameMode::Taiko);
+    /// assert_eq!(dt_unknown.to_string(), "DTFI");
+    /// ```
+    pub fn with_mode(self, mode: GameMode) -> GameMods {
         self.inner
             .into_iter()
             .map(|gamemod| GameMod::new(gamemod.acronym().as_str(), mode))
@@ -508,13 +598,12 @@ impl Debug for GameModsIntermode {
 }
 
 impl Display for GameModsIntermode {
-    #[inline]
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         if self.is_empty() {
             f.write_str("NM")
         } else {
             for gamemod in self.iter() {
-                write!(f, "{}", gamemod.acronym())?;
+                f.write_str(gamemod.acronym().as_str())?;
             }
 
             Ok(())
@@ -529,7 +618,6 @@ impl IntoIterator for GameModsIntermode {
     /// Turns [`GameModsIntermode`] into an iterator over all contained mods.
     ///
     /// Note that the iterator will immediately yield `None` in case of "NoMod".
-    #[inline]
     fn into_iter(self) -> Self::IntoIter {
         IntoGameModsIntermodeIter::new(self.inner.into_iter())
     }
@@ -550,7 +638,6 @@ impl<M> Extend<M> for GameModsIntermode
 where
     GameModIntermode: From<M>,
 {
-    #[inline]
     fn extend<T: IntoIterator<Item = M>>(&mut self, iter: T) {
         self.inner
             .extend(iter.into_iter().map(GameModIntermode::from))
@@ -611,19 +698,15 @@ impl<'de> Deserialize<'de> for GameModsIntermode {
             }
 
             fn visit_str<E: DeError>(self, v: &str) -> Result<Self::Value, E> {
-                GameModsIntermode::from_acronyms(v)
-                    .ok_or_else(|| DeError::custom("invalid GameModsIntermode acronym"))
+                Ok(GameModsIntermode::from_acronyms(v))
             }
 
             fn visit_seq<A: SeqAccess<'de>>(self, mut seq: A) -> Result<Self::Value, A::Error> {
                 let mut inner = BTreeSet::new();
 
                 while let Some(elem) = seq.next_element()? {
-                    let gamemod = Acronym::from_str(elem)
-                        .ok()
-                        .and_then(GameModIntermode::from_acronym)
-                        .ok_or_else(|| DeError::custom("invalid GameModIntermode acronym"))?;
-                    inner.insert(gamemod);
+                    let acronym = Acronym::from_str(elem).map_err(DeError::custom)?;
+                    inner.insert(GameModIntermode::from_acronym(acronym));
                 }
 
                 Ok(GameModsIntermode { inner })
@@ -652,11 +735,35 @@ impl From<GameModIntermode> for GameModsIntermode {
 }
 
 impl FromStr for GameModsIntermode {
-    type Err = ParsingError;
+    type Err = Infallible;
 
-    #[inline]
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Self::from_acronyms(s).ok_or_else(|| ParsingError::GameModsIntermode(Box::from(s)))
+        Ok(Self::from_acronyms(s))
+    }
+}
+
+/// Splits the first `N` characters off
+fn split_prefix<const N: usize>(s: &str) -> (&str, &str) {
+    let end_idx = s
+        .char_indices()
+        .nth(N - 1)
+        .map_or_else(|| s.len(), |(idx, c)| idx + c.len_utf8());
+
+    s.split_at(end_idx)
+}
+
+/// Put a `&str` into ASCII uppercase. Doesn't allocate if it already is uppercase.
+fn to_uppercase(s: &str) -> Cow<'_, str> {
+    match s.char_indices().find(|(_, c)| c.is_ascii_lowercase()) {
+        Some((pos, _)) => {
+            let mut output = s.to_owned();
+
+            // SAFETY: `char_indices` is guaranteed to provide a valid index
+            unsafe { output.get_unchecked_mut(pos..) }.make_ascii_uppercase();
+
+            Cow::Owned(output)
+        }
+        None => Cow::Borrowed(s),
     }
 }
 
@@ -696,8 +803,15 @@ mod tests {
     }
 
     #[test]
-    fn from_str_invalid() {
-        assert!("QQQQQ".parse::<GameModsIntermode>().is_err());
+    fn from_str_unknown() {
+        let mut iter = "YYQQQ".parse::<GameModsIntermode>().unwrap().into_iter();
+
+        // Since acronyms of length 1 are not valid, it picks the last three
+        // characters.
+        // Also, "QQQ" comes before "YY" to it'll be the first mod.
+        assert_eq!(iter.next().unwrap().to_string(), "QQQ");
+        assert_eq!(iter.next().unwrap().to_string(), "YY");
+        assert!(iter.next().is_none());
     }
 
     #[test]

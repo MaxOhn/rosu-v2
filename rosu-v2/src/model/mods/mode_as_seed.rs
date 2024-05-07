@@ -48,18 +48,15 @@ impl<'de> Visitor<'de> for ModeAsSeed<GameMods> {
     }
 
     fn visit_str<E: DeError>(self, v: &str) -> Result<Self::Value, E> {
-        v.parse::<GameModsIntermode>()
-            .map_err(DeError::custom)?
-            .with_mode(self.mode)
-            .ok_or_else(|| DeError::custom(format!("invalid mods for mode {:?}", self.mode)))
+        let mods = v.parse::<GameModsIntermode>().map_err(DeError::custom)?;
+
+        Ok(mods.with_mode(self.mode))
     }
 
     fn visit_u64<E: DeError>(self, v: u64) -> Result<Self::Value, E> {
         let bits = u32::try_from(v).map_err(|_| DeError::custom("bitflags must fit in a u32"))?;
 
-        GameModsIntermode::from_bits(bits)
-            .with_mode(self.mode)
-            .ok_or_else(|| DeError::custom(format!("invalid mods for mode {:?}", self.mode)))
+        Ok(GameModsIntermode::from_bits(bits).with_mode(self.mode))
     }
 
     fn visit_seq<A: SeqAccess<'de>>(self, mut seq: A) -> Result<Self::Value, A::Error> {

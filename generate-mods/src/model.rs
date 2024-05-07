@@ -82,7 +82,7 @@ impl RulesetMods {
 pub struct Acronym([u8; 3]);
 
 impl Acronym {
-    fn from_str(s: &str) -> Option<Self> {
+    pub fn from_str(s: &str) -> Option<Self> {
         match <[u8; 2]>::try_from(s.as_bytes()) {
             Ok([a, b]) => Some(Self([0, a, b])),
             Err(_) => s.as_bytes().try_into().map(Self).ok(),

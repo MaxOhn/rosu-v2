@@ -185,9 +185,9 @@ pub mod beatmap {
         BeatmapsetCommentEdit, BeatmapsetCommentId, BeatmapsetCommentKudosuGain,
         BeatmapsetCommentNominate, BeatmapsetCommentOwnerChange, BeatmapsetCovers,
         BeatmapsetDiscussion, BeatmapsetEvent, BeatmapsetEvents, BeatmapsetExtended,
-        BeatmapsetHype, BeatmapsetNominations, BeatmapsetPost, BeatmapsetReviewsConfig,
-        BeatmapsetSearchResult, BeatmapsetSearchSort, BeatmapsetVote, FailTimes,
-        GameModeAttributes, Genre, Language, MostPlayedMap, RankStatus,
+        BeatmapsetHype, BeatmapsetNominations, BeatmapsetNominationsRequiredMeta, BeatmapsetPost,
+        BeatmapsetReviewsConfig, BeatmapsetSearchResult, BeatmapsetSearchSort, BeatmapsetVote,
+        FailTimes, GameModeAttributes, Genre, Language, MostPlayedMap, RankStatus,
     };
 }
 
@@ -273,17 +273,17 @@ pub mod rkyv {
         ArchivedBeatmapsetCommentKudosuGain, ArchivedBeatmapsetCommentNominate,
         ArchivedBeatmapsetCommentOwnerChange, ArchivedBeatmapsetCovers,
         ArchivedBeatmapsetDiscussion, ArchivedBeatmapsetEvent, ArchivedBeatmapsetEvents,
-        ArchivedBeatmapsetExtended, ArchivedBeatmapsetPost, ArchivedBeatmapsetSearchResult,
-        ArchivedFailTimes, ArchivedMostPlayedMap, ArchivedRankStatus,
-        BeatmapDifficultyAttributesResolver, BeatmapExtendedResolver, BeatmapResolver,
-        BeatmapsetAvailabilityResolver, BeatmapsetCommentEditResolver, BeatmapsetCommentIdResolver,
-        BeatmapsetCommentKudosuGainResolver, BeatmapsetCommentNominateResolver,
-        BeatmapsetCommentOwnerChangeResolver, BeatmapsetCoversResolver,
-        BeatmapsetDiscussionResolver, BeatmapsetEventResolver, BeatmapsetEventsResolver,
-        BeatmapsetHypeResolver, BeatmapsetNominationsResolver, BeatmapsetPostResolver,
-        BeatmapsetResolver, BeatmapsetReviewsConfigResolver, BeatmapsetSearchResultResolver,
-        BeatmapsetVoteResolver, FailTimesResolver, GameModeAttributesResolver,
-        MostPlayedMapResolver, RankStatusResolver,
+        ArchivedBeatmapsetExtended, ArchivedBeatmapsetNominations, ArchivedBeatmapsetPost,
+        ArchivedBeatmapsetSearchResult, ArchivedFailTimes, ArchivedMostPlayedMap,
+        ArchivedRankStatus, BeatmapDifficultyAttributesResolver, BeatmapExtendedResolver,
+        BeatmapResolver, BeatmapsetAvailabilityResolver, BeatmapsetCommentEditResolver,
+        BeatmapsetCommentIdResolver, BeatmapsetCommentKudosuGainResolver,
+        BeatmapsetCommentNominateResolver, BeatmapsetCommentOwnerChangeResolver,
+        BeatmapsetCoversResolver, BeatmapsetDiscussionResolver, BeatmapsetEventResolver,
+        BeatmapsetEventsResolver, BeatmapsetHypeResolver, BeatmapsetNominationsResolver,
+        BeatmapsetNominationsResolver, BeatmapsetPostResolver, BeatmapsetResolver,
+        BeatmapsetReviewsConfigResolver, BeatmapsetSearchResultResolver, BeatmapsetVoteResolver,
+        FailTimesResolver, GameModeAttributesResolver, MostPlayedMapResolver, RankStatusResolver,
     };
 
     pub use super::comments_::{

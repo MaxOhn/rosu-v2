@@ -987,6 +987,15 @@ pub struct BeatmapsetHype {
     pub required: u32,
 }
 
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
+#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
+pub struct BeatmapsetNominations {
+    pub current: u32,
+    pub eligible_main_rulesets: Option<Vec<GameMode>>,
+    pub required_meta: BeatmapsetNominationsRequiredMeta,
+}
+
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(
@@ -994,9 +1003,11 @@ pub struct BeatmapsetHype {
     derive(Archive, RkyvDeserialize, RkyvSerialize),
     archive(as = "Self")
 )]
-pub struct BeatmapsetNominations {
-    pub current: u32,
-    pub required: u32,
+pub struct BeatmapsetNominationsRequiredMeta {
+    #[serde(rename = "main_ruleset")]
+    pub main_mode: GameMode,
+    #[serde(rename = "non_main_ruleset")]
+    pub non_main_mode: GameMode,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]

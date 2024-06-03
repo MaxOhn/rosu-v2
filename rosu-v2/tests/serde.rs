@@ -115,7 +115,11 @@ mod types {
             mapset_id: 12345,
             nominations_summary: BeatmapsetNominations {
                 current: 1,
-                required: 2,
+                eligible_main_rulesets: Some(vec![GameMode::Taiko, GameMode::Mania]),
+                required_meta: BeatmapsetNominationsRequiredMeta {
+                    main_mode: GameMode::Osu,
+                    non_main_mode: GameMode::Taiko,
+                },
             },
             nsfw: true,
             playcount: 0,

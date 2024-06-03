@@ -280,10 +280,11 @@ pub mod rkyv {
         BeatmapsetCommentIdResolver, BeatmapsetCommentKudosuGainResolver,
         BeatmapsetCommentNominateResolver, BeatmapsetCommentOwnerChangeResolver,
         BeatmapsetCoversResolver, BeatmapsetDiscussionResolver, BeatmapsetEventResolver,
-        BeatmapsetEventsResolver, BeatmapsetHypeResolver, BeatmapsetNominationsResolver,
-        BeatmapsetNominationsResolver, BeatmapsetPostResolver, BeatmapsetResolver,
-        BeatmapsetReviewsConfigResolver, BeatmapsetSearchResultResolver, BeatmapsetVoteResolver,
-        FailTimesResolver, GameModeAttributesResolver, MostPlayedMapResolver, RankStatusResolver,
+        BeatmapsetEventsResolver, BeatmapsetHypeResolver,
+        BeatmapsetNominationsRequiredMetaResolver, BeatmapsetNominationsResolver,
+        BeatmapsetPostResolver, BeatmapsetResolver, BeatmapsetReviewsConfigResolver,
+        BeatmapsetSearchResultResolver, BeatmapsetVoteResolver, FailTimesResolver,
+        GameModeAttributesResolver, MostPlayedMapResolver, RankStatusResolver,
     };
 
     pub use super::comments_::{

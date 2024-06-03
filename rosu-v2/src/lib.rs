@@ -92,7 +92,7 @@
 //!     // Note that the order of called methods doesn't matter for any endpoint.
 //!     let search_result: BeatmapsetSearchResult = osu.beatmapset_search()
 //!         .nsfw(false)
-//!         .status(RankStatus::Loved)
+//!         .status(Some(RankStatus::Loved))
 //!         .mode(GameMode::Mania)
 //!         .query("blue army stars>3")
 //!         .await

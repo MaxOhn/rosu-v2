@@ -344,8 +344,8 @@ impl Osu {
     /// See [`OsuBuilder::with_authorization`](crate::OsuBuilder::with_authorization).
     #[cfg(feature = "replay")]
     #[inline]
-    pub fn replay(&self, mode: GameMode, score_id: u64) -> GetReplay<'_> {
-        GetReplay::new(self, mode, score_id)
+    pub fn replay(&self, score_id: u64) -> GetReplay<'_> {
+        GetReplay::new(self, score_id)
     }
 
     /// Get the bytes of a replay of a score in form of a `Vec<u8>`.
@@ -355,8 +355,8 @@ impl Osu {
     ///
     /// See [`OsuBuilder::with_authorization`](crate::OsuBuilder::with_authorization).
     #[inline]
-    pub fn replay_raw(&self, mode: GameMode, score_id: u64) -> GetReplayRaw<'_> {
-        GetReplayRaw::new(self, mode, score_id)
+    pub fn replay_raw(&self, score_id: u64) -> GetReplayRaw<'_> {
+        GetReplayRaw::new(self, score_id)
     }
 
     /// Get a [`Score`](crate::model::score::Score) struct.

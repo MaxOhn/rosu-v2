@@ -429,11 +429,7 @@ async fn performance_rankings() -> Result<()> {
 
 #[tokio::test]
 async fn score() -> Result<()> {
-    let score = OSU
-        .get()
-        .await?
-        .score(COOKIEZI_FREEDOM_DIVE, GameMode::Osu)
-        .await?;
+    let score = OSU.get().await?.score(COOKIEZI_FREEDOM_DIVE).await?;
 
     println!(
         "Received {}'s FREEDOM DIVE score",

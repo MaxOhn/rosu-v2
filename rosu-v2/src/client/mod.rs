@@ -367,8 +367,8 @@ impl Osu {
     /// (if ranked), `rank_global` (if on leaderboard map) and `user`
     /// (will contain `last_visited`, `country`, `cover` and `groups`)
     #[inline]
-    pub const fn score(&self, score_id: u64, mode: GameMode) -> GetScore<'_> {
-        GetScore::new(self, score_id, mode)
+    pub const fn score(&self, score_id: u64) -> GetScore<'_> {
+        GetScore::new(self, score_id)
     }
 
     /// Get a [`Rankings`](crate::model::ranking::Rankings) struct whose

@@ -57,7 +57,7 @@ pub(crate) enum Route {
         score_id: u64,
     },
     GetScore {
-        mode: GameMode,
+        mode: Option<GameMode>,
         score_id: u64,
     },
     GetSeasonalBackgrounds,
@@ -156,7 +156,11 @@ impl Route {
                 (Method::GET, path)
             },
             Self::GetScore { mode, score_id } => {
-                (Method::GET, format!("scores/{mode}/{score_id}").into())
+                let path = match mode {
+                    Some(mode) => format!("scores/{mode}/{score_id}").into(),
+                    None => format!("scores/{score_id}").into(),
+                };
+                (Method::GET, path)
             }
             Self::GetSeasonalBackgrounds => (Method::GET, "seasonal-backgrounds".into()),
             Self::GetSpotlights => (Method::GET, "spotlights".into()),

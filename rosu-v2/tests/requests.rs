@@ -347,11 +347,7 @@ async fn recent_activity() -> Result<()> {
 #[tokio::test]
 #[ignore = "requires OAuth to not throw an error"]
 async fn replay() -> Result<()> {
-    let replay = OSU
-        .get()
-        .await?
-        .replay(GameMode::Osu, COOKIEZI_FREEDOM_DIVE)
-        .await?;
+    let replay = OSU.get().await?.replay(COOKIEZI_FREEDOM_DIVE).await?;
 
     println!("Received replay with the following score: {}", replay.score);
 

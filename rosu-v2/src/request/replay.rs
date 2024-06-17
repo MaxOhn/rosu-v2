@@ -75,7 +75,7 @@ impl<'a> GetReplay<'a> {
 
     /// Specify the mode
     #[inline]
-    pub const fn mode(mut self, mode: GameMode) -> Self {
+    pub fn mode(mut self, mode: GameMode) -> Self {
         self.inner = self.inner.map(|raw| raw.mode(mode));
 
         self

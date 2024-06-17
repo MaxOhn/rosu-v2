@@ -154,7 +154,7 @@ impl Route {
                     None => format!("scores/{score_id}/download").into(),
                 };
                 (Method::GET, path)
-            },
+            }
             Self::GetScore { mode, score_id } => {
                 let path = match mode {
                     Some(mode) => format!("scores/{mode}/{score_id}").into(),

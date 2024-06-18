@@ -478,6 +478,8 @@ pub struct UserExtended {
     pub scores_recent_count: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub statistics: Option<UserStatistics>,
+    #[serde(default, alias = "statistics_rulesets")]
+    pub statistics_modes: UserStatisticsModes,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub support_level: Option<u8>,
     #[serde(

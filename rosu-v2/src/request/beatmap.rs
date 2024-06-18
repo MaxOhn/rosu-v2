@@ -1145,21 +1145,29 @@ impl Serialize for GetBeatmapsetSearch<'_> {
 pub struct GetScore<'a> {
     fut: Option<Pending<'a, Score>>,
     osu: &'a Osu,
-    mode: GameMode,
+    mode: Option<GameMode>,
     score_id: u64,
     legacy_scores: bool,
 }
 
 impl<'a> GetScore<'a> {
     #[inline]
-    pub(crate) const fn new(osu: &'a Osu, score_id: u64, mode: GameMode) -> Self {
+    pub(crate) const fn new(osu: &'a Osu, score_id: u64) -> Self {
         Self {
             fut: None,
             osu,
-            mode,
+            mode: None,
             score_id,
             legacy_scores: false,
         }
+    }
+
+    /// Specify the mode
+    #[inline]
+    pub const fn mode(mut self, mode: GameMode) -> Self {
+        self.mode = Some(mode);
+
+        self
     }
 
     /// Specify whether the score should contain legacy data or not.

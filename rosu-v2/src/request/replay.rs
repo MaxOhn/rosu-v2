@@ -18,19 +18,27 @@ use crate::{
 pub struct GetReplayRaw<'a> {
     fut: Option<Pending<'a, Vec<u8>>>,
     osu: &'a Osu,
-    mode: GameMode,
+    mode: Option<GameMode>,
     score_id: u64,
 }
 
 impl<'a> GetReplayRaw<'a> {
     #[inline]
-    pub(crate) fn new(osu: &'a Osu, mode: GameMode, score_id: u64) -> Self {
+    pub(crate) fn new(osu: &'a Osu, score_id: u64) -> Self {
         Self {
             fut: None,
             osu,
-            mode,
+            mode: None,
             score_id,
         }
+    }
+
+    /// Specify the mode
+    #[inline]
+    pub const fn mode(mut self, mode: GameMode) -> Self {
+        self.mode = Some(mode);
+
+        self
     }
 
     fn start(&mut self) -> Pending<'a, Vec<u8>> {
@@ -58,11 +66,19 @@ pub struct GetReplay<'a> {
 #[cfg(feature = "replay")]
 impl<'a> GetReplay<'a> {
     #[inline]
-    pub(crate) fn new(osu: &'a Osu, mode: GameMode, score_id: u64) -> Self {
+    pub(crate) fn new(osu: &'a Osu, score_id: u64) -> Self {
         Self {
             fut: None,
-            inner: Some(GetReplayRaw::new(osu, mode, score_id)),
+            inner: Some(GetReplayRaw::new(osu, score_id)),
         }
+    }
+
+    /// Specify the mode
+    #[inline]
+    pub fn mode(mut self, mode: GameMode) -> Self {
+        self.inner = self.inner.map(|raw| raw.mode(mode));
+
+        self
     }
 
     fn start(&mut self) -> Pending<'a, Replay> {

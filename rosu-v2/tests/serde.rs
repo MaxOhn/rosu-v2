@@ -721,6 +721,12 @@ mod types {
             scores_first_count: Some(13),
             scores_recent_count: Some(13),
             statistics: Some(get_user_stats()),
+            statistics_modes: UserStatisticsModes {
+                osu: Some(get_user_stats()),
+                taiko: None,
+                catch: Some(get_user_stats()),
+                mania: Some(get_user_stats()),
+            },
             support_level: Some(3),
             pending_mapset_count: Some(13),
             medals: Some(vec![MedalCompact {

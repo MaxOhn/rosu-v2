@@ -510,6 +510,7 @@ mod types {
 
     pub(super) fn get_score() -> Score {
         Score {
+            classic_score: 765_432_199,
             ranked: Some(true),
             preserve: Some(true),
             processed: Some(false),

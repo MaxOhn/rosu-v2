@@ -45,6 +45,8 @@ impl BeatmapUserScore {
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct Score {
+    #[cfg_attr(feature = "serialize", serde(rename = "classic_total_score"))]
+    pub classic_score: u32,
     pub ranked: Option<bool>,
     pub preserve: Option<bool>,
     pub processed: Option<bool>,
@@ -98,6 +100,8 @@ impl<'de> Deserialize<'de> for Score {
         #[derive(Deserialize)]
         #[serde(deny_unknown_fields)]
         struct ScoreRawMods {
+            #[serde(default, rename = "classic_total_score")]
+            classic_score: u32, // not available in legacy scores
             ranked: Option<bool>,
             preserve: Option<bool>,
             processed: Option<bool>,
@@ -165,6 +169,7 @@ impl<'de> Deserialize<'de> for Score {
         let is_legacy = score_raw._mode.is_some();
 
         Ok(Score {
+            classic_score: score_raw.classic_score,
             ranked: score_raw.ranked,
             preserve: score_raw.preserve,
             processed: score_raw.processed,

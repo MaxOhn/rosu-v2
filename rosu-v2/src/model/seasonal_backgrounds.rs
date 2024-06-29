@@ -1,5 +1,5 @@
-use super::serde_;
-use crate::model::user_::User;
+use super::serde_util;
+use crate::model::user::User;
 
 use serde::Deserialize;
 use time::OffsetDateTime;
@@ -20,7 +20,7 @@ pub struct SeasonalBackground {
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub struct SeasonalBackgrounds {
     /// End date of the backgrounds
-    #[serde(with = "serde_::datetime")]
+    #[serde(with = "serde_util::datetime")]
     pub ends_at: OffsetDateTime,
     /// List of backgrounds
     pub backgrounds: Vec<SeasonalBackground>,

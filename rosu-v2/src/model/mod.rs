@@ -134,106 +134,46 @@ macro_rules! def_enum {
 
 mod grade;
 mod mode;
-mod serde_;
-
-pub(crate) mod beatmap_;
-pub(crate) mod comments_;
-pub(crate) mod event_;
-pub(crate) mod forum_;
-pub(crate) mod kudosu_;
-pub(crate) mod matches_;
-pub(crate) mod news_;
-pub(crate) mod ranking_;
-pub(crate) mod score_;
-pub(crate) mod seasonal_backgrounds_;
-pub(crate) mod user_;
-pub(crate) mod wiki_;
+mod serde_util;
 
 /// Beatmap(set) related types
-pub mod beatmap {
-    pub use super::beatmap_::{
-        Beatmap, BeatmapDifficultyAttributes, BeatmapExtended, Beatmapset, BeatmapsetAvailability,
-        BeatmapsetCommentEdit, BeatmapsetCommentId, BeatmapsetCommentKudosuGain,
-        BeatmapsetCommentNominate, BeatmapsetCommentOwnerChange, BeatmapsetCovers,
-        BeatmapsetDiscussion, BeatmapsetEvent, BeatmapsetEvents, BeatmapsetExtended,
-        BeatmapsetHype, BeatmapsetNominations, BeatmapsetNominationsRequiredMeta, BeatmapsetPost,
-        BeatmapsetReviewsConfig, BeatmapsetSearchResult, BeatmapsetSearchSort, BeatmapsetVote,
-        FailTimes, GameModeAttributes, Genre, Language, MostPlayedMap, RankStatus,
-    };
-}
+pub mod beatmap;
 
 /// Comment related types
-pub mod comments {
-    pub use super::comments_::{Comment, CommentBundle, CommentSort, CommentableMeta};
-}
+pub mod comments;
+
+/// Event related types
+pub mod event;
 
 /// Forum post related types
-pub mod forum {
-    pub use super::forum_::{ForumPost, ForumPosts, ForumPostsSearch, ForumTopic};
-}
+pub mod forum;
 
 /// User kudosu related types
-pub mod kudosu {
-    pub use super::kudosu_::{KudosuAction, KudosuGiver, KudosuHistory, KudosuPost};
-}
+pub mod kudosu;
 
 /// Multiplayer match related types
-pub mod matches {
-    pub use super::matches_::{
-        MatchEvent, MatchGame, MatchGameDrain, MatchGameIter, MatchInfo, MatchList,
-        MatchListParams, MatchScore, OsuMatch, ScoringType, Team, TeamType,
-    };
-}
+pub mod matches;
 
 /// Game mods related types
 pub mod mods;
 
 /// News related types
-pub mod news {
-    pub use super::news_::{News, NewsPost, NewsSearch, NewsSidebar};
-}
+pub mod news;
 
 /// Ranking related types
-pub mod ranking {
-    pub use super::ranking_::{
-        ChartRankings, CountryRanking, CountryRankings, Rankings, Spotlight,
-    };
-}
-
-/// User event related types
-pub mod event {
-    pub use super::event_::{
-        Event, EventBeatmap, EventBeatmapset, EventSort, EventType, EventUser, Events,
-    };
-}
+pub mod ranking;
 
 /// Score related types
-pub mod score {
-    pub use super::score_::{
-        BeatmapUserScore, LegacyScoreStatistics, Score, ScoreStatistics, ScoreWeight,
-        UserAttributes,
-    };
-}
+pub mod score;
 
 /// Seasonal background related types
-pub mod seasonal_backgrounds {
-    pub use super::seasonal_backgrounds_::{SeasonalBackground, SeasonalBackgrounds};
-}
+pub mod seasonal_backgrounds;
 
 /// User related types
-pub mod user {
-    pub use super::user_::{
-        AccountHistory, Badge, CountryCode, GradeCounts, Group, HistoryType, Medal, MedalCompact,
-        MonthlyCount, Playstyle, ProfileBanner, ProfilePage, User, UserCover, UserExtended,
-        UserHighestRank, UserKudosu, UserLevel, UserPage, UserStatistics, UserStatisticsModes,
-        Username,
-    };
-}
+pub mod user;
 
 /// Wiki related types
-pub mod wiki {
-    pub use super::wiki_::WikiPage;
-}
+pub mod wiki;
 
 pub use grade::Grade;
 pub use mode::GameMode;

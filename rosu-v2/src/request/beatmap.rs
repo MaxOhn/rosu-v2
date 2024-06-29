@@ -1,14 +1,14 @@
 use crate::{
     model::{
         beatmap::{
-            BeatmapExtended, BeatmapsetEvents, BeatmapsetExtended, BeatmapsetSearchResult,
-            BeatmapsetSearchSort, Genre, Language, RankStatus,
-        },
-        beatmap_::{
             BeatmapDifficultyAttributes, BeatmapDifficultyAttributesWrapper, Beatmaps,
             SearchRankStatus,
         },
-        score_::{BeatmapScores, BeatmapUserScore, Score, Scores},
+        beatmap::{
+            BeatmapExtended, BeatmapsetEvents, BeatmapsetExtended, BeatmapsetSearchResult,
+            BeatmapsetSearchSort, Genre, Language, RankStatus,
+        },
+        score::{BeatmapScores, BeatmapUserScore, Score, Scores},
         GameMode,
     },
     prelude::{Beatmap, GameModsIntermode},

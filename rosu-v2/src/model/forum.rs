@@ -1,4 +1,4 @@
-use super::serde_;
+use super::serde_util;
 
 use serde::{
     de::{Deserializer, Error, IgnoredAny, MapAccess, Visitor},
@@ -37,13 +37,13 @@ impl ForumPosts {
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub struct ForumPost {
-    #[cfg_attr(feature = "serialize", serde(with = "serde_::datetime"))]
+    #[cfg_attr(feature = "serialize", serde(with = "serde_util::datetime"))]
     pub created_at: OffsetDateTime,
     #[cfg_attr(
         feature = "serialize",
         serde(
             skip_serializing_if = "Option::is_none",
-            with = "serde_::option_datetime"
+            with = "serde_util::option_datetime"
         )
     )]
     pub deleted_at: Option<OffsetDateTime>,
@@ -51,7 +51,7 @@ pub struct ForumPost {
         feature = "serialize",
         serde(
             skip_serializing_if = "Option::is_none",
-            with = "serde_::option_datetime"
+            with = "serde_util::option_datetime"
         )
     )]
     pub edited_at: Option<OffsetDateTime>,
@@ -86,11 +86,11 @@ impl<'de> Visitor<'de> for ForumPostVisitor {
 
     fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
         #[derive(Deserialize)]
-        struct DateTimeWrapper(#[serde(with = "serde_::datetime")] OffsetDateTime);
+        struct DateTimeWrapper(#[serde(with = "serde_util::datetime")] OffsetDateTime);
 
         #[derive(Deserialize)]
         struct OptionDateTimeWrapper(
-            #[serde(with = "serde_::option_datetime")] Option<OffsetDateTime>,
+            #[serde(with = "serde_util::option_datetime")] Option<OffsetDateTime>,
         );
 
         let mut created_at: Option<DateTimeWrapper> = None;
@@ -178,12 +178,12 @@ pub struct ForumPostsSearch {
 #[derive(Clone, Debug, Deserialize)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub struct ForumTopic {
-    #[serde(with = "serde_::datetime")]
+    #[serde(with = "serde_util::datetime")]
     pub created_at: OffsetDateTime,
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
-        with = "serde_::option_datetime"
+        with = "serde_util::option_datetime"
     )]
     pub deleted_at: Option<OffsetDateTime>,
     pub first_post_id: u64,
@@ -199,7 +199,7 @@ pub struct ForumTopic {
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
-        with = "serde_::option_datetime"
+        with = "serde_util::option_datetime"
     )]
     pub updated_at: Option<OffsetDateTime>,
     pub user_id: u32,

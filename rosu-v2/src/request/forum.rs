@@ -1,5 +1,5 @@
 use crate::{
-    model::forum_::ForumPosts,
+    model::forum::ForumPosts,
     request::{Pending, Query, Request},
     routing::Route,
     Osu,

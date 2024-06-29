@@ -1,7 +1,7 @@
 use serde::Deserialize;
 use time::OffsetDateTime;
 
-use crate::model::user_::Username;
+use crate::model::user::Username;
 
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
@@ -33,7 +33,7 @@ pub struct KudosuHistory {
     // pub details: _; // TODO
     /// Object type which the exchange happened on (forum_post, etc).
     pub model: String,
-    #[serde(with = "super::serde_::datetime")]
+    #[serde(with = "super::serde_util::datetime")]
     pub created_at: OffsetDateTime,
     /// Simple detail of the user who started the exchange.
     #[serde(default, skip_serializing_if = "Option::is_none")]

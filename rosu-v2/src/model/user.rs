@@ -1,4 +1,4 @@
-use super::{serde_, GameMode};
+use super::{serde_util, GameMode};
 
 use serde::{
     de::{Error, IgnoredAny, MapAccess, SeqAccess, Visitor},
@@ -16,7 +16,7 @@ pub struct AccountHistory {
     pub description: Option<String>,
     #[serde(rename = "type")]
     pub history_type: HistoryType,
-    #[serde(with = "serde_::datetime")]
+    #[serde(with = "serde_util::datetime")]
     pub timestamp: OffsetDateTime,
     #[serde(rename = "length")]
     pub seconds: u32,
@@ -26,7 +26,7 @@ pub struct AccountHistory {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub struct Badge {
-    #[serde(with = "serde_::datetime")]
+    #[serde(with = "serde_util::datetime")]
     pub awarded_at: OffsetDateTime,
     pub description: String,
     pub image_url: String,
@@ -196,7 +196,7 @@ impl Eq for Medal {}
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub struct MedalCompact {
-    #[serde(with = "serde_::datetime")]
+    #[serde(with = "serde_util::datetime")]
     pub achieved_at: OffsetDateTime,
     #[serde(rename = "achievement_id")]
     pub medal_id: u32,
@@ -205,7 +205,7 @@ pub struct MedalCompact {
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub struct MonthlyCount {
-    #[serde(with = "serde_::date")]
+    #[serde(with = "serde_util::date")]
     pub start_date: Date,
     pub count: i32,
 }
@@ -269,7 +269,7 @@ pub struct UserExtended {
     /// urls for the profile cover
     pub cover: UserCover,
     /// Identifier of the default [`Group`] the user belongs to.
-    #[serde(deserialize_with = "serde_::from_option::deserialize")]
+    #[serde(deserialize_with = "serde_util::from_option::deserialize")]
     pub default_group: String,
     /// discord tag, `None` if not specified by the user
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -290,7 +290,7 @@ pub struct UserExtended {
     /// does this user have supporter?
     pub is_supporter: bool,
     /// date of account creation
-    #[serde(with = "serde_::datetime")]
+    #[serde(with = "serde_util::datetime")]
     pub join_date: OffsetDateTime,
     /// current kudosu of the user
     pub kudosu: UserKudosu,
@@ -298,7 +298,7 @@ pub struct UserExtended {
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
-        with = "serde_::option_datetime"
+        with = "serde_util::option_datetime"
     )]
     pub last_visit: Option<OffsetDateTime>,
     /// location of the user, `None` if disabled by the user
@@ -465,7 +465,7 @@ pub struct User {
     /// two-letter code representing user's country
     pub country_code: CountryCode,
     /// Identifier of the default [`Group`] the user belongs to.
-    #[serde(deserialize_with = "serde_::from_option::deserialize")]
+    #[serde(deserialize_with = "serde_util::from_option::deserialize")]
     pub default_group: String,
     /// has this account been active in the last x months?
     pub is_active: bool,
@@ -481,7 +481,7 @@ pub struct User {
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
-        with = "serde_::option_datetime"
+        with = "serde_util::option_datetime"
     )]
     pub last_visit: Option<OffsetDateTime>,
     /// whether or not the user allows PM from other than friends
@@ -685,7 +685,7 @@ pub struct UserCover {
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub struct UserHighestRank {
     pub rank: u32,
-    #[serde(with = "serde_::datetime")]
+    #[serde(with = "serde_util::datetime")]
     pub updated_at: OffsetDateTime,
 }
 

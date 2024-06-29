@@ -1,4 +1,4 @@
-use super::{serde_, user_::User, GameMode};
+use super::{serde_util, user::User, GameMode};
 use crate::{
     error::ParsingError,
     prelude::{CountryCode, OsuError, UserStatisticsModes, Username},
@@ -34,7 +34,7 @@ pub struct BeatmapExtended {
     pub cs: f32,
     #[serde(
         skip_serializing_if = "Option::is_none",
-        with = "serde_::option_datetime"
+        with = "serde_util::option_datetime"
     )]
     pub deleted_at: Option<OffsetDateTime>,
     #[serde(rename = "failtimes", skip_serializing_if = "Option::is_none")]
@@ -42,7 +42,7 @@ pub struct BeatmapExtended {
     #[serde(rename = "drain")]
     pub hp: f32,
     pub is_scoreable: bool,
-    #[serde(with = "serde_::datetime")]
+    #[serde(with = "serde_util::datetime")]
     pub last_updated: OffsetDateTime,
     #[serde(rename = "id")]
     pub map_id: u32,
@@ -241,7 +241,7 @@ pub struct BeatmapsetExtended {
     pub is_scoreable: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub language: Option<Language>,
-    #[serde(with = "serde_::datetime")]
+    #[serde(with = "serde_util::datetime")]
     pub last_updated: OffsetDateTime,
     /// Full URL, i.e. `https://osu.ppy.sh/community/forums/topics/{thread_id}`
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -261,7 +261,7 @@ pub struct BeatmapsetExtended {
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
-        with = "serde_::option_datetime"
+        with = "serde_util::option_datetime"
     )]
     pub ranked_date: Option<OffsetDateTime>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -272,7 +272,7 @@ pub struct BeatmapsetExtended {
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
-        with = "serde_::option_datetime"
+        with = "serde_util::option_datetime"
     )]
     pub submitted_date: Option<OffsetDateTime>,
     pub tags: String,
@@ -302,7 +302,7 @@ fn deser_mapset_user<'de, D: Deserializer<'de>>(d: D) -> Result<Option<Box<User>
 
                 #[inline]
                 fn deserialize<D: Deserializer<'de>>(self, d: D) -> Result<Self::Value, D::Error> {
-                    serde_::option_datetime::deserialize(d)
+                    serde_util::option_datetime::deserialize(d)
                 }
             }
 
@@ -694,21 +694,21 @@ pub struct BeatmapsetDiscussion {
     pub resolved: bool,
     pub can_be_resolved: bool,
     pub can_grant_kudosu: bool,
-    #[serde(with = "serde_::datetime")]
+    #[serde(with = "serde_util::datetime")]
     pub created_at: OffsetDateTime,
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
-        with = "serde_::option_datetime"
+        with = "serde_util::option_datetime"
     )]
     pub updated_at: Option<OffsetDateTime>,
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
-        with = "serde_::option_datetime"
+        with = "serde_util::option_datetime"
     )]
     pub deleted_at: Option<OffsetDateTime>,
-    #[serde(with = "serde_::datetime")]
+    #[serde(with = "serde_util::datetime")]
     pub last_post_at: OffsetDateTime,
     pub kudosu_denied: bool,
     pub starting_post: BeatmapsetPost,
@@ -732,7 +732,7 @@ pub enum BeatmapsetEvent {
         #[serde(rename = "id")]
         event_id: u64,
         comment: BeatmapsetCommentId,
-        #[serde(with = "serde_::datetime")]
+        #[serde(with = "serde_util::datetime")]
         created_at: OffsetDateTime,
         user_id: u32,
         #[serde(rename = "beatmapset")]
@@ -743,7 +743,7 @@ pub enum BeatmapsetEvent {
         #[serde(rename = "id")]
         event_id: u64,
         comment: BeatmapsetCommentEdit<Genre>,
-        #[serde(with = "serde_::datetime")]
+        #[serde(with = "serde_util::datetime")]
         created_at: OffsetDateTime,
         user_id: u32,
         #[serde(rename = "beatmapset")]
@@ -753,7 +753,7 @@ pub enum BeatmapsetEvent {
         #[serde(rename = "id")]
         event_id: u64,
         comment: BeatmapsetCommentId,
-        #[serde(with = "serde_::datetime")]
+        #[serde(with = "serde_util::datetime")]
         created_at: OffsetDateTime,
         user_id: u32,
         #[serde(rename = "beatmapset")]
@@ -764,7 +764,7 @@ pub enum BeatmapsetEvent {
         #[serde(rename = "id")]
         event_id: u64,
         comment: BeatmapsetCommentId,
-        #[serde(with = "serde_::datetime")]
+        #[serde(with = "serde_util::datetime")]
         created_at: OffsetDateTime,
         user_id: u32,
         #[serde(rename = "beatmapset")]
@@ -775,7 +775,7 @@ pub enum BeatmapsetEvent {
         #[serde(rename = "id")]
         event_id: u64,
         comment: BeatmapsetCommentId,
-        #[serde(with = "serde_::datetime")]
+        #[serde(with = "serde_util::datetime")]
         created_at: OffsetDateTime,
         #[serde(rename = "beatmapset")]
         mapset: Box<Beatmapset>,
@@ -785,7 +785,7 @@ pub enum BeatmapsetEvent {
         #[serde(rename = "id")]
         event_id: u64,
         comment: BeatmapsetCommentKudosuGain,
-        #[serde(with = "serde_::datetime")]
+        #[serde(with = "serde_util::datetime")]
         created_at: OffsetDateTime,
         user_id: u32,
         #[serde(rename = "beatmapset")]
@@ -796,7 +796,7 @@ pub enum BeatmapsetEvent {
         #[serde(rename = "id")]
         event_id: u64,
         comment: BeatmapsetCommentKudosuGain,
-        #[serde(with = "serde_::datetime")]
+        #[serde(with = "serde_util::datetime")]
         created_at: OffsetDateTime,
         user_id: u32,
         #[serde(rename = "beatmapset")]
@@ -807,7 +807,7 @@ pub enum BeatmapsetEvent {
         #[serde(rename = "id")]
         event_id: u64,
         comment: BeatmapsetCommentEdit<Language>,
-        #[serde(with = "serde_::datetime")]
+        #[serde(with = "serde_util::datetime")]
         created_at: OffsetDateTime,
         user_id: u32,
         #[serde(rename = "beatmapset")]
@@ -816,7 +816,7 @@ pub enum BeatmapsetEvent {
     Love {
         #[serde(rename = "id")]
         event_id: u64,
-        #[serde(with = "serde_::datetime")]
+        #[serde(with = "serde_util::datetime")]
         created_at: OffsetDateTime,
         user_id: u32,
         #[serde(rename = "beatmapset")]
@@ -826,7 +826,7 @@ pub enum BeatmapsetEvent {
         #[serde(rename = "id")]
         event_id: u64,
         comment: BeatmapsetCommentNominate,
-        #[serde(with = "serde_::datetime")]
+        #[serde(with = "serde_util::datetime")]
         created_at: OffsetDateTime,
         user_id: u32,
         #[serde(rename = "beatmapset")]
@@ -836,7 +836,7 @@ pub enum BeatmapsetEvent {
         #[serde(rename = "id")]
         event_id: u64,
         comment: BeatmapsetCommentNominationReset,
-        #[serde(with = "serde_::datetime")]
+        #[serde(with = "serde_util::datetime")]
         created_at: OffsetDateTime,
         user_id: u32,
         #[serde(rename = "beatmapset")]
@@ -847,7 +847,7 @@ pub enum BeatmapsetEvent {
         #[serde(rename = "id")]
         event_id: u64,
         comment: BeatmapsetCommentNominationResetReceived,
-        #[serde(with = "serde_::datetime")]
+        #[serde(with = "serde_util::datetime")]
         created_at: OffsetDateTime,
         user_id: u32,
         #[serde(rename = "beatmapset")]
@@ -858,7 +858,7 @@ pub enum BeatmapsetEvent {
         #[serde(rename = "id")]
         event_id: u64,
         comment: BeatmapsetCommentEdit<bool>,
-        #[serde(with = "serde_::datetime")]
+        #[serde(with = "serde_util::datetime")]
         created_at: OffsetDateTime,
         user_id: u32,
         #[serde(rename = "beatmapset")]
@@ -869,7 +869,7 @@ pub enum BeatmapsetEvent {
         #[serde(rename = "id")]
         event_id: u64,
         comment: BeatmapsetCommentOwnerChange,
-        #[serde(with = "serde_::datetime")]
+        #[serde(with = "serde_util::datetime")]
         created_at: OffsetDateTime,
         user_id: u32,
         #[serde(rename = "beatmapset")]
@@ -878,7 +878,7 @@ pub enum BeatmapsetEvent {
     Rank {
         #[serde(rename = "id")]
         event_id: u64,
-        #[serde(with = "serde_::datetime")]
+        #[serde(with = "serde_util::datetime")]
         created_at: OffsetDateTime,
         #[serde(rename = "beatmapset")]
         mapset: Box<Beatmapset>,
@@ -886,7 +886,7 @@ pub enum BeatmapsetEvent {
     Qualify {
         #[serde(rename = "id")]
         event_id: u64,
-        #[serde(with = "serde_::datetime")]
+        #[serde(with = "serde_util::datetime")]
         created_at: OffsetDateTime,
         #[serde(rename = "beatmapset")]
         mapset: Box<Beatmapset>,
@@ -895,7 +895,7 @@ pub enum BeatmapsetEvent {
         #[serde(rename = "id")]
         event_id: u64,
         comment: BeatmapsetCommentEdit<String>,
-        #[serde(with = "serde_::datetime")]
+        #[serde(with = "serde_util::datetime")]
         created_at: OffsetDateTime,
         beatmapset: Box<Beatmapset>,
     },
@@ -948,18 +948,18 @@ pub struct BeatmapsetPost {
     pub deleted_by_id: Option<u32>,
     pub system: bool,
     pub message: String,
-    #[serde(with = "serde_::datetime")]
+    #[serde(with = "serde_util::datetime")]
     pub created_at: OffsetDateTime,
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
-        with = "serde_::option_datetime"
+        with = "serde_util::option_datetime"
     )]
     pub updated_at: Option<OffsetDateTime>,
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
-        with = "serde_::option_datetime"
+        with = "serde_util::option_datetime"
     )]
     pub deleted_at: Option<OffsetDateTime>,
 }

@@ -1,12 +1,12 @@
 use super::{
     beatmap::BeatmapsetExtended,
-    serde_,
-    user_::{deserialize_country, User, UserStatistics},
+    serde_util,
+    user::{deserialize_country, User, UserStatistics},
     GameMode,
 };
-use crate::{model::user_::CountryCode, Osu, OsuResult};
+use crate::{model::user::CountryCode, Osu, OsuResult};
 
-use serde::{
+use ::serde::{
     de::{Deserializer, Error, IgnoredAny, MapAccess, SeqAccess, Visitor},
     Deserialize,
 };
@@ -296,7 +296,7 @@ struct UserWithoutStats<'u> {
     pub is_supporter: &'u bool,
     #[serde(
         skip_serializing_if = "Option::is_none",
-        with = "serde_::option_datetime"
+        with = "serde_util::option_datetime"
     )]
     pub last_visit: &'u Option<OffsetDateTime>,
     pub pm_friends_only: &'u bool,
@@ -605,7 +605,7 @@ fn deserialize_rankings_cursor<'de, D: Deserializer<'de>>(d: D) -> Result<Option
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub struct Spotlight {
     /// The end date of the spotlight.
-    #[serde(with = "serde_::datetime")]
+    #[serde(with = "serde_util::datetime")]
     pub end_date: OffsetDateTime,
     /// If the spotlight has different mades specific to each [`GameMode`](crate::model::GameMode).
     pub mode_specific: bool,
@@ -621,7 +621,7 @@ pub struct Spotlight {
     #[serde(rename = "type")]
     pub spotlight_type: String,
     /// The starting date of the spotlight.
-    #[serde(with = "serde_::datetime")]
+    #[serde(with = "serde_util::datetime")]
     pub start_date: OffsetDateTime,
 }
 

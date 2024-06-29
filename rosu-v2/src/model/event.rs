@@ -7,7 +7,7 @@ use crate::{Osu, OsuResult};
 
 use super::{
     beatmap::RankStatus,
-    serde_,
+    serde_util,
     user::{Medal, Username},
     GameMode, Grade,
 };
@@ -49,7 +49,7 @@ impl Events {
 #[derive(Clone, Debug, Deserialize)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub struct Event {
-    #[serde(with = "serde_::datetime")]
+    #[serde(with = "serde_util::datetime")]
     pub created_at: OffsetDateTime,
     #[serde(rename = "id")]
     pub event_id: u32,

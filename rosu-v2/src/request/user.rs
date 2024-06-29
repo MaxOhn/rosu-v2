@@ -4,8 +4,8 @@ use crate::{
         event::Event,
         kudosu::KudosuHistory,
         score::Score,
+        user::Users,
         user::{User, UserExtended, Username},
-        user_::Users,
         GameMode,
     },
     request::{

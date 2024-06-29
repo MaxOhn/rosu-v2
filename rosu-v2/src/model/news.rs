@@ -1,4 +1,4 @@
-use super::serde_;
+use super::serde_util;
 use crate::{prelude::Username, Osu, OsuResult};
 
 use serde::Deserialize;
@@ -47,12 +47,12 @@ pub struct NewsPost {
     pub edit_url: String,
     /// Link to the first image in the document.
     pub first_image: String,
-    #[serde(with = "serde_::datetime")]
+    #[serde(with = "serde_util::datetime")]
     pub published_at: OffsetDateTime,
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
-        with = "serde_::option_datetime"
+        with = "serde_util::option_datetime"
     )]
     pub updated_at: Option<OffsetDateTime>,
     /// Filename without the extension, used in URLs.

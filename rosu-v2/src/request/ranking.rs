@@ -1,7 +1,7 @@
 use crate::{
     model::{
-        ranking_::{ChartRankings, CountryRankings, RankingType, Rankings, Spotlight},
-        user_::CountryCode,
+        ranking::{ChartRankings, CountryRankings, RankingType, Rankings, Spotlight},
+        user::CountryCode,
         GameMode,
     },
     request::{Pending, Query, Request},

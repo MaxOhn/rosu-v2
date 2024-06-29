@@ -1,4 +1,4 @@
-use super::{serde_, user_::User};
+use super::{serde_util, user::User};
 use crate::{prelude::Username, request::GetUser, Osu, OsuResult};
 
 use serde::{Deserialize, Serializer};
@@ -17,20 +17,20 @@ pub struct Comment {
     /// type of object the comment is attached to
     pub commentable_type: String,
     /// ISO 8601 date
-    #[serde(with = "serde_::datetime")]
+    #[serde(with = "serde_util::datetime")]
     pub created_at: OffsetDateTime,
     /// ISO 8601 date if the comment was deleted; `None`, otherwise
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
-        with = "serde_::option_datetime"
+        with = "serde_util::option_datetime"
     )]
     pub deleted_at: Option<OffsetDateTime>,
     /// ISO 8601 date if the comment was edited; `None`, otherwise
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
-        with = "serde_::option_datetime"
+        with = "serde_util::option_datetime"
     )]
     pub edited_at: Option<OffsetDateTime>,
     /// user id of the user that edited the post; `None`, otherwise
@@ -53,7 +53,7 @@ pub struct Comment {
     /// number of replies to the comment
     pub replies_count: u32,
     /// ISO 8601 date
-    #[serde(with = "serde_::datetime")]
+    #[serde(with = "serde_util::datetime")]
     pub updated_at: OffsetDateTime,
     /// user ID of the poster
     pub user_id: Option<u32>,

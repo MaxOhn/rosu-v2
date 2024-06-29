@@ -8,14 +8,13 @@ use std::{
 use dotenv::dotenv;
 use eyre::{Result, WrapErr};
 use once_cell::sync::OnceCell;
-#[cfg(feature = "cache")]
-use rosu_v2::mods;
 use rosu_v2::{
     model::{
         beatmap::{BeatmapsetSearchSort, RankStatus},
+        event::EventSort,
+        mods::mods,
         GameMode,
     },
-    prelude::EventSort,
     Osu,
 };
 use tokio::sync::{Mutex, MutexGuard};

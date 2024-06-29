@@ -1,12 +1,13 @@
 use super::{
     beatmap::{BeatmapExtended, Beatmapset},
-    mods::GameMods,
+    mods::{mods, GameMods},
     serde_util,
     user::User,
     GameMode, Grade,
 };
-use crate::{mods, prelude::ModeAsSeed, request::GetUser, Osu};
+use crate::{request::GetUser, Osu};
 
+use rosu_mods::serde::GameModsSeed;
 use serde::{
     de::{DeserializeSeed, Error as DeError, IgnoredAny},
     Deserialize, Deserializer,
@@ -168,7 +169,7 @@ impl<'de> Deserialize<'de> for Score {
             preserve: score_raw.preserve,
             processed: score_raw.processed,
             maximum_statistics: score_raw.maximum_statistics,
-            mods: ModeAsSeed::<GameMods>::new(score_raw.mode)
+            mods: GameModsSeed::Mode(score_raw.mode)
                 .deserialize(&mut d)
                 .map_err(DeError::custom)?,
             statistics: score_raw.statistics,

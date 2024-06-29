@@ -1,12 +1,14 @@
 use super::{
-    beatmap::Beatmap, mods::GameMods, score::LegacyScoreStatistics, serde_util, user::User,
+    beatmap::Beatmap,
+    mods::{GameMods, GameModsIntermode},
+    score::LegacyScoreStatistics,
+    serde_util,
+    user::User,
     GameMode,
 };
-use crate::{
-    prelude::{GameModsIntermode, ModeAsSeed},
-    Osu, OsuResult,
-};
+use crate::{Osu, OsuResult};
 
+use rosu_mods::serde::GameModsSeed;
 use serde::{
     de::{
         DeserializeSeed, Deserializer, Error as DeError, Error, IgnoredAny, MapAccess, SeqAccess,
@@ -344,7 +346,7 @@ impl<'de> Deserialize<'de> for MatchGame {
         let mut d = serde_json::Deserializer::from_str(game_raw.mods.get());
 
         Ok(MatchGame {
-            mods: ModeAsSeed::<GameMods>::new(game_raw.mode)
+            mods: GameModsSeed::Mode(game_raw.mode)
                 .deserialize(&mut d)
                 .map_err(DeError::custom)?,
             game_id: game_raw.game_id,

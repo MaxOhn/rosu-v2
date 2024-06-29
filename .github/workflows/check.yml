@@ -79,4 +79,3 @@ jobs:
           --feature-powerset --no-dev-deps
           --optional-deps metrics
           --group-features default,cache,macros
-          --workspace --exclude generate-mods

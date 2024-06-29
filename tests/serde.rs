@@ -3,8 +3,8 @@ extern crate rosu_v2;
 mod types {
     #![allow(unused)]
 
-    use rosu_v2::{mods, prelude::*};
-    use serde::{de::DeserializeOwned, Serialize};
+    use ::serde::{de::DeserializeOwned, Serialize};
+    use rosu_v2::prelude::*;
     use std::{collections::HashMap, fmt::Debug};
     use time::{Date, Duration, OffsetDateTime};
 

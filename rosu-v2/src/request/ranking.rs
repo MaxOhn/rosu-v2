@@ -210,11 +210,7 @@ impl<'a> GetPerformanceRankings<'a> {
             .request::<Rankings>(req)
             .map_ok(move |mut rankings: Rankings| {
                 rankings.mode = Some(mode);
-
-                #[cfg(not(feature = "rkyv"))]
-                {
-                    rankings.ranking_type = Some(RankingType::Performance);
-                }
+                rankings.ranking_type = Some(RankingType::Performance);
 
                 #[cfg(feature = "cache")]
                 for user in rankings.ranking.iter() {
@@ -281,11 +277,7 @@ impl<'a> GetScoreRankings<'a> {
             .request::<Rankings>(req)
             .map_ok(move |mut rankings: Rankings| {
                 rankings.mode = Some(mode);
-
-                #[cfg(not(feature = "rkyv"))]
-                {
-                    rankings.ranking_type = Some(RankingType::Score);
-                }
+                rankings.ranking_type = Some(RankingType::Score);
 
                 #[cfg(feature = "cache")]
                 for user in rankings.ranking.iter() {

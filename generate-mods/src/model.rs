@@ -207,17 +207,9 @@ impl GameMod {
 
         writer.write(
             "Clone, Debug, Default, PartialEq)]\
-            #[cfg_attr(feature = \"rkyv\", derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)")?;
-
-        if self.settings.is_empty() {
-            writer.write(", archive(as = \"Self\")")?;
-        }
-
-        writer.write(
-            "\
-            )]\
             pub struct ",
         )?;
+
         writer.write(&self.name)?;
         writer.write(b'{')?;
 

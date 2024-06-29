@@ -707,41 +707,6 @@ impl serde::Serialize for GameMods {
     }
 }
 
-#[cfg(feature = "rkyv")]
-mod rkyv_impls {
-    use rkyv::{
-        ser::{ScratchSpace, Serializer},
-        vec::{ArchivedVec, VecResolver},
-        Archive, Archived, Deserialize, Fallible, Infallible, Serialize,
-    };
-
-    use super::{GameMod, GameMods};
-
-    impl Archive for GameMods {
-        type Archived = Archived<Vec<GameMod>>;
-        type Resolver = VecResolver;
-
-        unsafe fn resolve(&self, pos: usize, resolver: Self::Resolver, out: *mut Self::Archived) {
-            ArchivedVec::resolve_from_len(self.inner.len(), pos, resolver, out);
-        }
-    }
-
-    impl<S: Serializer + ScratchSpace + Fallible + ?Sized> Serialize<S> for GameMods {
-        fn serialize(&self, s: &mut S) -> Result<Self::Resolver, <S as Fallible>::Error> {
-            ArchivedVec::serialize_from_iter::<GameMod, _, _, _>(self.inner.values(), s)
-        }
-    }
-
-    impl<D: Fallible + ?Sized> Deserialize<GameMods, D> for Archived<Vec<GameMod>> {
-        fn deserialize(&self, _: &mut D) -> Result<GameMods, <D as Fallible>::Error> {
-            Ok(self
-                .iter()
-                .map(|archived| archived.deserialize(&mut Infallible).unwrap())
-                .collect())
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

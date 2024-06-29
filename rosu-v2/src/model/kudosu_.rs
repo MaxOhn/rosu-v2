@@ -3,16 +3,8 @@ use time::OffsetDateTime;
 
 use crate::model::user_::Username;
 
-#[cfg(feature = "rkyv")]
-use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
-
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(Archive, RkyvDeserialize, RkyvSerialize),
-    archive(as = "Self")
-)]
 pub enum KudosuAction {
     #[serde(rename = "recalculate.reset")]
     RecalculateReset,
@@ -26,16 +18,13 @@ pub enum KudosuAction {
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct KudosuGiver {
     pub url: String,
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::UsernameWrapper))]
     pub username: Username,
 }
 
 #[derive(Clone, Debug, Deserialize)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct KudosuHistory {
     pub id: u32,
     /// Either `give`, `reset`, or `revoke`.
@@ -45,7 +34,6 @@ pub struct KudosuHistory {
     /// Object type which the exchange happened on (forum_post, etc).
     pub model: String,
     #[serde(with = "super::serde_::datetime")]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub created_at: OffsetDateTime,
     /// Simple detail of the user who started the exchange.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -65,7 +53,6 @@ impl Eq for KudosuHistory {}
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct KudosuPost {
     /// Url of the object.
     #[serde(default, skip_serializing_if = "Option::is_none")]

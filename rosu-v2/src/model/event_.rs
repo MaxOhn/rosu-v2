@@ -12,12 +12,8 @@ use super::{
     GameMode, Grade,
 };
 
-#[cfg(feature = "rkyv")]
-use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
-
 #[derive(Clone, Debug, Deserialize)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct Events {
     pub events: Vec<Event>,
     #[serde(rename = "cursor_string", skip_serializing_if = "Option::is_none")]
@@ -52,10 +48,8 @@ impl Events {
 /// The object has different attributes depending on its type.
 #[derive(Clone, Debug, Deserialize)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct Event {
     #[serde(with = "serde_::datetime")]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub created_at: OffsetDateTime,
     #[serde(rename = "id")]
     pub event_id: u32,
@@ -65,7 +59,6 @@ pub struct Event {
 
 #[derive(Clone, Debug, Deserialize)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct EventBeatmap {
     pub title: String,
     pub url: String,
@@ -73,7 +66,6 @@ pub struct EventBeatmap {
 
 #[derive(Clone, Debug, Deserialize)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct EventBeatmapset {
     pub title: String,
     pub url: String,
@@ -81,7 +73,6 @@ pub struct EventBeatmapset {
 
 #[derive(Clone, Debug, Deserialize)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 #[serde(rename_all = "camelCase", tag = "type")]
 pub enum EventType {
     /// When a beatmap has been played for a certain amount of times
@@ -155,7 +146,6 @@ pub enum EventType {
 }
 
 #[derive(Copy, Clone, Debug, Default, PartialEq, Eq)]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub enum EventSort {
     #[default]
     IdDescending,
@@ -203,9 +193,7 @@ impl serde::Serialize for EventSort {
 
 #[derive(Clone, Debug, Deserialize)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct EventUser {
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::UsernameWrapper))]
     pub username: Username,
     pub url: String,
     /// Only for UsernameChange events
@@ -214,6 +202,5 @@ pub struct EventUser {
         rename = "previousUsername",
         skip_serializing_if = "Option::is_none"
     )]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::UsernameMap))]
     pub previous_username: Option<Username>,
 }

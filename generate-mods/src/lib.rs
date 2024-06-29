@@ -82,11 +82,6 @@ pub fn define_gamemod_kind(rulesets: &[RulesetMods], writer: &mut Writer) -> Gen
         "/// The different types of a [`GameMod`]\n\
         #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]\
         #[cfg_attr(feature = \"serialize\", derive(serde::Serialize))]\
-        #[cfg_attr(\
-            feature = \"rkyv\",\
-            derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),\
-            archive(as = \"Self\"),\
-        )]\
         pub enum GameModKind {\
             DifficultyReduction,\
             DifficultyIncrease,\
@@ -125,11 +120,6 @@ pub fn define_gamemod_intermode(
     writer.write(
         "/// The kind of a [`GameMod`] when the mode is ignored\n\
         #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]\
-        #[cfg_attr(\
-            feature = \"rkyv\",\
-            derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),\
-            archive(as = \"Self\"),\
-        )]\
         #[non_exhaustive]\
         pub enum GameModIntermode {",
     )?;
@@ -394,7 +384,6 @@ pub fn define_gamemod_enum(rulesets: &[RulesetMods], writer: &mut Writer) -> Gen
     writer.write(
         "/// A single game mod\n\
         #[derive(Clone, Debug, PartialEq)]\
-        #[cfg_attr(feature = \"rkyv\", derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize))]\
         #[non_exhaustive]\
         pub enum GameMod {",
     )?;
@@ -434,11 +423,6 @@ fn write_unknown_mod(writer: &mut Writer) -> GenResult {
     writer.write(
         "/// Any mod unknown to `rosu-v2`\n\
         #[derive(Copy, Eq, Clone, Debug, PartialEq, PartialOrd, Ord, Hash)]\
-        #[cfg_attr(\
-            feature = \"rkyv\",\
-            derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),\
-            archive(as = \"Self\"),\
-        )]\
         pub struct UnknownMod {\
             pub acronym: Acronym,\
         }\

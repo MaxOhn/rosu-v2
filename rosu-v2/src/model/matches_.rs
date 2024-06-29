@@ -6,9 +6,6 @@ use crate::{
     Osu, OsuResult,
 };
 
-#[cfg(feature = "rkyv")]
-use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
-
 use serde::{
     de::{
         DeserializeSeed, Deserializer, Error as DeError, Error, IgnoredAny, MapAccess, SeqAccess,
@@ -22,7 +19,6 @@ use time::OffsetDateTime;
 
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 #[cfg_attr(feature = "serialize", serde(tag = "type"))]
 pub enum MatchEvent {
     /// The match was created
@@ -31,7 +27,6 @@ pub enum MatchEvent {
         #[cfg_attr(feature = "serialize", serde(rename(serialize = "id")))]
         event_id: u64,
         #[cfg_attr(feature = "serialize", serde(with = "serde_::datetime"))]
-        #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         timestamp: OffsetDateTime,
         user_id: Option<u32>,
     },
@@ -41,7 +36,6 @@ pub enum MatchEvent {
         #[cfg_attr(feature = "serialize", serde(rename(serialize = "id")))]
         event_id: u64,
         #[cfg_attr(feature = "serialize", serde(with = "serde_::datetime"))]
-        #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         timestamp: OffsetDateTime,
     },
     /// A map is / was being played
@@ -55,7 +49,6 @@ pub enum MatchEvent {
         #[cfg_attr(feature = "serialize", serde(default))]
         match_name: String,
         #[cfg_attr(feature = "serialize", serde(with = "serde_::datetime"))]
-        #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         timestamp: OffsetDateTime,
     },
     /// The match host changed
@@ -64,7 +57,6 @@ pub enum MatchEvent {
         #[cfg_attr(feature = "serialize", serde(rename(serialize = "id")))]
         event_id: u64,
         #[cfg_attr(feature = "serialize", serde(with = "serde_::datetime"))]
-        #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         timestamp: OffsetDateTime,
         user_id: u32,
     },
@@ -74,7 +66,6 @@ pub enum MatchEvent {
         #[cfg_attr(feature = "serialize", serde(rename(serialize = "id")))]
         event_id: u64,
         #[cfg_attr(feature = "serialize", serde(with = "serde_::datetime"))]
-        #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         timestamp: OffsetDateTime,
         user_id: u32,
     },
@@ -84,7 +75,6 @@ pub enum MatchEvent {
         #[cfg_attr(feature = "serialize", serde(rename(serialize = "id")))]
         event_id: u64,
         #[cfg_attr(feature = "serialize", serde(with = "serde_::datetime"))]
-        #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         timestamp: OffsetDateTime,
         user_id: u32,
     },
@@ -94,7 +84,6 @@ pub enum MatchEvent {
         #[cfg_attr(feature = "serialize", serde(rename(serialize = "id")))]
         event_id: u64,
         #[cfg_attr(feature = "serialize", serde(with = "serde_::datetime"))]
-        #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
         timestamp: OffsetDateTime,
         user_id: u32,
     },
@@ -307,12 +296,10 @@ impl<'de> Deserialize<'de> for MatchEvent {
 
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct MatchGame {
     #[cfg_attr(feature = "serialize", serde(rename = "id"))]
     pub game_id: u64,
     #[cfg_attr(feature = "serialize", serde(with = "serde_::datetime"))]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub start_time: OffsetDateTime,
     #[cfg_attr(
         feature = "serialize",
@@ -321,7 +308,6 @@ pub struct MatchGame {
             with = "serde_::option_datetime"
         )
     )]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub end_time: Option<OffsetDateTime>,
     pub mode: GameMode,
     pub scoring_type: ScoringType,
@@ -473,20 +459,17 @@ impl<'m> DoubleEndedIterator for MatchGameDrain<'m> {
 
 #[derive(Clone, Debug, Deserialize)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct MatchInfo {
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
         with = "serde_::option_datetime"
     )]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub end_time: Option<OffsetDateTime>,
     #[serde(rename = "id")]
     pub match_id: u32,
     pub name: String,
     #[serde(with = "serde_::datetime")]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub start_time: OffsetDateTime,
 }
 
@@ -501,7 +484,6 @@ impl Eq for MatchInfo {}
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct MatchList {
     #[serde(
         default,
@@ -532,7 +514,6 @@ impl MatchList {
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct MatchListParams {
     pub limit: u32,
     pub sort: String,
@@ -540,7 +521,6 @@ pub struct MatchListParams {
 
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct MatchScore {
     /// Accuracy between `0.0` and `100.0`
     #[cfg_attr(feature = "serialize", serde(with = "serde_::adjust_acc"))]
@@ -677,7 +657,6 @@ impl<'de> Deserialize<'de> for MatchUsers {
 
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct OsuMatch {
     #[cfg_attr(feature = "serialize", serde(skip_serializing_if = "Option::is_none"))]
     pub current_game_id: Option<u64>,
@@ -688,7 +667,6 @@ pub struct OsuMatch {
             with = "serde_::option_datetime"
         )
     )]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub end_time: Option<OffsetDateTime>,
     pub events: Vec<MatchEvent>,
     pub first_event_id: u64,
@@ -696,7 +674,6 @@ pub struct OsuMatch {
     pub match_id: u32,
     pub name: String,
     #[cfg_attr(feature = "serialize", serde(with = "serde_::datetime"))]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub start_time: OffsetDateTime,
     /// Maps user ids to users
     #[cfg_attr(feature = "serialize", serde(serialize_with = "serialize_match_users"))]

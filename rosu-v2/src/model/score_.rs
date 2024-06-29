@@ -12,8 +12,6 @@ use serde::{
     Deserialize, Deserializer,
 };
 
-#[cfg(feature = "rkyv")]
-use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
 use serde_json::value::RawValue;
 use time::OffsetDateTime;
 
@@ -24,7 +22,6 @@ pub(crate) struct BeatmapScores {
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct BeatmapUserScore {
     /// The position of the score within the requested beatmap ranking
     #[serde(rename = "position")]
@@ -43,7 +40,6 @@ impl BeatmapUserScore {
 
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct Score {
     #[cfg_attr(feature = "serialize", serde(rename = "classic_total_score"))]
     pub classic_score: u32,
@@ -66,7 +62,6 @@ pub struct Score {
     pub accuracy: f32,
     pub build_id: Option<u32>,
     #[cfg_attr(feature = "serialize", serde(with = "serde_::datetime"))]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
     pub ended_at: OffsetDateTime,
     pub has_replay: bool,
     pub is_perfect_combo: bool,
@@ -80,7 +75,6 @@ pub struct Score {
     #[cfg_attr(feature = "serialize", serde(rename = "ruleset_id"))]
     pub mode: GameMode,
     #[cfg_attr(feature = "serialize", serde(with = "serde_::option_datetime"))]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub started_at: Option<OffsetDateTime>,
     #[cfg_attr(feature = "serialize", serde(rename = "total_score"))]
     pub score: u32,
@@ -301,7 +295,6 @@ pub(crate) struct Scores {
 
 #[derive(Clone, Debug, Default, Deserialize, PartialEq, Eq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct ScoreStatistics {
     #[serde(
         default,
@@ -458,7 +451,6 @@ impl ScoreStatistics {
 
 #[derive(Clone, Debug, Default, Deserialize, PartialEq, Eq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct LegacyScoreStatistics {
     pub count_geki: u32,
     pub count_katu: u32,
@@ -517,11 +509,6 @@ impl LegacyScoreStatistics {
 
 #[derive(Copy, Clone, Debug, Deserialize, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(Archive, RkyvDeserialize, RkyvSerialize),
-    archive(as = "Self")
-)]
 pub struct ScoreWeight {
     /// Percentage of the score's pp that will be added to the user's total pp between 0 and 100
     pub percentage: f32,
@@ -531,14 +518,12 @@ pub struct ScoreWeight {
 
 #[derive(Copy, Clone, Debug, Deserialize, PartialEq, Eq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct UserAttributes {
     pub pin: Option<UserAttributesPin>,
 }
 
 #[derive(Copy, Clone, Debug, Deserialize, PartialEq, Eq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct UserAttributesPin {
     pub is_pinned: bool,
     pub score_id: u64,

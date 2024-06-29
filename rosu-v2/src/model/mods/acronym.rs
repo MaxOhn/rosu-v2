@@ -10,11 +10,6 @@ use crate::error::ParsingError;
 ///
 /// [`GameMod`]: crate::model::mods::GameMod
 #[derive(Copy, Clone, PartialEq, Eq, Hash)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
-    archive(as = "Self")
-)]
 pub struct Acronym([u8; 3]);
 
 impl Acronym {

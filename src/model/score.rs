@@ -1,13 +1,13 @@
 use super::{
     beatmap::{BeatmapExtended, Beatmapset},
-    mods::{mods, GameMods},
+    mods::GameMods,
     serde_util,
     user::User,
     GameMode, Grade,
 };
 use crate::{request::GetUser, Osu};
 
-use rosu_mods::serde::GameModsSeed;
+use rosu_mods::{serde::GameModsSeed, GameModIntermode, GameModsIntermode};
 use serde::{
     de::{DeserializeSeed, Error as DeError, IgnoredAny},
     Deserialize, Deserializer,
@@ -530,9 +530,25 @@ pub struct UserAttributesPin {
     pub score_id: u64,
 }
 
+fn hdfl() -> GameModsIntermode {
+    [GameModIntermode::Hidden, GameModIntermode::Flashlight]
+        .into_iter()
+        .collect()
+}
+
+fn hdflfi() -> GameModsIntermode {
+    [
+        GameModIntermode::Hidden,
+        GameModIntermode::Flashlight,
+        GameModIntermode::FadeIn,
+    ]
+    .into_iter()
+    .collect()
+}
+
 fn osu_grade(score: &Score, passed_objects: u32, accuracy: Option<f32>) -> Grade {
     if score.statistics.great == passed_objects {
-        return if score.mods.contains_any(mods!(HD FL)) {
+        return if score.mods.contains_any(hdfl()) {
             Grade::XH
         } else {
             Grade::X
@@ -542,7 +558,7 @@ fn osu_grade(score: &Score, passed_objects: u32, accuracy: Option<f32>) -> Grade
     let accuracy = accuracy.unwrap_or_else(|| score.accuracy());
 
     if accuracy >= 95.0 && score.statistics.miss == 0 {
-        if score.mods.contains_any(mods!(HD FL FI)) {
+        if score.mods.contains_any(hdflfi()) {
             Grade::SH
         } else {
             Grade::S
@@ -572,7 +588,7 @@ fn mania_grade(score: &Score, passed_objects: u32, accuracy: Option<f32>) -> Gra
 
 fn osu_grade_legacy(score: &Score, passed_objects: u32) -> Grade {
     if score.statistics.great == passed_objects {
-        return if score.mods.contains_any(mods!(HD FL)) {
+        return if score.mods.contains_any(hdfl()) {
             Grade::XH
         } else {
             Grade::X
@@ -585,7 +601,7 @@ fn osu_grade_legacy(score: &Score, passed_objects: u32) -> Grade {
     let ratio50 = stats.meh as f32 / passed_objects as f32;
 
     if ratio300 > 0.9 && ratio50 < 0.01 && stats.miss == 0 {
-        if score.mods.contains_any(mods!(HD FL)) {
+        if score.mods.contains_any(hdfl()) {
             Grade::SH
         } else {
             Grade::S
@@ -603,7 +619,7 @@ fn osu_grade_legacy(score: &Score, passed_objects: u32) -> Grade {
 
 fn taiko_grade_legacy(score: &Score, passed_objects: u32) -> Grade {
     if score.statistics.great == passed_objects {
-        return if score.mods.contains_any(mods!(HD FL)) {
+        return if score.mods.contains_any(hdfl()) {
             Grade::XH
         } else {
             Grade::X
@@ -614,7 +630,7 @@ fn taiko_grade_legacy(score: &Score, passed_objects: u32) -> Grade {
     let ratio300 = stats.great as f32 / passed_objects as f32;
 
     if ratio300 > 0.9 && stats.miss == 0 {
-        if score.mods.contains_any(mods!(HD FL)) {
+        if score.mods.contains_any(hdfl()) {
             Grade::SH
         } else {
             Grade::S
@@ -634,13 +650,13 @@ fn catch_grade_legacy(score: &Score, accuracy: Option<f32>) -> Grade {
     let accuracy = accuracy.unwrap_or_else(|| score.accuracy());
 
     if (100.0 - accuracy).abs() < std::f32::EPSILON {
-        if score.mods.contains_any(mods!(HD FL)) {
+        if score.mods.contains_any(hdfl()) {
             Grade::XH
         } else {
             Grade::X
         }
     } else if accuracy >= 98.0 {
-        if score.mods.contains_any(mods!(HD FL)) {
+        if score.mods.contains_any(hdfl()) {
             Grade::SH
         } else {
             Grade::S
@@ -658,7 +674,7 @@ fn catch_grade_legacy(score: &Score, accuracy: Option<f32>) -> Grade {
 
 fn mania_grade_legacy(score: &Score, passed_objects: u32, accuracy: Option<f32>) -> Grade {
     if score.statistics.perfect == passed_objects {
-        return if score.mods.contains_any(mods!(HD FL FI)) {
+        return if score.mods.contains_any(hdflfi()) {
             Grade::XH
         } else {
             Grade::X
@@ -668,7 +684,7 @@ fn mania_grade_legacy(score: &Score, passed_objects: u32, accuracy: Option<f32>)
     let accuracy = accuracy.unwrap_or_else(|| score.accuracy());
 
     if accuracy >= 95.0 {
-        if score.mods.contains_any(mods!(HD FL FI)) {
+        if score.mods.contains_any(hdflfi()) {
             Grade::SH
         } else {
             Grade::S

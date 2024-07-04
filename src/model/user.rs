@@ -142,7 +142,7 @@ pub struct Group {
     #[serde(rename = "colour")]
     pub color: Option<String>,
     pub description: Option<String>,
-    /// Whether this group associates [`GameMode`](crate::model::GameMode)s with users' memberships.
+    /// Whether this group associates [`GameMode`]s with users' memberships.
     #[serde(rename = "has_playmodes")]
     pub has_modes: bool,
     pub id: u32,
@@ -150,7 +150,7 @@ pub struct Group {
     pub identifier: String,
     /// Whether members of this group are considered probationary.
     pub is_probationary: bool,
-    /// [`GameMode`](crate::model::GameMode)s associated with this membership (`None` if has_modes is unset).
+    /// [`GameMode`]s associated with this membership (`None` if has_modes is unset).
     #[serde(default, rename = "playmodes", skip_serializing_if = "Option::is_none")]
     pub modes: Option<Vec<GameMode>>,
     pub name: String,

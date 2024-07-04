@@ -10,7 +10,7 @@ use time::OffsetDateTime;
 pub struct SeasonalBackground {
     /// URL to the image
     pub url: String,
-    /// [`User`](crate::model::user::User) of the artist of the art
+    /// [`User`] of the artist of the art
     #[serde(rename = "user")]
     pub artist: User,
 }

@@ -607,7 +607,7 @@ pub struct Spotlight {
     /// The end date of the spotlight.
     #[serde(with = "serde_util::datetime")]
     pub end_date: OffsetDateTime,
-    /// If the spotlight has different mades specific to each [`GameMode`](crate::model::GameMode).
+    /// If the spotlight has different mades specific to each [`GameMode`].
     pub mode_specific: bool,
     /// The name of the spotlight.
     pub name: String,

@@ -46,8 +46,7 @@ pub enum MatchEvent {
     Game {
         #[cfg_attr(feature = "serialize", serde(rename(serialize = "id")))]
         event_id: u64,
-        /// Boxed to optimize [`MatchEvent`](crate::model::matches::MatchEvent)'s
-        /// size in memory.
+        // Boxed to optimize [`MatchEvent`]'s size in memory.
         game: Box<MatchGame>,
         #[cfg_attr(feature = "serialize", serde(default))]
         match_name: String,
@@ -316,7 +315,7 @@ pub struct MatchGame {
     pub scoring_type: ScoringType,
     pub team_type: TeamType,
     pub mods: GameMods,
-    /// [`Beatmap`](crate::model::beatmap::Beatmap) of the game;
+    /// [`Beatmap`] of the game;
     /// `None` if the map was deleted
     #[cfg_attr(feature = "serialize", serde(rename = "beatmap"))]
     pub map: Option<Box<Beatmap>>,

@@ -133,7 +133,6 @@ macro_rules! def_enum {
 }
 
 mod grade;
-mod mode;
 mod serde_util;
 
 /// Beatmap(set) related types
@@ -154,7 +153,7 @@ pub mod kudosu;
 /// Multiplayer match related types
 pub mod matches;
 
-/// Game mods related types
+/// Re-exports of `rosu-mods`
 pub mod mods;
 
 /// News related types
@@ -176,7 +175,8 @@ pub mod user;
 pub mod wiki;
 
 pub use grade::Grade;
-pub use mode::GameMode;
+
+pub use rosu_mods::GameMode;
 
 use std::marker::PhantomData;
 

@@ -140,6 +140,12 @@ pub use client::{Osu, OsuBuilder};
 #[macro_use]
 extern crate log;
 
+#[cfg(feature = "macros")]
+extern crate rosu_mods;
+
+#[cfg(feature = "macros")]
+pub use rosu_mods::mods;
+
 /// `Result<_, OsuError>`
 pub type OsuResult<T> = Result<T, error::OsuError>;
 
@@ -149,14 +155,28 @@ pub mod prelude {
         client::Scope,
         error::OsuError,
         model::{
-            beatmap::*, comments::*, event::*, forum::*, kudosu::*, matches::*, mods::*, news::*,
-            ranking::*, score::*, seasonal_backgrounds::*, user::*, wiki::*, GameMode, Grade,
+            beatmap::*,
+            comments::*,
+            event::*,
+            forum::*,
+            kudosu::*,
+            matches::*,
+            mods::{generated_mods::*, Acronym, GameMods, GameModsIntermode, GameModsLegacy},
+            news::*,
+            ranking::*,
+            score::*,
+            seasonal_backgrounds::*,
+            user::*,
+            wiki::*,
+            GameMode, Grade,
         },
-        mods,
         request::UserId,
         Osu, OsuBuilder, OsuResult,
     };
 
     pub use hyper::StatusCode;
     pub use smallstr::SmallString;
+
+    #[cfg(feature = "macros")]
+    pub use rosu_mods::mods;
 }

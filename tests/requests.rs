@@ -8,14 +8,12 @@ use std::{
 use dotenv::dotenv;
 use eyre::{Result, WrapErr};
 use once_cell::sync::OnceCell;
-#[cfg(feature = "cache")]
-use rosu_v2::mods;
 use rosu_v2::{
     model::{
         beatmap::{BeatmapsetSearchSort, RankStatus},
+        event::EventSort,
         GameMode,
     },
-    prelude::EventSort,
     Osu,
 };
 use tokio::sync::{Mutex, MutexGuard};
@@ -132,11 +130,21 @@ async fn beatmap_scores() -> Result<()> {
 #[cfg(feature = "cache")]
 #[tokio::test]
 async fn beatmap_user_score() -> Result<()> {
+    use rosu_v2::model::mods::{GameModIntermode, GameModsIntermode};
+
+    let mods = [
+        GameModIntermode::Hidden,
+        GameModIntermode::HardRock,
+        GameModIntermode::HalfTime,
+    ]
+    .into_iter()
+    .collect::<GameModsIntermode>();
+
     let score = OSU
         .get()
         .await?
         .beatmap_user_score(ADESSO_BALLA, BADEWANNE3)
-        .mods(mods!(HD HR HT))
+        .mods(mods)
         .await?;
 
     println!(

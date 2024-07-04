@@ -3,8 +3,8 @@ extern crate rosu_v2;
 mod types {
     #![allow(unused)]
 
-    use rosu_v2::{mods, prelude::*};
-    use serde::{de::DeserializeOwned, Serialize};
+    use ::serde::{de::DeserializeOwned, Serialize};
+    use rosu_v2::prelude::*;
     use std::{collections::HashMap, fmt::Debug};
     use time::{Date, Duration, OffsetDateTime};
 
@@ -490,7 +490,9 @@ mod types {
         MatchScore {
             user_id: 123456,
             accuracy: 99.5,
-            mods: mods!(SV2 RX),
+            mods: [GameModIntermode::ScoreV2, GameModIntermode::Relax]
+                .into_iter()
+                .collect(),
             score: 12_345_678,
             max_combo: 1000,
             perfect: false,

@@ -24,10 +24,6 @@ use super::{
 /// Combination of [`GameModIntermode`]s.
 #[derive(Clone, Default, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize), serde(transparent))]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct GameModsIntermode {
     inner: BTreeSet<GameModIntermode>,
 }

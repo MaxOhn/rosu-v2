@@ -1,17 +1,13 @@
-use super::{serde_, user_::User};
+use super::{serde_util, user::User};
 use crate::{prelude::Username, request::GetUser, Osu, OsuResult};
 
 use serde::{Deserialize, Serializer};
 use std::fmt;
 use time::OffsetDateTime;
 
-#[cfg(feature = "rkyv")]
-use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
-
 /// Represents an single comment.
 #[derive(Clone, Debug, Deserialize)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct Comment {
     /// the ID of the comment
     #[serde(rename = "id")]
@@ -21,31 +17,27 @@ pub struct Comment {
     /// type of object the comment is attached to
     pub commentable_type: String,
     /// ISO 8601 date
-    #[serde(with = "serde_::datetime")]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
+    #[serde(with = "serde_util::datetime")]
     pub created_at: OffsetDateTime,
     /// ISO 8601 date if the comment was deleted; `None`, otherwise
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
-        with = "serde_::option_datetime"
+        with = "serde_util::option_datetime"
     )]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub deleted_at: Option<OffsetDateTime>,
     /// ISO 8601 date if the comment was edited; `None`, otherwise
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
-        with = "serde_::option_datetime"
+        with = "serde_util::option_datetime"
     )]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub edited_at: Option<OffsetDateTime>,
     /// user id of the user that edited the post; `None`, otherwise
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub edited_by_id: Option<u32>,
     /// username displayed on legacy comments
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::UsernameMap))]
     pub legacy_name: Option<Username>,
     /// markdown of the comment's content
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -61,8 +53,7 @@ pub struct Comment {
     /// number of replies to the comment
     pub replies_count: u32,
     /// ISO 8601 date
-    #[serde(with = "serde_::datetime")]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
+    #[serde(with = "serde_util::datetime")]
     pub updated_at: OffsetDateTime,
     /// user ID of the poster
     pub user_id: Option<u32>,
@@ -92,7 +83,6 @@ impl Eq for Comment {}
 /// Comments and related data.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct CommentBundle {
     /// ID of the object the comment is attached to
     pub commentable_meta: Vec<CommentableMeta>,
@@ -151,11 +141,6 @@ impl CommentBundle {
 /// Available orders for comments
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(Archive, RkyvDeserialize, RkyvSerialize),
-    archive(as = "Self")
-)]
 pub enum CommentSort {
     /// Sort by date, newest first
     #[serde(rename = "new")]
@@ -195,7 +180,6 @@ impl fmt::Display for CommentSort {
 /// Metadata of the object that a comment is attached to.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 #[serde(untagged)]
 pub enum CommentableMeta {
     Full {

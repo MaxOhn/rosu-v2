@@ -117,7 +117,6 @@
 //! | `serialize` | Implement `serde::Serialize` for most types, allowing for manual serialization |
 //! | `metrics` | Uses the global metrics registry to store response time for each endpoint | [metrics](https://github.com/metrics-rs/metrics/tree/main/metrics)
 //! | `replay` | Enables the method `Osu::replay` to parse a replay. Note that `Osu::replay_raw` is available without this feature but provides raw bytes instead of a parsed replay | [osu-db](https://github.com/negamartin/osu-db) |
-//! | `rkyv` | Implement rkyv's `Archive`, `Deserialize`, and `Serialize` for most types, allowing for insanely fast (de)serializing. | [rkyv](https://github.com/rkyv/rkyv)
 //!
 
 #![deny(rustdoc::broken_intra_doc_links, rustdoc::missing_crate_level_docs)]
@@ -160,7 +159,4 @@ pub mod prelude {
 
     pub use hyper::StatusCode;
     pub use smallstr::SmallString;
-
-    #[cfg(feature = "rkyv")]
-    pub use crate::model::rkyv;
 }

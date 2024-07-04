@@ -23,10 +23,6 @@ use serde::{
 use serde_json::value::RawValue;
 /// Larger circles, more forgiving HP drain, less accuracy required, and three lives!
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct EasyOsu {
     pub retries: Option<f32>,
 }
@@ -101,11 +97,6 @@ impl serde::Serialize for EasyOsu {
 }
 /// You can't fail, no matter what.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct NoFailOsu {}
 impl NoFailOsu {
     /// The acronym of [`NoFailOsu`]
@@ -165,10 +156,6 @@ impl serde::Serialize for NoFailOsu {
 }
 /// Less zoom...
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct HalfTimeOsu {
     pub speed_change: Option<f32>,
     pub adjust_pitch: Option<bool>,
@@ -254,10 +241,6 @@ impl serde::Serialize for HalfTimeOsu {
 }
 /// Whoaaaaa...
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct DaycoreOsu {
     pub speed_change: Option<f32>,
 }
@@ -329,11 +312,6 @@ impl serde::Serialize for DaycoreOsu {
 }
 /// Everything just got a bit harder...
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct HardRockOsu {}
 impl HardRockOsu {
     /// The acronym of [`HardRockOsu`]
@@ -392,10 +370,6 @@ impl serde::Serialize for HardRockOsu {
 }
 /// Miss and fail.
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct SuddenDeathOsu {
     pub restart: Option<bool>,
 }
@@ -471,10 +445,6 @@ impl serde::Serialize for SuddenDeathOsu {
 }
 /// SS or quit.
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct PerfectOsu {
     pub restart: Option<bool>,
 }
@@ -550,10 +520,6 @@ impl serde::Serialize for PerfectOsu {
 }
 /// Zoooooooooom...
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct DoubleTimeOsu {
     pub speed_change: Option<f32>,
     pub adjust_pitch: Option<bool>,
@@ -639,10 +605,6 @@ impl serde::Serialize for DoubleTimeOsu {
 }
 /// Uguuuuuuuu...
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct NightcoreOsu {
     pub speed_change: Option<f32>,
 }
@@ -720,10 +682,6 @@ impl serde::Serialize for NightcoreOsu {
 }
 /// Play with no approach circles and fading circles/sliders.
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct HiddenOsu {
     pub only_fade_approach_circles: Option<bool>,
 }
@@ -801,10 +759,6 @@ impl serde::Serialize for HiddenOsu {
 }
 /// Restricted view area.
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct FlashlightOsu {
     pub follow_delay: Option<f32>,
     pub size_multiplier: Option<f32>,
@@ -888,11 +842,6 @@ impl serde::Serialize for FlashlightOsu {
 }
 /// Play with blinds on your screen.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct BlindsOsu {}
 impl BlindsOsu {
     /// The acronym of [`BlindsOsu`]
@@ -938,11 +887,6 @@ impl serde::Serialize for BlindsOsu {
 }
 /// Once you start a slider, follow precisely or get a miss.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct StrictTrackingOsu {}
 impl StrictTrackingOsu {
     /// The acronym of [`StrictTrackingOsu`]
@@ -994,10 +938,6 @@ impl serde::Serialize for StrictTrackingOsu {
 }
 /// Fail if your accuracy drops too low!
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct AccuracyChallengeOsu {
     pub minimum_accuracy: Option<f32>,
     pub accuracy_judge_mode: Option<String>,
@@ -1083,10 +1023,6 @@ impl serde::Serialize for AccuracyChallengeOsu {
 }
 /// Practice keeping up with the beat of the song.
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct TargetPracticeOsu {
     pub seed: Option<f32>,
     pub metronome: Option<bool>,
@@ -1172,10 +1108,6 @@ impl serde::Serialize for TargetPracticeOsu {
 }
 /// Override a beatmap's difficulty settings.
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct DifficultyAdjustOsu {
     pub circle_size: Option<f32>,
     pub approach_rate: Option<f32>,
@@ -1275,10 +1207,6 @@ impl serde::Serialize for DifficultyAdjustOsu {
 }
 /// Feeling nostalgic?
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct ClassicOsu {
     pub no_slider_head_accuracy: Option<bool>,
     pub classic_note_lock: Option<bool>,
@@ -1376,10 +1304,6 @@ impl serde::Serialize for ClassicOsu {
 }
 /// It never gets boring!
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct RandomOsu {
     pub angle_sharpness: Option<f32>,
     pub seed: Option<f32>,
@@ -1454,10 +1378,6 @@ impl serde::Serialize for RandomOsu {
 }
 /// Flip objects on the chosen axes.
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct MirrorOsu {
     pub reflection: Option<String>,
 }
@@ -1525,11 +1445,6 @@ impl serde::Serialize for MirrorOsu {
 }
 /// Don't use the same key twice in a row!
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct AlternateOsu {}
 impl AlternateOsu {
     /// The acronym of [`AlternateOsu`]
@@ -1583,11 +1498,6 @@ impl serde::Serialize for AlternateOsu {
 }
 /// You must only use one key!
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct SingleTapOsu {}
 impl SingleTapOsu {
     /// The acronym of [`SingleTapOsu`]
@@ -1641,11 +1551,6 @@ impl serde::Serialize for SingleTapOsu {
 }
 /// Watch a perfect automated play through the song.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct AutoplayOsu {}
 impl AutoplayOsu {
     /// The acronym of [`AutoplayOsu`]
@@ -1711,11 +1616,6 @@ impl serde::Serialize for AutoplayOsu {
 }
 /// Watch the video without visual distractions.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct CinemaOsu {}
 impl CinemaOsu {
     /// The acronym of [`CinemaOsu`]
@@ -1785,11 +1685,6 @@ impl serde::Serialize for CinemaOsu {
 }
 /// You don't need to click. Give your clicking/tapping fingers a break from the heat of things.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct RelaxOsu {}
 impl RelaxOsu {
     /// The acronym of [`RelaxOsu`]
@@ -1851,11 +1746,6 @@ impl serde::Serialize for RelaxOsu {
 }
 /// Automatic cursor movement - just follow the rhythm.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct AutopilotOsu {}
 impl AutopilotOsu {
     /// The acronym of [`AutopilotOsu`]
@@ -1918,11 +1808,6 @@ impl serde::Serialize for AutopilotOsu {
 }
 /// Spinners will be automatically completed.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct SpunOutOsu {}
 impl SpunOutOsu {
     /// The acronym of [`SpunOutOsu`]
@@ -1982,11 +1867,6 @@ impl serde::Serialize for SpunOutOsu {
 }
 /// Everything rotates. EVERYTHING.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct TransformOsu {}
 impl TransformOsu {
     /// The acronym of [`TransformOsu`]
@@ -2041,10 +1921,6 @@ impl serde::Serialize for TransformOsu {
 }
 /// They just won't stay still...
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct WiggleOsu {
     pub strength: Option<f32>,
 }
@@ -2114,11 +1990,6 @@ impl serde::Serialize for WiggleOsu {
 }
 /// Circles spin in. No approach circles.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct SpinInOsu {}
 impl SpinInOsu {
     /// The acronym of [`SpinInOsu`]
@@ -2174,10 +2045,6 @@ impl serde::Serialize for SpinInOsu {
 }
 /// Hit them at the right size!
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct GrowOsu {
     pub start_scale: Option<f32>,
 }
@@ -2248,10 +2115,6 @@ impl serde::Serialize for GrowOsu {
 }
 /// Hit them at the right size!
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct DeflateOsu {
     pub start_scale: Option<f32>,
 }
@@ -2322,10 +2185,6 @@ impl serde::Serialize for DeflateOsu {
 }
 /// Can you keep up?
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct WindUpOsu {
     pub initial_rate: Option<f32>,
     pub final_rate: Option<f32>,
@@ -2413,10 +2272,6 @@ impl serde::Serialize for WindUpOsu {
 }
 /// Sloooow doooown...
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct WindDownOsu {
     pub initial_rate: Option<f32>,
     pub final_rate: Option<f32>,
@@ -2504,11 +2359,6 @@ impl serde::Serialize for WindDownOsu {
 }
 /// Put your faith in the approach circles...
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct TraceableOsu {}
 impl TraceableOsu {
     /// The acronym of [`TraceableOsu`]
@@ -2564,10 +2414,6 @@ impl serde::Serialize for TraceableOsu {
 }
 /// The whole playfield is on a wheel!
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct BarrelRollOsu {
     pub spin_speed: Option<f32>,
     pub direction: Option<String>,
@@ -2636,10 +2482,6 @@ impl serde::Serialize for BarrelRollOsu {
 }
 /// Never trust the approach circles...
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct ApproachDifferentOsu {
     pub scale: Option<f32>,
     pub style: Option<String>,
@@ -2718,10 +2560,6 @@ impl serde::Serialize for ApproachDifferentOsu {
 }
 /// Can you still feel the rhythm without music?
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct MutedOsu {
     pub inverse_muting: Option<bool>,
     pub enable_metronome: Option<bool>,
@@ -2807,10 +2645,6 @@ impl serde::Serialize for MutedOsu {
 }
 /// Where's the cursor?
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct NoScopeOsu {
     pub hidden_combo_count: Option<f32>,
 }
@@ -2872,10 +2706,6 @@ impl serde::Serialize for NoScopeOsu {
 }
 /// No need to chase the circles – your cursor is a magnet!
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct MagnetisedOsu {
     pub attraction_strength: Option<f32>,
 }
@@ -2950,10 +2780,6 @@ impl serde::Serialize for MagnetisedOsu {
 }
 /// Hit objects run away!
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct RepelOsu {
     pub repulsion_strength: Option<f32>,
 }
@@ -3027,10 +2853,6 @@ impl serde::Serialize for RepelOsu {
 }
 /// Let track speed adapt to you.
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct AdaptiveSpeedOsu {
     pub initial_rate: Option<f32>,
     pub adjust_pitch: Option<bool>,
@@ -3112,11 +2934,6 @@ impl serde::Serialize for AdaptiveSpeedOsu {
 }
 /// Burn the notes into your memory.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct FreezeFrameOsu {}
 impl FreezeFrameOsu {
     /// The acronym of [`FreezeFrameOsu`]
@@ -3169,11 +2986,6 @@ impl serde::Serialize for FreezeFrameOsu {
 }
 /// Don't let their popping distract you!
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct BubblesOsu {}
 impl BubblesOsu {
     /// The acronym of [`BubblesOsu`]
@@ -3226,11 +3038,6 @@ impl serde::Serialize for BubblesOsu {
 }
 /// Colours hit objects based on the rhythm.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct SynesthesiaOsu {}
 impl SynesthesiaOsu {
     /// The acronym of [`SynesthesiaOsu`]
@@ -3276,10 +3083,6 @@ impl serde::Serialize for SynesthesiaOsu {
 }
 /// 3D. Almost.
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct DepthOsu {
     pub max_depth: Option<f32>,
     pub show_approach_circles: Option<bool>,
@@ -3364,11 +3167,6 @@ impl serde::Serialize for DepthOsu {
 }
 /// Automatically applied to plays on devices with a touchscreen.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct TouchDeviceOsu {}
 impl TouchDeviceOsu {
     /// The acronym of [`TouchDeviceOsu`]
@@ -3427,11 +3225,6 @@ impl serde::Serialize for TouchDeviceOsu {
 }
 /// Score set on earlier osu! versions with the V2 scoring algorithm active.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct ScoreV2Osu {}
 impl ScoreV2Osu {
     /// The acronym of [`ScoreV2Osu`]
@@ -3483,11 +3276,6 @@ impl serde::Serialize for ScoreV2Osu {
 }
 /// Beats move slower, and less accuracy required!
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct EasyTaiko {}
 impl EasyTaiko {
     /// The acronym of [`EasyTaiko`]
@@ -3545,11 +3333,6 @@ impl serde::Serialize for EasyTaiko {
 }
 /// You can't fail, no matter what.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct NoFailTaiko {}
 impl NoFailTaiko {
     /// The acronym of [`NoFailTaiko`]
@@ -3609,10 +3392,6 @@ impl serde::Serialize for NoFailTaiko {
 }
 /// Less zoom...
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct HalfTimeTaiko {
     pub speed_change: Option<f32>,
     pub adjust_pitch: Option<bool>,
@@ -3698,10 +3477,6 @@ impl serde::Serialize for HalfTimeTaiko {
 }
 /// Whoaaaaa...
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct DaycoreTaiko {
     pub speed_change: Option<f32>,
 }
@@ -3773,11 +3548,6 @@ impl serde::Serialize for DaycoreTaiko {
 }
 /// Everything just got a bit harder...
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct HardRockTaiko {}
 impl HardRockTaiko {
     /// The acronym of [`HardRockTaiko`]
@@ -3835,10 +3605,6 @@ impl serde::Serialize for HardRockTaiko {
 }
 /// Miss and fail.
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct SuddenDeathTaiko {
     pub restart: Option<bool>,
 }
@@ -3913,10 +3679,6 @@ impl serde::Serialize for SuddenDeathTaiko {
 }
 /// SS or quit.
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct PerfectTaiko {
     pub restart: Option<bool>,
 }
@@ -3992,10 +3754,6 @@ impl serde::Serialize for PerfectTaiko {
 }
 /// Zoooooooooom...
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct DoubleTimeTaiko {
     pub speed_change: Option<f32>,
     pub adjust_pitch: Option<bool>,
@@ -4081,10 +3839,6 @@ impl serde::Serialize for DoubleTimeTaiko {
 }
 /// Uguuuuuuuu...
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct NightcoreTaiko {
     pub speed_change: Option<f32>,
 }
@@ -4162,11 +3916,6 @@ impl serde::Serialize for NightcoreTaiko {
 }
 /// Beats fade out before you hit them!
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct HiddenTaiko {}
 impl HiddenTaiko {
     /// The acronym of [`HiddenTaiko`]
@@ -4218,10 +3967,6 @@ impl serde::Serialize for HiddenTaiko {
 }
 /// Restricted view area.
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct FlashlightTaiko {
     pub size_multiplier: Option<f32>,
     pub combo_based_size: Option<bool>,
@@ -4297,10 +4042,6 @@ impl serde::Serialize for FlashlightTaiko {
 }
 /// Fail if your accuracy drops too low!
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct AccuracyChallengeTaiko {
     pub minimum_accuracy: Option<f32>,
     pub accuracy_judge_mode: Option<String>,
@@ -4385,10 +4126,6 @@ impl serde::Serialize for AccuracyChallengeTaiko {
 }
 /// Shuffle around the colours!
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct RandomTaiko {
     pub seed: Option<f32>,
 }
@@ -4456,10 +4193,6 @@ impl serde::Serialize for RandomTaiko {
 }
 /// Override a beatmap's difficulty settings.
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct DifficultyAdjustTaiko {
     pub scroll_speed: Option<f32>,
     pub drain_rate: Option<f32>,
@@ -4551,11 +4284,6 @@ impl serde::Serialize for DifficultyAdjustTaiko {
 }
 /// Feeling nostalgic?
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct ClassicTaiko {}
 impl ClassicTaiko {
     /// The acronym of [`ClassicTaiko`]
@@ -4601,11 +4329,6 @@ impl serde::Serialize for ClassicTaiko {
 }
 /// Dons become kats, kats become dons
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct SwapTaiko {}
 impl SwapTaiko {
     /// The acronym of [`SwapTaiko`]
@@ -4651,11 +4374,6 @@ impl serde::Serialize for SwapTaiko {
 }
 /// One key for dons, one key for kats.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct SingleTapTaiko {}
 impl SingleTapTaiko {
     /// The acronym of [`SingleTapTaiko`]
@@ -4706,13 +4424,53 @@ impl serde::Serialize for SingleTapTaiko {
         map.end()
     }
 }
+/// No more tricky speed changes!
+#[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
+pub struct ConstantSpeedTaiko {}
+impl ConstantSpeedTaiko {
+    /// The acronym of [`ConstantSpeedTaiko`]
+    pub const fn acronym() -> Acronym {
+        unsafe { Acronym::from_str_unchecked("CS") }
+    }
+    /// Iterator of [`Acronym`] for mods that are incompatible with [`ConstantSpeedTaiko`]
+    pub fn incompatible_mods() -> impl Iterator<Item = Acronym> {
+        [].into_iter()
+    }
+    /// The description of [`ConstantSpeedTaiko`]
+    pub const fn description() -> &'static str {
+        "No more tricky speed changes!"
+    }
+    /// The [`GameModKind`] of [`ConstantSpeedTaiko`]
+    pub const fn kind() -> GameModKind {
+        GameModKind::Conversion
+    }
+}
+impl<'de> Deserialize<'de> for ConstantSpeedTaiko {
+    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        struct ConstantSpeedTaikoVisitor;
+        impl<'de> Visitor<'de> for ConstantSpeedTaikoVisitor {
+            type Value = ConstantSpeedTaiko;
+            fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+                f.write_str("ConstantSpeedTaiko")
+            }
+            fn visit_map<A: MapAccess<'de>>(self, _: A) -> Result<Self::Value, A::Error> {
+                Ok(Self::Value {})
+            }
+        }
+        d.deserialize_map(ConstantSpeedTaikoVisitor)
+    }
+}
+#[cfg(feature = "serialize")]
+impl serde::Serialize for ConstantSpeedTaiko {
+    fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        use serde::ser::SerializeMap;
+        let field_count = 0;
+        let map = s.serialize_map(Some(field_count))?;
+        map.end()
+    }
+}
 /// Watch a perfect automated play through the song.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct AutoplayTaiko {}
 impl AutoplayTaiko {
     /// The acronym of [`AutoplayTaiko`]
@@ -4772,11 +4530,6 @@ impl serde::Serialize for AutoplayTaiko {
 }
 /// Watch the video without visual distractions.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct CinemaTaiko {}
 impl CinemaTaiko {
     /// The acronym of [`CinemaTaiko`]
@@ -4838,13 +4591,8 @@ impl serde::Serialize for CinemaTaiko {
         map.end()
     }
 }
-/// No ninja-like spinners, demanding drumrolls or unexpected katus.
+/// No need to remember which key is correct anymore!
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct RelaxTaiko {}
 impl RelaxTaiko {
     /// The acronym of [`RelaxTaiko`]
@@ -4864,7 +4612,7 @@ impl RelaxTaiko {
     }
     /// The description of [`RelaxTaiko`]
     pub const fn description() -> &'static str {
-        "No ninja-like spinners, demanding drumrolls or unexpected katus."
+        "No need to remember which key is correct anymore!"
     }
     /// The [`GameModKind`] of [`RelaxTaiko`]
     pub const fn kind() -> GameModKind {
@@ -4903,10 +4651,6 @@ impl serde::Serialize for RelaxTaiko {
 }
 /// Can you keep up?
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct WindUpTaiko {
     pub initial_rate: Option<f32>,
     pub final_rate: Option<f32>,
@@ -4994,10 +4738,6 @@ impl serde::Serialize for WindUpTaiko {
 }
 /// Sloooow doooown...
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct WindDownTaiko {
     pub initial_rate: Option<f32>,
     pub final_rate: Option<f32>,
@@ -5085,10 +4825,6 @@ impl serde::Serialize for WindDownTaiko {
 }
 /// Can you still feel the rhythm without music?
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct MutedTaiko {
     pub inverse_muting: Option<bool>,
     pub enable_metronome: Option<bool>,
@@ -5174,10 +4910,6 @@ impl serde::Serialize for MutedTaiko {
 }
 /// Let track speed adapt to you.
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct AdaptiveSpeedTaiko {
     pub initial_rate: Option<f32>,
     pub adjust_pitch: Option<bool>,
@@ -5259,11 +4991,6 @@ impl serde::Serialize for AdaptiveSpeedTaiko {
 }
 /// Score set on earlier osu! versions with the V2 scoring algorithm active.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct ScoreV2Taiko {}
 impl ScoreV2Taiko {
     /// The acronym of [`ScoreV2Taiko`]
@@ -5315,10 +5042,6 @@ impl serde::Serialize for ScoreV2Taiko {
 }
 /// Larger fruits, more forgiving HP drain, less accuracy required, and three lives!
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct EasyCatch {
     pub retries: Option<f32>,
 }
@@ -5393,11 +5116,6 @@ impl serde::Serialize for EasyCatch {
 }
 /// You can't fail, no matter what.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct NoFailCatch {}
 impl NoFailCatch {
     /// The acronym of [`NoFailCatch`]
@@ -5457,10 +5175,6 @@ impl serde::Serialize for NoFailCatch {
 }
 /// Less zoom...
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct HalfTimeCatch {
     pub speed_change: Option<f32>,
     pub adjust_pitch: Option<bool>,
@@ -5545,10 +5259,6 @@ impl serde::Serialize for HalfTimeCatch {
 }
 /// Whoaaaaa...
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct DaycoreCatch {
     pub speed_change: Option<f32>,
 }
@@ -5619,11 +5329,6 @@ impl serde::Serialize for DaycoreCatch {
 }
 /// Everything just got a bit harder...
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct HardRockCatch {}
 impl HardRockCatch {
     /// The acronym of [`HardRockCatch`]
@@ -5681,10 +5386,6 @@ impl serde::Serialize for HardRockCatch {
 }
 /// Miss and fail.
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct SuddenDeathCatch {
     pub restart: Option<bool>,
 }
@@ -5759,10 +5460,6 @@ impl serde::Serialize for SuddenDeathCatch {
 }
 /// SS or quit.
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct PerfectCatch {
     pub restart: Option<bool>,
 }
@@ -5838,10 +5535,6 @@ impl serde::Serialize for PerfectCatch {
 }
 /// Zoooooooooom...
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct DoubleTimeCatch {
     pub speed_change: Option<f32>,
     pub adjust_pitch: Option<bool>,
@@ -5926,10 +5619,6 @@ impl serde::Serialize for DoubleTimeCatch {
 }
 /// Uguuuuuuuu...
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct NightcoreCatch {
     pub speed_change: Option<f32>,
 }
@@ -6006,11 +5695,6 @@ impl serde::Serialize for NightcoreCatch {
 }
 /// Play with fading fruits.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct HiddenCatch {}
 impl HiddenCatch {
     /// The acronym of [`HiddenCatch`]
@@ -6062,10 +5746,6 @@ impl serde::Serialize for HiddenCatch {
 }
 /// Restricted view area.
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct FlashlightCatch {
     pub size_multiplier: Option<f32>,
     pub combo_based_size: Option<bool>,
@@ -6141,10 +5821,6 @@ impl serde::Serialize for FlashlightCatch {
 }
 /// Fail if your accuracy drops too low!
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct AccuracyChallengeCatch {
     pub minimum_accuracy: Option<f32>,
     pub accuracy_judge_mode: Option<String>,
@@ -6230,10 +5906,6 @@ impl serde::Serialize for AccuracyChallengeCatch {
 }
 /// Override a beatmap's difficulty settings.
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct DifficultyAdjustCatch {
     pub circle_size: Option<f32>,
     pub approach_rate: Option<f32>,
@@ -6341,11 +6013,6 @@ impl serde::Serialize for DifficultyAdjustCatch {
 }
 /// Feeling nostalgic?
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct ClassicCatch {}
 impl ClassicCatch {
     /// The acronym of [`ClassicCatch`]
@@ -6391,11 +6058,6 @@ impl serde::Serialize for ClassicCatch {
 }
 /// Fruits are flipped horizontally.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct MirrorCatch {}
 impl MirrorCatch {
     /// The acronym of [`MirrorCatch`]
@@ -6447,11 +6109,6 @@ impl serde::Serialize for MirrorCatch {
 }
 /// Watch a perfect automated play through the song.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct AutoplayCatch {}
 impl AutoplayCatch {
     /// The acronym of [`AutoplayCatch`]
@@ -6509,11 +6166,6 @@ impl serde::Serialize for AutoplayCatch {
 }
 /// Watch the video without visual distractions.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct CinemaCatch {}
 impl CinemaCatch {
     /// The acronym of [`CinemaCatch`]
@@ -6575,11 +6227,6 @@ impl serde::Serialize for CinemaCatch {
 }
 /// Use the mouse to control the catcher.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct RelaxCatch {}
 impl RelaxCatch {
     /// The acronym of [`RelaxCatch`]
@@ -6637,10 +6284,6 @@ impl serde::Serialize for RelaxCatch {
 }
 /// Can you keep up?
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct WindUpCatch {
     pub initial_rate: Option<f32>,
     pub final_rate: Option<f32>,
@@ -6727,10 +6370,6 @@ impl serde::Serialize for WindUpCatch {
 }
 /// Sloooow doooown...
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct WindDownCatch {
     pub initial_rate: Option<f32>,
     pub final_rate: Option<f32>,
@@ -6817,11 +6456,6 @@ impl serde::Serialize for WindDownCatch {
 }
 /// The fruits are... floating?
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct FloatingFruitsCatch {}
 impl FloatingFruitsCatch {
     /// The acronym of [`FloatingFruitsCatch`]
@@ -6867,10 +6501,6 @@ impl serde::Serialize for FloatingFruitsCatch {
 }
 /// Can you still feel the rhythm without music?
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct MutedCatch {
     pub inverse_muting: Option<bool>,
     pub enable_metronome: Option<bool>,
@@ -6956,10 +6586,6 @@ impl serde::Serialize for MutedCatch {
 }
 /// Where's the catcher?
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct NoScopeCatch {
     pub hidden_combo_count: Option<f32>,
 }
@@ -7021,11 +6647,6 @@ impl serde::Serialize for NoScopeCatch {
 }
 /// Score set on earlier osu! versions with the V2 scoring algorithm active.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct ScoreV2Catch {}
 impl ScoreV2Catch {
     /// The acronym of [`ScoreV2Catch`]
@@ -7077,10 +6698,6 @@ impl serde::Serialize for ScoreV2Catch {
 }
 /// More forgiving HP drain, less accuracy required, and three lives!
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct EasyMania {
     pub retries: Option<f32>,
 }
@@ -7155,11 +6772,6 @@ impl serde::Serialize for EasyMania {
 }
 /// You can't fail, no matter what.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct NoFailMania {}
 impl NoFailMania {
     /// The acronym of [`NoFailMania`]
@@ -7219,10 +6831,6 @@ impl serde::Serialize for NoFailMania {
 }
 /// Less zoom...
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct HalfTimeMania {
     pub speed_change: Option<f32>,
     pub adjust_pitch: Option<bool>,
@@ -7308,10 +6916,6 @@ impl serde::Serialize for HalfTimeMania {
 }
 /// Whoaaaaa...
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct DaycoreMania {
     pub speed_change: Option<f32>,
 }
@@ -7383,11 +6987,6 @@ impl serde::Serialize for DaycoreMania {
 }
 /// Everything just got a bit harder...
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct HardRockMania {}
 impl HardRockMania {
     /// The acronym of [`HardRockMania`]
@@ -7445,10 +7044,6 @@ impl serde::Serialize for HardRockMania {
 }
 /// Miss and fail.
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct SuddenDeathMania {
     pub restart: Option<bool>,
 }
@@ -7523,10 +7118,6 @@ impl serde::Serialize for SuddenDeathMania {
 }
 /// SS or quit.
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct PerfectMania {
     pub restart: Option<bool>,
 }
@@ -7602,10 +7193,6 @@ impl serde::Serialize for PerfectMania {
 }
 /// Zoooooooooom...
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct DoubleTimeMania {
     pub speed_change: Option<f32>,
     pub adjust_pitch: Option<bool>,
@@ -7691,10 +7278,6 @@ impl serde::Serialize for DoubleTimeMania {
 }
 /// Uguuuuuuuu...
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct NightcoreMania {
     pub speed_change: Option<f32>,
 }
@@ -7772,11 +7355,6 @@ impl serde::Serialize for NightcoreMania {
 }
 /// Keys appear out of nowhere!
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct FadeInMania {}
 impl FadeInMania {
     /// The acronym of [`FadeInMania`]
@@ -7835,11 +7413,6 @@ impl serde::Serialize for FadeInMania {
 }
 /// Keys fade out before you hit them!
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct HiddenMania {}
 impl HiddenMania {
     /// The acronym of [`HiddenMania`]
@@ -7898,10 +7471,6 @@ impl serde::Serialize for HiddenMania {
 }
 /// Decrease the playfield's viewing area.
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct CoverMania {
     pub coverage: Option<f32>,
     pub direction: Option<String>,
@@ -7977,10 +7546,6 @@ impl serde::Serialize for CoverMania {
 }
 /// Restricted view area.
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct FlashlightMania {
     pub size_multiplier: Option<f32>,
     pub combo_based_size: Option<bool>,
@@ -8063,10 +7628,6 @@ impl serde::Serialize for FlashlightMania {
 }
 /// Fail if your accuracy drops too low!
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct AccuracyChallengeMania {
     pub minimum_accuracy: Option<f32>,
     pub accuracy_judge_mode: Option<String>,
@@ -8152,10 +7713,6 @@ impl serde::Serialize for AccuracyChallengeMania {
 }
 /// Shuffle around the keys!
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct RandomMania {
     pub seed: Option<f32>,
 }
@@ -8223,11 +7780,6 @@ impl serde::Serialize for RandomMania {
 }
 /// Double the stages, double the fun!
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct DualStagesMania {}
 impl DualStagesMania {
     /// The acronym of [`DualStagesMania`]
@@ -8279,11 +7831,6 @@ impl serde::Serialize for DualStagesMania {
 }
 /// Notes are flipped horizontally.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct MirrorMania {}
 impl MirrorMania {
     /// The acronym of [`MirrorMania`]
@@ -8335,10 +7882,6 @@ impl serde::Serialize for MirrorMania {
 }
 /// Override a beatmap's difficulty settings.
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct DifficultyAdjustMania {
     pub drain_rate: Option<f32>,
     pub overall_difficulty: Option<f32>,
@@ -8422,11 +7965,6 @@ impl serde::Serialize for DifficultyAdjustMania {
 }
 /// Feeling nostalgic?
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct ClassicMania {}
 impl ClassicMania {
     /// The acronym of [`ClassicMania`]
@@ -8472,11 +8010,6 @@ impl serde::Serialize for ClassicMania {
 }
 /// Hold the keys. To the beat.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct InvertMania {}
 impl InvertMania {
     /// The acronym of [`InvertMania`]
@@ -8522,11 +8055,6 @@ impl serde::Serialize for InvertMania {
 }
 /// No more tricky speed changes!
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct ConstantSpeedMania {}
 impl ConstantSpeedMania {
     /// The acronym of [`ConstantSpeedMania`]
@@ -8572,11 +8100,6 @@ impl serde::Serialize for ConstantSpeedMania {
 }
 /// Replaces all hold notes with normal notes.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct HoldOffMania {}
 impl HoldOffMania {
     /// The acronym of [`HoldOffMania`]
@@ -8622,11 +8145,6 @@ impl serde::Serialize for HoldOffMania {
 }
 /// Play with one key.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct OneKeyMania {}
 impl OneKeyMania {
     /// The acronym of [`OneKeyMania`]
@@ -8691,11 +8209,6 @@ impl serde::Serialize for OneKeyMania {
 }
 /// Play with two keys.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct TwoKeysMania {}
 impl TwoKeysMania {
     /// The acronym of [`TwoKeysMania`]
@@ -8760,11 +8273,6 @@ impl serde::Serialize for TwoKeysMania {
 }
 /// Play with three keys.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct ThreeKeysMania {}
 impl ThreeKeysMania {
     /// The acronym of [`ThreeKeysMania`]
@@ -8829,11 +8337,6 @@ impl serde::Serialize for ThreeKeysMania {
 }
 /// Play with four keys.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct FourKeysMania {}
 impl FourKeysMania {
     /// The acronym of [`FourKeysMania`]
@@ -8898,11 +8401,6 @@ impl serde::Serialize for FourKeysMania {
 }
 /// Play with five keys.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct FiveKeysMania {}
 impl FiveKeysMania {
     /// The acronym of [`FiveKeysMania`]
@@ -8967,11 +8465,6 @@ impl serde::Serialize for FiveKeysMania {
 }
 /// Play with six keys.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct SixKeysMania {}
 impl SixKeysMania {
     /// The acronym of [`SixKeysMania`]
@@ -9036,11 +8529,6 @@ impl serde::Serialize for SixKeysMania {
 }
 /// Play with seven keys.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct SevenKeysMania {}
 impl SevenKeysMania {
     /// The acronym of [`SevenKeysMania`]
@@ -9105,11 +8593,6 @@ impl serde::Serialize for SevenKeysMania {
 }
 /// Play with eight keys.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct EightKeysMania {}
 impl EightKeysMania {
     /// The acronym of [`EightKeysMania`]
@@ -9174,11 +8657,6 @@ impl serde::Serialize for EightKeysMania {
 }
 /// Play with nine keys.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct NineKeysMania {}
 impl NineKeysMania {
     /// The acronym of [`NineKeysMania`]
@@ -9243,11 +8721,6 @@ impl serde::Serialize for NineKeysMania {
 }
 /// Play with ten keys.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct TenKeysMania {}
 impl TenKeysMania {
     /// The acronym of [`TenKeysMania`]
@@ -9306,11 +8779,6 @@ impl serde::Serialize for TenKeysMania {
 }
 /// Watch a perfect automated play through the song.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct AutoplayMania {}
 impl AutoplayMania {
     /// The acronym of [`AutoplayMania`]
@@ -9368,11 +8836,6 @@ impl serde::Serialize for AutoplayMania {
 }
 /// Watch the video without visual distractions.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct CinemaMania {}
 impl CinemaMania {
     /// The acronym of [`CinemaMania`]
@@ -9434,10 +8897,6 @@ impl serde::Serialize for CinemaMania {
 }
 /// Can you keep up?
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct WindUpMania {
     pub initial_rate: Option<f32>,
     pub final_rate: Option<f32>,
@@ -9525,10 +8984,6 @@ impl serde::Serialize for WindUpMania {
 }
 /// Sloooow doooown...
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct WindDownMania {
     pub initial_rate: Option<f32>,
     pub final_rate: Option<f32>,
@@ -9616,10 +9071,6 @@ impl serde::Serialize for WindDownMania {
 }
 /// Can you still feel the rhythm without music?
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct MutedMania {
     pub inverse_muting: Option<bool>,
     pub enable_metronome: Option<bool>,
@@ -9705,10 +9156,6 @@ impl serde::Serialize for MutedMania {
 }
 /// Let track speed adapt to you.
 #[derive(Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 pub struct AdaptiveSpeedMania {
     pub initial_rate: Option<f32>,
     pub adjust_pitch: Option<bool>,
@@ -9790,11 +9237,6 @@ impl serde::Serialize for AdaptiveSpeedMania {
 }
 /// Score set on earlier osu! versions with the V2 scoring algorithm active.
 #[derive(Copy, Eq, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct ScoreV2Mania {}
 impl ScoreV2Mania {
     /// The acronym of [`ScoreV2Mania`]
@@ -9846,11 +9288,6 @@ impl serde::Serialize for ScoreV2Mania {
 }
 /// Any mod unknown to `rosu-v2`
 #[derive(Copy, Eq, Clone, Debug, PartialEq, PartialOrd, Ord, Hash)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub struct UnknownMod {
     pub acronym: Acronym,
 }
@@ -9910,11 +9347,6 @@ impl serde::Serialize for UnknownMod {
 /// The different types of a [`GameMod`]
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 pub enum GameModKind {
     DifficultyReduction,
     DifficultyIncrease,
@@ -9925,11 +9357,6 @@ pub enum GameModKind {
 }
 /// The kind of a [`GameMod`] when the mode is ignored
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize),
-    archive(as = "Self")
-)]
 #[non_exhaustive]
 pub enum GameModIntermode {
     AccuracyChallenge,
@@ -10433,6 +9860,9 @@ impl From<&GameMod> for GameModOrder {
                 GameMod::ClassicTaiko(_) => arm!(Taiko, ClassicTaiko, None, Classic),
                 GameMod::SwapTaiko(_) => arm!(Taiko, SwapTaiko, None, Swap),
                 GameMod::SingleTapTaiko(_) => arm!(Taiko, SingleTapTaiko, None, SingleTap),
+                GameMod::ConstantSpeedTaiko(_) => {
+                    arm!(Taiko, ConstantSpeedTaiko, None, ConstantSpeed)
+                }
                 GameMod::AutoplayTaiko(_) => arm!(Taiko, AutoplayTaiko, Some(12), Autoplay),
                 GameMod::CinemaTaiko(_) => arm!(Taiko, CinemaTaiko, Some(23), Cinema),
                 GameMod::RelaxTaiko(_) => arm!(Taiko, RelaxTaiko, Some(8), Relax),
@@ -10573,10 +10003,6 @@ impl Borrow<GameModIntermode> for GameModOrder {
 }
 /// A single game mod
 #[derive(Clone, Debug, PartialEq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
-)]
 #[non_exhaustive]
 pub enum GameMod {
     EasyOsu(EasyOsu),
@@ -10644,6 +10070,7 @@ pub enum GameMod {
     ClassicTaiko(ClassicTaiko),
     SwapTaiko(SwapTaiko),
     SingleTapTaiko(SingleTapTaiko),
+    ConstantSpeedTaiko(ConstantSpeedTaiko),
     AutoplayTaiko(AutoplayTaiko),
     CinemaTaiko(CinemaTaiko),
     RelaxTaiko(RelaxTaiko),
@@ -10787,6 +10214,7 @@ impl GameMod {
             ("CL", GameMode::Taiko) => Self::ClassicTaiko(Default::default()),
             ("SW", GameMode::Taiko) => Self::SwapTaiko(Default::default()),
             ("SG", GameMode::Taiko) => Self::SingleTapTaiko(Default::default()),
+            ("CS", GameMode::Taiko) => Self::ConstantSpeedTaiko(Default::default()),
             ("AT", GameMode::Taiko) => Self::AutoplayTaiko(Default::default()),
             ("CN", GameMode::Taiko) => Self::CinemaTaiko(Default::default()),
             ("RX", GameMode::Taiko) => Self::RelaxTaiko(Default::default()),
@@ -10938,6 +10366,7 @@ impl GameMod {
             Self::ClassicTaiko(_) => ClassicTaiko::acronym(),
             Self::SwapTaiko(_) => SwapTaiko::acronym(),
             Self::SingleTapTaiko(_) => SingleTapTaiko::acronym(),
+            Self::ConstantSpeedTaiko(_) => ConstantSpeedTaiko::acronym(),
             Self::AutoplayTaiko(_) => AutoplayTaiko::acronym(),
             Self::CinemaTaiko(_) => CinemaTaiko::acronym(),
             Self::RelaxTaiko(_) => RelaxTaiko::acronym(),
@@ -11084,6 +10513,7 @@ impl GameMod {
             Self::ClassicTaiko(_) => ClassicTaiko::incompatible_mods().collect(),
             Self::SwapTaiko(_) => SwapTaiko::incompatible_mods().collect(),
             Self::SingleTapTaiko(_) => SingleTapTaiko::incompatible_mods().collect(),
+            Self::ConstantSpeedTaiko(_) => ConstantSpeedTaiko::incompatible_mods().collect(),
             Self::AutoplayTaiko(_) => AutoplayTaiko::incompatible_mods().collect(),
             Self::CinemaTaiko(_) => CinemaTaiko::incompatible_mods().collect(),
             Self::RelaxTaiko(_) => RelaxTaiko::incompatible_mods().collect(),
@@ -11229,6 +10659,7 @@ impl GameMod {
             Self::ClassicTaiko(_) => ClassicTaiko::description(),
             Self::SwapTaiko(_) => SwapTaiko::description(),
             Self::SingleTapTaiko(_) => SingleTapTaiko::description(),
+            Self::ConstantSpeedTaiko(_) => ConstantSpeedTaiko::description(),
             Self::AutoplayTaiko(_) => AutoplayTaiko::description(),
             Self::CinemaTaiko(_) => CinemaTaiko::description(),
             Self::RelaxTaiko(_) => RelaxTaiko::description(),
@@ -11370,6 +10801,7 @@ impl GameMod {
             Self::ClassicTaiko(_) => ClassicTaiko::kind(),
             Self::SwapTaiko(_) => SwapTaiko::kind(),
             Self::SingleTapTaiko(_) => SingleTapTaiko::kind(),
+            Self::ConstantSpeedTaiko(_) => ConstantSpeedTaiko::kind(),
             Self::AutoplayTaiko(_) => AutoplayTaiko::kind(),
             Self::CinemaTaiko(_) => CinemaTaiko::kind(),
             Self::RelaxTaiko(_) => RelaxTaiko::kind(),
@@ -11596,6 +11028,7 @@ impl GameMod {
             | Self::ClassicTaiko(_)
             | Self::SwapTaiko(_)
             | Self::SingleTapTaiko(_)
+            | Self::ConstantSpeedTaiko(_)
             | Self::AutoplayTaiko(_)
             | Self::CinemaTaiko(_)
             | Self::RelaxTaiko(_)
@@ -11739,6 +11172,7 @@ impl GameMod {
             Self::ClassicTaiko(_) => GameModIntermode::Classic,
             Self::SwapTaiko(_) => GameModIntermode::Swap,
             Self::SingleTapTaiko(_) => GameModIntermode::SingleTap,
+            Self::ConstantSpeedTaiko(_) => GameModIntermode::ConstantSpeed,
             Self::AutoplayTaiko(_) => GameModIntermode::Autoplay,
             Self::CinemaTaiko(_) => GameModIntermode::Cinema,
             Self::RelaxTaiko(_) => GameModIntermode::Relax,
@@ -11908,6 +11342,7 @@ impl<'de> Visitor<'de> for GameModSettings<'de> {
             ("CL", GameMode::Taiko) => GameMod::ClassicTaiko(Deserialize::deserialize(d)?),
             ("SW", GameMode::Taiko) => GameMod::SwapTaiko(Deserialize::deserialize(d)?),
             ("SG", GameMode::Taiko) => GameMod::SingleTapTaiko(Deserialize::deserialize(d)?),
+            ("CS", GameMode::Taiko) => GameMod::ConstantSpeedTaiko(Deserialize::deserialize(d)?),
             ("AT", GameMode::Taiko) => GameMod::AutoplayTaiko(Deserialize::deserialize(d)?),
             ("CN", GameMode::Taiko) => GameMod::CinemaTaiko(Deserialize::deserialize(d)?),
             ("RX", GameMode::Taiko) => GameMod::RelaxTaiko(Deserialize::deserialize(d)?),

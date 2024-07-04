@@ -1,24 +1,20 @@
 use super::{
     beatmap::BeatmapsetExtended,
-    serde_,
-    user_::{deserialize_country, User, UserStatistics},
+    serde_util,
+    user::{deserialize_country, User, UserStatistics},
     GameMode,
 };
-use crate::{model::user_::CountryCode, Osu, OsuResult};
+use crate::{model::user::CountryCode, Osu, OsuResult};
 
-use serde::{
+use ::serde::{
     de::{Deserializer, Error, IgnoredAny, MapAccess, SeqAccess, Visitor},
     Deserialize,
 };
 use std::fmt;
 use time::OffsetDateTime;
 
-#[cfg(feature = "rkyv")]
-use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
-
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct ChartRankings {
     /// The list of beatmaps in the requested spotlight for the given mode
     #[serde(rename = "beatmapsets")]
@@ -35,7 +31,6 @@ pub struct ChartRankings {
 
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct CountryRanking {
     /// Active user count
     pub active_users: u32,
@@ -43,7 +38,6 @@ pub struct CountryRanking {
     #[serde(deserialize_with = "deserialize_country")]
     pub country: String,
     #[serde(rename = "code")]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::CountryCodeWrapper))]
     pub country_code: CountryCode,
     /// Summed playcount for all users
     #[serde(rename = "play_count")]
@@ -57,7 +51,6 @@ pub struct CountryRanking {
 
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct CountryRankings {
     /// The next page of the ranking
     #[serde(
@@ -84,7 +77,6 @@ impl CountryRankings {
 
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct Rankings {
     #[serde(default)]
     pub(crate) mode: Option<GameMode>,
@@ -101,7 +93,6 @@ pub struct Rankings {
     )]
     pub ranking: Vec<User>,
     #[serde(default)]
-    #[cfg(not(feature = "rkyv"))]
     pub(crate) ranking_type: Option<RankingType>,
     pub total: u32,
 }
@@ -305,7 +296,7 @@ struct UserWithoutStats<'u> {
     pub is_supporter: &'u bool,
     #[serde(
         skip_serializing_if = "Option::is_none",
-        with = "serde_::option_datetime"
+        with = "serde_util::option_datetime"
     )]
     pub last_visit: &'u Option<OffsetDateTime>,
     pub pm_friends_only: &'u bool,
@@ -524,7 +515,6 @@ fn serialize_user_stats_vec<S: serde::ser::Serializer>(
 
 #[derive(Copy, Clone, Debug, Deserialize, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 #[serde(rename_all = "lowercase")]
 pub(crate) enum RankingType {
     Charts,
@@ -548,7 +538,6 @@ impl Rankings {
     /// If `next_page` is `Some`, the API can provide the next set of users and this method will request them.
     /// Otherwise, this method returns `None`.
     #[inline]
-    #[cfg(not(feature = "rkyv"))]
     pub async fn get_next(&self, osu: &Osu) -> Option<OsuResult<Rankings>> {
         let page = self.next_page?;
         let mode = self.mode?;
@@ -614,11 +603,9 @@ fn deserialize_rankings_cursor<'de, D: Deserializer<'de>>(d: D) -> Result<Option
 /// The details of a spotlight.
 #[derive(Clone, Debug, Deserialize)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct Spotlight {
     /// The end date of the spotlight.
-    #[serde(with = "serde_::datetime")]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
+    #[serde(with = "serde_util::datetime")]
     pub end_date: OffsetDateTime,
     /// If the spotlight has different mades specific to each [`GameMode`](crate::model::GameMode).
     pub mode_specific: bool,
@@ -634,8 +621,7 @@ pub struct Spotlight {
     #[serde(rename = "type")]
     pub spotlight_type: String,
     /// The starting date of the spotlight.
-    #[serde(with = "serde_::datetime")]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
+    #[serde(with = "serde_util::datetime")]
     pub start_date: OffsetDateTime,
 }
 

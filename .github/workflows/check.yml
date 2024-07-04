@@ -15,7 +15,7 @@ jobs:
           - kind: default-features
             features: default
           - kind: full-features
-            features: cache,macros,metrics,replay,rkyv,serialize
+            features: cache,macros,metrics,replay,serialize
 
     steps:
       - name: Checkout project
@@ -77,6 +77,6 @@ jobs:
         run: >
           cargo hack check
           --feature-powerset --no-dev-deps
-          --optional-deps metrics,rkyv
-          --group-features default,cache,macros --group-features rkyv,serialize
+          --optional-deps metrics
+          --group-features default,cache,macros
           --workspace --exclude generate-mods

@@ -14,32 +14,6 @@ macro_rules! def_enum {
             }
         }
 
-        #[cfg(feature = "rkyv")]
-        impl Archive for $type {
-            type Archived = Self;
-            type Resolver = ();
-
-            #[inline]
-            unsafe fn resolve(&self, _: usize, _: Self::Resolver, out: *mut Self::Archived) {
-                out.write(*self)
-            }
-        }
-
-        #[cfg(feature = "rkyv")]
-        impl<S: rkyv::Fallible> rkyv::Serialize<S> for $type {
-            #[inline]
-            fn serialize(&self, _: &mut S) -> Result<(), S::Error> {
-                Ok(())
-            }
-        }
-
-        #[cfg(feature = "rkyv")]
-        impl<D: rkyv::Fallible> rkyv::Deserialize<Self, D> for $type {
-            #[inline]
-            fn deserialize(&self, _: &mut D) -> Result<Self, D::Error> {
-                Ok(*self)
-            }
-        }
         impl From<$type> for u8 {
             #[inline]
             fn from(v: $type) -> Self {
@@ -160,195 +134,46 @@ macro_rules! def_enum {
 
 mod grade;
 mod mode;
-mod serde_;
-
-#[cfg(feature = "rkyv")]
-mod rkyv_impls;
-
-pub(crate) mod beatmap_;
-pub(crate) mod comments_;
-pub(crate) mod event_;
-pub(crate) mod forum_;
-pub(crate) mod kudosu_;
-pub(crate) mod matches_;
-pub(crate) mod news_;
-pub(crate) mod ranking_;
-pub(crate) mod score_;
-pub(crate) mod seasonal_backgrounds_;
-pub(crate) mod user_;
-pub(crate) mod wiki_;
+mod serde_util;
 
 /// Beatmap(set) related types
-pub mod beatmap {
-    pub use super::beatmap_::{
-        Beatmap, BeatmapDifficultyAttributes, BeatmapExtended, Beatmapset, BeatmapsetAvailability,
-        BeatmapsetCommentEdit, BeatmapsetCommentId, BeatmapsetCommentKudosuGain,
-        BeatmapsetCommentNominate, BeatmapsetCommentOwnerChange, BeatmapsetCovers,
-        BeatmapsetDiscussion, BeatmapsetEvent, BeatmapsetEvents, BeatmapsetExtended,
-        BeatmapsetHype, BeatmapsetNominations, BeatmapsetNominationsRequiredMeta, BeatmapsetPost,
-        BeatmapsetReviewsConfig, BeatmapsetSearchResult, BeatmapsetSearchSort, BeatmapsetVote,
-        FailTimes, GameModeAttributes, Genre, Language, MostPlayedMap, RankStatus,
-    };
-}
+pub mod beatmap;
 
 /// Comment related types
-pub mod comments {
-    pub use super::comments_::{Comment, CommentBundle, CommentSort, CommentableMeta};
-}
+pub mod comments;
+
+/// Event related types
+pub mod event;
 
 /// Forum post related types
-pub mod forum {
-    pub use super::forum_::{ForumPost, ForumPosts, ForumPostsSearch, ForumTopic};
-}
+pub mod forum;
 
 /// User kudosu related types
-pub mod kudosu {
-    pub use super::kudosu_::{KudosuAction, KudosuGiver, KudosuHistory, KudosuPost};
-}
+pub mod kudosu;
 
 /// Multiplayer match related types
-pub mod matches {
-    pub use super::matches_::{
-        MatchEvent, MatchGame, MatchGameDrain, MatchGameIter, MatchInfo, MatchList,
-        MatchListParams, MatchScore, OsuMatch, ScoringType, Team, TeamType,
-    };
-}
+pub mod matches;
 
 /// Game mods related types
 pub mod mods;
 
 /// News related types
-pub mod news {
-    pub use super::news_::{News, NewsPost, NewsSearch, NewsSidebar};
-}
+pub mod news;
 
 /// Ranking related types
-pub mod ranking {
-    pub use super::ranking_::{
-        ChartRankings, CountryRanking, CountryRankings, Rankings, Spotlight,
-    };
-}
-
-/// User event related types
-pub mod event {
-    pub use super::event_::{
-        Event, EventBeatmap, EventBeatmapset, EventSort, EventType, EventUser, Events,
-    };
-}
+pub mod ranking;
 
 /// Score related types
-pub mod score {
-    pub use super::score_::{
-        BeatmapUserScore, LegacyScoreStatistics, Score, ScoreStatistics, ScoreWeight,
-        UserAttributes,
-    };
-}
+pub mod score;
 
 /// Seasonal background related types
-pub mod seasonal_backgrounds {
-    pub use super::seasonal_backgrounds_::{SeasonalBackground, SeasonalBackgrounds};
-}
+pub mod seasonal_backgrounds;
 
 /// User related types
-pub mod user {
-    pub use super::user_::{
-        AccountHistory, Badge, CountryCode, GradeCounts, Group, HistoryType, Medal, MedalCompact,
-        MonthlyCount, Playstyle, ProfileBanner, ProfilePage, User, UserCover, UserExtended,
-        UserHighestRank, UserKudosu, UserLevel, UserPage, UserStatistics, UserStatisticsModes,
-        Username,
-    };
-}
+pub mod user;
 
 /// Wiki related types
-pub mod wiki {
-    pub use super::wiki_::WikiPage;
-}
-
-/// Archived types and Resolvers for all types
-#[cfg(feature = "rkyv")]
-pub mod rkyv {
-    pub use super::beatmap_::{
-        ArchivedBeatmap, ArchivedBeatmapExtended, ArchivedBeatmapset,
-        ArchivedBeatmapsetAvailability, ArchivedBeatmapsetCommentEdit, ArchivedBeatmapsetCommentId,
-        ArchivedBeatmapsetCommentKudosuGain, ArchivedBeatmapsetCommentNominate,
-        ArchivedBeatmapsetCommentOwnerChange, ArchivedBeatmapsetCovers,
-        ArchivedBeatmapsetDiscussion, ArchivedBeatmapsetEvent, ArchivedBeatmapsetEvents,
-        ArchivedBeatmapsetExtended, ArchivedBeatmapsetNominations, ArchivedBeatmapsetPost,
-        ArchivedBeatmapsetSearchResult, ArchivedFailTimes, ArchivedMostPlayedMap,
-        ArchivedRankStatus, BeatmapDifficultyAttributesResolver, BeatmapExtendedResolver,
-        BeatmapResolver, BeatmapsetAvailabilityResolver, BeatmapsetCommentEditResolver,
-        BeatmapsetCommentIdResolver, BeatmapsetCommentKudosuGainResolver,
-        BeatmapsetCommentNominateResolver, BeatmapsetCommentOwnerChangeResolver,
-        BeatmapsetCoversResolver, BeatmapsetDiscussionResolver, BeatmapsetEventResolver,
-        BeatmapsetEventsResolver, BeatmapsetHypeResolver,
-        BeatmapsetNominationsRequiredMetaResolver, BeatmapsetNominationsResolver,
-        BeatmapsetPostResolver, BeatmapsetResolver, BeatmapsetReviewsConfigResolver,
-        BeatmapsetSearchResultResolver, BeatmapsetVoteResolver, FailTimesResolver,
-        GameModeAttributesResolver, MostPlayedMapResolver, RankStatusResolver,
-    };
-
-    pub use super::comments_::{
-        ArchivedComment, ArchivedCommentBundle, ArchivedCommentableMeta, CommentBundleResolver,
-        CommentResolver, CommentSortResolver, CommentableMetaResolver,
-    };
-
-    pub use super::event_::{
-        ArchivedEvent, ArchivedEventBeatmap, ArchivedEventBeatmapset, ArchivedEventSort,
-        ArchivedEventType, ArchivedEventUser, ArchivedEvents, EventBeatmapResolver,
-        EventBeatmapsetResolver, EventResolver, EventSortResolver, EventTypeResolver,
-        EventUserResolver, EventsResolver,
-    };
-
-    pub use super::forum_::{
-        ArchivedForumPost, ArchivedForumPosts, ArchivedForumPostsSearch, ArchivedForumTopic,
-        ForumPostResolver, ForumPostsResolver, ForumPostsSearchResolver, ForumTopicResolver,
-    };
-
-    pub use super::grade::GradeResolver;
-
-    pub use super::kudosu_::{
-        ArchivedKudosuGiver, ArchivedKudosuHistory, ArchivedKudosuPost, KudosuActionResolver,
-        KudosuGiverResolver, KudosuHistoryResolver, KudosuPostResolver,
-    };
-
-    pub use super::mode::GameModeResolver;
-
-    pub use super::news_::{
-        ArchivedNews, ArchivedNewsPost, ArchivedNewsSearch, ArchivedNewsSidebar, NewsPostResolver,
-        NewsResolver, NewsSearchResolver, NewsSidebarResolver,
-    };
-
-    pub use super::ranking_::{
-        ArchivedChartRankings, ArchivedCountryRanking, ArchivedCountryRankings, ArchivedRankings,
-        ArchivedSpotlight, ChartRankingsResolver, CountryRankingResolver, CountryRankingsResolver,
-        RankingsResolver, SpotlightResolver,
-    };
-
-    pub use super::score_::{
-        ArchivedBeatmapUserScore, ArchivedLegacyScoreStatistics, ArchivedScore,
-        ArchivedScoreStatistics, BeatmapUserScoreResolver, LegacyScoreStatisticsResolver,
-        ScoreResolver, ScoreStatisticsResolver, ScoreWeightResolver,
-    };
-
-    pub use super::seasonal_backgrounds_::{
-        ArchivedSeasonalBackground, ArchivedSeasonalBackgrounds, SeasonalBackgroundResolver,
-        SeasonalBackgroundsResolver,
-    };
-
-    pub use super::user_::{
-        AccountHistoryResolver, ArchivedAccountHistory, ArchivedBadge, ArchivedGroup,
-        ArchivedMedal, ArchivedMedalCompact, ArchivedMonthlyCount, ArchivedProfileBanner,
-        ArchivedUser, ArchivedUserCover, ArchivedUserExtended, ArchivedUserHighestRank,
-        ArchivedUserPage, ArchivedUserStatistics, ArchivedUserStatisticsModes, BadgeResolver,
-        GradeCountsResolver, GroupResolver, HistoryTypeResolver, MedalCompactResolver,
-        MedalResolver, MonthlyCountResolver, PlaystyleResolver, ProfileBannerResolver,
-        ProfilePageResolver, UserCoverResolver, UserExtendedResolver, UserHighestRankResolver,
-        UserKudosuResolver, UserLevelResolver, UserPageResolver, UserResolver,
-        UserStatisticsModesResolver, UserStatisticsResolver,
-    };
-
-    pub use super::wiki_::{ArchivedWikiPage, WikiPageResolver};
-}
+pub mod wiki;
 
 pub use grade::Grade;
 pub use mode::GameMode;

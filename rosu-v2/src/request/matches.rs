@@ -1,5 +1,5 @@
 use crate::{
-    model::matches_::{MatchList, OsuMatch},
+    model::matches::{MatchList, OsuMatch},
     request::{Pending, Query, Request},
     routing::Route,
     Osu,

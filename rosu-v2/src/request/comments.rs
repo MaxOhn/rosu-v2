@@ -1,5 +1,5 @@
 use crate::{
-    model::comments_::{CommentBundle, CommentSort},
+    model::comments::{CommentBundle, CommentSort},
     request::{serialize::maybe_comment_sort, Pending, Query, Request},
     routing::Route,
     Osu,

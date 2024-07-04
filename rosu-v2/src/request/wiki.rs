@@ -1,5 +1,5 @@
 use crate::{
-    model::wiki_::WikiPage,
+    model::wiki::WikiPage,
     request::{Pending, Request},
     routing::Route,
     Osu,

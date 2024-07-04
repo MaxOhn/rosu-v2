@@ -2,8 +2,8 @@
 //!
 //! # rosu-v2
 //!
-//! rosu-v2 is a wrapper for the [osu!api v2](https://osu.ppy.sh/docs/index.html).
-//! As such, it provides a bunch of additional endpoints and data over [rosu](https://github.com/MaxOhn/rosu) which wraps the [osu!api v1](https://github.com/ppy/osu-api/wiki).
+//! rosu-v2 is a wrapper for the [osu!api v2].
+//! As such, it provides a bunch of additional endpoints and data over [`rosu`] which wraps the [osu!api v1].
 //!
 //! However, osu!'s api v2 is still very much a WIP and also weakly documented. Hence, there is a chance that some things might break either because of changes in the api or because the response is not being parsed properly.
 //!
@@ -50,7 +50,7 @@
 //! - `users`: Up to 50 users at once including statistics for all modes
 //! - `wiki/{locale}[/{path}]`: The general wiki page or a specific topic if the path is specified
 //!
-//! The api itself provides a bunch more endpoints which are not yet implemented because they're really niche and/or missing any documentation.
+//! The api itself provides a bunch more endpoints which are not yet implemented because they're either niche and/or missing any documentation.
 //!
 //! If you find an endpoint on the [api page](https://osu.ppy.sh/docs/index.html) that you want to use but is missing in rosu-v2, feel free to open an issue.
 //!
@@ -67,15 +67,9 @@
 //! # */
 //!     # let _ = async {
 //!     // Initialize the client
-//!     let client_id: u64 = 0;
-//!     let client_secret: String = String::from("");
-//!     let osu: Osu = match Osu::new(client_id, client_secret).await {
-//!         Ok(client) => client,
-//!         Err(why) => panic!(
-//!             "Failed to create client or make initial osu!api interaction: {}",
-//!             why
-//!         ),
-//!     };
+//!     let client_id: u64 = 123;
+//!     let client_secret = String::from("my_secret");
+//!     let osu = Osu::new(client_id, client_secret).await.unwrap();
 //!
 //!     // Get peppy's top 10-15 scores in osu!standard.
 //!     // Note that the username here can only be used because of the `cache` feature.
@@ -86,7 +80,7 @@
 //!         .offset(10)
 //!         .limit(5)
 //!         .await
-//!         .unwrap_or_else(|why| panic!("Failed to get scores: {}", why));
+//!         .unwrap();
 //!
 //!     // Search non-nsfw loved mania maps matching the given query.
 //!     // Note that the order of called methods doesn't matter for any endpoint.
@@ -96,28 +90,35 @@
 //!         .mode(GameMode::Mania)
 //!         .query("blue army stars>3")
 //!         .await
-//!         .unwrap_or_else(|why| panic!("Failed to search mapsets: {}", why));
+//!         .unwrap();
 //!
-//!     // Get the german wiki page on hit objects
-//!     let wiki_page: WikiPage = osu.wiki("de")
-//!         .page("Hit_object")
+//!     // Get the french wiki page on the osu file format
+//!     let wiki_page: WikiPage = osu.wiki("fr")
+//!         .page("Client/File_formats/osu_%28file_format%29")
 //!         .await
-//!         .unwrap_or_else(|why| panic!("Failed to get wiki page: {}", why));
+//!         .unwrap();
 //!     # };
 //! }
 //! ```
 //!
 //! ## Features
 //!
-//! | Flag | Description | deps
-//! |-----|-----|-----|
-//! | `default` | Enable the `cache` and `macros` features |
-//! | `cache` | Cache username-user_id pairs so that usernames can be used on all user endpoints instead of only user ids | [dashmap](https://github.com/xacrimon/dashmap)
-//! | `macros` | Extends the capabilities of the `mods!` macro to create mods for a given mode | [paste](https://github.com/dtolnay/paste) |
+//! | Flag        | Description                              | Dependencies
+//! | ----------- | ---------------------------------------- | ------------
+//! | `default`   | Enable the `cache` and `macros` features |
+//! | `cache`     | Cache username-user_id pairs so that usernames can be used on all user endpoints instead of only user ids | [`dashmap`]
+//! | `macros`    | Extends the capabilities of the `mods!` macro to create mods for a given mode | [`paste`]
 //! | `serialize` | Implement `serde::Serialize` for most types, allowing for manual serialization |
-//! | `metrics` | Uses the global metrics registry to store response time for each endpoint | [metrics](https://github.com/metrics-rs/metrics/tree/main/metrics)
-//! | `replay` | Enables the method `Osu::replay` to parse a replay. Note that `Osu::replay_raw` is available without this feature but provides raw bytes instead of a parsed replay | [osu-db](https://github.com/negamartin/osu-db) |
+//! | `metrics`   | Uses the global metrics registry to store response time for each endpoint | [`metrics`]
+//! | `replay`    | Enables the method `Osu::replay` to parse a replay. Note that `Osu::replay_raw` is available without this feature but provides raw bytes instead of a parsed replay | [`osu-db`]
 //!
+//! [osu!api v2]: https://osu.ppy.sh/docs/index.html
+//! [`rosu`]: https://github.com/MaxOhn/rosu
+//! [osu!api v1]: https://github.com/ppy/osu-api/wiki
+//! [`dashmap`]: https://docs.rs/dashmap
+//! [`paste`]: https://docs.rs/paste
+//! [`metrics`]: https://docs.rs/metrics
+//! [`osu-db`]: https://docs.rs/osu-db
 
 #![deny(rustdoc::broken_intra_doc_links, rustdoc::missing_crate_level_docs)]
 #![warn(clippy::missing_const_for_fn)]
@@ -127,8 +128,10 @@ mod routing;
 
 /// rosu-specific errors
 pub mod error;
+
 /// All available data types provided by the api
 pub mod model;
+
 /// Requesting-structs that implement [`Future`](std::future::Future) for each endpoint
 pub mod request;
 

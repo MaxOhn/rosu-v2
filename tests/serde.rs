@@ -11,7 +11,15 @@ mod types {
     pub(super) fn get_chart_rankings() -> ChartRankings {
         ChartRankings {
             mapsets: vec![get_mapset()],
-            ranking: vec![get_user_compact()],
+            ranking: vec![User {
+                statistics_modes: UserStatisticsModes {
+                    osu: None,
+                    taiko: None,
+                    catch: None,
+                    mania: None,
+                },
+                ..get_user_compact()
+            }],
             spotlight: get_spotlight(),
         }
     }

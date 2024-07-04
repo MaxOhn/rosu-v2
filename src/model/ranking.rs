@@ -250,32 +250,56 @@ impl<'u> serde::Serialize for UserCompactBorrowed<'u> {
         use serde::ser::SerializeStruct;
 
         let user = self.0;
-        let stats = user.statistics.as_ref().unwrap();
 
-        let len = 13 + stats.country_rank.is_some() as usize + stats.global_rank.is_some() as usize;
+        let UserStatistics {
+            accuracy,
+            count_300,
+            count_100,
+            count_50,
+            count_miss,
+            country_rank,
+            global_rank,
+            grade_counts,
+            is_ranked,
+            level,
+            max_combo,
+            playcount,
+            playtime,
+            pp,
+            ranked_score,
+            replays_watched,
+            total_hits,
+            total_score,
+        } = user.statistics.as_ref().unwrap();
+
+        let len = 17 + country_rank.is_some() as usize + global_rank.is_some() as usize;
 
         let mut s = s.serialize_struct("UserStatistics", len)?;
-        s.serialize_field("hit_accuracy", &stats.accuracy)?;
+        s.serialize_field("hit_accuracy", accuracy)?;
 
-        if let Some(ref rank) = stats.country_rank {
+        if let Some(rank) = country_rank {
             s.serialize_field("country_rank", rank)?;
         }
 
-        if let Some(ref rank) = stats.global_rank {
+        if let Some(rank) = global_rank {
             s.serialize_field("global_rank", rank)?;
         }
 
-        s.serialize_field("grade_counts", &stats.grade_counts)?;
-        s.serialize_field("is_ranked", &stats.is_ranked)?;
-        s.serialize_field("level", &stats.level)?;
-        s.serialize_field("maximum_combo", &stats.max_combo)?;
-        s.serialize_field("play_count", &stats.playcount)?;
-        s.serialize_field("play_time", &stats.playtime)?;
-        s.serialize_field("pp", &stats.pp)?;
-        s.serialize_field("ranked_score", &stats.ranked_score)?;
-        s.serialize_field("replays_watched_by_others", &stats.replays_watched)?;
-        s.serialize_field("total_hits", &stats.total_hits)?;
-        s.serialize_field("total_score", &stats.total_score)?;
+        s.serialize_field("grade_counts", grade_counts)?;
+        s.serialize_field("is_ranked", is_ranked)?;
+        s.serialize_field("level", level)?;
+        s.serialize_field("maximum_combo", max_combo)?;
+        s.serialize_field("play_count", playcount)?;
+        s.serialize_field("play_time", playtime)?;
+        s.serialize_field("pp", pp)?;
+        s.serialize_field("ranked_score", ranked_score)?;
+        s.serialize_field("replays_watched_by_others", replays_watched)?;
+        s.serialize_field("total_hits", total_hits)?;
+        s.serialize_field("total_score", total_score)?;
+        s.serialize_field("count_300", count_300)?;
+        s.serialize_field("count_100", count_100)?;
+        s.serialize_field("count_50", count_50)?;
+        s.serialize_field("count_miss", count_miss)?;
         s.serialize_field("user", &UserWithoutStats::new(user))?;
 
         s.end()

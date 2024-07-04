@@ -135,7 +135,6 @@ pub mod model;
 /// Requesting-structs that implement [`Future`](std::future::Future) for each endpoint
 pub mod request;
 
-#[cfg(feature = "metrics")]
 mod metrics;
 
 pub use client::{Osu, OsuBuilder};

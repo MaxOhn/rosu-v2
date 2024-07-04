@@ -803,7 +803,7 @@ fn clone_req(req: &HyperRequest<BodyBytes>) -> HyperRequest<BodyBytes> {
     let mut builder = HyperRequest::builder().method(req.method()).uri(req.uri());
 
     if let Some(headers) = builder.headers_mut() {
-        *headers = req.headers().to_owned();
+        req.headers().clone_into(headers);
     }
 
     builder.body(req.body().to_owned()).unwrap()

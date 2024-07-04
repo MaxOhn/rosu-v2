@@ -649,7 +649,7 @@ fn taiko_grade_legacy(score: &Score, passed_objects: u32) -> Grade {
 fn catch_grade_legacy(score: &Score, accuracy: Option<f32>) -> Grade {
     let accuracy = accuracy.unwrap_or_else(|| score.accuracy());
 
-    if (100.0 - accuracy).abs() < std::f32::EPSILON {
+    if (100.0 - accuracy).abs() < f32::EPSILON {
         if score.mods.contains_any(hdfl()) {
             Grade::XH
         } else {

@@ -16,6 +16,7 @@ where
     }
 }
 
+#[allow(clippy::trivially_copy_pass_by_ref)]
 pub(crate) fn maybe_mode_as_str<S: Serializer>(
     mode: &Option<GameMode>,
     serializer: S,
@@ -23,6 +24,7 @@ pub(crate) fn maybe_mode_as_str<S: Serializer>(
     maybe(mode, serializer, mode_as_str)
 }
 
+#[allow(clippy::trivially_copy_pass_by_ref)]
 pub(crate) fn mode_as_str<S: Serializer>(
     mode: &GameMode,
     serializer: S,
@@ -54,6 +56,7 @@ pub(crate) fn mods_as_list<S: Serializer>(
     map.end()
 }
 
+#[allow(clippy::trivially_copy_pass_by_ref)]
 pub(crate) fn maybe_comment_sort<S: Serializer>(
     sort: &Option<CommentSort>,
     serializer: S,
@@ -78,6 +81,7 @@ pub(crate) fn user_id_type<S: Serializer>(
     }
 }
 
+#[allow(clippy::trivially_copy_pass_by_ref)]
 pub(crate) fn maybe_bool_as_u8<S: Serializer>(
     b: &Option<bool>,
     serializer: S,
@@ -85,6 +89,7 @@ pub(crate) fn maybe_bool_as_u8<S: Serializer>(
     maybe(b, serializer, bool_as_u8)
 }
 
+#[allow(clippy::trivially_copy_pass_by_ref)]
 pub(crate) fn bool_as_u8<S: Serializer>(b: &bool, serializer: S) -> Result<S::Ok, S::Error> {
-    serializer.serialize_u8(if *b { 1 } else { 0 })
+    serializer.serialize_u8(u8::from(*b))
 }

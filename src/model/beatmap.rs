@@ -284,6 +284,7 @@ pub struct BeatmapsetExtended {
 
 // Deserialize the creator's `UserCompact` manually for edge cases
 // like mapset /s/3 where the user was deleted
+#[allow(clippy::too_many_lines)]
 fn deser_mapset_user<'de, D: Deserializer<'de>>(d: D) -> Result<Option<Box<User>>, D::Error> {
     struct MapsetUserVisitor;
 
@@ -294,6 +295,7 @@ fn deser_mapset_user<'de, D: Deserializer<'de>>(d: D) -> Result<Option<Box<User>
             f.write_str("an optional UserCompact")
         }
 
+        #[allow(clippy::too_many_lines)]
         fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
             struct DateSeed;
 
@@ -1261,12 +1263,12 @@ impl BeatmapsetSearchResult {
             Some(SearchRankStatus::Any) => fut = fut.status(None),
         }
 
-        if let Some(genre) = params.genre {
-            fut = fut.genre(Genre::try_from(genre).unwrap());
+        if let Some(Ok(genre)) = params.genre.map(Genre::try_from) {
+            fut = fut.genre(genre);
         }
 
-        if let Some(language) = params.language {
-            fut = fut.language(Language::try_from(language).unwrap());
+        if let Some(Ok(language)) = params.language.map(Language::try_from) {
+            fut = fut.language(language);
         }
 
         Some(fut.await)

@@ -150,7 +150,8 @@ pub struct Group {
     pub identifier: String,
     /// Whether members of this group are considered probationary.
     pub is_probationary: bool,
-    /// [`GameMode`]s associated with this membership (`None` if has_modes is unset).
+    /// [`GameMode`]s associated with this membership (`None` if `has_modes` is
+    /// unset).
     #[serde(default, rename = "playmodes", skip_serializing_if = "Option::is_none")]
     pub modes: Option<Vec<GameMode>>,
     pub name: String,

@@ -119,7 +119,7 @@ pub enum OsuError {
     },
 }
 
-/// Failed some TryFrom parsing
+/// Failed some [`TryFrom`] parsing
 #[derive(Debug, thiserror::Error)]
 pub enum ParsingError {
     /// Failed to parse a str into an [`Acronym`](crate::model::mods::Acronym)

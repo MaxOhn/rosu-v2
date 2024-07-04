@@ -162,6 +162,7 @@ impl CommentSort {
         }
     }
 
+    #[allow(clippy::trivially_copy_pass_by_ref)]
     pub(crate) fn serialize_as_query<S: Serializer>(
         &self,
         serializer: S,

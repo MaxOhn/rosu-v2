@@ -87,6 +87,7 @@ pub(crate) enum Route {
 
 impl Route {
     /// Separate a route into its parts: the HTTP method and the URI path.
+    #[allow(clippy::too_many_lines)]
     pub(crate) fn to_parts(&self) -> (Method, Cow<'static, str>) {
         match self {
             Self::GetBeatmap => (Method::GET, "beatmaps/lookup".into()),

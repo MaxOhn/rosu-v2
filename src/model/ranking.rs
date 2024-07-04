@@ -174,7 +174,7 @@ impl<'de> Visitor<'de> for UserStatsVisitor {
                 "maximum_combo" => max_combo = Some(map.next_value()?),
                 "play_count" => playcount = Some(map.next_value()?),
                 "play_time" => {
-                    playtime = Some(map.next_value::<Option<u32>>()?.unwrap_or_default())
+                    playtime = Some(map.next_value::<Option<u32>>()?.unwrap_or_default());
                 }
                 "pp" => pp = Some(map.next_value::<Option<f32>>()?.unwrap_or_default()),
                 "ranked_score" => ranked_score = Some(map.next_value()?),

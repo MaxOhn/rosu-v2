@@ -61,6 +61,7 @@ pub(crate) struct Request {
 }
 
 impl Request {
+    #[allow(clippy::unreadable_literal)]
     const API_VERSION: u32 = 20220705;
 
     const fn new(route: Route) -> Self {

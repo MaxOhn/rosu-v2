@@ -15,6 +15,7 @@ use dashmap::DashMap;
 /// `client_id` as well as `client_secret` **must** be specified before building.
 ///
 /// For more info, check out <https://osu.ppy.sh/docs/index.html#client-credentials-grant>
+#[must_use]
 pub struct OsuBuilder {
     auth_kind: Option<AuthorizationKind>,
     client_id: Option<u64>,
@@ -73,7 +74,7 @@ impl OsuBuilder {
         let ratelimiter = LeakyBucket::builder()
             .max(self.per_second)
             .tokens(self.per_second)
-            .refill_interval(Duration::from_millis(1000 / self.per_second as u64))
+            .refill_interval(Duration::from_millis(1000 / u64::from(self.per_second)))
             .refill_amount(1)
             .build();
 

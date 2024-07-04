@@ -91,6 +91,7 @@ pub struct Score {
 }
 
 impl<'de> Deserialize<'de> for Score {
+    #[allow(clippy::too_many_lines)]
     fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
         #[derive(Deserialize)]
         #[serde(deny_unknown_fields)]
@@ -129,7 +130,7 @@ impl<'de> Deserialize<'de> for Score {
             passed: bool,
             pp: Option<f32>,
             #[serde(rename = "mode")]
-            _mode: Option<IgnoredAny>, // only available in legacy scores
+            mode_: Option<IgnoredAny>, // only available in legacy scores
             #[serde(rename = "ruleset_id", alias = "mode_int")]
             mode: GameMode,
             #[serde(default, with = "serde_util::option_datetime")]
@@ -161,7 +162,7 @@ impl<'de> Deserialize<'de> for Score {
         // Lazer scores don't have `mode` specified; only `ruleset_id`
         // so we use that to determine if the score is legacy.
         // Maybe using `type` would be better? As of now it seems unreliable.
-        let is_legacy = score_raw._mode.is_some();
+        let is_legacy = score_raw.mode_.is_some();
 
         Ok(Score {
             classic_score: score_raw.classic_score,
@@ -473,7 +474,7 @@ impl LegacyScoreStatistics {
 
             if mode != GameMode::Osu {
                 amount += self.count_katu;
-                amount += (mode != GameMode::Catch) as u32 * self.count_geki;
+                amount += u32::from(mode != GameMode::Catch) * self.count_geki;
             }
         }
 
@@ -497,7 +498,7 @@ impl LegacyScoreStatistics {
                 let mut n =
                     (self.count_50 * 50 + self.count_100 * 100 + self.count_300 * 300) as f32;
 
-                n += ((mode == GameMode::Mania) as u32
+                n += (u32::from(mode == GameMode::Mania)
                     * (self.count_katu * 200 + self.count_geki * 300)) as f32;
 
                 (n, amount_objects * 300.0)

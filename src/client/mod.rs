@@ -7,6 +7,7 @@ use token::{Authorization, AuthorizationKind, Token, TokenResponse};
 pub use builder::OsuBuilder;
 pub use token::Scope;
 
+#[allow(clippy::wildcard_imports)]
 use crate::{error::OsuError, model::GameMode, request::*, OsuResult};
 
 use hyper::{
@@ -659,7 +660,7 @@ impl OsuRef {
         let resp = self.send_request(req).await?;
         let bytes = self.handle_status(resp).await?;
 
-        parse_bytes(bytes)
+        parse_bytes(&bytes)
     }
 
     async fn request<T: DeserializeOwned>(&self, req: Request) -> OsuResult<T> {
@@ -668,7 +669,7 @@ impl OsuRef {
         // let text = String::from_utf8_lossy(&bytes);
         // println!("Response:\n{}", text);
 
-        parse_bytes(bytes)
+        parse_bytes(&bytes)
     }
 
     async fn request_raw(&self, req: Request) -> OsuResult<Bytes> {
@@ -791,9 +792,9 @@ impl OsuRef {
 }
 
 #[inline]
-fn parse_bytes<T: DeserializeOwned>(bytes: Bytes) -> OsuResult<T> {
-    serde_json::from_slice(&bytes).map_err(|source| {
-        let body = String::from_utf8_lossy(&bytes).into_owned();
+fn parse_bytes<T: DeserializeOwned>(bytes: &Bytes) -> OsuResult<T> {
+    serde_json::from_slice(bytes).map_err(|source| {
+        let body = String::from_utf8_lossy(bytes).into_owned();
 
         OsuError::Parsing { body, source }
     })
@@ -835,12 +836,12 @@ impl HttpBody for BodyBytes {
         mut self: Pin<&mut Self>,
         _cx: &mut Context<'_>,
     ) -> Poll<Option<Result<Self::Data, Self::Error>>> {
-        if !self.is_empty() {
+        if self.is_empty() {
+            Poll::Ready(None)
+        } else {
             let bytes = mem::take(&mut self.0);
 
             Poll::Ready(Some(Ok(bytes)))
-        } else {
-            Poll::Ready(None)
         }
     }
 

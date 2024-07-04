@@ -31,7 +31,7 @@ pub struct KudosuHistory {
     pub action: KudosuAction,
     pub amount: i32,
     // pub details: _; // TODO
-    /// Object type which the exchange happened on (forum_post, etc).
+    /// Object type which the exchange happened on (`forum_post`, etc).
     pub model: String,
     #[serde(with = "super::serde_util::datetime")]
     pub created_at: OffsetDateTime,

@@ -217,7 +217,7 @@ enum ScoreType {
 }
 
 impl ScoreType {
-    const fn as_str(&self) -> &'static str {
+    const fn as_str(self) -> &'static str {
         match self {
             Self::Country => "country",
             Self::Global => "global",

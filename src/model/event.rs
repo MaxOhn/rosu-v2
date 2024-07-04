@@ -140,7 +140,7 @@ pub enum EventType {
     },
     /// When a user changes their username
     UsernameChange {
-        /// Includes previous_username
+        /// Includes `previous_username`
         user: EventUser,
     },
 }
@@ -196,7 +196,7 @@ impl serde::Serialize for EventSort {
 pub struct EventUser {
     pub username: Username,
     pub url: String,
-    /// Only for UsernameChange events
+    /// Only for `UsernameChange` events
     #[serde(
         default,
         rename = "previousUsername",

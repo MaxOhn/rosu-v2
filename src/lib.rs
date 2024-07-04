@@ -121,7 +121,22 @@
 //! [`osu-db`]: https://docs.rs/osu-db
 
 #![deny(rustdoc::broken_intra_doc_links, rustdoc::missing_crate_level_docs)]
-#![warn(clippy::missing_const_for_fn)]
+#![warn(clippy::missing_const_for_fn, clippy::pedantic)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::module_name_repetitions,
+    clippy::must_use_candidate,
+    clippy::struct_excessive_bools,
+    clippy::match_same_arms,
+    clippy::cast_possible_truncation,
+    clippy::cast_precision_loss,
+    clippy::cast_sign_loss,
+    clippy::explicit_iter_loop,
+    clippy::similar_names,
+    clippy::cast_possible_wrap,
+    clippy::default_trait_access,
+    clippy::ignored_unit_patterns
+)]
 
 mod client;
 mod routing;

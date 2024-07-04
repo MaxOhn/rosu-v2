@@ -62,7 +62,7 @@ pub struct ForumPost {
     pub html: String,
     #[cfg_attr(feature = "serialize", serde(rename = "id"))]
     pub post_id: u64,
-    /// Post content in BBCode format
+    /// Post content in `BBCode` format
     pub raw: String,
     pub topic_id: u64,
     pub user_id: u32,

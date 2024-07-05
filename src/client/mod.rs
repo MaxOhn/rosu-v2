@@ -566,7 +566,7 @@ impl Osu {
                 // ! concurrent function calls but since `DashMap::len` is a non-trivial
                 // ! method to call and `cache_user` is called frequently, it's hopefully
                 // ! fine to just naively increment here and ignore double-countings.
-                ::metrics::increment_counter!("osu_username_cache_size");
+                ::metrics::counter!("osu_username_cache_size").increment(1);
 
                 Ok(user.user_id)
             }
@@ -697,7 +697,7 @@ impl OsuRef {
         let bytes = self.handle_status(resp).await?;
 
         #[cfg(feature = "metrics")]
-        ::metrics::histogram!("osu_response_time",start.elapsed(),"route" => route.name());
+        ::metrics::histogram!("osu_response_time", "route" => route.name()).record(start.elapsed());
 
         Ok(bytes)
     }

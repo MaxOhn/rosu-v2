@@ -17,6 +17,7 @@ use rosu_v2::{
     Osu,
 };
 use tokio::sync::{Mutex, MutexGuard};
+use tracing_subscriber::{fmt::TestWriter, EnvFilter};
 
 struct OsuSingleton {
     initialized: AtomicBool,
@@ -39,7 +40,10 @@ impl OsuSingleton {
             .compare_exchange(false, true, SeqCst, SeqCst);
 
         if cmp_res.is_ok() {
-            let _ = env_logger::builder().is_test(true).try_init();
+            tracing_subscriber::fmt()
+                .with_writer(TestWriter::new())
+                .with_env_filter(EnvFilter::builder().parse("rosu_v2=trace,info").unwrap())
+                .init();
             dotenv().ok();
 
             let client_id = env::var("CLIENT_ID")

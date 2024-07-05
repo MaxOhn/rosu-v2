@@ -156,7 +156,7 @@ mod metrics;
 pub use client::{Osu, OsuBuilder};
 
 #[macro_use]
-extern crate log;
+extern crate tracing;
 
 #[cfg(feature = "macros")]
 extern crate rosu_mods;

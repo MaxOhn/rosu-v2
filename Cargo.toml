@@ -26,7 +26,6 @@ deny_unknown_fields = []
 bytes = { version = "1.0", default-features = false }
 futures = { version = "0.3", default-features = false }
 leaky-bucket-lite = { version = "0.5" }
-log = { version = "0.4", default-features = false }
 hyper = { version = "0.14", default-features = false, features = ["client"] }
 hyper-rustls = { version = "0.24.1", default-features = false, features = ["http1", "http2", "native-tokio"] }
 itoa = { version = "1.0.9" }
@@ -38,6 +37,7 @@ smallstr = { version = "0.3.0", features = ["serde"] }
 thiserror = { version = "1.0" }
 time = { version = "0.3", features = ["formatting", "parsing"] }
 tokio = { version = "1.0", default-features = false, features = ["macros"] }
+tracing = { version = "0.1.40", default-features = false }
 url = { version = "2.0", default-features = false }
 
 # --- Feature dependencies ---
@@ -50,10 +50,10 @@ metrics = { version = "0.21.1", optional = true }
 
 [dev-dependencies]
 dotenv = { version = "0.15" }
-env_logger = { version = "0.9" }
 eyre = { version = "0.6" }
 once_cell = { version = "1.7" }
 tokio = { version = "1.0", default-features = false, features = ["rt", "macros"] }
+tracing-subscriber = { version = "0.3.18", default-features = false, features = ["env-filter", "fmt", "smallvec"] }
 
 # --- Metadata ---
 

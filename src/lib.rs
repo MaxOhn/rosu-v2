@@ -107,7 +107,7 @@
 //! | ----------- | ---------------------------------------- | ------------
 //! | `default`   | Enable the `cache` and `macros` features |
 //! | `cache`     | Cache username-user_id pairs so that usernames can be used on all user endpoints instead of only user ids | [`dashmap`]
-//! | `macros`    | Extends the capabilities of the `mods!` macro to create mods for a given mode | [`paste`]
+//! | `macros`    | Re-exports `rosu-mods`'s `mods!` macro to easily create mods for a given mode | [`paste`]
 //! | `serialize` | Implement `serde::Serialize` for most types, allowing for manual serialization |
 //! | `metrics`   | Uses the global metrics registry to store response time for each endpoint | [`metrics`]
 //! | `replay`    | Enables the method `Osu::replay` to parse a replay. Note that `Osu::replay_raw` is available without this feature but provides raw bytes instead of a parsed replay | [`osu-db`]

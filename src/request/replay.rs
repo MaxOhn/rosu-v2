@@ -57,6 +57,7 @@ poll_req!(GetReplayRaw => Vec<u8>);
 
 /// Get a [`Replay`](osu_db::Replay)
 #[cfg(feature = "replay")]
+#[cfg_attr(docsrs, doc(cfg(feature = "replay")))]
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetReplay<'a> {
     fut: Option<Pending<'a, Replay>>,

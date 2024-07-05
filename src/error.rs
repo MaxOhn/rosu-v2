@@ -61,6 +61,7 @@ pub enum OsuError {
     )]
     NoToken,
     #[cfg(feature = "replay")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "replay")))]
     /// There was an error while trying to use osu-db
     #[error("osu-db error")]
     OsuDbError {

@@ -4,4 +4,5 @@ pub use rosu_mods::{
 };
 
 #[cfg(feature = "macros")]
+#[cfg_attr(docsrs, doc(cfg(feature = "macros")))]
 pub use rosu_mods::mods;

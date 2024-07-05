@@ -344,6 +344,7 @@ impl Osu {
     ///
     /// See [`OsuBuilder::with_authorization`](crate::OsuBuilder::with_authorization).
     #[cfg(feature = "replay")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "replay")))]
     #[inline]
     pub fn replay(&self, score_id: u64) -> GetReplay<'_> {
         GetReplay::new(self, score_id)

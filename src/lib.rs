@@ -120,6 +120,7 @@
 //! [`metrics`]: https://docs.rs/metrics
 //! [`osu-db`]: https://docs.rs/osu-db
 
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![deny(rustdoc::broken_intra_doc_links, rustdoc::missing_crate_level_docs)]
 #![warn(clippy::missing_const_for_fn, clippy::pedantic)]
 #![allow(
@@ -161,6 +162,7 @@ extern crate log;
 extern crate rosu_mods;
 
 #[cfg(feature = "macros")]
+#[cfg_attr(docsrs, doc(cfg(feature = "macros")))]
 pub use rosu_mods::mods;
 
 /// `Result<_, OsuError>`
@@ -195,5 +197,6 @@ pub mod prelude {
     pub use smallstr::SmallString;
 
     #[cfg(feature = "macros")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "macros")))]
     pub use rosu_mods::mods;
 }

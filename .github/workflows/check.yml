@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - next
+      - lazer
   pull_request:
 
 jobs:

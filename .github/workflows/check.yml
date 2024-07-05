@@ -100,7 +100,7 @@ jobs:
           cargo hack check
           --feature-powerset --no-dev-deps
           --optional-deps metrics
-          --group-features default,cache,macros
+          --group-features default,cache,macros,deny_unknown_fields
 
   readme:
     name: Readme

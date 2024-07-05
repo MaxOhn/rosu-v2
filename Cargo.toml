@@ -18,6 +18,7 @@ cache = ["dashmap"]
 macros = ["rosu-mods/macros"]
 replay = ["osu-db"]
 serialize = []
+deny_unknown_fields = []
 
 # --- Dependencies ---
 

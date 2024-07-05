@@ -94,7 +94,7 @@ impl<'de> Deserialize<'de> for Score {
     #[allow(clippy::too_many_lines)]
     fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
         #[derive(Deserialize)]
-        #[serde(deny_unknown_fields)]
+        #[cfg_attr(feature = "deny_unknown_fields", serde(deny_unknown_fields))]
         struct ScoreRawMods {
             #[serde(default, rename = "classic_total_score")]
             classic_score: u32, // not available in legacy scores

@@ -5,7 +5,7 @@ use std::{
     sync::atomic::{AtomicBool, Ordering::SeqCst},
 };
 
-use dotenv::dotenv;
+use dotenvy::dotenv;
 use eyre::{Result, WrapErr};
 use once_cell::sync::OnceCell;
 use rosu_v2::{

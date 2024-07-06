@@ -107,6 +107,130 @@ fn adjust_token_expire(expires_in: i64) -> i64 {
     expires_in - (expires_in as f64 * 0.05) as i64
 }
 
+pub(super) enum AuthorizationBuilder {
+    Kind(AuthorizationKind),
+    #[cfg(feature = "local_oauth")]
+    LocalOauth {
+        redirect_uri: String,
+    },
+}
+
+impl AuthorizationBuilder {
+    #[cfg(feature = "local_oauth")]
+    pub(super) async fn perform_local_oauth(
+        redirect_uri: String,
+        client_id: u64,
+    ) -> Result<Authorization, crate::error::OAuthError> {
+        use std::{
+            fmt::Write,
+            io::{Error as IoError, ErrorKind},
+            str::from_utf8 as str_from_utf8,
+        };
+        use tokio::{
+            io::AsyncWriteExt,
+            net::{TcpListener, TcpStream},
+        };
+
+        use crate::error::OAuthError;
+
+        let port: u16 = redirect_uri
+            .rsplit_once(':')
+            .and_then(|(prefix, suffix)| {
+                suffix
+                    .split('/')
+                    .next()
+                    .filter(|_| prefix.ends_with("localhost"))
+            })
+            .map(str::parse)
+            .and_then(Result::ok)
+            .ok_or(OAuthError::Url)?;
+
+        let listener = TcpListener::bind(("localhost", port))
+            .await
+            .map_err(OAuthError::Listener)?;
+
+        let mut url = format!(
+            "https://osu.ppy.sh/oauth/authorize?\
+                client_id={client_id}\
+                &redirect_uri={redirect_uri}\
+                &response_type=code",
+        );
+
+        let mut scopes = [Scope::Identify, Scope::Public].iter();
+
+        if let Some(scope) = scopes.next() {
+            let _ = write!(url, "&scopes=%22{scope}");
+
+            for scope in scopes {
+                let _ = write!(url, "+{scope}");
+            }
+
+            url.push_str("%22");
+        }
+
+        println!("Authorize yourself through the following url:\n{url}");
+        info!("Awaiting manual authorization...");
+
+        let (mut stream, _) = listener.accept().await.map_err(OAuthError::Accept)?;
+        let mut data = Vec::new();
+
+        loop {
+            stream.readable().await.map_err(OAuthError::Read)?;
+
+            match stream.try_read_buf(&mut data) {
+                Ok(0) => break,
+                Ok(_) => {
+                    if data.ends_with(b"\n\n") || data.ends_with(b"\r\n\r\n") {
+                        break;
+                    }
+                }
+                Err(ref e) if e.kind() == ErrorKind::WouldBlock => continue,
+                Err(e) => return Err(OAuthError::Read(e)),
+            }
+        }
+
+        let code = str_from_utf8(&data)
+            .ok()
+            .and_then(|data| {
+                const KEY: &str = "code=";
+
+                if let Some(mut start) = data.find(KEY) {
+                    start += KEY.len();
+
+                    if let Some(end) = data[start..].find(char::is_whitespace) {
+                        return Some(data[start..][..end].to_owned());
+                    }
+                }
+
+                None
+            })
+            .ok_or(OAuthError::NoCode { data })?;
+
+        info!("Authorization succeeded");
+
+        #[allow(clippy::items_after_statements)]
+        async fn respond(stream: &mut TcpStream) -> Result<(), IoError> {
+            let response = b"HTTP/1.0 200 OK
+Content-Type: text/html
+
+<html><body>
+<h2>rosu-v2 authentication succeeded</h2>
+You may close this tab
+</body></html>";
+
+            stream.writable().await?;
+            stream.write_all(response).await?;
+            stream.shutdown().await?;
+
+            Ok(())
+        }
+
+        respond(&mut stream).await.map_err(OAuthError::Write)?;
+
+        Ok(Authorization { code, redirect_uri })
+    }
+}
+
 pub(super) enum AuthorizationKind {
     User(Authorization),
     Client(Scope),

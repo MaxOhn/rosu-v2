@@ -5,6 +5,24 @@ use serde::Deserialize;
 use serde_json::Error as SerdeError;
 use std::fmt;
 
+#[cfg(feature = "local_oauth")]
+#[cfg_attr(docsrs, doc(cfg(feature = "local_oauth")))]
+#[derive(Debug, thiserror::Error)]
+pub enum OAuthError {
+    #[error("failed to accept request")]
+    Accept(#[source] tokio::io::Error),
+    #[error("failed to create tcp listener")]
+    Listener(#[source] tokio::io::Error),
+    #[error("missing code in request")]
+    NoCode { data: Vec<u8> },
+    #[error("failed to read data")]
+    Read(#[source] tokio::io::Error),
+    #[error("redirect uri must contain localhost and a port number")]
+    Url,
+    #[error("failed to write data")]
+    Write(#[source] tokio::io::Error),
+}
+
 /// The API response was of the form `{ "error": ... }`
 #[derive(Debug, Deserialize, thiserror::Error)]
 pub struct ApiError {
@@ -60,6 +78,14 @@ pub enum OsuError {
         This should only occur during an extended downtime of the osu!api."
     )]
     NoToken,
+    #[cfg(feature = "local_oauth")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "local_oauth")))]
+    /// Failed to perform OAuth
+    #[error("failed to perform oauth")]
+    OAuth {
+        #[from]
+        source: OAuthError,
+    },
     #[cfg(feature = "replay")]
     #[cfg_attr(docsrs, doc(cfg(feature = "replay")))]
     /// There was an error while trying to use osu-db

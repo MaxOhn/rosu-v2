@@ -103,14 +103,15 @@
 //!
 //! ## Features
 //!
-//! | Flag        | Description                              | Dependencies
-//! | ----------- | ---------------------------------------- | ------------
-//! | `default`   | Enable the `cache` and `macros` features |
-//! | `cache`     | Cache username-user_id pairs so that usernames can be used on all user endpoints instead of only user ids | [`dashmap`]
-//! | `macros`    | Re-exports `rosu-mods`'s `mods!` macro to easily create mods for a given mode | [`paste`]
-//! | `serialize` | Implement `serde::Serialize` for most types, allowing for manual serialization |
-//! | `metrics`   | Uses the global metrics registry to store response time for each endpoint | [`metrics`]
-//! | `replay`    | Enables the method `Osu::replay` to parse a replay. Note that `Osu::replay_raw` is available without this feature but provides raw bytes instead of a parsed replay | [`osu-db`]
+//! | Flag          | Description                              | Dependencies
+//! | ------------- | ---------------------------------------- | ------------
+//! | `default`     | Enable the `cache` and `macros` features |
+//! | `cache`       | Cache username-user_id pairs so that usernames can be used on all user endpoints instead of only user ids | [`dashmap`]
+//! | `macros`      | Re-exports `rosu-mods`'s `mods!` macro to easily create mods for a given mode | [`paste`]
+//! | `serialize`   | Implement `serde::Serialize` for most types, allowing for manual serialization |
+//! | `metrics`     | Uses the global metrics registry to store response time for each endpoint | [`metrics`]
+//! | `replay`      | Enables the method `Osu::replay` to parse a replay. Note that `Osu::replay_raw` is available without this feature but provides raw bytes instead of a parsed replay | [`osu-db`]
+//! | `local_oauth` | Enables the method `OsuBuilder::with_local_authorization` to perform the full OAuth procedure | `tokio/net` feature
 //!
 //! [osu!api v2]: https://osu.ppy.sh/docs/index.html
 //! [`rosu`]: https://github.com/MaxOhn/rosu

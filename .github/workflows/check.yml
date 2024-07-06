@@ -37,7 +37,7 @@ jobs:
           - kind: default-features
             features: default
           - kind: full-features
-            features: cache,macros,metrics,replay,serialize
+            features: cache,macros,metrics,replay,serialize,local_oauth
 
     steps:
       - name: Checkout project
@@ -100,7 +100,7 @@ jobs:
           cargo hack check
           --feature-powerset --no-dev-deps
           --optional-deps metrics
-          --group-features default,cache,macros,deny_unknown_fields
+          --group-features default,cache,macros,local_oauth,deny_unknown_fields
 
   readme:
     name: Readme

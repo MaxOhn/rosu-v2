@@ -1,5 +1,16 @@
 [![crates.io](https://img.shields.io/crates/v/rosu-v2.svg)](https://crates.io/crates/rosu-v2) [![docs](https://docs.rs/rosu-v2/badge.svg)](https://docs.rs/rosu-v2)
 
+# Temporary note
+
+The osu!api is currently in an exceptionally unstable state regarding data structure due to the shift towards lazer.
+Instead of regularly re-publishing a new version, the `rosu-v2/lazer` branch will be kept updated.
+
+To use `rosu-v2`, it is recommended to put the following in your `Cargo.toml`:
+```toml
+rosu-v2 = { git = "https://github.com/MaxOhn/rosu-v2", branch = "lazer" }
+```
+Be warned though, breaking changes are likely to occur regularly for the time being.
+
 # rosu-v2
 
 <!-- cargo-rdme start -->

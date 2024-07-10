@@ -1,23 +1,34 @@
 ## Upcoming
 
 - __Breaking:__
-  - `GameMods` have been reworked entirely to accommodate for osu!lazer's mods. They're no longer based on bitflags
-     but instead on a `BTreeMap` collection of `GameMod`. `GameMod` variants account for a `GameMode`. The analogous
-     mode-agnostic counterpart is `GameModsIntermode` and their `GameModIntermode` elements. E.g. there are the variants
-     `GameMod::HiddenOsu` and `GameMod::HiddenTaiko`, as well as `GameModIntermode::Hidden`.
-     The macro `mods!` can be used as shorthand for creating `GameMods` or `GameModsIntermode` based on acronyms
-     e.g. `mods!(Catch: HD HR DT)` to create `GameMods` for `GameMode::Catch` or `mods!(HD HR DT)` to create `GameModsIntermode`.
-  - `User`, `Beatmap`, and `Beatmapset` have been renamed to `UserExtended`, `BeatmapExtended`, and `BeatmapsetExtended`
-     and `UserCompact`, `BeatmapCompact`, and `BeatmapsetCompact` have been renamed to `User`, `Beatmap`, and `Beatmapset`
-  - Added the field `mapset_id` to `Beatmap`
-  - The fields `FailTimes::fail` and `FailTimes::exit` are now of type `Option<Box<u32; 100>>` instead of `Option<Vec<u32>>`
+  - All mods types are now re-exports from [`rosu-mods`](https://github.com/MaxOhn/rosu-mods) ([#28])
+  - `User`, `Beatmap`, and `Beatmapset` have been renamed to `UserExtended`, `BeatmapExtended`, and `BeatmapsetExtended`;
+     `UserCompact`, `BeatmapCompact`, and `BeatmapsetCompact` have been renamed to `User`, `Beatmap`, and `Beatmapset`
+  - The fields `FailTimes::fail` and `FailTimes::exit` are now of type `Option<Box<[u32; 100]>>` instead of `Option<Vec<u32>>`
   - Metrics are now recorded using the [`metrics`](https://github.com/metrics-rs/metrics/tree/main/metrics) crate instead of prometheus directly.
     That means they're no longer exposed through a method, but are recorded in the global metrics registry instead.
     You can install a global metrics registry e.g. through the [metrics-exporter-prometheus](https://github.com/metrics-rs/metrics/tree/main/metrics-exporter-prometheus) crate.
-  - Most fields of (optional) `User(Extended)`, `Beatmap(Extended)`, and `Beatmapset(Extended)` are now wrapped in a `Box`.
+  - Most fields of (optional) `User(Extended)`, `Beatmap(Extended)`, and `Beatmapset(Extended)` are now wrapped in a `Box`. ([#11])
+  - The field `Medal::instructions` is now a `Option<String>` instead of `String` ([#12] - [@natsukagami])
+  - Removed the method `GetBeatmapsetSearch::any_status` and instead the method `status` now takes an `Option<RankStatus>`; `None` means "any". Also renamed the variant `BeatmapsetSearchSort::RankedDate` to `ApprovedDate` and added the variants `Creator`, `Nominations`, and `LastUpdate`. ([#18])
+  - Renamed the struct `RecentEvent` to `Event` and the method `Osu::recent_events` to `recent_activity`. Also added the method `Osu::events`. ([#19])
+  - Removed the `Cursor` type. The osu!api now uses encoded strings as cursor value. ([#20])
+  - The methods `Osu::{replay, replay_raw, score}` no longer take a `GameMode` as argument. Instead, their builders now have a `mode` method which allows setting a mode optionally. ([#24] - [@natsukagami])
+  - Removed the `rkyv` feature ([#27])
+  - Added fields:
+    - `Beatmap::mapset_id`
+    - `Score::classic_score`
+    - `UserExtended::statistics_modes`
+  - Removed the field `BeatmapsetNominations::required` and added `BeatmapsetNominations::{eligible_main_rulesets, required_meta}`.
 
-- __Fixes__:
+- __Fixes:__
   - Fixed deserializing `FailTimes` for `Beatmap` and `BeatmapExtended`
+
+- __Additions:__
+  - The endpoint `Osu::users` is now usable without deprecation warning to retrieve up to 50 users at once. ([#16])
+  - Endpoints to retrieve scores now provide a `legacy_scores` method to request score data in its legacy format. ([#14])
+  - Endpoints to retrieve scores now provide a `legacy_only` method to only request non-lazer scores. ([#21])
+  - Added the feature `local_oauth` to add the method `OsuBuilder::with_local_authorization` to perform the whole OAuth process locally. ([#29])
 
 # v0.8.0 (2023-06-27)
 
@@ -170,8 +181,21 @@
 
 [@Jeglerjeg]: https://github.com/Jeglerjeg
 [@mezo]: https://github.com/mezodev0
+[@natsukagami]: https://github.com/natsukagami
 
 [#1]: https://github.com/MaxOhn/rosu-v2/pull/1
 [#2]: https://github.com/MaxOhn/rosu-v2/pull/2
 [#3]: https://github.com/MaxOhn/rosu-v2/pull/3
 [#4]: https://github.com/MaxOhn/rosu-v2/pull/4
+[#11]: https://github.com/MaxOhn/rosu-v2/pull/11
+[#12]: https://github.com/MaxOhn/rosu-v2/pull/12
+[#14]: https://github.com/MaxOhn/rosu-v2/pull/14
+[#16]: https://github.com/MaxOhn/rosu-v2/pull/16
+[#18]: https://github.com/MaxOhn/rosu-v2/pull/18
+[#19]: https://github.com/MaxOhn/rosu-v2/pull/19
+[#20]: https://github.com/MaxOhn/rosu-v2/pull/20
+[#21]: https://github.com/MaxOhn/rosu-v2/pull/21
+[#24]: https://github.com/MaxOhn/rosu-v2/pull/24
+[#27]: https://github.com/MaxOhn/rosu-v2/pull/27
+[#28]: https://github.com/MaxOhn/rosu-v2/pull/28
+[#29]: https://github.com/MaxOhn/rosu-v2/pull/29

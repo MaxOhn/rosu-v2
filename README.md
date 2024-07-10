@@ -15,10 +15,6 @@ Be warned though, breaking changes are likely to occur regularly for the time be
 
 <!-- cargo-rdme start -->
 
-[![crates.io](https://img.shields.io/crates/v/rosu-v2.svg)](https://crates.io/crates/rosu-v2) [![docs](https://docs.rs/rosu-v2/badge.svg)](https://docs.rs/rosu-v2)
-
-## rosu-v2
-
 rosu-v2 is a wrapper for the [osu!api v2].
 As such, it provides a bunch of additional endpoints and data over [`rosu`] which wraps the [osu!api v1].
 

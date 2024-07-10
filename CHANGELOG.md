@@ -1,4 +1,4 @@
-## Upcoming
+# v0.9.0 (2024-07-10)
 
 - __Breaking:__
   - All mods types are now re-exports from [`rosu-mods`](https://github.com/MaxOhn/rosu-mods) ([#28])
@@ -30,7 +30,7 @@
   - Endpoints to retrieve scores now provide a `legacy_only` method to only request non-lazer scores. ([#21])
   - Added the feature `local_oauth` to add the method `OsuBuilder::with_local_authorization` to perform the whole OAuth process locally. ([#29])
 
-# v0.8.0 (2023-06-27)
+## v0.8.0 (2023-06-27)
 
 - __Breaking:__
   - Added the field `map_id` to `Score`

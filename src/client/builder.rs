@@ -1,4 +1,4 @@
-use super::{Authorization, AuthorizationKind, Osu, OsuRef, Token};
+use super::{token::AuthorizationBuilder, Authorization, AuthorizationKind, Osu, OsuRef, Token};
 use crate::{error::OsuError, OsuResult};
 
 use hyper::client::Builder;
@@ -10,16 +10,14 @@ use tokio::sync::{oneshot, RwLock};
 #[cfg(feature = "cache")]
 use dashmap::DashMap;
 
-#[cfg(feature = "metrics")]
-use crate::metrics::Metrics;
-
 /// Builder struct for an [`Osu`](crate::Osu) client.
 ///
 /// `client_id` as well as `client_secret` **must** be specified before building.
 ///
 /// For more info, check out <https://osu.ppy.sh/docs/index.html#client-credentials-grant>
+#[must_use]
 pub struct OsuBuilder {
-    auth_kind: Option<AuthorizationKind>,
+    auth: Option<AuthorizationBuilder>,
     client_id: Option<u64>,
     client_secret: Option<String>,
     retries: usize,
@@ -28,10 +26,9 @@ pub struct OsuBuilder {
 }
 
 impl Default for OsuBuilder {
-    #[inline]
     fn default() -> Self {
         Self {
-            auth_kind: None,
+            auth: None,
             client_id: None,
             client_secret: None,
             retries: 2,
@@ -43,12 +40,11 @@ impl Default for OsuBuilder {
 
 impl OsuBuilder {
     /// Create a new [`OsuBuilder`](crate::OsuBuilder)
-    #[inline]
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Build an [`Osu`](crate::Osu) client.
+    /// Build an [`Osu`] client.
     ///
     /// To build the client, the client id and secret are being used
     /// to acquire a token from the API which expires after a certain time.
@@ -64,6 +60,17 @@ impl OsuBuilder {
         let client_id = self.client_id.ok_or(OsuError::BuilderMissingId)?;
         let client_secret = self.client_secret.ok_or(OsuError::BuilderMissingSecret)?;
 
+        let auth_kind = match self.auth {
+            Some(AuthorizationBuilder::Kind(kind)) => kind,
+            #[cfg(feature = "local_oauth")]
+            Some(AuthorizationBuilder::LocalOauth { redirect_uri }) => {
+                AuthorizationBuilder::perform_local_oauth(redirect_uri, client_id)
+                    .await
+                    .map(AuthorizationKind::User)?
+            }
+            None => AuthorizationKind::default(),
+        };
+
         let connector = HttpsConnectorBuilder::new()
             .with_native_roots()
             .https_or_http()
@@ -76,7 +83,7 @@ impl OsuBuilder {
         let ratelimiter = LeakyBucket::builder()
             .max(self.per_second)
             .tokens(self.per_second)
-            .refill_interval(Duration::from_millis(1000 / self.per_second as u64))
+            .refill_interval(Duration::from_millis(1000 / u64::from(self.per_second)))
             .refill_amount(1)
             .build();
 
@@ -88,7 +95,7 @@ impl OsuBuilder {
             http,
             ratelimiter,
             timeout: self.timeout,
-            auth_kind: self.auth_kind.unwrap_or_default(),
+            auth_kind,
             token: RwLock::new(Token::default()),
             retries: self.retries,
         });
@@ -106,24 +113,23 @@ impl OsuBuilder {
         // Let an async worker update the token regularly
         Token::update_worker(Arc::clone(&inner), expires_in, dropped_rx);
 
+        #[cfg(feature = "metrics")]
+        crate::metrics::init_metrics();
+
         Ok(Osu {
             inner,
             token_loop_tx: Some(tx),
 
             #[cfg(feature = "cache")]
             cache: Box::new(DashMap::new()),
-
-            #[cfg(feature = "metrics")]
-            metrics: Box::new(Metrics::new()),
         })
     }
 
     /// Set the client id of the application.
     ///
     /// For more info, check out <https://osu.ppy.sh/docs/index.html#client-credentials-grant>
-    #[inline]
-    pub fn client_id(mut self, client_id: u64) -> Self {
-        self.client_id.replace(client_id);
+    pub const fn client_id(mut self, client_id: u64) -> Self {
+        self.client_id = Some(client_id);
 
         self
     }
@@ -131,9 +137,32 @@ impl OsuBuilder {
     /// Set the client secret of the application.
     ///
     /// For more info, check out <https://osu.ppy.sh/docs/index.html#client-credentials-grant>
-    #[inline]
     pub fn client_secret(mut self, client_secret: impl Into<String>) -> Self {
-        self.client_secret.replace(client_secret.into());
+        self.client_secret = Some(client_secret.into());
+
+        self
+    }
+
+    /// Upon calling [`build`], `rosu-v2` will print a url to authorize a local
+    /// osu! profile.
+    ///
+    /// Be sure that the specified client id matches the OAuth application's
+    /// redirect uri.
+    ///
+    /// If the authorization code has already been acquired, use
+    /// [`with_authorization`] instead.
+    ///
+    /// For more info, check out
+    /// <https://osu.ppy.sh/docs/index.html#authorization-code-grant>
+    ///
+    /// [`build`]: OsuBuilder::build
+    /// [`with_authorization`]: OsuBuilder::with_authorization
+    #[cfg(feature = "local_oauth")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "local_oauth")))]
+    pub fn with_local_authorization(mut self, redirect_uri: impl Into<String>) -> Self {
+        self.auth = Some(AuthorizationBuilder::LocalOauth {
+            redirect_uri: redirect_uri.into(),
+        });
 
         self
     }
@@ -141,7 +170,12 @@ impl OsuBuilder {
     /// After acquiring the authorization code from a user through OAuth,
     /// use this method to provide the given code, and specified redirect uri.
     ///
-    /// For more info, check out <https://osu.ppy.sh/docs/index.html#authorization-code-grant>
+    /// To perform the full OAuth procedure for a local osu! profile, enable the
+    /// `local_oauth` feature and use `OsuBuilder::with_local_authorization`
+    /// instead.
+    ///
+    /// For more info, check out
+    /// <https://osu.ppy.sh/docs/index.html#authorization-code-grant>
     pub fn with_authorization(
         mut self,
         code: impl Into<String>,
@@ -152,22 +186,22 @@ impl OsuBuilder {
             redirect_uri: redirect_uri.into(),
         };
 
-        self.auth_kind = Some(AuthorizationKind::User(authorization));
+        self.auth = Some(AuthorizationBuilder::Kind(AuthorizationKind::User(
+            authorization,
+        )));
 
         self
     }
 
     /// In case the request times out, retry up to this many times, defaults to 2.
-    #[inline]
-    pub fn retries(mut self, retries: usize) -> Self {
+    pub const fn retries(mut self, retries: usize) -> Self {
         self.retries = retries;
 
         self
     }
 
     /// Set the timeout for requests, defaults to 10 seconds.
-    #[inline]
-    pub fn timeout(mut self, duration: Duration) -> Self {
+    pub const fn timeout(mut self, duration: Duration) -> Self {
         self.timeout = duration;
 
         self
@@ -179,8 +213,6 @@ impl OsuBuilder {
     /// Check out the osu!api's [terms of use] for acceptable values.
     ///
     /// [terms of use]: https://osu.ppy.sh/docs/index.html#terms-of-use
-
-    #[inline]
     pub fn ratelimit(mut self, reqs_per_sec: u32) -> Self {
         self.per_second = reqs_per_sec.clamp(1, 20);
 

@@ -3,17 +3,32 @@ use hyper::{
 };
 use serde::Deserialize;
 use serde_json::Error as SerdeError;
-use std::{error::Error as StdError, fmt};
-use url::ParseError;
+use std::fmt;
+
+#[cfg(feature = "local_oauth")]
+#[cfg_attr(docsrs, doc(cfg(feature = "local_oauth")))]
+#[derive(Debug, thiserror::Error)]
+pub enum OAuthError {
+    #[error("failed to accept request")]
+    Accept(#[source] tokio::io::Error),
+    #[error("failed to create tcp listener")]
+    Listener(#[source] tokio::io::Error),
+    #[error("missing code in request")]
+    NoCode { data: Vec<u8> },
+    #[error("failed to read data")]
+    Read(#[source] tokio::io::Error),
+    #[error("redirect uri must contain localhost and a port number")]
+    Url,
+    #[error("failed to write data")]
+    Write(#[source] tokio::io::Error),
+}
 
 /// The API response was of the form `{ "error": ... }`
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, thiserror::Error)]
 pub struct ApiError {
     /// Error specified by the API
     pub error: Option<String>,
 }
-
-impl StdError for ApiError {}
 
 impl fmt::Display for ApiError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -25,179 +40,137 @@ impl fmt::Display for ApiError {
 }
 
 /// The main error type
-#[derive(Debug)]
+#[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
 pub enum OsuError {
     /// Failed to create a request body
-    BodyError { source: HttpError },
+    #[error("failed to create request body")]
+    BodyError {
+        #[from]
+        source: HttpError,
+    },
     /// Failed to build an [`Osu`](crate::Osu) client because no client id was provided
+    #[error("failed to build osu client, no client id was provided")]
     BuilderMissingId,
     /// Failed to build an [`Osu`](crate::Osu) client because no client secret was provided
+    #[error("failed to build osu client, no client secret was provided")]
     BuilderMissingSecret,
     /// Error while handling response from the API
-    ChunkingResponse { source: HyperError },
+    #[error("failed to chunk the response")]
+    ChunkingResponse {
+        #[source]
+        source: HyperError,
+    },
     /// Failed to create the token header for a request
-    CreatingTokenHeader { source: InvalidHeaderValue },
+    #[error("failed to parse token for authorization header")]
+    CreatingTokenHeader {
+        #[from]
+        source: InvalidHeaderValue,
+    },
     /// The API returned a 404
+    #[error("the osu!api returned a 404 implying a missing score, incorrect name, id, etc")]
     NotFound,
     /// Attempted to make request without valid token
+    #[error(
+        "The previous osu!api token expired and the client \
+        has not yet succeeded in acquiring a new one. \
+        Can not send requests until a new token has been acquired. \
+        This should only occur during an extended downtime of the osu!api."
+    )]
     NoToken,
+    #[cfg(feature = "local_oauth")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "local_oauth")))]
+    /// Failed to perform OAuth
+    #[error("failed to perform oauth")]
+    OAuth {
+        #[from]
+        source: OAuthError,
+    },
     #[cfg(feature = "replay")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "replay")))]
     /// There was an error while trying to use osu-db
-    OsuDbError { source: osu_db::Error },
+    #[error("osu-db error")]
+    OsuDbError {
+        #[from]
+        source: osu_db::Error,
+    },
     /// Failed to deserialize response
-    Parsing { body: String, source: SerdeError },
+    #[error("failed to deserialize response: {}", .body)]
+    Parsing {
+        body: String,
+        #[source]
+        source: SerdeError,
+    },
     /// Failed to parse a value
-    ParsingValue { source: ParsingError },
+    #[error("failed to parse value")]
+    ParsingValue {
+        #[from]
+        source: ParsingError,
+    },
     /// Failed to send request
-    Request { source: HyperError },
+    #[error("failed to send request")]
+    Request {
+        #[source]
+        source: HyperError,
+    },
     /// Timeout while requesting from API
+    #[error("osu!api did not respond in time")]
     RequestTimeout,
     /// API returned an error
+    #[error("response error, status {}", .status)]
     Response {
         body: String,
+        #[source]
         source: ApiError,
         status: StatusCode,
     },
     /// Temporal (?) downtime of the osu API
+    #[error("osu!api may be temporarily unavailable (received 503): {}", .0)]
     ServiceUnavailable(String),
     /// The client's authentication is not sufficient for the endpoint
+    #[error("the endpoint is not available for the client's authorization level")]
     UnavailableEndpoint,
     /// Failed to update token
-    UpdateToken { source: Box<OsuError> },
+    #[error("failed to update osu!api token")]
+    UpdateToken {
+        #[source]
+        source: Box<OsuError>,
+    },
     /// Failed to parse the URL for a request
+    #[error("failed to parse URL of a request; url: `{}`", .url)]
     Url {
-        source: ParseError,
+        #[source]
+        source: url::ParseError,
         /// URL that was attempted to be parsed
         url: String,
     },
 }
 
-impl StdError for OsuError {
-    fn source(&self) -> Option<&(dyn StdError + 'static)> {
-        match self {
-            Self::BodyError { source } => Some(source),
-            Self::BuilderMissingId => None,
-            Self::BuilderMissingSecret => None,
-            Self::ChunkingResponse { source } => Some(source),
-            Self::CreatingTokenHeader { source } => Some(source),
-            Self::NotFound => None,
-            Self::NoToken => None,
-            #[cfg(feature = "replay")]
-            Self::OsuDbError { source } => Some(source),
-            Self::Parsing { source, .. } => Some(source),
-            Self::ParsingValue { source } => Some(source),
-            Self::Request { source } => Some(source),
-            Self::RequestTimeout => None,
-            Self::Response { source, .. } => Some(source),
-            Self::ServiceUnavailable(_) => None,
-            Self::UnavailableEndpoint => None,
-            Self::UpdateToken { source } => Some(source),
-            Self::Url { source, .. } => Some(source),
-        }
-    }
-}
-
-impl fmt::Display for OsuError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::BodyError { .. } => f.write_str("failed to create request body"),
-            Self::BuilderMissingId => {
-                f.write_str("failed to build osu client, no client id was provided")
-            }
-            Self::BuilderMissingSecret => {
-                f.write_str("failed to build osu client, no client secret was provided")
-            }
-            Self::ChunkingResponse { .. } => f.write_str("failed to chunk the response"),
-            Self::CreatingTokenHeader { .. } => {
-                f.write_str("failed to parse token for authorization header")
-            }
-            Self::NotFound => f.write_str(
-                "the osu!api returned a 404 implying a missing score, incorrect name, id, etc",
-            ),
-            Self::NoToken => f.write_str(
-                "The previous osu!api token expired and the client \
-                has not yet succeeded in acquiring a new one. \
-                Can not send requests until a new token has been acquired. \
-                This should only occur during an extended downtime of the osu!api.",
-            ),
-            #[cfg(feature = "replay")]
-            Self::OsuDbError { .. } => f.write_str("osu-db error"),
-            Self::Parsing { body, .. } => write!(f, "failed to deserialize response: {}", body),
-            Self::ParsingValue { .. } => f.write_str("failed to parse value"),
-            Self::Request { .. } => f.write_str("failed to send request"),
-            Self::RequestTimeout => f.write_str("osu!api did not respond in time"),
-            Self::Response { status, .. } => write!(f, "response error, status {}", status),
-            Self::ServiceUnavailable(body) => write!(
-                f,
-                "osu!api may be temporarily unavailable (received 503): {}",
-                body
-            ),
-            Self::UnavailableEndpoint => {
-                f.write_str("the endpoint is not available for the client's authorization level")
-            }
-            Self::UpdateToken { .. } => f.write_str("failed to update osu!api token"),
-            Self::Url { url, .. } => write!(f, "failed to parse URL of a request; url: `{}`", url),
-        }
-    }
-}
-
-#[cfg(feature = "replay")]
-impl From<osu_db::Error> for OsuError {
-    fn from(e: osu_db::Error) -> Self {
-        Self::OsuDbError { source: e }
-    }
-}
-
-impl From<HttpError> for OsuError {
-    fn from(e: HttpError) -> Self {
-        Self::BodyError { source: e }
-    }
-}
-
-impl From<ParsingError> for OsuError {
-    fn from(e: ParsingError) -> Self {
-        Self::ParsingValue { source: e }
-    }
-}
-
-/// Failed some TryFrom parsing
-#[derive(Debug)]
+/// Failed some [`TryFrom`] parsing
+#[derive(Debug, thiserror::Error)]
 pub enum ParsingError {
+    /// Failed to parse a str into an [`Acronym`](crate::model::mods::Acronym)
+    #[error("failed to parse `{}` into an Acronym", .0)]
+    Acronym(Box<str>),
     /// Failed to parse a u8 into a [`Genre`](crate::model::beatmap::Genre)
+    #[error("failed to parse {} into Genre", .0)]
     Genre(u8),
     /// Failed to parse a String into a [`Grade`](crate::model::Grade)
-    Grade(String),
+    #[error("failed to parse `{}` into Grade", .0)]
+    Grade(String), // TODO: make Box<str>
     /// Failed to parse a u8 into a [`Language`](crate::model::beatmap::Language)
+    #[error("failed to parse {} into Language", .0)]
     Language(u8),
-    /// Failed to parse a u32 into [`GameMods`](crate::model::GameMods)
-    ModsU32(u32),
-    /// Failed to parse a String into [`GameMods`](crate::model::GameMods)
-    ModsStr(String),
     /// Failed to parse an i8 into a [`RankStatus`](crate::model::beatmap::RankStatus)
+    #[error("failed to parse {} into RankStatus", .0)]
     RankStatus(i8),
     /// Failed to parse a u8 into a [`ScoringType`](crate::model::matches::ScoringType)
+    #[error("failed to parse {} into ScoringType", .0)]
     ScoringType(u8),
     /// Failed to parse a u8 into a [`Team`](crate::model::matches::Team)
+    #[error("failed to parse {} into Team", .0)]
     Team(u8),
     /// Failed to parse a u8 into a [`TeamType`](crate::model::matches::TeamType)
+    #[error("failed to parse {} into TeamType", .0)]
     TeamType(u8),
-}
-
-impl StdError for ParsingError {}
-
-impl fmt::Display for ParsingError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Genre(n) => write!(f, "failed to parse {} into Genre", n),
-            Self::Grade(s) => write!(f, "failed to parse `{}` into Grade", s),
-            Self::Language(n) => write!(f, "failed to parse {} into Language", n),
-            Self::ModsU32(n) => write!(f, "failed to parse {} into GameMods", n),
-            Self::ModsStr(s) => write!(f, "failed to parse `{}` into GameMods", s),
-            Self::RankStatus(n) => write!(f, "failed to parse {} into RankStatus", n),
-            Self::ScoringType(n) => write!(f, "failed to parse {} into ScoringType", n),
-            Self::Team(n) => write!(f, "failed to parse {} into Team", n),
-            Self::TeamType(n) => write!(f, "failed to parse {} into TeamType", n),
-        }
-    }
 }

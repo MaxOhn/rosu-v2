@@ -1,4 +1,6 @@
+/target
 .env
-/Cargo.lock
-/.idea
-output.txt
+Cargo.lock
+output.*
+expanded.*
+/tests/custom.rs

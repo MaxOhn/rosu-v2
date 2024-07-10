@@ -1,4 +1,4 @@
-use super::{serde_, Cursor};
+use super::serde_util;
 
 use serde::{
     de::{Deserializer, Error, IgnoredAny, MapAccess, Visitor},
@@ -7,16 +7,15 @@ use serde::{
 use std::fmt;
 use time::OffsetDateTime;
 
-#[cfg(feature = "rkyv")]
-use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
-
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-// TODO
-// #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct ForumPosts {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub cursor: Option<Cursor>,
+    #[serde(
+        default,
+        rename = "cursor_string",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub cursor: Option<String>,
     pub posts: Vec<ForumPost>,
     pub search: ForumPostsSearch,
     pub topic: ForumTopic,
@@ -26,39 +25,35 @@ impl ForumPosts {
     /// Checks whether the cursor field is `Some` which in turn
     /// can be used to retrieve the next set of posts.
     ///
-    /// The next set can then be retrieved by providing this
-    /// [`Cursor`] to [`GetForumPosts::cursor`](crate::request::GetForumPosts::cursor).
+    /// The next set can then be retrieved by providing this cursor to
+    /// [`GetForumPosts::cursor`](crate::request::GetForumPosts::cursor).
     /// Be sure all other parameters stay the same.
     #[inline]
-    pub fn has_more(&self) -> bool {
+    pub const fn has_more(&self) -> bool {
         self.cursor.is_some()
     }
 }
 
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct ForumPost {
-    #[cfg_attr(feature = "serialize", serde(with = "serde_::datetime"))]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
+    #[cfg_attr(feature = "serialize", serde(with = "serde_util::datetime"))]
     pub created_at: OffsetDateTime,
     #[cfg_attr(
         feature = "serialize",
         serde(
             skip_serializing_if = "Option::is_none",
-            with = "serde_::option_datetime"
+            with = "serde_util::option_datetime"
         )
     )]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub deleted_at: Option<OffsetDateTime>,
     #[cfg_attr(
         feature = "serialize",
         serde(
             skip_serializing_if = "Option::is_none",
-            with = "serde_::option_datetime"
+            with = "serde_util::option_datetime"
         )
     )]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub edited_at: Option<OffsetDateTime>,
     #[cfg_attr(feature = "serialize", serde(skip_serializing_if = "Option::is_none"))]
     pub edited_by_id: Option<u32>,
@@ -67,7 +62,7 @@ pub struct ForumPost {
     pub html: String,
     #[cfg_attr(feature = "serialize", serde(rename = "id"))]
     pub post_id: u64,
-    /// Post content in BBCode format
+    /// Post content in `BBCode` format
     pub raw: String,
     pub topic_id: u64,
     pub user_id: u32,
@@ -91,11 +86,11 @@ impl<'de> Visitor<'de> for ForumPostVisitor {
 
     fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
         #[derive(Deserialize)]
-        struct DateTimeWrapper(#[serde(with = "serde_::datetime")] OffsetDateTime);
+        struct DateTimeWrapper(#[serde(with = "serde_util::datetime")] OffsetDateTime);
 
         #[derive(Deserialize)]
         struct OptionDateTimeWrapper(
-            #[serde(with = "serde_::option_datetime")] Option<OffsetDateTime>,
+            #[serde(with = "serde_util::option_datetime")] Option<OffsetDateTime>,
         );
 
         let mut created_at: Option<DateTimeWrapper> = None;
@@ -114,8 +109,8 @@ impl<'de> Visitor<'de> for ForumPostVisitor {
                 "body" => {
                     let body: ForumPostBody = map.next_value()?;
 
-                    html.replace(body.html);
-                    raw.replace(body.raw);
+                    html = Some(body.html);
+                    raw = Some(body.raw);
                 }
                 "created_at" => created_at = Some(map.next_value()?),
                 "deleted_at" => deleted_at = Some(map.next_value()?),
@@ -175,7 +170,6 @@ impl Eq for ForumPost {}
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct ForumPostsSearch {
     pub limit: u32,
     pub sort: String,
@@ -183,17 +177,14 @@ pub struct ForumPostsSearch {
 
 #[derive(Clone, Debug, Deserialize)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct ForumTopic {
-    #[serde(with = "serde_::datetime")]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
+    #[serde(with = "serde_util::datetime")]
     pub created_at: OffsetDateTime,
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
-        with = "serde_::option_datetime"
+        with = "serde_util::option_datetime"
     )]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub deleted_at: Option<OffsetDateTime>,
     pub first_post_id: u64,
     pub forum_id: u32,
@@ -208,9 +199,8 @@ pub struct ForumTopic {
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
-        with = "serde_::option_datetime"
+        with = "serde_util::option_datetime"
     )]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub updated_at: Option<OffsetDateTime>,
     pub user_id: u32,
 }

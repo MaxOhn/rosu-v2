@@ -1,21 +1,24 @@
 use crate::{
-    model::{
-        matches_::{MatchList, OsuMatch},
-        Cursor,
-    },
+    model::matches::{MatchList, OsuMatch},
     request::{Pending, Query, Request},
     routing::Route,
     Osu,
 };
+
+use serde::Serialize;
 
 #[cfg(feature = "cache")]
 use futures::TryFutureExt;
 
 /// Get an [`OsuMatch`](crate::model::matches::OsuMatch) by its id
 #[must_use = "futures do nothing unless you `.await` or poll them"]
+#[derive(Serialize)]
 pub struct GetMatch<'a> {
+    #[serde(skip)]
     fut: Option<Pending<'a, OsuMatch>>,
+    #[serde(skip)]
     osu: &'a Osu,
+    #[serde(skip)]
     match_id: u32,
     after: Option<u64>,
     before: Option<u64>,
@@ -24,7 +27,7 @@ pub struct GetMatch<'a> {
 
 impl<'a> GetMatch<'a> {
     #[inline]
-    pub(crate) fn new(osu: &'a Osu, match_id: u32) -> Self {
+    pub(crate) const fn new(osu: &'a Osu, match_id: u32) -> Self {
         Self {
             fut: None,
             osu,
@@ -39,8 +42,8 @@ impl<'a> GetMatch<'a> {
     ///
     /// Note: The given event id won't be included.
     #[inline]
-    pub fn after(mut self, after: u64) -> Self {
-        self.after.replace(after);
+    pub const fn after(mut self, after: u64) -> Self {
+        self.after = Some(after);
 
         self
     }
@@ -49,37 +52,22 @@ impl<'a> GetMatch<'a> {
     ///
     /// Note: The given event id won't be included.
     #[inline]
-    pub fn before(mut self, before: u64) -> Self {
-        self.before.replace(before);
+    pub const fn before(mut self, before: u64) -> Self {
+        self.before = Some(before);
 
         self
     }
 
     /// Get the match state after at most `limit` many new events.
     #[inline]
-    pub fn limit(mut self, limit: usize) -> Self {
-        self.limit.replace(limit);
+    pub const fn limit(mut self, limit: usize) -> Self {
+        self.limit = Some(limit);
 
         self
     }
 
     fn start(&mut self) -> Pending<'a, OsuMatch> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.osu_match.inc();
-
-        let mut query = Query::new();
-
-        if let Some(after) = self.after {
-            query.push("after", after);
-        }
-
-        if let Some(before) = self.before {
-            query.push("before", before);
-        }
-
-        if let Some(limit) = self.limit {
-            query.push("limit", limit);
-        }
+        let query = Query::encode(self);
 
         let route = Route::GetMatch {
             match_id: Some(self.match_id),
@@ -105,10 +93,14 @@ poll_req!(GetMatch => OsuMatch);
 /// Get a [`MatchList`](crate::model::matches::MatchList) containing all
 /// currently open multiplayer lobbies.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
+#[derive(Serialize)]
 pub struct GetMatches<'a> {
+    #[serde(skip)]
     fut: Option<Pending<'a, MatchList>>,
+    #[serde(skip)]
     osu: &'a Osu,
-    cursor: Option<Cursor>,
+    #[serde(rename = "cursor_string")]
+    cursor: Option<&'a str>,
 }
 
 impl<'a> GetMatches<'a> {
@@ -122,22 +114,14 @@ impl<'a> GetMatches<'a> {
     }
 
     #[inline]
-    pub(crate) fn cursor(mut self, cursor: Cursor) -> Self {
-        self.cursor.replace(cursor);
+    pub(crate) const fn cursor(mut self, cursor: &'a str) -> Self {
+        self.cursor = Some(cursor);
 
         self
     }
 
     fn start(&mut self) -> Pending<'a, MatchList> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.match_list.inc();
-
-        let mut query = Query::new();
-
-        if let Some(cursor) = self.cursor.take() {
-            cursor.push_to_query(&mut query);
-        }
-
+        let query = Query::encode(self);
         let req = Request::with_query(Route::GetMatch { match_id: None }, query);
 
         Box::pin(self.osu.request(req))

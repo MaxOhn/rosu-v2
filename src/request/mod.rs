@@ -22,17 +22,20 @@ macro_rules! poll_req {
 
 mod beatmap;
 mod comments;
+mod event;
 mod forum;
 mod matches;
 mod news;
 mod ranking;
 mod replay;
 mod seasonal_backgrounds;
+mod serialize;
 mod user;
 mod wiki;
 
 pub use beatmap::*;
 pub use comments::*;
+pub use event::*;
 pub use forum::*;
 pub use matches::*;
 pub use news::*;
@@ -44,115 +47,106 @@ pub use wiki::*;
 
 use crate::{routing::Route, OsuResult};
 
-use hyper::Method;
-use std::{
-    borrow::Cow,
-    fmt::{Display, Formatter, Result, Write},
-    future::Future,
-    pin::Pin,
-};
+use itoa::{Buffer, Integer};
+use serde::Serialize;
+use std::{future::Future, pin::Pin};
 
 type Pending<'a, T> = Pin<Box<dyn Future<Output = OsuResult<T>> + Send + Sync + 'a>>;
 
-#[derive(Debug)]
 pub(crate) struct Request {
-    pub query: Query,
-    pub method: Method,
-    pub path: Cow<'static, str>,
+    pub query: Option<String>,
+    pub route: Route,
     pub body: Body,
+    pub api_version: u32,
 }
 
 impl Request {
-    fn new(route: Route) -> Self {
-        Self::with_query_and_body(route, Query::default(), Body::default())
+    #[allow(clippy::unreadable_literal)]
+    const API_VERSION: u32 = 20220705;
+
+    const fn new(route: Route) -> Self {
+        Self::with_body(route, Body::new())
     }
 
-    fn with_query(route: Route, query: Query) -> Self {
-        Self::with_query_and_body(route, query, Body::default())
-    }
-
-    fn with_body(route: Route, body: Body) -> Self {
-        Self::with_query_and_body(route, Query::default(), body)
-    }
-
-    fn with_query_and_body(route: Route, query: Query, body: Body) -> Self {
-        let (method, path) = route.into_parts();
-
+    const fn with_body(route: Route, body: Body) -> Self {
         Self {
-            query,
-            method,
-            path,
+            query: None,
+            route,
             body,
+            api_version: Self::API_VERSION,
         }
+    }
+
+    const fn with_query(route: Route, query: String) -> Self {
+        Self::with_query_and_body(route, query, Body::new())
+    }
+
+    const fn with_query_and_body(route: Route, query: String, body: Body) -> Self {
+        Self {
+            query: Some(query),
+            route,
+            body,
+            api_version: Self::API_VERSION,
+        }
+    }
+
+    fn api_version(&mut self, api_version: u32) {
+        self.api_version = api_version;
     }
 }
 
-#[derive(Debug, Default)]
 pub(crate) struct Body {
-    inner: String,
+    inner: Vec<u8>,
 }
 
 impl Body {
+    pub(crate) const fn new() -> Self {
+        Self { inner: Vec::new() }
+    }
+
     fn push_prefix(&mut self) {
-        if self.inner.is_empty() {
-            self.inner.push('{');
-        } else {
-            self.inner.push(',');
-        }
+        let prefix = if self.inner.is_empty() { b'{' } else { b',' };
+        self.inner.push(prefix);
     }
 
-    fn push_key(&mut self, key: &str) {
+    fn push_key(&mut self, key: &[u8]) {
         self.push_prefix();
-        self.inner.push('"');
-        self.inner.push_str(key);
-        self.inner.push_str("\":");
+        self.inner.push(b'"');
+        self.inner.extend_from_slice(key);
+        self.inner.extend_from_slice(b"\":");
     }
 
-    pub(crate) fn push_with_quotes(&mut self, key: &str, value: impl Display) {
-        self.push_key(key);
-        let _ = write!(self.inner, r#""{value}""#);
+    fn push_value(&mut self, value: &[u8]) {
+        self.inner.push(b'"');
+        self.inner.extend_from_slice(value);
+        self.inner.push(b'"');
     }
 
-    pub(crate) fn push_without_quotes(&mut self, key: &str, value: impl Display) {
-        self.push_key(key);
-        let _ = write!(self.inner, "{value}");
+    pub(crate) fn push_str(&mut self, key: &str, value: &str) {
+        self.push_key(key.as_bytes());
+        self.push_value(value.as_bytes());
+    }
+
+    pub(crate) fn push_int(&mut self, key: &str, int: impl Integer) {
+        self.push_key(key.as_bytes());
+
+        let mut buf = Buffer::new();
+        self.push_value(buf.format(int).as_bytes());
     }
 
     pub(crate) fn into_bytes(mut self) -> Vec<u8> {
         if !self.inner.is_empty() {
-            self.inner.push('}');
+            self.inner.push(b'}');
         }
 
-        self.inner.into_bytes()
+        self.inner
     }
 }
 
-#[derive(Debug, Default)]
-pub(crate) struct Query {
-    query: String,
-}
+struct Query;
 
 impl Query {
-    pub(crate) fn new() -> Self {
-        Self::default()
-    }
-
-    pub(crate) fn push(&mut self, key: &str, value: impl Display) {
-        self.query.push_str(key);
-        self.query.push('=');
-        let _ = write!(self.query, "{}", value);
-        self.query.push('&');
-    }
-}
-
-impl Display for Query {
-    #[inline]
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        if self.query.is_empty() {
-            return Ok(());
-        }
-
-        f.write_char('?')?;
-        f.write_str(&self.query[..self.query.len() - 1])
+    fn encode<T: Serialize>(query: &T) -> String {
+        serde_urlencoded::to_string(query).expect("serde_urlencoded should not fail")
     }
 }

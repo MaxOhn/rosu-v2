@@ -1,45 +1,52 @@
 use crate::{
     model::{
         beatmap::{
-            Beatmap, Beatmapset, BeatmapsetEvents, BeatmapsetSearchResult, BeatmapsetSearchSort,
-            Genre, Language, RankStatus,
-        },
-        beatmap_::{
             BeatmapDifficultyAttributes, BeatmapDifficultyAttributesWrapper, Beatmaps,
             SearchRankStatus,
         },
-        score_::{BeatmapScores, BeatmapUserScore, Score, Scores},
-        Cursor, GameMode, GameMods,
+        beatmap::{
+            BeatmapExtended, BeatmapsetEvents, BeatmapsetExtended, BeatmapsetSearchResult,
+            BeatmapsetSearchSort, Genre, Language, RankStatus,
+        },
+        score::{BeatmapScores, BeatmapUserScore, Score, Scores},
+        GameMode,
     },
-    prelude::BeatmapCompact,
-    request::{Pending, Query, Request},
+    prelude::{Beatmap, GameModsIntermode},
+    request::{
+        serialize::{maybe_mode_as_str, maybe_mods_as_list},
+        Pending, Query, Request,
+    },
     routing::Route,
     Osu,
 };
 
 use futures::future::TryFutureExt;
-use std::{
-    fmt::{Display, Formatter, Result as FmtResult, Write},
-    mem,
-};
+use itoa::Buffer;
+use serde::ser::SerializeMap;
+use serde::{Serialize, Serializer};
+use std::{fmt::Write, mem};
 
 use super::Body;
 #[cfg(feature = "cache")]
 use super::UserId;
 
-/// Get a [`Beatmap`](crate::model::beatmap::Beatmap).
+/// Get a [`BeatmapExtended`](crate::model::beatmap::BeatmapExtended).
 #[must_use = "futures do nothing unless you `.await` or poll them"]
+#[derive(Serialize)]
 pub struct GetBeatmap<'a> {
-    fut: Option<Pending<'a, Beatmap>>,
+    #[serde(skip)]
+    fut: Option<Pending<'a, BeatmapExtended>>,
+    #[serde(skip)]
     osu: &'a Osu,
     checksum: Option<String>,
     filename: Option<String>,
+    #[serde(rename(serialize = "id"))]
     map_id: Option<u32>,
 }
 
 impl<'a> GetBeatmap<'a> {
     #[inline]
-    pub(crate) fn new(osu: &'a Osu) -> Self {
+    pub(crate) const fn new(osu: &'a Osu) -> Self {
         Self {
             fut: None,
             osu,
@@ -52,7 +59,7 @@ impl<'a> GetBeatmap<'a> {
     /// Specify a beatmap checksum
     #[inline]
     pub fn checksum(mut self, checksum: impl Into<String>) -> Self {
-        self.checksum.replace(checksum.into());
+        self.checksum = Some(checksum.into());
 
         self
     }
@@ -60,54 +67,38 @@ impl<'a> GetBeatmap<'a> {
     /// Specify a beatmap filename
     #[inline]
     pub fn filename(mut self, filename: impl Into<String>) -> Self {
-        self.filename.replace(filename.into());
+        self.filename = Some(filename.into());
 
         self
     }
 
     /// Specify a beatmap id
     #[inline]
-    pub fn map_id(mut self, map_id: u32) -> Self {
-        self.map_id.replace(map_id);
+    pub const fn map_id(mut self, map_id: u32) -> Self {
+        self.map_id = Some(map_id);
 
         self
     }
 
-    fn start(&mut self) -> Pending<'a, Beatmap> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.beatmap.inc();
-
-        let mut query = Query::new();
-
-        if let Some(ref checksum) = self.checksum {
-            query.push("checksum", checksum);
-        }
-
-        if let Some(ref filename) = self.filename {
-            query.push("filename", filename);
-        }
-
-        if let Some(map_id) = self.map_id {
-            query.push("id", map_id);
-        }
-
+    fn start(&mut self) -> Pending<'a, BeatmapExtended> {
+        let query = Query::encode(self);
         let req = Request::with_query(Route::GetBeatmap, query);
 
         let osu = self.osu;
-        let fut = osu.request::<Beatmap>(req);
+        let fut = osu.request::<BeatmapExtended>(req);
 
         Box::pin(fut)
     }
 }
 
-poll_req!(GetBeatmap => Beatmap);
+poll_req!(GetBeatmap => BeatmapExtended);
 
-/// Get a vec of [`BeatmapCompact`](crate::model::beatmap::BeatmapCompact) by their map ids.
+/// Get a vec of [`Beatmap`](crate::model::beatmap::Beatmap) by their map ids.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetBeatmaps<'a> {
-    fut: Option<Pending<'a, Vec<BeatmapCompact>>>,
+    fut: Option<Pending<'a, Vec<Beatmap>>>,
     osu: &'a Osu,
-    query: Query,
+    query: String,
 }
 
 impl<'a> GetBeatmaps<'a> {
@@ -116,10 +107,19 @@ impl<'a> GetBeatmaps<'a> {
     where
         I: IntoIterator<Item = u32>,
     {
-        let mut query = Query::new();
+        let mut query = String::new();
+        let mut buf = Buffer::new();
 
-        for map_id in map_ids.into_iter().take(50) {
-            query.push("ids[]", map_id);
+        let mut iter = map_ids.into_iter().take(50);
+
+        if let Some(map_id) = iter.next() {
+            query.push_str("ids[]=");
+            query.push_str(buf.format(map_id));
+
+            for map_id in iter {
+                query.push_str("&ids[]=");
+                query.push_str(buf.format(map_id));
+            }
         }
 
         Self {
@@ -129,10 +129,7 @@ impl<'a> GetBeatmaps<'a> {
         }
     }
 
-    fn start(&mut self) -> Pending<'a, Vec<BeatmapCompact>> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.beatmaps.inc();
-
+    fn start(&mut self) -> Pending<'a, Vec<Beatmap>> {
         let query = mem::take(&mut self.query);
         let req = Request::with_query(Route::GetBeatmaps, query);
         let osu = self.osu;
@@ -143,7 +140,7 @@ impl<'a> GetBeatmaps<'a> {
     }
 }
 
-poll_req!(GetBeatmaps => Vec<BeatmapCompact>);
+poll_req!(GetBeatmaps => Vec<Beatmap>);
 
 /// Get [`BeatmapDifficultyAttributes`] of a map by its map id.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
@@ -152,7 +149,7 @@ pub struct GetBeatmapDifficultyAttributes<'a> {
     osu: &'a Osu,
     map_id: u32,
     mode: Option<GameMode>,
-    mods: Option<GameMods>,
+    mods: Option<u32>,
 }
 
 impl<'a> GetBeatmapDifficultyAttributes<'a> {
@@ -168,7 +165,7 @@ impl<'a> GetBeatmapDifficultyAttributes<'a> {
 
     /// Specify the mode
     #[inline]
-    pub fn mode(mut self, mode: GameMode) -> Self {
+    pub const fn mode(mut self, mode: GameMode) -> Self {
         self.mode = Some(mode);
 
         self
@@ -176,28 +173,28 @@ impl<'a> GetBeatmapDifficultyAttributes<'a> {
 
     /// Specify the mods
     #[inline]
-    pub fn mods(mut self, mods: GameMods) -> Self {
-        self.mods = Some(mods);
+    pub fn mods<M>(mut self, mods: M) -> Self
+    where
+        GameModsIntermode: From<M>,
+    {
+        self.mods = Some(GameModsIntermode::from(mods).bits());
 
         self
     }
 
     fn start(&mut self) -> Pending<'a, BeatmapDifficultyAttributes> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.beatmap_difficulty_attributes.inc();
-
-        let route = Route::GetBeatmapDifficultyAttributes {
+        let route = Route::PostBeatmapDifficultyAttributes {
             map_id: self.map_id,
         };
 
-        let mut body = Body::default();
+        let mut body = Body::new();
 
         if let Some(mods) = self.mods {
-            body.push_without_quotes("mods", mods.bits());
+            body.push_int("mods", mods);
         }
 
         if let Some(mode) = self.mode {
-            body.push_without_quotes("ruleset_id", mode as u32);
+            body.push_int("ruleset_id", mode as u32);
         }
 
         let req = Request::with_body(route, body);
@@ -219,35 +216,49 @@ enum ScoreType {
     Global,
 }
 
-impl Display for ScoreType {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        let kind = match self {
+impl ScoreType {
+    const fn as_str(self) -> &'static str {
+        match self {
             Self::Country => "country",
             Self::Global => "global",
-        };
+        }
+    }
+}
 
-        f.write_str(kind)
+impl Serialize for ScoreType {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        serializer.serialize_str(self.as_str())
     }
 }
 
 /// Get top scores of a beatmap by its id in form of a
 /// vec of [`Score`](Score)s.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
+#[derive(Serialize)]
 pub struct GetBeatmapScores<'a> {
+    #[serde(skip)]
     fut: Option<Pending<'a, Vec<Score>>>,
+    #[serde(skip)]
     osu: &'a Osu,
+    #[serde(skip)]
     map_id: u32,
+    #[serde(rename(serialize = "type"))]
     score_type: Option<ScoreType>,
+    #[serde(serialize_with = "maybe_mode_as_str")]
     mode: Option<GameMode>,
-    mods: Option<GameMods>,
+    #[serde(flatten, serialize_with = "maybe_mods_as_list")]
+    mods: Option<GameModsIntermode>,
     limit: Option<u32>,
+    legacy_only: bool,
+    #[serde(skip)]
+    legacy_scores: bool,
     // ! Currently not working
     // offset: Option<u32>,
 }
 
 impl<'a> GetBeatmapScores<'a> {
     #[inline]
-    pub(crate) fn new(osu: &'a Osu, map_id: u32) -> Self {
+    pub(crate) const fn new(osu: &'a Osu, map_id: u32) -> Self {
         Self {
             fut: None,
             osu,
@@ -256,29 +267,34 @@ impl<'a> GetBeatmapScores<'a> {
             mode: None,
             mods: None,
             limit: None,
+            legacy_only: false,
+            legacy_scores: false,
             // offset: None,
         }
     }
 
     /// Specify the mode of the scores
     #[inline]
-    pub fn mode(mut self, mode: GameMode) -> Self {
-        self.mode.replace(mode);
+    pub const fn mode(mut self, mode: GameMode) -> Self {
+        self.mode = Some(mode);
 
         self
     }
 
     /// Specify the mods of the scores
     #[inline]
-    pub fn mods(mut self, mods: GameMods) -> Self {
-        self.mods.replace(mods);
+    pub fn mods<M>(mut self, mods: M) -> Self
+    where
+        GameModsIntermode: From<M>,
+    {
+        self.mods = Some(GameModsIntermode::from(mods));
 
         self
     }
 
     /// Specify that the global leaderboard should be requested.
     #[inline]
-    pub fn global(mut self) -> Self {
+    pub const fn global(mut self) -> Self {
         self.score_type = Some(ScoreType::Global);
 
         self
@@ -288,59 +304,58 @@ impl<'a> GetBeatmapScores<'a> {
     ///
     /// Note that you must be authenticated through OAuth and have osu!supporter to use this.
     #[inline]
-    pub fn country(mut self) -> Self {
+    pub const fn country(mut self) -> Self {
         self.score_type = Some(ScoreType::Country);
 
         self
     }
 
     #[inline]
-    pub fn limit(mut self, limit: u32) -> Self {
-        self.limit.replace(limit);
+    pub const fn limit(mut self, limit: u32) -> Self {
+        self.limit = Some(limit);
+
+        self
+    }
+
+    /// Whether or not to exclude lazer scores.
+    #[inline]
+    pub const fn legacy_only(mut self, legacy_only: bool) -> Self {
+        self.legacy_only = legacy_only;
+
+        self
+    }
+
+    /// Specify whether the scores should contain legacy data or not.
+    ///
+    /// Legacy data consists of a different grade calculation, less
+    /// populated statistics, legacy mods, and a different score kind.
+    #[inline]
+    pub const fn legacy_scores(mut self, legacy_scores: bool) -> Self {
+        self.legacy_scores = legacy_scores;
 
         self
     }
 
     // #[inline]
     // pub fn offset(mut self, offset: u32) -> Self {
-    //     self.offset.replace(offset);
+    //     self.offset = Some(offset);
 
     //     self
     // }
 
     fn start(&mut self) -> Pending<'a, Vec<Score>> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.beatmap_scores.inc();
-
-        let mut query = Query::new();
-
-        if let Some(mode) = self.mode {
-            query.push("mode", &mode.to_string());
-        }
-
-        if let Some(mods) = self.mods {
-            for m in mods {
-                query.push("mods[]", &m.to_string());
-            }
-        }
-
-        if let Some(score_type) = self.score_type {
-            query.push("type", score_type);
-        }
-
-        if let Some(limit) = self.limit {
-            query.push("limit", limit);
-        }
-
-        // if let Some(offset) = self.offset {
-        //     query.push("offset", offset);
-        // }
+        let query = Query::encode(self);
 
         let route = Route::GetBeatmapScores {
             map_id: self.map_id,
         };
 
-        let req = Request::with_query(route, query);
+        let mut req = Request::with_query(route, query);
+
+        if self.legacy_scores {
+            req.api_version(0);
+        }
+
         let osu = self.osu;
         let fut = osu.request::<BeatmapScores>(req).map_ok(|s| s.scores);
 
@@ -365,24 +380,35 @@ poll_req!(GetBeatmapScores => Vec<Score>);
 /// Note that the contained score will be the user's play on the map
 /// with the most **score** across all mods, not pp.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
+#[derive(Serialize)]
 pub struct GetBeatmapUserScore<'a> {
+    #[serde(skip)]
     fut: Option<Pending<'a, BeatmapUserScore>>,
+    #[serde(skip)]
     osu: &'a Osu,
+    #[serde(skip)]
     map_id: u32,
+    #[serde(serialize_with = "maybe_mode_as_str")]
     mode: Option<GameMode>,
-    mods: Option<GameMods>,
+    #[serde(flatten, serialize_with = "maybe_mods_as_list")]
+    mods: Option<GameModsIntermode>,
+    legacy_only: bool,
+    #[serde(skip)]
+    legacy_scores: bool,
 
     #[cfg(not(feature = "cache"))]
+    #[serde(skip)]
     user_id: u32,
 
     #[cfg(feature = "cache")]
+    #[serde(skip)]
     user_id: UserId,
 }
 
 impl<'a> GetBeatmapUserScore<'a> {
     #[cfg(not(feature = "cache"))]
     #[inline]
-    pub(crate) fn new(osu: &'a Osu, map_id: u32, user_id: u32) -> Self {
+    pub(crate) const fn new(osu: &'a Osu, map_id: u32, user_id: u32) -> Self {
         Self {
             fut: None,
             osu,
@@ -390,12 +416,14 @@ impl<'a> GetBeatmapUserScore<'a> {
             user_id,
             mode: None,
             mods: None,
+            legacy_only: false,
+            legacy_scores: false,
         }
     }
 
     #[cfg(feature = "cache")]
     #[inline]
-    pub(crate) fn new(osu: &'a Osu, map_id: u32, user_id: UserId) -> Self {
+    pub(crate) const fn new(osu: &'a Osu, map_id: u32, user_id: UserId) -> Self {
         Self {
             fut: None,
             osu,
@@ -403,40 +431,51 @@ impl<'a> GetBeatmapUserScore<'a> {
             user_id,
             mode: None,
             mods: None,
+            legacy_only: false,
+            legacy_scores: false,
         }
     }
 
     /// Specify the mode
     #[inline]
-    pub fn mode(mut self, mode: GameMode) -> Self {
-        self.mode.replace(mode);
+    pub const fn mode(mut self, mode: GameMode) -> Self {
+        self.mode = Some(mode);
 
         self
     }
 
     /// Specify the mods
     #[inline]
-    pub fn mods(mut self, mods: GameMods) -> Self {
-        self.mods.replace(mods);
+    pub fn mods<M>(mut self, mods: M) -> Self
+    where
+        GameModsIntermode: From<M>,
+    {
+        self.mods = Some(GameModsIntermode::from(mods));
+
+        self
+    }
+
+    /// Whether or not to exclude lazer scores.
+    #[inline]
+    pub const fn legacy_only(mut self, legacy_only: bool) -> Self {
+        self.legacy_only = legacy_only;
+
+        self
+    }
+
+    /// Specify whether the score should contain legacy data or not.
+    ///
+    /// Legacy data consists of a different grade calculation, less
+    /// populated statistics, legacy mods, and a different score kind.
+    #[inline]
+    pub const fn legacy_scores(mut self, legacy_scores: bool) -> Self {
+        self.legacy_scores = legacy_scores;
 
         self
     }
 
     fn start(&mut self) -> Pending<'a, BeatmapUserScore> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.beatmap_user_score.inc();
-
-        let mut query = Query::new();
-
-        if let Some(mode) = self.mode {
-            query.push("mode", &mode.to_string());
-        }
-
-        if let Some(mods) = self.mods {
-            for m in mods {
-                query.push("mods[]", &m.to_string());
-            }
-        }
+        let query = Query::encode(self);
 
         let osu = self.osu;
 
@@ -447,7 +486,11 @@ impl<'a> GetBeatmapUserScore<'a> {
                 map_id: self.map_id,
             };
 
-            let req = Request::with_query(route, query);
+            let mut req = Request::with_query(route, query);
+
+            if self.legacy_scores {
+                req.api_version(0);
+            }
 
             Box::pin(osu.request(req))
         }
@@ -455,13 +498,21 @@ impl<'a> GetBeatmapUserScore<'a> {
         #[cfg(feature = "cache")]
         {
             let map_id = self.map_id;
+            let legacy_scores = self.legacy_scores;
             let user_id = mem::replace(&mut self.user_id, UserId::Id(0));
 
             let fut = self
                 .osu
                 .cache_user(user_id)
                 .map_ok(move |user_id| {
-                    Request::with_query(Route::GetBeatmapUserScore { user_id, map_id }, query)
+                    let mut req =
+                        Request::with_query(Route::GetBeatmapUserScore { user_id, map_id }, query);
+
+                    if legacy_scores {
+                        req.api_version(0);
+                    }
+
+                    req
                 })
                 .and_then(move |req| osu.request::<BeatmapUserScore>(req))
                 .inspect_ok(move |score| {
@@ -480,61 +531,87 @@ poll_req!(GetBeatmapUserScore => BeatmapUserScore);
 /// Get the top score with each mod combination of a user on
 /// a map in the form of a vec of [`Score`]s.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
+#[derive(Serialize)]
 pub struct GetBeatmapUserScores<'a> {
+    #[serde(skip)]
     fut: Option<Pending<'a, Vec<Score>>>,
+    #[serde(skip)]
     osu: &'a Osu,
+    #[serde(skip)]
     map_id: u32,
+    #[serde(serialize_with = "maybe_mode_as_str")]
     mode: Option<GameMode>,
+    legacy_only: bool,
+    #[serde(skip)]
+    legacy_scores: bool,
 
     #[cfg(not(feature = "cache"))]
+    #[serde(skip)]
     user_id: u32,
 
     #[cfg(feature = "cache")]
+    #[serde(skip)]
     user_id: UserId,
 }
 
 impl<'a> GetBeatmapUserScores<'a> {
     #[cfg(not(feature = "cache"))]
     #[inline]
-    pub(crate) fn new(osu: &'a Osu, map_id: u32, user_id: u32) -> Self {
+    pub(crate) const fn new(osu: &'a Osu, map_id: u32, user_id: u32) -> Self {
         Self {
             fut: None,
             osu,
             map_id,
             user_id,
             mode: None,
+            legacy_only: false,
+            legacy_scores: false,
         }
     }
 
     #[cfg(feature = "cache")]
     #[inline]
-    pub(crate) fn new(osu: &'a Osu, map_id: u32, user_id: UserId) -> Self {
+    pub(crate) const fn new(osu: &'a Osu, map_id: u32, user_id: UserId) -> Self {
         Self {
             fut: None,
             osu,
             map_id,
             user_id,
             mode: None,
+            legacy_only: false,
+            legacy_scores: false,
         }
     }
 
     /// Specify the mode
     #[inline]
-    pub fn mode(mut self, mode: GameMode) -> Self {
-        self.mode.replace(mode);
+    pub const fn mode(mut self, mode: GameMode) -> Self {
+        self.mode = Some(mode);
+
+        self
+    }
+
+    /// Whether or not to exclude lazer scores.
+    #[inline]
+    pub const fn legacy_only(mut self, legacy_only: bool) -> Self {
+        self.legacy_only = legacy_only;
+
+        self
+    }
+
+    /// Specify whether the scores should contain legacy data or not.
+    ///
+    /// Legacy data consists of a different grade calculation, less
+    /// populated statistics, legacy mods, and a different score kind.
+    #[inline]
+    pub const fn legacy_scores(mut self, legacy_scores: bool) -> Self {
+        self.legacy_scores = legacy_scores;
 
         self
     }
 
     fn start(&mut self) -> Pending<'a, Vec<Score>> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.beatmap_user_score.inc();
-
-        let mut query = Query::new();
-
-        if let Some(mode) = self.mode {
-            query.push("mode", &mode.to_string());
-        }
+        let query = Query::encode(self);
 
         let osu = self.osu;
 
@@ -545,7 +622,12 @@ impl<'a> GetBeatmapUserScores<'a> {
                 map_id: self.map_id,
             };
 
-            let req = Request::with_query(route, query);
+            let mut req = Request::with_query(route, query);
+
+            if self.legacy_scores {
+                req.api_version(0);
+            }
+
             let fut = osu.request::<Scores>(req).map_ok(|scores| scores.scores);
 
             Box::pin(fut)
@@ -554,13 +636,21 @@ impl<'a> GetBeatmapUserScores<'a> {
         #[cfg(feature = "cache")]
         {
             let map_id = self.map_id;
+            let legacy_scores = self.legacy_scores;
             let user_id = mem::replace(&mut self.user_id, UserId::Id(0));
 
             let fut = self
                 .osu
                 .cache_user(user_id)
                 .map_ok(move |user_id| {
-                    Request::with_query(Route::GetBeatmapUserScores { user_id, map_id }, query)
+                    let mut req =
+                        Request::with_query(Route::GetBeatmapUserScores { user_id, map_id }, query);
+
+                    if legacy_scores {
+                        req.api_version(0);
+                    }
+
+                    req
                 })
                 .and_then(move |req| osu.request::<Scores>(req))
                 .map_ok(|scores| scores.scores)
@@ -579,10 +669,10 @@ impl<'a> GetBeatmapUserScores<'a> {
 
 poll_req!(GetBeatmapUserScores => Vec<Score>);
 
-/// Get a [`Beatmapset`](crate::model::beatmap::Beatmapset).
+/// Get a [`BeatmapsetExtended`](crate::model::beatmap::BeatmapsetExtended).
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetBeatmapset<'a> {
-    fut: Option<Pending<'a, Beatmapset>>,
+    fut: Option<Pending<'a, BeatmapsetExtended>>,
     osu: &'a Osu,
     mapset_id: u32,
 }
@@ -597,28 +687,29 @@ impl<'a> GetBeatmapset<'a> {
         }
     }
 
-    fn start(&mut self) -> Pending<'a, Beatmapset> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.beatmapset.inc();
-
+    fn start(&mut self) -> Pending<'a, BeatmapsetExtended> {
         let req = Request::new(Route::GetBeatmapset {
             mapset_id: self.mapset_id,
         });
 
         let osu = self.osu;
-        let fut = osu.request::<Beatmapset>(req);
+        let fut = osu.request::<BeatmapsetExtended>(req);
 
         Box::pin(fut)
     }
 }
 
-poll_req!(GetBeatmapset => Beatmapset);
+poll_req!(GetBeatmapset => BeatmapsetExtended);
 
-/// Get a [`Beatmapset`](crate::model::beatmap::Beatmapset) from a beatmap ID.
+/// Get a [`BeatmapsetExtended`](crate::model::beatmap::BeatmapsetExtended) from a beatmap ID.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
+#[derive(Serialize)]
 pub struct GetBeatmapsetFromMapId<'a> {
-    fut: Option<Pending<'a, Beatmapset>>,
+    #[serde(skip)]
+    fut: Option<Pending<'a, BeatmapsetExtended>>,
+    #[serde(skip)]
     osu: &'a Osu,
+    #[serde(rename(serialize = "beatmap_id"))]
     map_id: u32,
 }
 
@@ -632,24 +723,18 @@ impl<'a> GetBeatmapsetFromMapId<'a> {
         }
     }
 
-    fn start(&mut self) -> Pending<'a, Beatmapset> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.beatmapset_from_map_id.inc();
-
-        let mut query = Query::new();
-
-        query.push("beatmap_id", self.map_id);
-
+    fn start(&mut self) -> Pending<'a, BeatmapsetExtended> {
+        let query = Query::encode(self);
         let req = Request::with_query(Route::GetBeatmapsetFromMapId, query);
 
         let osu = self.osu;
-        let fut = osu.request::<Beatmapset>(req);
+        let fut = osu.request::<BeatmapsetExtended>(req);
 
         Box::pin(fut)
     }
 }
 
-poll_req!(GetBeatmapsetFromMapId => Beatmapset);
+poll_req!(GetBeatmapsetFromMapId => BeatmapsetExtended);
 
 /// Get a [`BeatmapsetEvents`](crate::model::beatmap::BeatmapsetEvents) struct.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
@@ -665,9 +750,6 @@ impl<'a> GetBeatmapsetEvents<'a> {
     }
 
     fn start(&mut self) -> Pending<'a, BeatmapsetEvents> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.beatmapset_events.inc();
-
         let req = Request::new(Route::GetBeatmapsetEvents);
 
         Box::pin(self.osu.request(req))
@@ -685,10 +767,11 @@ poll_req!(GetBeatmapsetEvents => BeatmapsetEvents);
 /// - genre: any
 /// - language: any
 /// - extra: does neither contain "have video" nor "have storyboard"
+/// - general: recommended, converts, follows, spotlights, and featured artists are all disabled
 /// - nsfw: allowed
 /// - sort: by relevance, descending
 ///
-/// The contained [`Beatmapset`](crate::model::beatmap::Beatmapset)s will have the
+/// The contained [`BeatmapsetExtended`](crate::model::beatmap::BeatmapsetExtended)s will have the
 /// following options filled: `artist_unicode`, `legacy_thread_url`, `maps`,
 /// `ranked_date` and `submitted_date` if available, and `title_unicode`.
 ///
@@ -716,15 +799,21 @@ pub struct GetBeatmapsetSearch<'a> {
     language: Option<u8>,
     video: bool,
     storyboard: bool,
+    recommended: bool,
+    converts: bool,
+    follows: bool,
+    spotlights: bool,
+    featured_artists: bool,
     nsfw: bool,
     sort: Option<BeatmapsetSearchSort>,
     descending: bool,
-    cursor: Option<Cursor>,
+    page: Option<u32>,
+    cursor: Option<&'a str>,
 }
 
 impl<'a> GetBeatmapsetSearch<'a> {
     #[inline]
-    pub(crate) fn new(osu: &'a Osu) -> Self {
+    pub(crate) const fn new(osu: &'a Osu) -> Self {
         Self {
             fut: None,
             osu,
@@ -735,9 +824,15 @@ impl<'a> GetBeatmapsetSearch<'a> {
             language: None,
             video: false,
             storyboard: false,
+            recommended: false,
+            converts: false,
+            follows: false,
+            spotlights: false,
+            featured_artists: false,
             nsfw: true,
             sort: None,
             descending: true,
+            page: None,
             cursor: None,
         }
     }
@@ -745,64 +840,58 @@ impl<'a> GetBeatmapsetSearch<'a> {
     /// Specify a search query.
     #[inline]
     pub fn query(mut self, query: impl Into<String>) -> Self {
-        self.query.replace(query.into());
+        self.query = Some(query.into());
 
         self
     }
 
     /// Specify the mode for which the mapsets has to have at least one map.
     #[inline]
-    pub fn mode(mut self, mode: GameMode) -> Self {
-        self.mode.replace(mode as u8);
-
-        self
-    }
-
-    /// Allow any status for mapsets. To specify a specific one, use the
-    /// [`status`](crate::request::GetBeatmapsetSearch::status) method.
-    #[inline]
-    pub fn any_status(mut self) -> Self {
-        self.status.replace(SearchRankStatus::Any);
+    pub const fn mode(mut self, mode: GameMode) -> Self {
+        self.mode = Some(mode as u8);
 
         self
     }
 
     /// Specify a status for the mapsets, defaults to `has_leaderboard`
-    /// i.e. ranked, loved, approved, and qualified. To allow any status, use the
-    /// [`any_status`](crate::request::GetBeatmapsetSearch::any_status) method.
+    /// i.e. ranked, loved, approved, and qualified. To allow any status,
+    /// specify `None`.
     ///
     /// ## Note
-    /// The API does not seem to filter for the `RankStatus::Approved` status specifically.
+    /// The API does not seem to filter for the `RankStatus::Approved` status
+    /// specifically.
     #[inline]
-    pub fn status(mut self, mut status: RankStatus) -> Self {
-        if status == RankStatus::WIP {
-            status = RankStatus::Pending;
-        }
+    pub const fn status(mut self, status: Option<RankStatus>) -> Self {
+        let status = match status {
+            Some(RankStatus::WIP) => SearchRankStatus::Specific(RankStatus::Pending),
+            Some(status) => SearchRankStatus::Specific(status),
+            None => SearchRankStatus::Any,
+        };
 
-        self.status.replace(SearchRankStatus::Specific(status));
+        self.status = Some(status);
 
         self
     }
 
     /// Specify a genre for the mapsets, defaults to `Any`.
     #[inline]
-    pub fn genre(mut self, genre: Genre) -> Self {
-        self.genre.replace(genre as u8);
+    pub const fn genre(mut self, genre: Genre) -> Self {
+        self.genre = Some(genre as u8);
 
         self
     }
 
     /// Specify a language for the mapsets, defaults to `Any`.
     #[inline]
-    pub fn language(mut self, language: Language) -> Self {
-        self.language.replace(language as u8);
+    pub const fn language(mut self, language: Language) -> Self {
+        self.language = Some(language as u8);
 
         self
     }
 
     /// Specify whether mapsets can have a video, defaults to `false`.
     #[inline]
-    pub fn video(mut self, video: bool) -> Self {
+    pub const fn video(mut self, video: bool) -> Self {
         self.video = video;
 
         self
@@ -810,39 +899,94 @@ impl<'a> GetBeatmapsetSearch<'a> {
 
     /// Specify whether mapsets can have a storyboard, defaults to `false`.
     #[inline]
-    pub fn storyboard(mut self, storyboard: bool) -> Self {
+    pub const fn storyboard(mut self, storyboard: bool) -> Self {
         self.storyboard = storyboard;
 
         self
     }
 
-    /// Specify whether mapsets can be NSFW, defaults to `true`.
+    /// Only include mapsets containing a beatmap around the authorized user's
+    /// recommended difficulty level.
+    ///
+    /// This has only an effect for oauth-clients.
     #[inline]
-    pub fn nsfw(mut self, nsfw: bool) -> Self {
+    pub const fn recommended(mut self, recommended: bool) -> Self {
+        self.recommended = recommended;
+
+        self
+    }
+
+    /// Specify whether converted mapsets should be included, defaults to
+    /// `false`.
+    #[inline]
+    pub const fn converts(mut self, converts: bool) -> Self {
+        self.converts = converts;
+
+        self
+    }
+
+    /// Only include mapsets of mappers that the authorized user follows.
+    ///
+    /// This has only an effect for oauth-clients.
+    #[inline]
+    pub const fn follows(mut self, follows: bool) -> Self {
+        self.follows = follows;
+
+        self
+    }
+
+    /// Specify whether only mapsets that are currently spotlighted should be
+    /// included, defaults to `false`.
+    #[inline]
+    pub const fn spotlights(mut self, spotlights: bool) -> Self {
+        self.spotlights = spotlights;
+
+        self
+    }
+
+    /// Specify whether only mapsets of featured artists should be included,
+    /// defaults to `false`.
+    #[inline]
+    pub const fn featured_artists(mut self, featured_artists: bool) -> Self {
+        self.featured_artists = featured_artists;
+
+        self
+    }
+
+    /// Specify whether mapsets *can* be NSFW, defaults to `true`.
+    #[inline]
+    pub const fn nsfw(mut self, nsfw: bool) -> Self {
         self.nsfw = nsfw;
+
+        self
+    }
+
+    /// Specify a page
+    #[inline]
+    pub const fn page(mut self, page: u32) -> Self {
+        self.page = Some(page);
 
         self
     }
 
     /// Specify how the result should be sorted
     #[inline]
-    pub fn sort(mut self, sort: BeatmapsetSearchSort, descending: bool) -> Self {
-        self.sort.replace(sort);
+    pub const fn sort(mut self, sort: BeatmapsetSearchSort, descending: bool) -> Self {
+        self.sort = Some(sort);
         self.descending = descending;
 
         self
     }
 
     #[inline]
-    pub(crate) fn cursor(mut self, cursor: Cursor) -> Self {
-        self.cursor.replace(cursor);
+    pub(crate) const fn cursor(mut self, cursor: &'a str) -> Self {
+        self.cursor = Some(cursor);
 
         self
     }
 
     fn start(&mut self) -> Pending<'a, BeatmapsetSearchResult> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.beatmapset_search.inc();
+        let query = Query::encode(self);
 
         let q = self.query.take();
         let mode = self.mode;
@@ -851,68 +995,12 @@ impl<'a> GetBeatmapsetSearch<'a> {
         let language = self.language;
         let video = self.video;
         let storyboard = self.storyboard;
+        let recommended = self.recommended;
+        let converts = self.converts;
+        let follows = self.follows;
+        let spotlights = self.spotlights;
+        let featured_artists = self.featured_artists;
         let nsfw = self.nsfw;
-
-        let mut query = Query::new();
-
-        if let Some(ref q) = q {
-            query.push("q", q);
-        }
-
-        if let Some(mode) = mode {
-            query.push("m", mode);
-        }
-
-        match status {
-            None => {}
-            Some(SearchRankStatus::Specific(status)) => {
-                let mut buf = String::new();
-                let _ = write!(buf, "{:?}", status);
-
-                // SAFETY: Debug formats of RankStatus are guaranteed
-                // to only contain ASCII chars and have a length >= 1.
-                unsafe { buf.as_bytes_mut()[0].make_ascii_lowercase() }
-
-                query.push("s", buf);
-            }
-            Some(SearchRankStatus::Any) => {
-                query.push("s", "any");
-            }
-        }
-
-        if let Some(genre) = genre {
-            query.push("g", genre);
-        }
-
-        if let Some(language) = language {
-            query.push("l", language);
-        }
-
-        let extra = match (video, storyboard) {
-            (false, false) => None,
-            (false, true) => Some("storyboard"),
-            (true, false) => Some("video"),
-            (true, true) => Some("storyboard.video"),
-        };
-
-        if let Some(extra) = extra {
-            query.push("e", extra);
-        }
-
-        query.push("nsfw", nsfw);
-
-        if let Some(cursor) = self.cursor.take() {
-            cursor.push_to_query(&mut query);
-        }
-
-        if let Some(ref sort) = self.sort {
-            let mut buf = String::with_capacity(16);
-            let _ = write!(buf, "{}_", sort);
-            let order = if self.descending { "desc" } else { "asc" };
-            buf.push_str(order);
-
-            query.push("sort", buf);
-        }
 
         let req = Request::with_query(Route::GetBeatmapsetSearch, query);
         let osu = self.osu;
@@ -928,6 +1016,11 @@ impl<'a> GetBeatmapsetSearch<'a> {
                 params.language = language;
                 params.video = video;
                 params.storyboard = storyboard;
+                params.recommended = recommended;
+                params.converts = converts;
+                params.follows = follows;
+                params.spotlights = spotlights;
+                params.featured_artists = featured_artists;
                 params.nsfw = nsfw;
 
                 search_result
@@ -939,37 +1032,169 @@ impl<'a> GetBeatmapsetSearch<'a> {
 
 poll_req!(GetBeatmapsetSearch => BeatmapsetSearchResult);
 
+impl Serialize for GetBeatmapsetSearch<'_> {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        let mut map = serializer.serialize_map(None)?;
+
+        if let Some(ref query) = self.query {
+            map.serialize_entry("q", query)?;
+        }
+
+        if let Some(ref mode) = self.mode {
+            map.serialize_entry("m", mode)?;
+        }
+
+        if let Some(status) = self.status {
+            struct Status(SearchRankStatus);
+
+            impl Serialize for Status {
+                fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+                where
+                    S: Serializer,
+                {
+                    match self.0 {
+                        SearchRankStatus::Specific(status) => {
+                            let mut buf = String::new();
+                            let _ = write!(buf, "{status:?}");
+
+                            // SAFETY: Debug formats of RankStatus are guaranteed
+                            // to only contain ASCII chars and have a length >= 1.
+                            unsafe { buf.as_bytes_mut()[0].make_ascii_lowercase() }
+
+                            serializer.serialize_str(&buf)
+                        }
+                        SearchRankStatus::Any => serializer.serialize_str("any"),
+                    }
+                }
+            }
+
+            map.serialize_entry("s", &Status(status))?;
+        }
+
+        if let Some(ref genre) = self.genre {
+            map.serialize_entry("g", genre)?;
+        }
+
+        if let Some(ref language) = self.language {
+            map.serialize_entry("l", language)?;
+        }
+
+        let extra = match (self.video, self.storyboard) {
+            (false, false) => None,
+            (false, true) => Some("storyboard"),
+            (true, false) => Some("video"),
+            (true, true) => Some("storyboard.video"),
+        };
+
+        if let Some(ref extra) = extra {
+            map.serialize_entry("e", extra)?;
+        }
+
+        let mut general = None::<String>;
+
+        let mut add_general = |should_add: bool, value: &str| {
+            if !should_add {
+                return;
+            }
+
+            let is_some = general.is_some();
+            let general = general.get_or_insert_with(String::new);
+
+            if is_some {
+                general.push('.');
+            }
+
+            general.push_str(value);
+        };
+
+        add_general(self.recommended, "recommended");
+        add_general(self.converts, "converts");
+        add_general(self.follows, "follows");
+        add_general(self.spotlights, "spotlights");
+        add_general(self.featured_artists, "featured_artists");
+
+        if let Some(ref general) = general {
+            map.serialize_entry("c", general)?;
+        }
+
+        map.serialize_entry("nsfw", &self.nsfw)?;
+
+        if let Some(ref page) = self.page {
+            map.serialize_entry("page", page)?;
+        }
+
+        if let Some(cursor) = self.cursor {
+            map.serialize_entry("cursor_string", cursor)?;
+        }
+
+        if let Some(ref sort) = self.sort {
+            let mut buf = String::with_capacity(16);
+            let _ = write!(buf, "{sort}_");
+            let order = if self.descending { "desc" } else { "asc" };
+            buf.push_str(order);
+
+            map.serialize_entry("sort", &buf)?;
+        }
+
+        map.end()
+    }
+}
+
 /// Get a [`Score`](crate::model::score::Score) struct.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct GetScore<'a> {
     fut: Option<Pending<'a, Score>>,
     osu: &'a Osu,
-    mode: GameMode,
+    mode: Option<GameMode>,
     score_id: u64,
+    legacy_scores: bool,
 }
 
 impl<'a> GetScore<'a> {
     #[inline]
-    pub(crate) fn new(osu: &'a Osu, score_id: u64, mode: GameMode) -> Self {
+    pub(crate) const fn new(osu: &'a Osu, score_id: u64) -> Self {
         Self {
             fut: None,
             osu,
-            mode,
+            mode: None,
             score_id,
+            legacy_scores: false,
         }
     }
 
-    fn start(&mut self) -> Pending<'a, Score> {
-        #[cfg(feature = "metrics")]
-        self.osu.metrics.score.inc();
+    /// Specify the mode
+    #[inline]
+    pub const fn mode(mut self, mode: GameMode) -> Self {
+        self.mode = Some(mode);
 
+        self
+    }
+
+    /// Specify whether the score should contain legacy data or not.
+    ///
+    /// Legacy data consists of a different grade calculation, less
+    /// populated statistics, legacy mods, and a different score kind.
+    #[inline]
+    pub const fn legacy_scores(mut self, legacy_scores: bool) -> Self {
+        self.legacy_scores = legacy_scores;
+
+        self
+    }
+
+    fn start(&mut self) -> Pending<'a, Score> {
         let route = Route::GetScore {
             mode: self.mode,
             score_id: self.score_id,
         };
 
         let osu = self.osu;
-        let fut = osu.request::<Score>(Request::new(route));
+        let mut req = Request::new(route);
+
+        if self.legacy_scores {
+            req.api_version(0);
+        }
+
+        let fut = osu.request::<Score>(req);
 
         #[cfg(feature = "cache")]
         let fut = fut.inspect_ok(move |score| {

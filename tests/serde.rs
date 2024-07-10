@@ -3,14 +3,23 @@ extern crate rosu_v2;
 mod types {
     #![allow(unused)]
 
+    use ::serde::{de::DeserializeOwned, Serialize};
     use rosu_v2::prelude::*;
-    use std::collections::HashMap;
+    use std::{collections::HashMap, fmt::Debug};
     use time::{Date, Duration, OffsetDateTime};
 
     pub(super) fn get_chart_rankings() -> ChartRankings {
         ChartRankings {
             mapsets: vec![get_mapset()],
-            ranking: vec![get_user_compact()],
+            ranking: vec![User {
+                statistics_modes: UserStatisticsModes {
+                    osu: None,
+                    taiko: None,
+                    catch: None,
+                    mania: None,
+                },
+                ..get_user_compact()
+            }],
             spotlight: get_spotlight(),
         }
     }
@@ -26,12 +35,6 @@ mod types {
         }
     }
 
-    pub(super) fn get_cursor() -> Cursor {
-        let json = r#"{"cursor":{"a":123,"b":"henlo","c":true,"d":[1, 2, 3]}}"#;
-
-        serde_json::from_str(json).unwrap()
-    }
-
     pub(super) fn get_date() -> OffsetDateTime {
         let mut now = OffsetDateTime::now_utc();
         now -= Duration::nanoseconds(now.nanosecond() as i64);
@@ -41,7 +44,7 @@ mod types {
 
     pub(super) fn get_forum_posts() -> ForumPosts {
         ForumPosts {
-            cursor: Some(get_cursor()),
+            cursor: Some("my cursor".to_owned()),
             posts: vec![ForumPost {
                 created_at: get_date(),
                 deleted_at: Some(get_date()),
@@ -88,8 +91,8 @@ mod types {
         }
     }
 
-    pub(super) fn get_mapset() -> Beatmapset {
-        Beatmapset {
+    pub(super) fn get_mapset() -> BeatmapsetExtended {
+        BeatmapsetExtended {
             artist: "artist".to_owned(),
             artist_unicode: Some("äöü".to_owned()),
             availability: BeatmapsetAvailability {
@@ -100,7 +103,7 @@ mod types {
             can_be_hyped: true,
             converts: Some(vec![]),
             covers: get_mapset_covers(),
-            creator: Some(get_user_compact()),
+            creator: Some(Box::new(get_user_compact())),
             creator_name: "god".into(),
             creator_id: 2,
             description: Some("description".to_owned()),
@@ -120,7 +123,11 @@ mod types {
             mapset_id: 12345,
             nominations_summary: BeatmapsetNominations {
                 current: 1,
-                required: 2,
+                eligible_main_rulesets: Some(vec![GameMode::Taiko, GameMode::Mania]),
+                required_meta: BeatmapsetNominationsRequiredMeta {
+                    main_mode: GameMode::Osu,
+                    non_main_mode: GameMode::Taiko,
+                },
             },
             nsfw: true,
             playcount: 0,
@@ -139,8 +146,8 @@ mod types {
         }
     }
 
-    pub(super) fn get_map() -> Beatmap {
-        Beatmap {
+    pub(super) fn get_map() -> BeatmapExtended {
+        BeatmapExtended {
             ar: 9.3,
             bpm: 182.3,
             checksum: Some(String::new()),
@@ -152,14 +159,14 @@ mod types {
             cs: 4.1,
             deleted_at: Some(get_date()),
             fail_times: Some(FailTimes {
-                exit: Some(vec![1, 2, 3]),
-                fail: Some(vec![4, 5, 6]),
+                exit: Some((1..=100).collect::<Vec<_>>().try_into().unwrap()),
+                fail: Some((101..=200).collect::<Vec<_>>().try_into().unwrap()),
             }),
             hp: 7.5,
             is_scoreable: true,
             last_updated: get_date(),
             map_id: 123456,
-            mapset: Some(get_mapset()),
+            mapset: Some(Box::new(get_mapset())),
             mapset_id: 12345,
             max_combo: Some(1750),
             mode: GameMode::Osu,
@@ -175,13 +182,14 @@ mod types {
         }
     }
 
-    pub(super) fn get_map_compact() -> BeatmapCompact {
-        BeatmapCompact {
+    pub(super) fn get_map_compact() -> Beatmap {
+        Beatmap {
             checksum: Some("ABC123".to_owned()),
             creator_id: 456,
             fail_times: None,
             map_id: 123456,
-            mapset: Some(get_mapset_compact()),
+            mapset: Some(Box::new(get_mapset_compact())),
+            mapset_id: 2345,
             max_combo: Some(1000),
             mode: GameMode::Catch,
             seconds_total: 120,
@@ -191,8 +199,8 @@ mod types {
         }
     }
 
-    pub(super) fn get_mapset_compact() -> BeatmapsetCompact {
-        BeatmapsetCompact {
+    pub(super) fn get_mapset_compact() -> Beatmapset {
+        Beatmapset {
             artist: "artist".to_owned(),
             artist_unicode: Some("äöü".to_owned()),
             covers: get_mapset_covers(),
@@ -262,7 +270,7 @@ mod types {
                         mapset_discussion_post_id: None,
                     },
                     created_at: get_date(),
-                    mapset: get_mapset_compact(),
+                    mapset: Box::new(get_mapset_compact()),
                     user_id: 123456,
                     discussion: get_mapset_discussion(),
                 },
@@ -280,7 +288,7 @@ mod types {
                     },
                     created_at: get_date(),
                     user_id: 123456,
-                    mapset: get_mapset_compact(),
+                    mapset: Box::new(get_mapset_compact()),
                 },
                 BeatmapsetEvent::IssueReopen {
                     event_id: 1,
@@ -292,7 +300,7 @@ mod types {
                     },
                     created_at: get_date(),
                     user_id: 123456,
-                    mapset: get_mapset_compact(),
+                    mapset: Box::new(get_mapset_compact()),
                     discussion: get_mapset_discussion(),
                 },
                 BeatmapsetEvent::IssueResolve {
@@ -305,7 +313,7 @@ mod types {
                     },
                     created_at: get_date(),
                     user_id: 123456,
-                    mapset: get_mapset_compact(),
+                    mapset: Box::new(get_mapset_compact()),
                     discussion: get_mapset_discussion(),
                 },
                 BeatmapsetEvent::KudosuDeny {
@@ -317,7 +325,7 @@ mod types {
                         mapset_discussion_post_id: Some(3),
                     },
                     created_at: get_date(),
-                    mapset: get_mapset_compact(),
+                    mapset: Box::new(get_mapset_compact()),
                     discussion: get_mapset_discussion(),
                 },
                 BeatmapsetEvent::KudosuGain {
@@ -340,7 +348,7 @@ mod types {
                     },
                     created_at: get_date(),
                     user_id: 123456,
-                    mapset: get_mapset_compact(),
+                    mapset: Box::new(get_mapset_compact()),
                     discussion: get_mapset_discussion(),
                 },
                 BeatmapsetEvent::LanguageEdit {
@@ -357,7 +365,7 @@ mod types {
                     },
                     created_at: get_date(),
                     user_id: 123456,
-                    mapset: get_mapset_compact(),
+                    mapset: Box::new(get_mapset_compact()),
                 },
                 BeatmapsetEvent::Nominate {
                     event_id: 5,
@@ -371,7 +379,7 @@ mod types {
                     },
                     created_at: get_date(),
                     user_id: 123456,
-                    mapset: get_mapset_compact(),
+                    mapset: Box::new(get_mapset_compact()),
                 },
                 BeatmapsetEvent::NsfwToggle {
                     event_id: 6,
@@ -387,7 +395,7 @@ mod types {
                     },
                     created_at: get_date(),
                     user_id: 123456,
-                    mapset: get_mapset_compact(),
+                    mapset: Box::new(get_mapset_compact()),
                 },
                 BeatmapsetEvent::OwnerChange {
                     event_id: 9,
@@ -401,17 +409,17 @@ mod types {
                     },
                     created_at: get_date(),
                     user_id: 99,
-                    mapset: get_mapset_compact(),
+                    mapset: Box::new(get_mapset_compact()),
                 },
                 BeatmapsetEvent::Rank {
                     event_id: 7,
                     created_at: get_date(),
-                    mapset: get_mapset_compact(),
+                    mapset: Box::new(get_mapset_compact()),
                 },
                 BeatmapsetEvent::Qualify {
                     event_id: 8,
                     created_at: get_date(),
-                    mapset: get_mapset_compact(),
+                    mapset: Box::new(get_mapset_compact()),
                 },
             ],
             reviews_config: BeatmapsetReviewsConfig { max_blocks: 100 },
@@ -453,8 +461,15 @@ mod types {
                         mode: GameMode::Osu,
                         scoring_type: ScoringType::Score,
                         team_type: TeamType::HeadToHead,
-                        mods: GameMods::Hidden | GameMods::HardRock,
-                        map: Some(get_map_compact()),
+                        mods: [
+                            GameMod::HiddenOsu(HiddenOsu {
+                                only_fade_approach_circles: Some(true),
+                            }),
+                            GameMod::HardRockOsu(HardRockOsu {}),
+                        ]
+                        .into_iter()
+                        .collect(),
+                        map: Some(Box::new(get_map_compact())),
                         scores: vec![get_match_score()],
                     }),
                     match_name: "other name".to_owned(),
@@ -483,11 +498,13 @@ mod types {
         MatchScore {
             user_id: 123456,
             accuracy: 99.5,
-            mods: GameMods::ScoreV2 | GameMods::Relax,
+            mods: [GameModIntermode::ScoreV2, GameModIntermode::Relax]
+                .into_iter()
+                .collect(),
             score: 12_345_678,
             max_combo: 1000,
             perfect: false,
-            statistics: ScoreStatistics {
+            statistics: LegacyScoreStatistics {
                 count_geki: 0,
                 count_300: 1,
                 count_katu: 2,
@@ -503,37 +520,91 @@ mod types {
 
     pub(super) fn get_score() -> Score {
         Score {
+            classic_score: 765_432_199,
+            ranked: Some(true),
+            preserve: Some(true),
+            processed: Some(false),
             accuracy: 98.76,
             ended_at: get_date(),
             passed: true,
             grade: Grade::A,
             map_id: 123,
             max_combo: 1234,
-            map: Some(get_map()),
-            mapset: Some(get_mapset_compact()),
+            map: Some(Box::new(get_map())),
+            mapset: Some(Box::new(get_mapset_compact())),
             mode: GameMode::Catch,
-            mods: GameMods::Hidden | GameMods::DoubleTime,
-            perfect: false,
+            mods: [
+                GameMod::DifficultyAdjustCatch(DifficultyAdjustCatch {
+                    circle_size: Some(1.0),
+                    approach_rate: None,
+                    hard_rock_offsets: Some(false),
+                    drain_rate: None,
+                    overall_difficulty: Some(10.0),
+                    extended_limits: None,
+                }),
+                GameMod::HardRockCatch(HardRockCatch {}),
+            ]
+            .into_iter()
+            .collect(),
+            is_perfect_combo: false,
+            legacy_perfect: Some(false),
             pp: Some(456.78),
-            rank_country: Some(1),
             rank_global: Some(10),
-            replay: Some(true),
+            replay: true,
             score: 12_345_678,
-            score_id: Some(123_456_789_000),
+            best_id: Some(123_456_789_000),
+            id: 4_444_444,
             statistics: ScoreStatistics {
-                count_geki: 1,
-                count_300: 1000,
-                count_katu: 2,
-                count_100: 300,
-                count_50: 200,
-                count_miss: 1,
+                miss: 1,
+                great: 1000,
+                large_tick_hit: 300,
+                small_tick_hit: 2,
+                small_tick_miss: 1,
+                meh: 0,
+                ok: 0,
+                good: 0,
+                perfect: 0,
+                large_tick_miss: 0,
+                ignore_hit: 0,
+                ignore_miss: 0,
+                large_bonus: 0,
+                small_bonus: 0,
+                slider_tail_hit: 0,
+                combo_break: 0,
+                legacy_combo_increase: 0,
             },
-            user: Some(get_user_compact()),
+            user: Some(Box::new(get_user_compact())),
             user_id: 2,
             weight: Some(ScoreWeight {
                 percentage: 1.0,
                 pp: 456.78,
             }),
+            maximum_statistics: ScoreStatistics {
+                miss: 0,
+                great: 1100,
+                large_tick_hit: 350,
+                small_tick_hit: 5,
+                small_tick_miss: 0,
+                meh: 0,
+                ok: 0,
+                good: 0,
+                perfect: 0,
+                large_tick_miss: 0,
+                ignore_hit: 0,
+                ignore_miss: 0,
+                large_bonus: 0,
+                small_bonus: 0,
+                slider_tail_hit: 0,
+                combo_break: 0,
+                legacy_combo_increase: 0,
+            },
+            kind: "solo_score".into(),
+            build_id: Some(678),
+            has_replay: true,
+            legacy_score_id: Some(123),
+            legacy_score: 765_432_198,
+            started_at: Some(get_date()),
+            current_user_attributes: UserAttributes { pin: None },
         }
     }
 
@@ -559,8 +630,8 @@ mod types {
         }
     }
 
-    pub(super) fn get_user() -> User {
-        User {
+    pub(super) fn get_user() -> UserExtended {
+        UserExtended {
             avatar_url: String::new(),
             comments_count: 0,
             country: "belgiania".to_owned(),
@@ -661,6 +732,12 @@ mod types {
             scores_first_count: Some(13),
             scores_recent_count: Some(13),
             statistics: Some(get_user_stats()),
+            statistics_modes: UserStatisticsModes {
+                osu: Some(get_user_stats()),
+                taiko: None,
+                catch: Some(get_user_stats()),
+                mania: Some(get_user_stats()),
+            },
             support_level: Some(3),
             pending_mapset_count: Some(13),
             medals: Some(vec![MedalCompact {
@@ -670,8 +747,8 @@ mod types {
         }
     }
 
-    pub(super) fn get_user_compact() -> UserCompact {
-        UserCompact {
+    pub(super) fn get_user_compact() -> User {
+        User {
             avatar_url: String::new(),
             country_code: "be".into(),
             default_group: "default".to_owned(),
@@ -754,6 +831,12 @@ mod types {
             scores_first_count: Some(34),
             scores_recent_count: Some(34),
             statistics: Some(get_user_stats()),
+            statistics_modes: UserStatisticsModes {
+                osu: Some(get_user_stats()),
+                taiko: None,
+                catch: Some(get_user_stats()),
+                mania: Some(get_user_stats()),
+            },
             support_level: Some(1),
             pending_mapset_count: Some(34),
         }
@@ -769,6 +852,10 @@ mod types {
     pub(super) fn get_user_stats() -> UserStatistics {
         UserStatistics {
             accuracy: 99.11,
+            count_300: 12,
+            count_100: 34,
+            count_50: 56,
+            count_miss: 78,
             country_rank: Some(1),
             global_rank: Some(1),
             grade_counts: GradeCounts {
@@ -879,82 +966,6 @@ mod serde_tests {
     fn serde_forum_posts() {
         roundtrip(&get_forum_posts());
     }
-
-    #[test]
-    fn serde_match() {
-        roundtrip(&get_match());
-    }
-
-    #[test]
-    fn serde_score() {
-        roundtrip(&get_score());
-    }
-
-    #[test]
-    fn serde_seasonal_backgrounds() {
-        roundtrip(&get_seasonal_backgrounds());
-    }
-
-    #[test]
-    fn serde_user() {
-        roundtrip(&get_user());
-    }
-}
-
-#[cfg(feature = "rkyv")]
-mod rkyv_tests {
-    use ::rkyv::{
-        archived_root, ser::serializers::AllocSerializer, to_bytes, Archive, Deserialize,
-        Infallible, Serialize,
-    };
-
-    use super::types::*;
-
-    fn roundtrip<T>(val: &T)
-    where
-        T: PartialEq + std::fmt::Debug + Archive + Serialize<AllocSerializer<512>>,
-        <T as Archive>::Archived: Deserialize<T, Infallible>,
-    {
-        let bytes =
-            to_bytes::<_, 512>(val).unwrap_or_else(|e| panic!("Failed to serialize: {}", e));
-        let archived = unsafe { archived_root::<T>(&bytes) };
-        let deserialized =
-            <<T as Archive>::Archived as Deserialize<T, _>>::deserialize(archived, &mut Infallible)
-                .unwrap_or_else(|e| panic!("Failed to deserialize: {}", e));
-
-        assert_eq!(val, &deserialized);
-    }
-
-    #[test]
-    fn serde_beatmap() {
-        roundtrip(&get_map());
-    }
-
-    #[test]
-    fn serde_beatmap_attributes() {
-        roundtrip(&get_map_attributes());
-    }
-
-    #[test]
-    fn serde_beatmapset_events() {
-        roundtrip(&get_mapset_events());
-    }
-
-    #[test]
-    fn serde_chart_rankings() {
-        roundtrip(&get_chart_rankings());
-    }
-
-    #[test]
-    fn serde_country_ranking() {
-        roundtrip(&get_country_ranking());
-    }
-
-    // TODO
-    // #[test]
-    // fn serde_forum_posts() {
-    //     roundtrip(&get_forum_posts());
-    // }
 
     #[test]
     fn serde_match() {

@@ -5,20 +5,19 @@ use std::{
     sync::atomic::{AtomicBool, Ordering::SeqCst},
 };
 
-use dotenv::dotenv;
+use dotenvy::dotenv;
 use eyre::{Result, WrapErr};
 use once_cell::sync::OnceCell;
 use rosu_v2::{
     model::{
         beatmap::{BeatmapsetSearchSort, RankStatus},
+        event::EventSort,
         GameMode,
     },
     Osu,
 };
 use tokio::sync::{Mutex, MutexGuard};
-
-#[cfg(feature = "cache")]
-use rosu_v2::model::GameMods;
+use tracing_subscriber::{fmt::TestWriter, EnvFilter};
 
 struct OsuSingleton {
     initialized: AtomicBool,
@@ -41,7 +40,10 @@ impl OsuSingleton {
             .compare_exchange(false, true, SeqCst, SeqCst);
 
         if cmp_res.is_ok() {
-            let _ = env_logger::builder().is_test(true).try_init();
+            tracing_subscriber::fmt()
+                .with_writer(TestWriter::new())
+                .with_env_filter(EnvFilter::builder().parse("rosu_v2=trace,info").unwrap())
+                .init();
             dotenv().ok();
 
             let client_id = env::var("CLIENT_ID")
@@ -80,16 +82,6 @@ const SYLAS: u32 = 3906405;
 const DE_VS_CA: u32 = 71028303;
 
 const COOKIEZI_FREEDOM_DIVE: u64 = 2177560145;
-
-#[tokio::test]
-#[ignore = "specific testing"]
-async fn custom() -> Result<()> {
-    let result = OSU.get().await?.beatmapset(3).await?;
-
-    println!("Result:\n{:#?}", result.creator);
-
-    Ok(())
-}
 
 #[tokio::test]
 async fn beatmap() -> Result<()> {
@@ -142,11 +134,21 @@ async fn beatmap_scores() -> Result<()> {
 #[cfg(feature = "cache")]
 #[tokio::test]
 async fn beatmap_user_score() -> Result<()> {
+    use rosu_v2::model::mods::{GameModIntermode, GameModsIntermode};
+
+    let mods = [
+        GameModIntermode::Hidden,
+        GameModIntermode::HardRock,
+        GameModIntermode::HalfTime,
+    ]
+    .into_iter()
+    .collect::<GameModsIntermode>();
+
     let score = OSU
         .get()
         .await?
         .beatmap_user_score(ADESSO_BALLA, BADEWANNE3)
-        .mods(GameMods::Hidden | GameMods::HardRock | GameMods::HalfTime)
+        .mods(mods)
         .await?;
 
     println!(
@@ -206,13 +208,17 @@ async fn beatmapset_events() -> Result<()> {
 
 #[tokio::test]
 async fn beatmapset_search() -> Result<()> {
-    let search_result = OSU
-        .get()
-        .await?
+    let osu = OSU.get().await?;
+
+    let search_result = osu
         .beatmapset_search()
         .query("artist=camellia stars>8 ar>9 length<400")
-        .status(RankStatus::Graveyard)
+        .status(Some(RankStatus::Graveyard))
         .mode(GameMode::Osu)
+        .converts(true)
+        .featured_artists(true)
+        .page(2)
+        .recommended(false)
         .nsfw(false)
         .sort(BeatmapsetSearchSort::Favourites, false)
         .await?;
@@ -222,6 +228,33 @@ async fn beatmapset_search() -> Result<()> {
         search_result.mapsets.len(),
         search_result.total,
     );
+
+    let first_mapset_id = search_result.mapsets[0].mapset_id;
+
+    let search_result = search_result.get_next(&osu).await.unwrap()?;
+
+    println!(
+        "Received next search result containing {} out of {} mapsets",
+        search_result.mapsets.len(),
+        search_result.total,
+    );
+
+    let next_mapset_id = search_result.mapsets[0].mapset_id;
+    assert_ne!(first_mapset_id, next_mapset_id);
+
+    let search_result = osu
+        .beatmapset_search()
+        .query("artist='definitely no such name abc'")
+        .page(2)
+        .await?;
+
+    println!(
+        "Received search result containing {} out of {} mapsets",
+        search_result.mapsets.len(),
+        search_result.total,
+    );
+
+    assert!(!search_result.has_more());
 
     Ok(())
 }
@@ -265,6 +298,33 @@ async fn country_rankings() -> Result<()> {
 }
 
 #[tokio::test]
+async fn events() -> Result<()> {
+    let osu = OSU.get().await?;
+
+    let initial = osu.events().sort(EventSort::IdAscending).await?;
+    println!("Initial ascending events: {}", initial.events.len());
+
+    let next = initial.get_next(&osu).await.unwrap()?;
+    println!("Next ascending events: {}", next.events.len());
+
+    assert!(initial.events.last().unwrap().event_id < next.events.first().unwrap().event_id);
+
+    let initial = osu.events().await?;
+    println!("Initial descending events: {}", initial.events.len());
+
+    let next = osu
+        .events()
+        .cursor(initial.cursor.as_deref().unwrap())
+        .sort(EventSort::IdDescending)
+        .await?;
+    println!("Next descending events: {}", next.events.len());
+
+    assert!(initial.events.last().unwrap().event_id > next.events.first().unwrap().event_id);
+
+    Ok(())
+}
+
+#[tokio::test]
 async fn forum_posts() -> Result<()> {
     let posts = OSU
         .get()
@@ -281,11 +341,11 @@ async fn forum_posts() -> Result<()> {
 
 #[cfg(feature = "cache")]
 #[tokio::test]
-async fn recent_events() -> Result<()> {
+async fn recent_activity() -> Result<()> {
     let events = OSU
         .get()
         .await?
-        .recent_events("badewanne3")
+        .recent_activity("badewanne3")
         .limit(10)
         .offset(2)
         .await?;
@@ -299,11 +359,7 @@ async fn recent_events() -> Result<()> {
 #[tokio::test]
 #[ignore = "requires OAuth to not throw an error"]
 async fn replay() -> Result<()> {
-    let replay = OSU
-        .get()
-        .await?
-        .replay(GameMode::Osu, COOKIEZI_FREEDOM_DIVE)
-        .await?;
+    let replay = OSU.get().await?.replay(COOKIEZI_FREEDOM_DIVE).await?;
 
     println!("Received replay with the following score: {}", replay.score);
 
@@ -381,11 +437,7 @@ async fn performance_rankings() -> Result<()> {
 
 #[tokio::test]
 async fn score() -> Result<()> {
-    let score = OSU
-        .get()
-        .await?
-        .score(COOKIEZI_FREEDOM_DIVE, GameMode::Osu)
-        .await?;
+    let score = OSU.get().await?.score(COOKIEZI_FREEDOM_DIVE).await?;
 
     println!(
         "Received {}'s FREEDOM DIVE score",
@@ -491,21 +543,37 @@ async fn user_scores() -> Result<()> {
         .await?
         .user_scores("Badewanne3")
         .mode(GameMode::Catch)
-        .limit(99)
+        .limit(9)
         .offset(1)
         .best()
         .await?;
 
-    assert_eq!(scores.len(), 99);
+    assert_eq!(scores.len(), 9);
 
     Ok(())
 }
 
 #[tokio::test]
-#[ignore = "currently unavailable"]
+async fn user_scores_legacy() -> Result<()> {
+    let scores = OSU
+        .get()
+        .await?
+        .user_scores(BADEWANNE3)
+        .mode(GameMode::Taiko)
+        .limit(9)
+        .offset(1)
+        .best()
+        .legacy_scores(true)
+        .await?;
+
+    assert_eq!(scores.len(), 9);
+
+    Ok(())
+}
+
+#[tokio::test]
 async fn users() -> Result<()> {
-    #[allow(deprecated)]
-    let users = OSU.get().await?.users(&[BADEWANNE3, SYLAS]).await?;
+    let users = OSU.get().await?.users([BADEWANNE3, SYLAS]).await?;
     println!("Received {} users", users.len());
 
     Ok(())

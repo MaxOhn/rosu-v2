@@ -1,32 +1,26 @@
-use super::serde_;
-use crate::model::user_::UserCompact;
+use super::serde_util;
+use crate::model::user::User;
 
 use serde::Deserialize;
 use time::OffsetDateTime;
 
-#[cfg(feature = "rkyv")]
-use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
-
 /// Details of a background
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct SeasonalBackground {
     /// URL to the image
     pub url: String,
-    /// [`UserCompact`](crate::model::user::UserCompact) of the artist of the art
+    /// [`User`] of the artist of the art
     #[serde(rename = "user")]
-    pub artist: UserCompact,
+    pub artist: User,
 }
 
 /// Collection of seasonal backgrounds
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct SeasonalBackgrounds {
     /// End date of the backgrounds
-    #[serde(with = "serde_::datetime")]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
+    #[serde(with = "serde_util::datetime")]
     pub ends_at: OffsetDateTime,
     /// List of backgrounds
     pub backgrounds: Vec<SeasonalBackground>,

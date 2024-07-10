@@ -1,22 +1,27 @@
 use super::{
-    beatmap::BeatmapCompact, score_::ScoreStatistics, serde_, user_::UserCompact, Cursor, GameMode,
-    GameMods,
+    beatmap::Beatmap,
+    mods::{GameMods, GameModsIntermode},
+    score::LegacyScoreStatistics,
+    serde_util,
+    user::User,
+    GameMode,
 };
 use crate::{Osu, OsuResult};
 
-#[cfg(feature = "rkyv")]
-use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
-
+use rosu_mods::serde::GameModsSeed;
 use serde::{
-    de::{Deserializer, Error, IgnoredAny, MapAccess, SeqAccess, Unexpected, Visitor},
+    de::{
+        DeserializeSeed, Deserializer, Error as DeError, Error, IgnoredAny, MapAccess, SeqAccess,
+        Unexpected, Visitor,
+    },
     Deserialize,
 };
+use serde_json::value::RawValue;
 use std::{collections::HashMap, fmt, slice::Iter, vec::Drain};
 use time::OffsetDateTime;
 
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 #[cfg_attr(feature = "serialize", serde(tag = "type"))]
 pub enum MatchEvent {
     /// The match was created
@@ -24,8 +29,7 @@ pub enum MatchEvent {
     Create {
         #[cfg_attr(feature = "serialize", serde(rename(serialize = "id")))]
         event_id: u64,
-        #[cfg_attr(feature = "serialize", serde(with = "serde_::datetime"))]
-        #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
+        #[cfg_attr(feature = "serialize", serde(with = "serde_util::datetime"))]
         timestamp: OffsetDateTime,
         user_id: Option<u32>,
     },
@@ -34,8 +38,7 @@ pub enum MatchEvent {
     Disbanded {
         #[cfg_attr(feature = "serialize", serde(rename(serialize = "id")))]
         event_id: u64,
-        #[cfg_attr(feature = "serialize", serde(with = "serde_::datetime"))]
-        #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
+        #[cfg_attr(feature = "serialize", serde(with = "serde_util::datetime"))]
         timestamp: OffsetDateTime,
     },
     /// A map is / was being played
@@ -43,13 +46,11 @@ pub enum MatchEvent {
     Game {
         #[cfg_attr(feature = "serialize", serde(rename(serialize = "id")))]
         event_id: u64,
-        /// Boxed to optimize [`MatchEvent`](crate::model::matches::MatchEvent)'s
-        /// size in memory.
+        // Boxed to optimize [`MatchEvent`]'s size in memory.
         game: Box<MatchGame>,
         #[cfg_attr(feature = "serialize", serde(default))]
         match_name: String,
-        #[cfg_attr(feature = "serialize", serde(with = "serde_::datetime"))]
-        #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
+        #[cfg_attr(feature = "serialize", serde(with = "serde_util::datetime"))]
         timestamp: OffsetDateTime,
     },
     /// The match host changed
@@ -57,8 +58,7 @@ pub enum MatchEvent {
     HostChanged {
         #[cfg_attr(feature = "serialize", serde(rename(serialize = "id")))]
         event_id: u64,
-        #[cfg_attr(feature = "serialize", serde(with = "serde_::datetime"))]
-        #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
+        #[cfg_attr(feature = "serialize", serde(with = "serde_util::datetime"))]
         timestamp: OffsetDateTime,
         user_id: u32,
     },
@@ -67,8 +67,7 @@ pub enum MatchEvent {
     Joined {
         #[cfg_attr(feature = "serialize", serde(rename(serialize = "id")))]
         event_id: u64,
-        #[cfg_attr(feature = "serialize", serde(with = "serde_::datetime"))]
-        #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
+        #[cfg_attr(feature = "serialize", serde(with = "serde_util::datetime"))]
         timestamp: OffsetDateTime,
         user_id: u32,
     },
@@ -77,8 +76,7 @@ pub enum MatchEvent {
     Kicked {
         #[cfg_attr(feature = "serialize", serde(rename(serialize = "id")))]
         event_id: u64,
-        #[cfg_attr(feature = "serialize", serde(with = "serde_::datetime"))]
-        #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
+        #[cfg_attr(feature = "serialize", serde(with = "serde_util::datetime"))]
         timestamp: OffsetDateTime,
         user_id: u32,
     },
@@ -87,8 +85,7 @@ pub enum MatchEvent {
     Left {
         #[cfg_attr(feature = "serialize", serde(rename(serialize = "id")))]
         event_id: u64,
-        #[cfg_attr(feature = "serialize", serde(with = "serde_::datetime"))]
-        #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
+        #[cfg_attr(feature = "serialize", serde(with = "serde_util::datetime"))]
         timestamp: OffsetDateTime,
         user_id: u32,
     },
@@ -96,7 +93,7 @@ pub enum MatchEvent {
 
 impl MatchEvent {
     /// Return the id of the event
-    pub fn event_id(&self) -> u64 {
+    pub const fn event_id(&self) -> u64 {
         match self {
             Self::Create { event_id, .. } => *event_id,
             Self::Disbanded { event_id, .. } => *event_id,
@@ -109,7 +106,7 @@ impl MatchEvent {
     }
 
     /// Return the timestamp of the event
-    pub fn timestamp(&self) -> OffsetDateTime {
+    pub const fn timestamp(&self) -> OffsetDateTime {
         match self {
             Self::Create { timestamp, .. } => *timestamp,
             Self::Disbanded { timestamp, .. } => *timestamp,
@@ -122,7 +119,7 @@ impl MatchEvent {
     }
 
     /// Return the user id of the user associated with the event
-    pub fn user_id(&self) -> Option<u32> {
+    pub const fn user_id(&self) -> Option<u32> {
         match self {
             Self::Create { user_id, .. } => *user_id,
             Self::Disbanded { .. } => None,
@@ -213,7 +210,7 @@ impl<'de> Visitor<'de> for MatchEventVisitor {
 
     fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
         #[derive(Deserialize)]
-        struct DateTimeWrapper(#[serde(with = "serde_::datetime")] OffsetDateTime);
+        struct DateTimeWrapper(#[serde(with = "serde_util::datetime")] OffsetDateTime);
 
         let mut id = None;
         let mut timestamp: Option<DateTimeWrapper> = None;
@@ -231,7 +228,7 @@ impl<'de> Visitor<'de> for MatchEventVisitor {
                     kind = Some(detail.kind);
 
                     if !detail.match_name.is_empty() {
-                        match_name.replace(detail.match_name);
+                        match_name = Some(detail.match_name);
                     }
                 }
                 "user_id" => user_id = map.next_value()?,
@@ -299,31 +296,68 @@ impl<'de> Deserialize<'de> for MatchEvent {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct MatchGame {
-    #[serde(rename = "id")]
+    #[cfg_attr(feature = "serialize", serde(rename = "id"))]
     pub game_id: u64,
-    #[serde(with = "serde_::datetime")]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
+    #[cfg_attr(feature = "serialize", serde(with = "serde_util::datetime"))]
     pub start_time: OffsetDateTime,
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        with = "serde_::option_datetime"
+    #[cfg_attr(
+        feature = "serialize",
+        serde(
+            skip_serializing_if = "Option::is_none",
+            with = "serde_util::option_datetime"
+        )
     )]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub end_time: Option<OffsetDateTime>,
     pub mode: GameMode,
     pub scoring_type: ScoringType,
     pub team_type: TeamType,
     pub mods: GameMods,
-    /// [`BeatmapCompact`](crate::model::beatmap::BeatmapCompact) of the game;
+    /// [`Beatmap`] of the game;
     /// `None` if the map was deleted
-    #[serde(rename = "beatmap")]
-    pub map: Option<BeatmapCompact>,
+    #[cfg_attr(feature = "serialize", serde(rename = "beatmap"))]
+    pub map: Option<Box<Beatmap>>,
     pub scores: Vec<MatchScore>,
+}
+
+impl<'de> Deserialize<'de> for MatchGame {
+    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        #[derive(Deserialize)]
+        struct MatchGameRawMods {
+            #[serde(rename = "id")]
+            game_id: u64,
+            #[serde(with = "serde_util::datetime")]
+            start_time: OffsetDateTime,
+            #[serde(with = "serde_util::option_datetime")]
+            end_time: Option<OffsetDateTime>,
+            mode: GameMode,
+            scoring_type: ScoringType,
+            team_type: TeamType,
+            mods: Box<RawValue>,
+            #[serde(rename = "beatmap")]
+            map: Option<Box<Beatmap>>,
+            scores: Vec<MatchScore>,
+        }
+
+        let game_raw = <MatchGameRawMods as serde::Deserialize>::deserialize(d)?;
+        let mut d = serde_json::Deserializer::from_str(game_raw.mods.get());
+
+        Ok(MatchGame {
+            mods: GameModsSeed::Mode(game_raw.mode)
+                .deserialize(&mut d)
+                .map_err(DeError::custom)?,
+            game_id: game_raw.game_id,
+            start_time: game_raw.start_time,
+            end_time: game_raw.end_time,
+            mode: game_raw.mode,
+            scoring_type: game_raw.scoring_type,
+            team_type: game_raw.team_type,
+            map: game_raw.map,
+            scores: game_raw.scores,
+        })
+    }
 }
 
 macro_rules! mvp_fold {
@@ -360,7 +394,7 @@ pub struct MatchGameIter<'m> {
 }
 
 impl<'m> MatchGameIter<'m> {
-    fn new(iter: Iter<'m, MatchEvent>) -> Self {
+    const fn new(iter: Iter<'m, MatchEvent>) -> Self {
         Self { iter }
     }
 }
@@ -427,20 +461,17 @@ impl<'m> DoubleEndedIterator for MatchGameDrain<'m> {
 
 #[derive(Clone, Debug, Deserialize)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct MatchInfo {
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
-        with = "serde_::option_datetime"
+        with = "serde_util::option_datetime"
     )]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub end_time: Option<OffsetDateTime>,
     #[serde(rename = "id")]
     pub match_id: u32,
     pub name: String,
-    #[serde(with = "serde_::datetime")]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
+    #[serde(with = "serde_util::datetime")]
     pub start_time: OffsetDateTime,
 }
 
@@ -455,11 +486,13 @@ impl Eq for MatchInfo {}
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-// TODO
-// #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct MatchList {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub(crate) cursor: Option<Cursor>,
+    #[serde(
+        default,
+        rename = "cursor_string",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub(crate) cursor: Option<Box<str>>,
     pub matches: Vec<MatchInfo>,
     pub params: MatchListParams,
 }
@@ -468,21 +501,21 @@ impl MatchList {
     /// Returns whether there is a next page of match results,
     /// retrievable via [`get_next`](MatchList::get_next).
     #[inline]
-    pub fn has_more(&self) -> bool {
+    pub const fn has_more(&self) -> bool {
         self.cursor.is_some()
     }
 
-    /// If [`has_more`](MatchList::has_more) is true, the API can provide the next set of matches and this method will request them.
-    /// Otherwise, this method returns `None`.
+    /// If [`has_more`](MatchList::has_more) is true, the API can provide the
+    /// next set of matches and this method will request them. Otherwise, this
+    /// method returns `None`.
     #[inline]
     pub async fn get_next(&self, osu: &Osu) -> Option<OsuResult<MatchList>> {
-        Some(osu.osu_matches().cursor(self.cursor.clone()?).await)
+        Some(osu.osu_matches().cursor(self.cursor.as_deref()?).await)
     }
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct MatchListParams {
     pub limit: u32,
     pub sort: String,
@@ -490,18 +523,17 @@ pub struct MatchListParams {
 
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct MatchScore {
     /// Accuracy between `0.0` and `100.0`
-    #[cfg_attr(feature = "serialize", serde(with = "serde_::adjust_acc"))]
+    #[cfg_attr(feature = "serialize", serde(with = "serde_util::adjust_acc"))]
     pub accuracy: f32,
     pub max_combo: u32,
-    pub mods: GameMods,
+    pub mods: GameModsIntermode,
     pub pass: bool,
     pub perfect: bool,
     pub score: u32,
     pub slot: u8,
-    pub statistics: ScoreStatistics,
+    pub statistics: LegacyScoreStatistics,
     pub team: Team,
     pub user_id: u32,
 }
@@ -594,7 +626,7 @@ struct MatchScoreInfo {
     pass: bool,
 }
 
-struct MatchUsers(HashMap<u32, UserCompact>);
+struct MatchUsers(HashMap<u32, User>);
 
 struct MatchUsersVisitor;
 
@@ -610,7 +642,7 @@ impl<'de> Visitor<'de> for MatchUsersVisitor {
     fn visit_seq<A: SeqAccess<'de>>(self, mut seq: A) -> Result<Self::Value, A::Error> {
         let mut users = HashMap::with_capacity(seq.size_hint().unwrap_or_default());
 
-        while let Some(next) = seq.next_element::<UserCompact>()? {
+        while let Some(next) = seq.next_element::<User>()? {
             users.insert(next.user_id, next);
         }
 
@@ -627,7 +659,6 @@ impl<'de> Deserialize<'de> for MatchUsers {
 
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct OsuMatch {
     #[cfg_attr(feature = "serialize", serde(skip_serializing_if = "Option::is_none"))]
     pub current_game_id: Option<u64>,
@@ -635,27 +666,25 @@ pub struct OsuMatch {
         feature = "serialize",
         serde(
             skip_serializing_if = "Option::is_none",
-            with = "serde_::option_datetime"
+            with = "serde_util::option_datetime"
         )
     )]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub end_time: Option<OffsetDateTime>,
     pub events: Vec<MatchEvent>,
     pub first_event_id: u64,
     pub latest_event_id: u64,
     pub match_id: u32,
     pub name: String,
-    #[cfg_attr(feature = "serialize", serde(with = "serde_::datetime"))]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
+    #[cfg_attr(feature = "serialize", serde(with = "serde_util::datetime"))]
     pub start_time: OffsetDateTime,
     /// Maps user ids to users
     #[cfg_attr(feature = "serialize", serde(serialize_with = "serialize_match_users"))]
-    pub users: HashMap<u32, UserCompact>,
+    pub users: HashMap<u32, User>,
 }
 
 #[cfg(feature = "serialize")]
 fn serialize_match_users<S: serde::ser::Serializer>(
-    users: &HashMap<u32, UserCompact>,
+    users: &HashMap<u32, User>,
     s: S,
 ) -> Result<S::Ok, S::Error> {
     use serde::ser::SerializeSeq;
@@ -710,7 +739,7 @@ impl OsuMatch {
     ///                 # mode: GameMode::Osu,
     ///                 # scoring_type: ScoringType::Score,
     ///                 # team_type: TeamType::HeadToHead,
-    ///                 # mods: GameMods::NoMod,
+    ///                 # mods: GameMods::new(),
     ///                 # map: None,
     ///                 # scores: vec![],
     ///             # }),
@@ -740,7 +769,7 @@ impl OsuMatch {
     ///                 # mode: GameMode::Osu,
     ///                 # scoring_type: ScoringType::Score,
     ///                 # team_type: TeamType::HeadToHead,
-    ///                 # mods: GameMods::NoMod,
+    ///                 # mods: GameMods::new(),
     ///                 # map: None,
     ///                 # scores: vec![],
     ///             # }),
@@ -850,11 +879,11 @@ impl<'de> Visitor<'de> for OsuMatchVisitor {
 
     fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
         #[derive(Deserialize)]
-        struct DateTimeWrapper(#[serde(with = "serde_::datetime")] OffsetDateTime);
+        struct DateTimeWrapper(#[serde(with = "serde_util::datetime")] OffsetDateTime);
 
         #[derive(Deserialize)]
         struct OptionDateTimeWrapper(
-            #[serde(with = "serde_::option_datetime")] Option<OffsetDateTime>,
+            #[serde(with = "serde_util::option_datetime")] Option<OffsetDateTime>,
         );
 
         let mut current_game_id = None;
@@ -891,8 +920,8 @@ impl<'de> Visitor<'de> for OsuMatchVisitor {
                     let info: MatchInfo = map.next_value()?;
 
                     end_time = Some(OptionDateTimeWrapper(info.end_time));
-                    match_id.replace(info.match_id);
-                    name.replace(info.name);
+                    match_id = Some(info.match_id);
+                    name = Some(info.name);
                     start_time = Some(DateTimeWrapper(info.start_time));
                 }
                 "match_id" => match_id = Some(map.next_value()?),

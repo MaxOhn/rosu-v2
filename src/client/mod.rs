@@ -7,6 +7,7 @@ use token::{Authorization, AuthorizationKind, Token, TokenResponse};
 pub use builder::OsuBuilder;
 pub use token::Scope;
 
+#[allow(clippy::wildcard_imports)]
 use crate::{error::OsuError, model::GameMode, request::*, OsuResult};
 
 use hyper::{
@@ -33,16 +34,11 @@ use url::Url;
 #[cfg(feature = "cache")]
 use {crate::prelude::Username, dashmap::DashMap};
 
-#[cfg(feature = "metrics")]
-use {crate::metrics::Metrics, prometheus::IntCounterVec};
-
 /// The main osu client.
 pub struct Osu {
     pub(crate) inner: Arc<OsuRef>,
     #[cfg(feature = "cache")]
     pub(crate) cache: Box<DashMap<Username, u32>>,
-    #[cfg(feature = "metrics")]
-    pub(crate) metrics: Box<Metrics>,
     token_loop_tx: Option<Sender<()>>,
 }
 
@@ -64,28 +60,20 @@ impl Osu {
         OsuBuilder::default()
     }
 
-    /// Returns an [`IntCounterVec`](crate::prelude::IntCounterVec) from
-    /// [prometheus](https://crates.io/crates/prometheus) containing
-    /// a counter for each request type.
-    #[cfg(feature = "metrics")]
-    pub fn metrics(&self) -> IntCounterVec {
-        self.metrics.counters.clone()
-    }
-
-    /// Get a [`Beatmap`](crate::model::beatmap::Beatmap).
+    /// Get a [`BeatmapExtended`](crate::model::beatmap::BeatmapExtended).
     ///
     /// Filled options will be: `deleted_at` (if deleted), `fail_times`,
     /// `mapset` and `max_combo` (if available for mode).
     ///
-    /// The contained [`Beatmapset`](crate::model::beatmap::Beatmapset) will
+    /// The contained [`BeatmapsetExtended`](crate::model::beatmap::BeatmapsetExtended) will
     /// have these options filled: `legacy_thread_url`, `ratings`,
     /// `ranked_date` (if not unranked) and `submitted_date` (if submitted).
     #[inline]
-    pub fn beatmap(&self) -> GetBeatmap<'_> {
+    pub const fn beatmap(&self) -> GetBeatmap<'_> {
         GetBeatmap::new(self)
     }
 
-    /// Get a vec of at most 50 [`BeatmapCompact`](crate::model::beatmap::BeatmapCompact)s.
+    /// Get a vec of at most 50 [`Beatmap`](crate::model::beatmap::Beatmap)s.
     ///
     /// The contained maps will have these options filled: `mapset`,
     /// `fail_times`, and `max_combo` (if available for mode).
@@ -102,10 +90,10 @@ impl Osu {
     /// The contained scores will have the following options filled:
     /// `pp` (if ranked or approved), and `user`.
     ///
-    /// The scores' contained [`UserCompact`](crate::model::user::UserCompact)
+    /// The scores' contained [`User`](crate::model::user::User)
     /// will have the `country` and `cover` options filled.
     #[inline]
-    pub fn beatmap_scores(&self, map_id: u32) -> GetBeatmapScores<'_> {
+    pub const fn beatmap_scores(&self, map_id: u32) -> GetBeatmapScores<'_> {
         GetBeatmapScores::new(self, map_id)
     }
 
@@ -121,7 +109,7 @@ impl Osu {
     /// `map` and `user` options filled.
     #[cfg(not(feature = "cache"))]
     #[inline]
-    pub fn beatmap_user_score(&self, map_id: u32, user_id: u32) -> GetBeatmapUserScore<'_> {
+    pub const fn beatmap_user_score(&self, map_id: u32, user_id: u32) -> GetBeatmapUserScore<'_> {
         GetBeatmapUserScore::new(self, map_id, user_id)
     }
 
@@ -132,7 +120,7 @@ impl Osu {
     /// for `pp` in case of a ranked map.
     #[cfg(not(feature = "cache"))]
     #[inline]
-    pub fn beatmap_user_scores(&self, map_id: u32, user_id: u32) -> GetBeatmapUserScores<'_> {
+    pub const fn beatmap_user_scores(&self, map_id: u32, user_id: u32) -> GetBeatmapUserScores<'_> {
         GetBeatmapUserScores::new(self, map_id, user_id)
     }
 
@@ -165,14 +153,14 @@ impl Osu {
         GetBeatmapUserScores::new(self, map_id, user_id.into())
     }
 
-    /// Get a [`Beatmapset`](crate::model::beatmap::Beatmapset).
+    /// Get a [`BeatmapsetExtended`](crate::model::beatmap::BeatmapsetExtended).
     ///
     /// Filled options will be: `artist_unicode`, `converts`, `description`,
     /// `genre`, `language`, `legacy_thread_url`, `maps`, `ratings`,
     /// `ranked_date` (if not unranked), `recent_favourites`,
     /// `submitted_date` (if submitted), and `title_unicode`.
     ///
-    /// The contained [`Beatmap`](crate::model::beatmap::Beatmap)s
+    /// The contained [`BeatmapExtended`](crate::model::beatmap::BeatmapExtended)s
     /// will contain `Some` in `fail_times`, `max_combo`
     /// (if available for mode), and `deleted_at` (if deleted).
     #[inline]
@@ -180,14 +168,14 @@ impl Osu {
         GetBeatmapset::new(self, mapset_id)
     }
 
-    /// Get a [`Beatmapset`](crate::model::beatmap::Beatmapset) from a map ID.
+    /// Get a [`BeatmapsetExtended`](crate::model::beatmap::BeatmapsetExtended) from a map ID.
     ///
     /// Filled options will be: `artist_unicode`, `converts`, `description`,
     /// `genre`, `language`, `legacy_thread_url`, `maps`, `ratings`,
     /// `ranked_date` (if not unranked), `recent_favourites`,
     /// `submitted_date` (if submitted), and `title_unicode`.
     ///
-    /// The contained [`Beatmap`](crate::model::beatmap::Beatmap)s
+    /// The contained [`BeatmapExtended`](crate::model::beatmap::BeatmapExtended)s
     /// will contain `Some` in `fail_times`, `max_combo`
     /// (if available for mode), and `deleted_at` (if deleted).
     #[inline]
@@ -214,7 +202,7 @@ impl Osu {
     /// - nsfw: allowed
     /// - sort: by relevance, descending
     ///
-    /// The contained [`Beatmapset`](crate::model::beatmap::Beatmapset)s will have the
+    /// The contained [`BeatmapsetExtended`](crate::model::beatmap::BeatmapsetExtended)s will have the
     /// following options filled: `artist_unicode`, `legacy_thread_url`, `maps`,
     /// `ranked_date` and `submitted_date` if available, and `title_unicode`.
     ///
@@ -232,21 +220,21 @@ impl Osu {
     /// let query = "status=loved artist=camellia stars>8";
     /// ```
     #[inline]
-    pub fn beatmapset_search(&self) -> GetBeatmapsetSearch<'_> {
+    pub const fn beatmapset_search(&self) -> GetBeatmapsetSearch<'_> {
         GetBeatmapsetSearch::new(self)
     }
 
     /// Get a list of comments and their replies up to two levels deep
     /// in form of a [`CommentBundle`](crate::model::comments::CommentBundle) .
     #[inline]
-    pub fn comments(&self) -> GetComments<'_> {
+    pub const fn comments(&self) -> GetComments<'_> {
         GetComments::new(self)
     }
 
     /// Get a [`ChartRankings`](crate::model::ranking::ChartRankings) struct
     /// containing a [`Spotlight`](crate::model::ranking::Spotlight), its
-    /// [`Beatmapset`](crate::model::beatmap::Beatmapset)s, and participating
-    /// [`UserCompact`](crate::model::user::UserCompact).
+    /// [`BeatmapsetExtended`](crate::model::beatmap::BeatmapsetExtended)s, and participating
+    /// [`User`](crate::model::user::User).
     ///
     /// The mapset will have their `maps` option filled.
     ///
@@ -255,7 +243,7 @@ impl Osu {
     /// The statistics vector is ordered by `ranked_score`.
     /// The `user` option is filled.
     #[inline]
-    pub fn chart_rankings(&self, mode: GameMode) -> GetChartRankings<'_> {
+    pub const fn chart_rankings(&self, mode: GameMode) -> GetChartRankings<'_> {
         GetChartRankings::new(self, mode)
     }
 
@@ -263,13 +251,19 @@ impl Osu {
     /// containing a vec of [`CountryRanking`](crate::model::ranking::CountryRanking)s
     /// which will be sorted by the country's total pp.
     #[inline]
-    pub fn country_rankings(&self, mode: GameMode) -> GetCountryRankings<'_> {
+    pub const fn country_rankings(&self, mode: GameMode) -> GetCountryRankings<'_> {
         GetCountryRankings::new(self, mode)
+    }
+
+    /// Get a vec of [`Event`](crate::model::event::Event).
+    #[inline]
+    pub const fn events(&self) -> GetEvents<'_> {
+        GetEvents::new(self)
     }
 
     /// Get a [`ForumPosts`](crate::model::forum::ForumPosts) struct for a forum topic
     #[inline]
-    pub fn forum_posts(&self, topic_id: u64) -> GetForumPosts<'_> {
+    pub const fn forum_posts(&self, topic_id: u64) -> GetForumPosts<'_> {
         GetForumPosts::new(self, topic_id)
     }
 
@@ -277,7 +271,7 @@ impl Osu {
     /// [`KudosuHistory`](crate::model::kudosu::KudosuHistory).
     #[cfg(not(feature = "cache"))]
     #[inline]
-    pub fn kudosu(&self, user_id: u32) -> GetUserKudosu<'_> {
+    pub const fn kudosu(&self, user_id: u32) -> GetUserKudosu<'_> {
         GetUserKudosu::new(self, user_id)
     }
 
@@ -297,7 +291,7 @@ impl Osu {
 
     /// Get an [`OsuMatch`](crate::model::matches::OsuMatch).
     #[inline]
-    pub fn osu_match(&self, match_id: u32) -> GetMatch<'_> {
+    pub const fn osu_match(&self, match_id: u32) -> GetMatch<'_> {
         GetMatch::new(self, match_id)
     }
 
@@ -308,39 +302,39 @@ impl Osu {
         GetMatches::new(self)
     }
 
-    /// Get the [`User`](crate::model::user::User) of the authenticated user.
+    /// Get the [`UserExtended`](crate::model::user::UserExtended) of the authenticated user.
     ///
     /// Note that the client has to be initialized with the `identify` scope
     /// through the OAuth process in order for this endpoint to not return an error.
     ///
     /// See [`OsuBuilder::with_authorization`](crate::OsuBuilder::with_authorization).
     #[inline]
-    pub fn own_data(&self) -> GetOwnData<'_> {
+    pub const fn own_data(&self) -> GetOwnData<'_> {
         GetOwnData::new(self)
     }
 
     /// Get a [`Rankings`](crate::model::ranking::Rankings) struct whose
-    /// [`UserCompact`](crate::model::user::UserCompact)s are sorted
+    /// [`User`](crate::model::user::User)s are sorted
     /// by their pp, i.e. the current pp leaderboard.
     #[inline]
-    pub fn performance_rankings(&self, mode: GameMode) -> GetPerformanceRankings<'_> {
+    pub const fn performance_rankings(&self, mode: GameMode) -> GetPerformanceRankings<'_> {
         GetPerformanceRankings::new(self, mode)
     }
 
     /// Get the recent activity of a user in form of a vec of
-    /// [`RecentEvent`](crate::model::recent_event::RecentEvent)s.
+    /// [`Event`](crate::model::event::Event)s.
     #[cfg(not(feature = "cache"))]
     #[inline]
-    pub fn recent_events(&self, user_id: u32) -> GetRecentEvents<'_> {
-        GetRecentEvents::new(self, user_id)
+    pub const fn recent_activity(&self, user_id: u32) -> GetRecentActivity<'_> {
+        GetRecentActivity::new(self, user_id)
     }
 
     /// Get the recent activity of a user in form of a vec of
-    /// [`RecentEvent`](crate::model::recent_event::RecentEvent)s.
+    /// [`Event`](crate::model::event::Event)s.
     #[cfg(feature = "cache")]
     #[inline]
-    pub fn recent_events(&self, user_id: impl Into<UserId>) -> GetRecentEvents<'_> {
-        GetRecentEvents::new(self, user_id.into())
+    pub fn recent_activity(&self, user_id: impl Into<UserId>) -> GetRecentActivity<'_> {
+        GetRecentActivity::new(self, user_id.into())
     }
 
     /// Get the replay of a score in form of a [`Replay`](osu_db::Replay).
@@ -350,9 +344,10 @@ impl Osu {
     ///
     /// See [`OsuBuilder::with_authorization`](crate::OsuBuilder::with_authorization).
     #[cfg(feature = "replay")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "replay")))]
     #[inline]
-    pub fn replay(&self, mode: GameMode, score_id: u64) -> GetReplay<'_> {
-        GetReplay::new(self, mode, score_id)
+    pub fn replay(&self, score_id: u64) -> GetReplay<'_> {
+        GetReplay::new(self, score_id)
     }
 
     /// Get the bytes of a replay of a score in form of a `Vec<u8>`.
@@ -362,8 +357,8 @@ impl Osu {
     ///
     /// See [`OsuBuilder::with_authorization`](crate::OsuBuilder::with_authorization).
     #[inline]
-    pub fn replay_raw(&self, mode: GameMode, score_id: u64) -> GetReplayRaw<'_> {
-        GetReplayRaw::new(self, mode, score_id)
+    pub fn replay_raw(&self, score_id: u64) -> GetReplayRaw<'_> {
+        GetReplayRaw::new(self, score_id)
     }
 
     /// Get a [`Score`](crate::model::score::Score) struct.
@@ -374,15 +369,15 @@ impl Osu {
     /// (if ranked), `rank_global` (if on leaderboard map) and `user`
     /// (will contain `last_visited`, `country`, `cover` and `groups`)
     #[inline]
-    pub fn score(&self, score_id: u64, mode: GameMode) -> GetScore<'_> {
-        GetScore::new(self, score_id, mode)
+    pub const fn score(&self, score_id: u64) -> GetScore<'_> {
+        GetScore::new(self, score_id)
     }
 
     /// Get a [`Rankings`](crate::model::ranking::Rankings) struct whose
-    /// [`UserCompact`](crate::model::user::UserCompact)s are sorted
+    /// [`User`](crate::model::user::User)s are sorted
     /// by their ranked score, i.e. the current ranked score leaderboard.
     #[inline]
-    pub fn score_rankings(&self, mode: GameMode) -> GetScoreRankings<'_> {
+    pub const fn score_rankings(&self, mode: GameMode) -> GetScoreRankings<'_> {
         GetScoreRankings::new(self, mode)
     }
 
@@ -398,7 +393,7 @@ impl Osu {
         GetSpotlights::new(self)
     }
 
-    /// Get a [`User`](crate::model::user::User).
+    /// Get a [`UserExtended`](crate::model::user::UserExtended).
     ///
     /// The following options will be filled if the user specified them:
     /// `discord`, `interests`, `location`, `occupation`, `playstyle`,
@@ -413,7 +408,7 @@ impl Osu {
         GetUser::new(self, user_id)
     }
 
-    /// Get the [`Beatmapset`](crate::model::beatmap::Beatmapset)s of a user by their id.
+    /// Get the [`BeatmapsetExtended`](crate::model::beatmap::BeatmapsetExtended)s of a user by their id.
     ///
     /// If no map type specified, either manually through
     /// [`map_type`](crate::request::GetUserBeatmapsets::map_type),
@@ -426,18 +421,18 @@ impl Osu {
     ///
     /// Filled options will be: `artist_unicode`, `legacy_thread_url`, `maps`, `title_unicode`.
     ///
-    /// All options of the contained [`Beatmap`](crate::model::beatmap::Beatmap)s will be `None`.
+    /// All options of the contained [`BeatmapExtended`](crate::model::beatmap::BeatmapExtended)s will be `None`.
     #[cfg(not(feature = "cache"))]
     #[inline]
-    pub fn user_beatmapsets(&self, user_id: u32) -> GetUserBeatmapsets<'_> {
+    pub const fn user_beatmapsets(&self, user_id: u32) -> GetUserBeatmapsets<'_> {
         GetUserBeatmapsets::new(self, user_id)
     }
 
-    /// Get a vec of [`Beatmapset`](crate::model::beatmap::Beatmapset)s a user made.
+    /// Get a vec of [`BeatmapsetExtended`](crate::model::beatmap::BeatmapsetExtended)s a user made.
     ///
     /// Filled options will be: `artist_unicode`, `legacy_thread_url`, `maps`, `title_unicode`.
     ///
-    /// All options of the contained [`Beatmap`](crate::model::beatmap::Beatmap)s will be `None`.
+    /// All options of the contained [`BeatmapExtended`](crate::model::beatmap::BeatmapExtended)s will be `None`.
     #[cfg(feature = "cache")]
     #[inline]
     pub fn user_beatmapsets(&self, user_id: impl Into<UserId>) -> GetUserBeatmapsets<'_> {
@@ -446,22 +441,22 @@ impl Osu {
 
     /// Get a vec of a user's [`MostPlayedMap`](crate::model::beatmap::MostPlayedMap)s.
     ///
-    /// All options of the contained [`BeatmapCompact`](crate::model::beatmap::BeatmapCompact) and
-    /// [`BeatmapsetCompact`](crate::model::beatmap::BeatmapsetCompact) will be `None`.
+    /// All options of the contained [`Beatmap`](crate::model::beatmap::Beatmap) and
+    /// [`Beatmapset`](crate::model::beatmap::Beatmapset) will be `None`.
     ///
     /// ## Limit
     ///
     /// The API provides at most 100 results, defaults to 5.
     #[cfg(not(feature = "cache"))]
     #[inline]
-    pub fn user_most_played(&self, user_id: u32) -> GetUserMostPlayed<'_> {
+    pub const fn user_most_played(&self, user_id: u32) -> GetUserMostPlayed<'_> {
         GetUserMostPlayed::new(self, user_id)
     }
 
     /// Get a vec of a user's [`MostPlayedMap`](crate::model::beatmap::MostPlayedMap)s.
     ///
-    /// All options of the contained [`BeatmapCompact`](crate::model::beatmap::BeatmapCompact) and
-    /// [`BeatmapsetCompact`](crate::model::beatmap::BeatmapsetCompact) will be `None`.
+    /// All options of the contained [`Beatmap`](crate::model::beatmap::Beatmap) and
+    /// [`Beatmapset`](crate::model::beatmap::Beatmapset) will be `None`.
     ///
     /// ## Limit
     ///
@@ -485,9 +480,9 @@ impl Osu {
     ///
     /// Additionally, the `best` score type will provide the `weight` option.
     ///
-    /// All options of the contained [`Beatmap`](crate::model::beatmap::Beatmap),
-    /// [`BeatmapsetCompact`](crate::model::beatmap::Beatmapset), and
-    /// [`UserCompact`](crate::model::user::UserCompact) will be `None`.
+    /// All options of the contained [`BeatmapExtended`](crate::model::beatmap::BeatmapExtended),
+    /// [`Beatmapset`](crate::model::beatmap::BeatmapsetExtended), and
+    /// [`User`](crate::model::user::User) will be `None`.
     ///
     /// ## Note
     ///
@@ -499,7 +494,7 @@ impl Osu {
     /// is not loved.
     #[cfg(not(feature = "cache"))]
     #[inline]
-    pub fn user_scores(&self, user_id: u32) -> GetUserScores<'_> {
+    pub const fn user_scores(&self, user_id: u32) -> GetUserScores<'_> {
         GetUserScores::new(self, user_id)
     }
 
@@ -516,9 +511,9 @@ impl Osu {
     ///
     /// Additionally, the `best` score type will provide the `weight` option.
     ///
-    /// All options of the contained [`Beatmap`](crate::model::beatmap::Beatmap),
-    /// [`BeatmapsetCompact`](crate::model::beatmap::Beatmapset), and
-    /// [`UserCompact`](crate::model::user::UserCompact) will be `None`.
+    /// All options of the contained [`BeatmapExtended`](crate::model::beatmap::BeatmapExtended),
+    /// [`Beatmapset`](crate::model::beatmap::Beatmapset), and
+    /// [`User`](crate::model::user::User) will be `None`.
     ///
     /// ## Note
     ///
@@ -534,10 +529,12 @@ impl Osu {
         GetUserScores::new(self, user_id.into())
     }
 
-    /// Get a vec of [`UserCompact`](crate::model::user::UserCompact).
-    #[deprecated = "The API currently doesn't allow this endpoint for public use"]
+    /// Get a vec of [`User`](crate::model::user::User).
     #[inline]
-    pub fn users(&self, user_ids: &[u32]) -> GetUsers<'_> {
+    pub fn users<I>(&self, user_ids: I) -> GetUsers<'_>
+    where
+        I: IntoIterator<Item = u32>,
+    {
         GetUsers::new(self, user_ids)
     }
 
@@ -569,7 +566,7 @@ impl Osu {
                 // ! concurrent function calls but since `DashMap::len` is a non-trivial
                 // ! method to call and `cache_user` is called frequently, it's hopefully
                 // ! fine to just naively increment here and ignore double-countings.
-                self.metrics.cache_size.inc();
+                ::metrics::counter!("osu_username_cache_size").increment(1);
 
                 Ok(user.user_id)
             }
@@ -623,30 +620,28 @@ static MY_USER_AGENT: &str = concat!(
 const APPLICATION_JSON: &str = "application/json";
 const X_API_VERSION: &str = "x-api-version";
 
-const API_VERSION: u32 = 20220705;
-
 impl OsuRef {
     async fn request_token(&self) -> OsuResult<TokenResponse> {
-        let mut body = Body::default();
-        body.push_without_quotes("client_id", self.client_id);
-        body.push_with_quotes("client_secret", &self.client_secret);
+        let mut body = Body::new();
+        body.push_int("client_id", self.client_id);
+        body.push_str("client_secret", &self.client_secret);
 
         match &self.auth_kind {
             AuthorizationKind::Client(scope) => {
-                body.push_with_quotes("grant_type", "client_credentials");
-                body.push_with_quotes("scope", scope);
+                body.push_str("grant_type", "client_credentials");
+                body.push_str("scope", scope.as_str());
             }
             AuthorizationKind::User(auth) => match &self.token.read().await.refresh {
                 Some(refresh) => {
-                    body.push_with_quotes("grant_type", "refresh_token");
-                    body.push_with_quotes("refresh_token", refresh);
+                    body.push_str("grant_type", "refresh_token");
+                    body.push_str("refresh_token", refresh);
                 }
                 None => {
-                    body.push_with_quotes("grant_type", "authorization_code");
-                    body.push_with_quotes("redirect_uri", &auth.redirect_uri);
-                    body.push_with_quotes("code", &auth.code);
+                    body.push_str("grant_type", "authorization_code");
+                    body.push_str("redirect_uri", &auth.redirect_uri);
+                    body.push_str("code", &auth.code);
                     // FIXME: let users decide which scopes to use?
-                    body.push_with_quotes("scope", "identify public");
+                    body.push_str("scope", "identify public");
                 }
             },
         };
@@ -666,7 +661,7 @@ impl OsuRef {
         let resp = self.send_request(req).await?;
         let bytes = self.handle_status(resp).await?;
 
-        parse_bytes(bytes)
+        parse_bytes(&bytes)
     }
 
     async fn request<T: DeserializeOwned>(&self, req: Request) -> OsuResult<T> {
@@ -675,27 +670,47 @@ impl OsuRef {
         // let text = String::from_utf8_lossy(&bytes);
         // println!("Response:\n{}", text);
 
-        parse_bytes(bytes)
+        parse_bytes(&bytes)
     }
 
     async fn request_raw(&self, req: Request) -> OsuResult<Bytes> {
-        let resp = self.raw(req).await?;
+        let Request {
+            query,
+            route,
+            body,
+            api_version,
+        } = req;
+
+        let (method, path) = route.to_parts();
+
+        #[cfg(feature = "metrics")]
+        let start = std::time::Instant::now();
+
+        let mut url = format!("https://osu.ppy.sh/api/v2/{path}");
+
+        if let Some(ref query) = query {
+            url.push('?');
+            url.push_str(query);
+        }
+
+        let resp = self.raw(url, method, body, api_version).await?;
         let bytes = self.handle_status(resp).await?;
+
+        #[cfg(feature = "metrics")]
+        ::metrics::histogram!("osu_response_time", "route" => route.name()).record(start.elapsed());
 
         Ok(bytes)
     }
 
-    async fn raw(&self, req: Request) -> OsuResult<Response<HyperBody>> {
-        let Request {
-            query,
-            method,
-            path,
-            body,
-        } = req;
-
-        let url = format!("https://osu.ppy.sh/api/v2/{}{}", path, query);
+    async fn raw(
+        &self,
+        url: String,
+        method: Method,
+        body: Body,
+        api_version: u32,
+    ) -> OsuResult<Response<HyperBody>> {
         let url = Url::parse(&url).map_err(|source| OsuError::Url { source, url })?;
-        debug!("URL: {}", url);
+        debug!("URL: {url}");
 
         if let Some(ref token) = self.token.read().await.access {
             let value = HeaderValue::from_str(token)
@@ -708,7 +723,7 @@ impl OsuRef {
                 .uri(url.as_str())
                 .header(AUTHORIZATION, value)
                 .header(USER_AGENT, MY_USER_AGENT)
-                .header(X_API_VERSION, API_VERSION)
+                .header(X_API_VERSION, api_version)
                 .header(ACCEPT, APPLICATION_JSON)
                 .header(CONTENT_LENGTH, bytes.len());
 
@@ -778,9 +793,9 @@ impl OsuRef {
 }
 
 #[inline]
-fn parse_bytes<T: DeserializeOwned>(bytes: Bytes) -> OsuResult<T> {
-    serde_json::from_slice(&bytes).map_err(|source| {
-        let body = String::from_utf8_lossy(&bytes).into_owned();
+fn parse_bytes<T: DeserializeOwned>(bytes: &Bytes) -> OsuResult<T> {
+    serde_json::from_slice(bytes).map_err(|source| {
+        let body = String::from_utf8_lossy(bytes).into_owned();
 
         OsuError::Parsing { body, source }
     })
@@ -790,7 +805,7 @@ fn clone_req(req: &HyperRequest<BodyBytes>) -> HyperRequest<BodyBytes> {
     let mut builder = HyperRequest::builder().method(req.method()).uri(req.uri());
 
     if let Some(headers) = builder.headers_mut() {
-        *headers = req.headers().to_owned();
+        req.headers().clone_into(headers);
     }
 
     builder.body(req.body().to_owned()).unwrap()
@@ -804,11 +819,11 @@ fn clone_req(req: &HyperRequest<BodyBytes>) -> HyperRequest<BodyBytes> {
 struct BodyBytes(Bytes);
 
 impl BodyBytes {
-    fn is_empty(&self) -> bool {
+    const fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
 
-    fn len(&self) -> usize {
+    const fn len(&self) -> usize {
         self.0.len()
     }
 }
@@ -822,12 +837,12 @@ impl HttpBody for BodyBytes {
         mut self: Pin<&mut Self>,
         _cx: &mut Context<'_>,
     ) -> Poll<Option<Result<Self::Data, Self::Error>>> {
-        if !self.is_empty() {
+        if self.is_empty() {
+            Poll::Ready(None)
+        } else {
             let bytes = mem::take(&mut self.0);
 
             Poll::Ready(Some(Ok(bytes)))
-        } else {
-            Poll::Ready(None)
         }
     }
 

@@ -1,41 +1,36 @@
 use super::{
-    beatmap::Beatmapset,
-    serde_,
-    user_::{deserialize_country, UserCompact, UserStatistics},
+    beatmap::BeatmapsetExtended,
+    serde_util,
+    user::{deserialize_country, User, UserStatistics},
     GameMode,
 };
-use crate::{model::user_::CountryCode, Osu, OsuResult};
+use crate::{model::user::CountryCode, Osu, OsuResult};
 
-use serde::{
+use ::serde::{
     de::{Deserializer, Error, IgnoredAny, MapAccess, SeqAccess, Visitor},
     Deserialize,
 };
 use std::fmt;
 use time::OffsetDateTime;
 
-#[cfg(feature = "rkyv")]
-use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
-
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct ChartRankings {
     /// The list of beatmaps in the requested spotlight for the given mode
     #[serde(rename = "beatmapsets")]
-    pub mapsets: Vec<Beatmapset>,
+    pub mapsets: Vec<BeatmapsetExtended>,
     #[serde(
         deserialize_with = "deserialize_user_stats_vec",
         serialize_with = "serialize_user_stats_vec"
     )]
     /// Score details ordered by score in descending order.
-    pub ranking: Vec<UserCompact>,
+    pub ranking: Vec<User>,
     /// Spotlight details
     pub spotlight: Spotlight,
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct CountryRanking {
     /// Active user count
     pub active_users: u32,
@@ -43,7 +38,6 @@ pub struct CountryRanking {
     #[serde(deserialize_with = "deserialize_country")]
     pub country: String,
     #[serde(rename = "code")]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::CountryCodeWrapper))]
     pub country_code: CountryCode,
     /// Summed playcount for all users
     #[serde(rename = "play_count")]
@@ -57,7 +51,6 @@ pub struct CountryRanking {
 
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct CountryRankings {
     /// The next page of the ranking
     #[serde(
@@ -84,7 +77,6 @@ impl CountryRankings {
 
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct Rankings {
     #[serde(default)]
     pub(crate) mode: Option<GameMode>,
@@ -99,9 +91,8 @@ pub struct Rankings {
         deserialize_with = "deserialize_user_stats_vec",
         serialize_with = "serialize_user_stats_vec"
     )]
-    pub ranking: Vec<UserCompact>,
+    pub ranking: Vec<User>,
     #[serde(default)]
-    #[cfg(not(feature = "rkyv"))]
     pub(crate) ranking_type: Option<RankingType>,
     pub total: u32,
 }
@@ -109,7 +100,7 @@ pub struct Rankings {
 struct UserStatsVecVisitor;
 
 impl<'de> Visitor<'de> for UserStatsVecVisitor {
-    type Value = Vec<UserCompact>;
+    type Value = Vec<User>;
 
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("a vec of UserStatistics structs")
@@ -119,7 +110,7 @@ impl<'de> Visitor<'de> for UserStatsVecVisitor {
     fn visit_seq<A: SeqAccess<'de>>(self, mut seq: A) -> Result<Self::Value, A::Error> {
         let mut users = Vec::with_capacity(seq.size_hint().unwrap_or_default());
 
-        while let Some(UserCompactWrapper(user)) = seq.next_element()? {
+        while let Some(UserWrapper(user)) = seq.next_element()? {
             users.push(user);
         }
 
@@ -127,19 +118,19 @@ impl<'de> Visitor<'de> for UserStatsVecVisitor {
     }
 }
 
-struct UserCompactWrapper(UserCompact);
+struct UserWrapper(User);
 
-impl<'de> Deserialize<'de> for UserCompactWrapper {
+impl<'de> Deserialize<'de> for UserWrapper {
     #[inline]
     fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
-        d.deserialize_map(UserStatsVisitor).map(UserCompactWrapper)
+        d.deserialize_map(UserStatsVisitor).map(UserWrapper)
     }
 }
 
 struct UserStatsVisitor;
 
 impl<'de> Visitor<'de> for UserStatsVisitor {
-    type Value = UserCompact;
+    type Value = User;
 
     #[inline]
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -148,6 +139,10 @@ impl<'de> Visitor<'de> for UserStatsVisitor {
 
     fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
         let mut accuracy = None;
+        let mut count_300 = None;
+        let mut count_100 = None;
+        let mut count_50 = None;
+        let mut count_miss = None;
         let mut country_rank = None;
         let mut global_rank = None;
         let mut grade_counts = None;
@@ -166,6 +161,10 @@ impl<'de> Visitor<'de> for UserStatsVisitor {
 
         while let Some(key) = map.next_key()? {
             match key {
+                "count_300" => count_300 = Some(map.next_value()?),
+                "count_100" => count_100 = Some(map.next_value()?),
+                "count_50" => count_50 = Some(map.next_value()?),
+                "count_miss" => count_miss = Some(map.next_value()?),
                 "hit_accuracy" => accuracy = Some(map.next_value()?),
                 "country_rank" => country_rank = map.next_value()?,
                 "global_rank" => global_rank = map.next_value()?,
@@ -175,7 +174,7 @@ impl<'de> Visitor<'de> for UserStatsVisitor {
                 "maximum_combo" => max_combo = Some(map.next_value()?),
                 "play_count" => playcount = Some(map.next_value()?),
                 "play_time" => {
-                    playtime = Some(map.next_value::<Option<u32>>()?.unwrap_or_default())
+                    playtime = Some(map.next_value::<Option<u32>>()?.unwrap_or_default());
                 }
                 "pp" => pp = Some(map.next_value::<Option<f32>>()?.unwrap_or_default()),
                 "ranked_score" => ranked_score = Some(map.next_value()?),
@@ -190,6 +189,10 @@ impl<'de> Visitor<'de> for UserStatsVisitor {
         }
 
         let accuracy = accuracy.ok_or_else(|| Error::missing_field("hit_accuracy"))?;
+        let count_300 = count_300.ok_or_else(|| Error::missing_field("count_300"))?;
+        let count_100 = count_100.ok_or_else(|| Error::missing_field("count_100"))?;
+        let count_50 = count_50.ok_or_else(|| Error::missing_field("count_50"))?;
+        let count_miss = count_miss.ok_or_else(|| Error::missing_field("count_miss"))?;
         let grade_counts = grade_counts.ok_or_else(|| Error::missing_field("grade_counts"))?;
         let is_ranked = is_ranked.ok_or_else(|| Error::missing_field("is_ranked"))?;
         let level = level.ok_or_else(|| Error::missing_field("level"))?;
@@ -202,10 +205,14 @@ impl<'de> Visitor<'de> for UserStatsVisitor {
             replays_watched.ok_or_else(|| Error::missing_field("replays_watched_by_others"))?;
         let total_hits = total_hits.ok_or_else(|| Error::missing_field("total_hits"))?;
         let total_score = total_score.ok_or_else(|| Error::missing_field("total_score"))?;
-        let mut user: UserCompact = user.ok_or_else(|| Error::missing_field("user"))?;
+        let mut user: User = user.ok_or_else(|| Error::missing_field("user"))?;
 
         let stats = UserStatistics {
             accuracy,
+            count_300,
+            count_100,
+            count_50,
+            count_miss,
             country_rank,
             global_rank,
             grade_counts,
@@ -221,13 +228,13 @@ impl<'de> Visitor<'de> for UserStatsVisitor {
             total_score,
         };
 
-        user.statistics.replace(stats);
+        user.statistics = Some(stats);
 
         Ok(user)
     }
 }
 
-fn deserialize_user_stats_vec<'de, D>(d: D) -> Result<Vec<UserCompact>, D::Error>
+fn deserialize_user_stats_vec<'de, D>(d: D) -> Result<Vec<User>, D::Error>
 where
     D: Deserializer<'de>,
 {
@@ -235,7 +242,7 @@ where
 }
 
 #[cfg(feature = "serialize")]
-struct UserCompactBorrowed<'u>(&'u UserCompact);
+struct UserCompactBorrowed<'u>(&'u User);
 
 #[cfg(feature = "serialize")]
 impl<'u> serde::Serialize for UserCompactBorrowed<'u> {
@@ -243,42 +250,66 @@ impl<'u> serde::Serialize for UserCompactBorrowed<'u> {
         use serde::ser::SerializeStruct;
 
         let user = self.0;
-        let stats = user.statistics.as_ref().unwrap();
 
-        let len = 13 + stats.country_rank.is_some() as usize + stats.global_rank.is_some() as usize;
+        let UserStatistics {
+            accuracy,
+            count_300,
+            count_100,
+            count_50,
+            count_miss,
+            country_rank,
+            global_rank,
+            grade_counts,
+            is_ranked,
+            level,
+            max_combo,
+            playcount,
+            playtime,
+            pp,
+            ranked_score,
+            replays_watched,
+            total_hits,
+            total_score,
+        } = user.statistics.as_ref().unwrap();
+
+        let len = 17 + country_rank.is_some() as usize + global_rank.is_some() as usize;
 
         let mut s = s.serialize_struct("UserStatistics", len)?;
-        s.serialize_field("hit_accuracy", &stats.accuracy)?;
+        s.serialize_field("hit_accuracy", accuracy)?;
 
-        if let Some(ref rank) = stats.country_rank {
+        if let Some(rank) = country_rank {
             s.serialize_field("country_rank", rank)?;
         }
 
-        if let Some(ref rank) = stats.global_rank {
+        if let Some(rank) = global_rank {
             s.serialize_field("global_rank", rank)?;
         }
 
-        s.serialize_field("grade_counts", &stats.grade_counts)?;
-        s.serialize_field("is_ranked", &stats.is_ranked)?;
-        s.serialize_field("level", &stats.level)?;
-        s.serialize_field("maximum_combo", &stats.max_combo)?;
-        s.serialize_field("play_count", &stats.playcount)?;
-        s.serialize_field("play_time", &stats.playtime)?;
-        s.serialize_field("pp", &stats.pp)?;
-        s.serialize_field("ranked_score", &stats.ranked_score)?;
-        s.serialize_field("replays_watched_by_others", &stats.replays_watched)?;
-        s.serialize_field("total_hits", &stats.total_hits)?;
-        s.serialize_field("total_score", &stats.total_score)?;
-        s.serialize_field("user", &UserCompactWithoutStats::new(user))?;
+        s.serialize_field("grade_counts", grade_counts)?;
+        s.serialize_field("is_ranked", is_ranked)?;
+        s.serialize_field("level", level)?;
+        s.serialize_field("maximum_combo", max_combo)?;
+        s.serialize_field("play_count", playcount)?;
+        s.serialize_field("play_time", playtime)?;
+        s.serialize_field("pp", pp)?;
+        s.serialize_field("ranked_score", ranked_score)?;
+        s.serialize_field("replays_watched_by_others", replays_watched)?;
+        s.serialize_field("total_hits", total_hits)?;
+        s.serialize_field("total_score", total_score)?;
+        s.serialize_field("count_300", count_300)?;
+        s.serialize_field("count_100", count_100)?;
+        s.serialize_field("count_50", count_50)?;
+        s.serialize_field("count_miss", count_miss)?;
+        s.serialize_field("user", &UserWithoutStats::new(user))?;
 
         s.end()
     }
 }
 
-// Serializing a UserCompact reference without statistics
+// Serializing a `User` reference without statistics
 #[cfg(feature = "serialize")]
 #[derive(serde::Serialize)]
-struct UserCompactWithoutStats<'u> {
+struct UserWithoutStats<'u> {
     pub avatar_url: &'u String,
     pub country_code: &'u CountryCode,
     pub default_group: &'u String,
@@ -289,7 +320,7 @@ struct UserCompactWithoutStats<'u> {
     pub is_supporter: &'u bool,
     #[serde(
         skip_serializing_if = "Option::is_none",
-        with = "serde_::option_datetime"
+        with = "serde_util::option_datetime"
     )]
     pub last_visit: &'u Option<OffsetDateTime>,
     pub pm_friends_only: &'u bool,
@@ -388,9 +419,9 @@ struct UserCompactWithoutStats<'u> {
 }
 
 #[cfg(feature = "serialize")]
-impl<'u> UserCompactWithoutStats<'u> {
-    fn new(user: &'u UserCompact) -> Self {
-        let UserCompact {
+impl<'u> UserWithoutStats<'u> {
+    const fn new(user: &'u User) -> Self {
+        let User {
             avatar_url,
             country_code,
             default_group,
@@ -435,6 +466,7 @@ impl<'u> UserCompactWithoutStats<'u> {
             scores_first_count,
             scores_recent_count,
             statistics: _,
+            statistics_modes: _,
             support_level,
             pending_mapset_count,
         } = user;
@@ -491,7 +523,7 @@ impl<'u> UserCompactWithoutStats<'u> {
 
 #[cfg(feature = "serialize")]
 fn serialize_user_stats_vec<S: serde::ser::Serializer>(
-    users: &[UserCompact],
+    users: &[User],
     s: S,
 ) -> Result<S::Ok, S::Error> {
     use serde::ser::SerializeSeq;
@@ -507,7 +539,6 @@ fn serialize_user_stats_vec<S: serde::ser::Serializer>(
 
 #[derive(Copy, Clone, Debug, Deserialize, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 #[serde(rename_all = "lowercase")]
 pub(crate) enum RankingType {
     Charts,
@@ -516,17 +547,14 @@ pub(crate) enum RankingType {
     Score,
 }
 
-impl fmt::Display for RankingType {
-    #[inline]
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let kind = match self {
+impl RankingType {
+    pub(crate) const fn as_str(self) -> &'static str {
+        match self {
             Self::Charts => "charts",
             Self::Country => "country",
             Self::Performance => "performance",
             Self::Score => "score",
-        };
-
-        f.write_str(kind)
+        }
     }
 }
 
@@ -534,7 +562,6 @@ impl Rankings {
     /// If `next_page` is `Some`, the API can provide the next set of users and this method will request them.
     /// Otherwise, this method returns `None`.
     #[inline]
-    #[cfg(not(feature = "rkyv"))]
     pub async fn get_next(&self, osu: &Osu) -> Option<OsuResult<Rankings>> {
         let page = self.next_page?;
         let mode = self.mode?;
@@ -581,7 +608,7 @@ impl<'de> Visitor<'de> for RankingsCursorVisitor {
         while let Some(key) = map.next_key()? {
             match key {
                 "page" => {
-                    page.replace(map.next_value()?);
+                    page = Some(map.next_value()?);
                 }
                 _ => {
                     let _: IgnoredAny = map.next_value()?;
@@ -600,13 +627,11 @@ fn deserialize_rankings_cursor<'de, D: Deserializer<'de>>(d: D) -> Result<Option
 /// The details of a spotlight.
 #[derive(Clone, Debug, Deserialize)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct Spotlight {
     /// The end date of the spotlight.
-    #[serde(with = "serde_::datetime")]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
+    #[serde(with = "serde_util::datetime")]
     pub end_date: OffsetDateTime,
-    /// If the spotlight has different mades specific to each [`GameMode`](crate::model::GameMode).
+    /// If the spotlight has different mades specific to each [`GameMode`].
     pub mode_specific: bool,
     /// The name of the spotlight.
     pub name: String,
@@ -620,8 +645,7 @@ pub struct Spotlight {
     #[serde(rename = "type")]
     pub spotlight_type: String,
     /// The starting date of the spotlight.
-    #[serde(with = "serde_::datetime")]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
+    #[serde(with = "serde_util::datetime")]
     pub start_date: OffsetDateTime,
 }
 

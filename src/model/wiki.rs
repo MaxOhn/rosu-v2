@@ -1,12 +1,8 @@
 use serde::Deserialize;
 
-#[cfg(feature = "rkyv")]
-use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
-
 /// Represents a wiki article
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct WikiPage {
     /// All available locales for the article
     #[serde(default, skip_serializing_if = "Vec::is_empty")]

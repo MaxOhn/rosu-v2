@@ -1,19 +1,19 @@
-use super::{serde_, Cursor};
+use super::serde_util;
 use crate::{prelude::Username, Osu, OsuResult};
 
 use serde::Deserialize;
 
-#[cfg(feature = "rkyv")]
-use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
 use time::OffsetDateTime;
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-// TODO
-// #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct News {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub(crate) cursor: Option<Cursor>,
+    #[serde(
+        default,
+        rename = "cursor_string",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub(crate) cursor: Option<String>,
     #[serde(rename = "news_posts")]
     pub posts: Vec<NewsPost>,
     pub search: NewsSearch,
@@ -25,7 +25,7 @@ impl News {
     /// Returns whether there is a next page of news results,
     /// retrievable via [`get_next`](News::get_next).
     #[inline]
-    pub fn has_more(&self) -> bool {
+    pub const fn has_more(&self) -> bool {
         self.cursor.is_some()
     }
 
@@ -33,31 +33,27 @@ impl News {
     /// Otherwise, this method returns `None`.
     #[inline]
     pub async fn get_next(&self, osu: &Osu) -> Option<OsuResult<News>> {
-        Some(osu.news().cursor(self.cursor.clone()?).await)
+        Some(osu.news().cursor(self.cursor.as_deref()?).await)
     }
 }
 
 #[derive(Clone, Debug, Deserialize)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct NewsPost {
     #[serde(rename = "id")]
     pub post_id: u32,
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::UsernameWrapper))]
     pub author: Username,
     /// Link to the file view on GitHub.
     pub edit_url: String,
     /// Link to the first image in the document.
     pub first_image: String,
-    #[serde(with = "serde_::datetime")]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeWrapper))]
+    #[serde(with = "serde_util::datetime")]
     pub published_at: OffsetDateTime,
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
-        with = "serde_::option_datetime"
+        with = "serde_util::option_datetime"
     )]
-    #[cfg_attr(feature = "rkyv", with(super::rkyv_impls::DateTimeMap))]
     pub updated_at: Option<OffsetDateTime>,
     /// Filename without the extension, used in URLs.
     pub slug: String,
@@ -78,17 +74,18 @@ impl Eq for NewsPost {}
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-// TODO
-// #[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct NewsSearch {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub(crate) cursor: Option<Cursor>,
+    #[serde(
+        default,
+        rename = "cursor_string",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub(crate) cursor: Option<Box<str>>,
     pub limit: u32,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "rkyv", derive(Archive, RkyvDeserialize, RkyvSerialize))]
 pub struct NewsSidebar {
     pub current_year: u32,
     #[serde(rename = "news_posts")]

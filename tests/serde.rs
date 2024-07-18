@@ -875,6 +875,7 @@ mod types {
             playtime: 10_000_000,
             pp: 9876.54,
             ranked_score: 111_222_333_444,
+            rank_change_since_30_days: Some(42),
             replays_watched: 123,
             total_hits: 123_456_789,
             total_score: 111_222_333_444_555,

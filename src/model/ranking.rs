@@ -153,6 +153,7 @@ impl<'de> Visitor<'de> for UserStatsVisitor {
         let mut playtime = None;
         let mut pp = None;
         let mut ranked_score = None;
+        let mut rank_change_since_30_days = None;
         let mut replays_watched = None;
         let mut total_hits = None;
         let mut total_score = None;
@@ -178,6 +179,7 @@ impl<'de> Visitor<'de> for UserStatsVisitor {
                 }
                 "pp" => pp = Some(map.next_value::<Option<f32>>()?.unwrap_or_default()),
                 "ranked_score" => ranked_score = Some(map.next_value()?),
+                "rank_change_since_30_days" => rank_change_since_30_days = Some(map.next_value()?),
                 "replays_watched_by_others" => replays_watched = Some(map.next_value()?),
                 "total_hits" => total_hits = Some(map.next_value()?),
                 "total_score" => total_score = Some(map.next_value()?),
@@ -201,6 +203,8 @@ impl<'de> Visitor<'de> for UserStatsVisitor {
         let playtime = playtime.ok_or_else(|| Error::missing_field("play_time"))?;
         let pp = pp.ok_or_else(|| Error::missing_field("pp"))?;
         let ranked_score = ranked_score.ok_or_else(|| Error::missing_field("ranked_score"))?;
+        let rank_change_since_30_days = rank_change_since_30_days
+            .ok_or_else(|| Error::missing_field("rank_change_since_30_days"))?;
         let replays_watched =
             replays_watched.ok_or_else(|| Error::missing_field("replays_watched_by_others"))?;
         let total_hits = total_hits.ok_or_else(|| Error::missing_field("total_hits"))?;
@@ -223,6 +227,7 @@ impl<'de> Visitor<'de> for UserStatsVisitor {
             playtime,
             pp,
             ranked_score,
+            rank_change_since_30_days,
             replays_watched,
             total_hits,
             total_score,
@@ -267,6 +272,7 @@ impl<'u> serde::Serialize for UserCompactBorrowed<'u> {
             playtime,
             pp,
             ranked_score,
+            rank_change_since_30_days,
             replays_watched,
             total_hits,
             total_score,
@@ -293,6 +299,7 @@ impl<'u> serde::Serialize for UserCompactBorrowed<'u> {
         s.serialize_field("play_time", playtime)?;
         s.serialize_field("pp", pp)?;
         s.serialize_field("ranked_score", ranked_score)?;
+        s.serialize_field("rank_change_since_30_days", rank_change_since_30_days)?;
         s.serialize_field("replays_watched_by_others", replays_watched)?;
         s.serialize_field("total_hits", total_hits)?;
         s.serialize_field("total_score", total_score)?;

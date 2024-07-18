@@ -777,6 +777,9 @@ pub struct UserStatistics {
     pub pp: f32,
     /// Current ranked score
     pub ranked_score: u64,
+    /// Rank change in the last 30 days
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rank_change_since_30_days: Option<i32>,
     /// Number of replays watched by other users
     #[serde(rename = "replays_watched_by_others")]
     pub replays_watched: u32,

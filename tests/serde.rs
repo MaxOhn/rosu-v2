@@ -530,6 +530,7 @@ mod types {
             grade: Grade::A,
             map_id: 123,
             max_combo: 1234,
+            total_score_without_mods: Some(987_654),
             map: Some(Box::new(get_map())),
             mapset: Some(Box::new(get_mapset_compact())),
             mode: GameMode::Catch,

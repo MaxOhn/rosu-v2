@@ -81,6 +81,7 @@ pub struct Score {
     pub score: u32,
     pub replay: bool,
     pub current_user_attributes: UserAttributes,
+    pub total_score_without_mods: Option<u32>,
     #[cfg_attr(feature = "serialize", serde(rename = "beatmap"))]
     pub map: Option<Box<BeatmapExtended>>,
     #[cfg_attr(feature = "serialize", serde(rename = "beatmapset"))]
@@ -139,6 +140,7 @@ impl<'de> Deserialize<'de> for Score {
             score: u32,
             replay: bool,
             current_user_attributes: UserAttributes,
+            total_score_without_mods: Option<u32>,
             #[serde(rename = "beatmap")]
             map: Option<Box<BeatmapExtended>>,
             #[serde(rename = "beatmapset")]
@@ -208,6 +210,7 @@ impl<'de> Deserialize<'de> for Score {
             score: score_raw.score,
             replay: score_raw.replay,
             current_user_attributes: score_raw.current_user_attributes,
+            total_score_without_mods: score_raw.total_score_without_mods,
             map: score_raw.map,
             mapset: score_raw.mapset,
             rank_global: score_raw.rank_global,

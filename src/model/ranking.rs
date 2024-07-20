@@ -203,8 +203,7 @@ impl<'de> Visitor<'de> for UserStatsVisitor {
         let playtime = playtime.ok_or_else(|| Error::missing_field("play_time"))?;
         let pp = pp.ok_or_else(|| Error::missing_field("pp"))?;
         let ranked_score = ranked_score.ok_or_else(|| Error::missing_field("ranked_score"))?;
-        let rank_change_since_30_days = rank_change_since_30_days
-            .ok_or_else(|| Error::missing_field("rank_change_since_30_days"))?;
+        let rank_change_since_30_days = rank_change_since_30_days.unwrap_or_default();
         let replays_watched =
             replays_watched.ok_or_else(|| Error::missing_field("replays_watched_by_others"))?;
         let total_hits = total_hits.ok_or_else(|| Error::missing_field("total_hits"))?;

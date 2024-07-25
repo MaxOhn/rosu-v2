@@ -109,6 +109,29 @@ where
     d.deserialize_option(OptionCountryVisitor)
 }
 
+#[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
+pub struct DailyChallengeUserStatistics {
+    pub daily_streak_best: u32,
+    pub daily_streak_current: u32,
+    #[serde(
+        skip_serializing_if = "Option::is_none",
+        with = "serde_util::option_datetime"
+    )]
+    pub last_update: Option<OffsetDateTime>,
+    #[serde(
+        skip_serializing_if = "Option::is_none",
+        with = "serde_util::option_datetime"
+    )]
+    pub last_weekly_streak: Option<OffsetDateTime>,
+    pub playcount: u32,
+    pub top_10p_placements: u32,
+    pub top_50p_placements: u32,
+    pub user_id: u32,
+    pub weekly_streak_best: u32,
+    pub weekly_streak_current: u32,
+}
+
 /// Counts of grades of a [`UserExtended`].
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
@@ -357,6 +380,8 @@ pub struct UserExtended {
     pub badges: Option<Vec<Badge>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub beatmap_playcounts_count: Option<u32>,
+    #[serde(rename = "daily_challenge_user_stats")]
+    pub daily_challenge_stats: DailyChallengeUserStatistics,
     #[serde(
         default,
         rename = "favourite_beatmapset_count",

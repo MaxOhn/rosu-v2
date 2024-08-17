@@ -5,11 +5,11 @@ use super::{
     user::User,
     GameMode, Grade,
 };
-use crate::{request::GetUser, Osu};
+use crate::{error::OsuError, request::GetUser, Osu};
 
 use rosu_mods::{serde::GameModsSeed, GameModIntermode, GameModsIntermode};
 use serde::{
-    de::{DeserializeSeed, Error as DeError, IgnoredAny},
+    de::{DeserializeSeed, IgnoredAny},
     Deserialize, Deserializer,
 };
 
@@ -159,7 +159,6 @@ impl<'de> Deserialize<'de> for Score {
         }
 
         let score_raw = <ScoreRawMods as serde::Deserialize>::deserialize(d)?;
-        let mut d = serde_json::Deserializer::from_str(score_raw.mods.get());
 
         // Lazer scores don't have `mode` specified; only `ruleset_id`
         // so we use that to determine if the score is legacy.
@@ -173,8 +172,8 @@ impl<'de> Deserialize<'de> for Score {
             processed: score_raw.processed,
             maximum_statistics: score_raw.maximum_statistics,
             mods: GameModsSeed::Mode(score_raw.mode)
-                .deserialize(&mut d)
-                .map_err(DeError::custom)?,
+                .deserialize(&*score_raw.mods)
+                .map_err(|e| OsuError::invalid_mods(score_raw.mods, e))?,
             statistics: score_raw.statistics,
             map_id: score_raw
                 .map_id

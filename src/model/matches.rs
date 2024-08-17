@@ -6,13 +6,12 @@ use super::{
     user::User,
     GameMode,
 };
-use crate::{Osu, OsuResult};
+use crate::{error::OsuError, Osu, OsuResult};
 
 use rosu_mods::serde::GameModsSeed;
 use serde::{
     de::{
-        DeserializeSeed, Deserializer, Error as DeError, Error, IgnoredAny, MapAccess, SeqAccess,
-        Unexpected, Visitor,
+        DeserializeSeed, Deserializer, Error, IgnoredAny, MapAccess, SeqAccess, Unexpected, Visitor,
     },
     Deserialize,
 };
@@ -342,12 +341,11 @@ impl<'de> Deserialize<'de> for MatchGame {
         }
 
         let game_raw = <MatchGameRawMods as serde::Deserialize>::deserialize(d)?;
-        let mut d = serde_json::Deserializer::from_str(game_raw.mods.get());
 
         Ok(MatchGame {
             mods: GameModsSeed::Mode(game_raw.mode)
-                .deserialize(&mut d)
-                .map_err(DeError::custom)?,
+                .deserialize(&*game_raw.mods)
+                .map_err(|e| OsuError::invalid_mods(game_raw.mods, e))?,
             game_id: game_raw.game_id,
             start_time: game_raw.start_time,
             end_time: game_raw.end_time,

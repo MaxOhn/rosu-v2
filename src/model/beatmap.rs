@@ -162,7 +162,7 @@ pub(crate) struct BeatmapDifficultyAttributesWrapper {
 pub struct BeatmapDifficultyAttributes {
     pub max_combo: u32,
     #[serde(rename = "star_rating")]
-    pub stars: f32,
+    pub stars: f64,
     #[serde(flatten)]
     pub attrs: GameModeAttributes,
 }
@@ -176,16 +176,17 @@ pub enum GameModeAttributes {
         ar: f32,
         #[serde(rename = "overall_difficulty")]
         od: f32,
-        aim_difficulty: f32,
-        flashlight_difficulty: f32,
-        slider_factor: f32,
-        speed_difficulty: f32,
+        aim_difficulty: f64,
+        flashlight_difficulty: f64,
+        slider_factor: f64,
+        speed_difficulty: f64,
+        speed_note_count: f64,
     },
     Taiko {
-        stamina_difficulty: f32,
-        rhythm_difficulty: f32,
-        colour_difficulty: f32,
-        peak_difficulty: f32,
+        stamina_difficulty: f64,
+        rhythm_difficulty: f64,
+        colour_difficulty: f64,
+        peak_difficulty: f64,
         great_hit_window: f32,
     },
     Catch {
@@ -194,7 +195,6 @@ pub enum GameModeAttributes {
     },
     Mania {
         great_hit_window: f32,
-        score_multiplier: f32,
     },
 }
 

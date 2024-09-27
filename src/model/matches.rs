@@ -345,7 +345,7 @@ impl<'de> Deserialize<'de> for MatchGame {
         Ok(MatchGame {
             mods: GameModsSeed::Mode(game_raw.mode)
                 .deserialize(&*game_raw.mods)
-                .map_err(|e| OsuError::invalid_mods(game_raw.mods, e))?,
+                .map_err(|e| OsuError::invalid_mods(&game_raw.mods, &e))?,
             game_id: game_raw.game_id,
             start_time: game_raw.start_time,
             end_time: game_raw.end_time,
@@ -428,7 +428,7 @@ pub struct MatchGameDrain<'m> {
 }
 
 impl<'m> MatchGameDrain<'m> {
-    fn new(drain: Drain<'m, MatchEvent>) -> Self {
+    const fn new(drain: Drain<'m, MatchEvent>) -> Self {
         Self { drain }
     }
 }

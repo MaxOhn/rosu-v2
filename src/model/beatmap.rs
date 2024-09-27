@@ -1741,14 +1741,14 @@ mod serde_tests {
     use serde::de::DeserializeOwned;
     use std::fmt::Debug;
 
-    fn ser_de<T: DeserializeOwned + serde::Serialize + PartialEq + Debug>(val: T) {
+    fn ser_de<T: DeserializeOwned + serde::Serialize + PartialEq + Debug>(val: &T) {
         let serialized =
-            serde_json::to_string(&val).unwrap_or_else(|e| panic!("Failed to serialize: {}", e));
+            serde_json::to_string(val).unwrap_or_else(|e| panic!("Failed to serialize: {e}"));
 
         let deserialized: T = serde_json::from_str(&serialized)
-            .unwrap_or_else(|e| panic!("Failed to deserialize: {}", e));
+            .unwrap_or_else(|e| panic!("Failed to deserialize: {e}"));
 
-        assert_eq!(val, deserialized);
+        assert_eq!(val, &deserialized);
     }
 
     #[test]
@@ -1776,7 +1776,7 @@ mod serde_tests {
             total: 42,
         };
 
-        ser_de(search_result);
+        ser_de(&search_result);
     }
 
     #[test]
@@ -1804,6 +1804,6 @@ mod serde_tests {
             total: 42,
         };
 
-        ser_de(search_result);
+        ser_de(&search_result);
     }
 }

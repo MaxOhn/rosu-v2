@@ -277,7 +277,7 @@ impl<'u> serde::Serialize for UserCompactBorrowed<'u> {
             total_score,
         } = user.statistics.as_ref().unwrap();
 
-        let len = 17 + country_rank.is_some() as usize + global_rank.is_some() as usize;
+        let len = 17 + usize::from(country_rank.is_some()) + usize::from(global_rank.is_some());
 
         let mut s = s.serialize_struct("UserStatistics", len)?;
         s.serialize_field("hit_accuracy", accuracy)?;

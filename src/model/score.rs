@@ -173,7 +173,7 @@ impl<'de> Deserialize<'de> for Score {
             maximum_statistics: score_raw.maximum_statistics,
             mods: GameModsSeed::Mode(score_raw.mode)
                 .deserialize(&*score_raw.mods)
-                .map_err(|e| OsuError::invalid_mods(score_raw.mods, e))?,
+                .map_err(|e| OsuError::invalid_mods(&score_raw.mods, &e))?,
             statistics: score_raw.statistics,
             map_id: score_raw
                 .map_id

@@ -519,10 +519,10 @@ impl Osu {
     ///
     /// - The API provides at most 100 results per requests and defaults to 5.
     /// - For the `recent` score type, failed score are excluded by default.
-    /// Use [`include_fails`](crate::request::GetUserScores::include_fails)
-    /// to include them.
+    ///   Use [`include_fails`](crate::request::GetUserScores::include_fails)
+    ///   to include them.
     /// - For the `firsts` score type, `pp` will only be `Some` if the map
-    /// is not loved.
+    ///   is not loved.
     #[cfg(feature = "cache")]
     #[inline]
     pub fn user_scores(&self, user_id: impl Into<UserId>) -> GetUserScores<'_> {

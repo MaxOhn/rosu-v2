@@ -148,8 +148,8 @@ pub enum OsuError {
 
 impl OsuError {
     pub(crate) fn invalid_mods<E: serde::de::Error>(
-        mods: Box<serde_json::value::RawValue>,
-        err: SerdeError,
+        mods: &serde_json::value::RawValue,
+        err: &SerdeError,
     ) -> E {
         E::custom(format!("invalid mods `{mods}`: {err}"))
     }

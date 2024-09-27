@@ -167,6 +167,8 @@ pub(super) mod adjust_acc {
     }
 
     #[cfg(feature = "serialize")]
+    // Required to take a reference by serde
+    #[allow(clippy::trivially_copy_pass_by_ref)]
     pub fn serialize<S: serde::ser::Serializer>(f: &f32, s: S) -> Result<S::Ok, S::Error> {
         s.serialize_f32(*f / 100.0)
     }
@@ -200,6 +202,8 @@ pub(super) mod date {
     }
 
     #[cfg(feature = "serialize")]
+    // Required to take a reference by serde
+    #[allow(clippy::trivially_copy_pass_by_ref)]
     pub fn serialize<S: serde::ser::Serializer>(date: &Date, s: S) -> Result<S::Ok, S::Error> {
         use serde::Serialize;
 

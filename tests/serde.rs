@@ -907,6 +907,7 @@ mod types {
                     flashlight_difficulty: 3.33,
                     slider_factor: 2.22,
                     speed_difficulty: 1.11,
+                    speed_note_count: 77.7777,
                 },
             },
             BeatmapDifficultyAttributes {
@@ -925,7 +926,6 @@ mod types {
                 stars: 6.0,
                 attrs: GameModeAttributes::Mania {
                     great_hit_window: 1.0,
-                    score_multiplier: 3.0,
                 },
             },
         ]

@@ -159,9 +159,8 @@ impl AuthorizationBuilder {
                 &response_type=code",
         );
 
-        url.push_str("&scopes=%22");
+        url.push_str("&scope=");
         scopes.format(&mut url, '+');
-        url.push_str("%22");
 
         println!("Authorize yourself through the following url:\n{url}");
         info!("Awaiting manual authorization...");

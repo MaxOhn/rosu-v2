@@ -30,6 +30,7 @@
 //! - `comments`: Most recent comments and their replies up to two levels deep
 //! - `events`: Collection of events in order of creation time
 //! - `forums/topics/{topic_id}`: A forum topic and its posts
+//! - `friends`: List of authenticated user's friends
 //! - `matches`: List of currently open multiplayer lobbies
 //! - `matches/{match_id}`: More specific data about a specific multiplayer lobby including participating players and occured events
 //! - `me[/{mode}]`: Detailed info about the authenticated user [in the specified mode] (requires OAuth)

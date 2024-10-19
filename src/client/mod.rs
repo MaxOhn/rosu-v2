@@ -268,6 +268,17 @@ impl Osu {
         GetForumPosts::new(self, topic_id)
     }
 
+    /// Get all friends of the authenticated user as a vec of [`User`](crate::model::user::User).
+    ///
+    /// Note that the client has to be initialized with the `FriendsRead` scope
+    /// through the OAuth process in order for this endpoint to not return an error.
+    ///
+    /// See [`OsuBuilder::with_authorization`](crate::OsuBuilder::with_authorization).
+    #[inline]
+    pub const fn friends(&self) -> GetFriends<'_> {
+        GetFriends::new(self)
+    }
+
     /// Get the kudosu history of a user in form of a vec of
     /// [`KudosuHistory`](crate::model::kudosu::KudosuHistory).
     #[cfg(not(feature = "cache"))]
@@ -671,7 +682,7 @@ impl OsuRef {
         let bytes = self.request_raw(req).await?;
 
         // let text = String::from_utf8_lossy(&bytes);
-        // println!("Response:\n{}", text);
+        // println!("Response:\n{text}");
 
         parse_bytes(&bytes)
     }
@@ -715,31 +726,31 @@ impl OsuRef {
         let url = Url::parse(&url).map_err(|source| OsuError::Url { source, url })?;
         debug!("URL: {url}");
 
-        if let Some(ref token) = self.token.read().await.access {
-            let value = HeaderValue::from_str(token)
-                .map_err(|source| OsuError::CreatingTokenHeader { source })?;
+        let Some(ref token) = self.token.read().await.access else {
+            return Err(OsuError::NoToken);
+        };
 
-            let bytes = BodyBytes::from(body);
+        let value = HeaderValue::from_str(token)
+            .map_err(|source| OsuError::CreatingTokenHeader { source })?;
 
-            let mut req_builder = HyperRequest::builder()
-                .method(method)
-                .uri(url.as_str())
-                .header(AUTHORIZATION, value)
-                .header(USER_AGENT, MY_USER_AGENT)
-                .header(X_API_VERSION, api_version)
-                .header(ACCEPT, APPLICATION_JSON)
-                .header(CONTENT_LENGTH, bytes.len());
+        let bytes = BodyBytes::from(body);
 
-            if !bytes.is_empty() {
-                req_builder = req_builder.header(CONTENT_TYPE, APPLICATION_JSON);
-            }
+        let mut req_builder = HyperRequest::builder()
+            .method(method)
+            .uri(url.as_str())
+            .header(AUTHORIZATION, value)
+            .header(USER_AGENT, MY_USER_AGENT)
+            .header(X_API_VERSION, api_version)
+            .header(ACCEPT, APPLICATION_JSON)
+            .header(CONTENT_LENGTH, bytes.len());
 
-            let req = req_builder.body(bytes)?;
-
-            self.send_request(req).await
-        } else {
-            Err(OsuError::NoToken)
+        if !bytes.is_empty() {
+            req_builder = req_builder.header(CONTENT_TYPE, APPLICATION_JSON);
         }
+
+        let req = req_builder.body(bytes)?;
+
+        self.send_request(req).await
     }
 
     async fn send_request(&self, req: HyperRequest<BodyBytes>) -> OsuResult<Response<HyperBody>> {

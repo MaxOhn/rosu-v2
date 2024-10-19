@@ -36,6 +36,7 @@ pub(crate) enum Route {
     GetForumPosts {
         topic_id: u64,
     },
+    GetFriends,
     GetMatch {
         match_id: Option<u32>,
     },
@@ -117,6 +118,7 @@ impl Route {
             Self::GetForumPosts { topic_id } => {
                 (Method::GET, format!("forums/topics/{topic_id}").into())
             }
+            Self::GetFriends => (Method::GET, "friends".into()),
             Self::GetMatch { match_id } => {
                 let path = match match_id {
                     Some(id) => format!("matches/{id}").into(),
@@ -217,6 +219,7 @@ impl Route {
             Self::GetComments => "GetComments",
             Self::GetEvents => "GetEvents",
             Self::GetForumPosts { .. } => "GetForumPosts",
+            Self::GetFriends => "GetFriends",
             Self::GetMatch { match_id } => match match_id {
                 Some(_) => "GetMatch/match_id",
                 None => "GetMatch",

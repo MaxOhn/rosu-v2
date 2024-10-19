@@ -81,7 +81,7 @@ impl fmt::Display for UserId {
 
 /// Get the [`UserExtended`](crate::model::user::UserExtended) of the authenticated user.
 ///
-/// Note that the client has to be initialized with the `identify` scope
+/// Note that the client has to be initialized with the `Identify` scope
 /// through the OAuth process in order for this endpoint to not return an error.
 ///
 /// See [`OsuBuilder::with_authorization`](crate::OsuBuilder::with_authorization).
@@ -123,6 +123,42 @@ impl<'a> GetOwnData<'a> {
 }
 
 poll_req!(GetOwnData => UserExtended);
+
+/// Get all friends of the authenticated user as a vec of [`User`](crate::model::user::User).
+///
+/// Note that the client has to be initialized with the `FriendsRead` scope
+/// through the OAuth process in order for this endpoint to not return an error.
+///
+/// See [`OsuBuilder::with_authorization`](crate::OsuBuilder::with_authorization).
+#[must_use = "futures do nothing unless you `.await` or poll them"]
+pub struct GetFriends<'a> {
+    fut: Option<Pending<'a, Vec<User>>>,
+    osu: &'a Osu,
+}
+
+impl<'a> GetFriends<'a> {
+    #[inline]
+    pub(crate) const fn new(osu: &'a Osu) -> Self {
+        Self { fut: None, osu }
+    }
+
+    fn start(&mut self) -> Pending<'a, Vec<User>> {
+        let req = Request::new(Route::GetFriends);
+        let osu = self.osu;
+        let fut = osu.request::<Vec<User>>(req);
+
+        #[cfg(feature = "cache")]
+        let fut = fut.inspect_ok(move |users| {
+            for user in users.iter() {
+                osu.update_cache(user.user_id, &user.username);
+            }
+        });
+
+        Box::pin(fut)
+    }
+}
+
+poll_req!(GetFriends => Vec<User>);
 
 /// Get a [`UserExtended`](crate::model::user::UserExtended) by their id.
 #[must_use = "futures do nothing unless you `.await` or poll them"]

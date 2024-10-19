@@ -1,11 +1,12 @@
 mod builder;
+mod scopes;
 mod token;
 
 use bytes::Bytes;
 use token::{Authorization, AuthorizationKind, Token, TokenResponse};
 
 pub use builder::OsuBuilder;
-pub use token::Scope;
+pub use scopes::Scopes;
 
 #[allow(clippy::wildcard_imports)]
 use crate::{error::OsuError, model::GameMode, request::*, OsuResult};
@@ -600,7 +601,7 @@ impl Drop for Osu {
 
 pub(crate) struct OsuRef {
     client_id: u64,
-    client_secret: String,
+    client_secret: Box<str>,
     http: HyperClient<HttpsConnector<HttpConnector>, BodyBytes>,
     timeout: Duration,
     ratelimiter: LeakyBucket,
@@ -626,24 +627,26 @@ impl OsuRef {
         body.push_int("client_id", self.client_id);
         body.push_str("client_secret", &self.client_secret);
 
-        match &self.auth_kind {
-            AuthorizationKind::Client(scope) => {
+        match self.auth_kind {
+            AuthorizationKind::Client => {
                 body.push_str("grant_type", "client_credentials");
-                body.push_str("scope", scope.as_str());
+                let mut scopes = String::new();
+                Scopes::Public.format(&mut scopes, ' ');
+                body.push_str("scope", &scopes);
             }
-            AuthorizationKind::User(auth) => match &self.token.read().await.refresh {
-                Some(refresh) => {
+            AuthorizationKind::User(ref auth) => {
+                if let Some(ref refresh) = self.token.read().await.refresh {
                     body.push_str("grant_type", "refresh_token");
                     body.push_str("refresh_token", refresh);
-                }
-                None => {
+                } else {
                     body.push_str("grant_type", "authorization_code");
                     body.push_str("redirect_uri", &auth.redirect_uri);
                     body.push_str("code", &auth.code);
-                    // FIXME: let users decide which scopes to use?
-                    body.push_str("scope", "identify public");
+                    let mut scopes = String::new();
+                    auth.scopes.format(&mut scopes, ' ');
+                    body.push_str("scope", &scopes);
                 }
-            },
+            }
         };
 
         let bytes = BodyBytes::from(body);

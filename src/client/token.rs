@@ -1,7 +1,6 @@
-use super::OsuRef;
+use super::{OsuRef, Scopes};
 
 use serde::Deserialize;
-use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::{error::Error, sync::Arc, time::Duration};
 use tokio::{
     sync::oneshot::{self, Receiver},
@@ -115,6 +114,7 @@ pub(super) enum AuthorizationBuilder {
     #[cfg(feature = "local_oauth")]
     LocalOauth {
         redirect_uri: String,
+        scopes: Scopes,
     },
 }
 
@@ -123,9 +123,9 @@ impl AuthorizationBuilder {
     pub(super) async fn perform_local_oauth(
         redirect_uri: String,
         client_id: u64,
+        scopes: Scopes,
     ) -> Result<Authorization, crate::error::OAuthError> {
         use std::{
-            fmt::Write,
             io::{Error as IoError, ErrorKind},
             str::from_utf8 as str_from_utf8,
         };
@@ -159,17 +159,9 @@ impl AuthorizationBuilder {
                 &response_type=code",
         );
 
-        let mut scopes = [Scope::Identify, Scope::Public].iter();
-
-        if let Some(scope) = scopes.next() {
-            let _ = write!(url, "&scopes=%22{scope}");
-
-            for scope in scopes {
-                let _ = write!(url, "+{scope}");
-            }
-
-            url.push_str("%22");
-        }
+        url.push_str("&scopes=%22");
+        scopes.format(&mut url, '+');
+        url.push_str("%22");
 
         println!("Authorize yourself through the following url:\n{url}");
         info!("Awaiting manual authorization...");
@@ -230,24 +222,29 @@ You may close this tab
 
         respond(&mut stream).await.map_err(OAuthError::Write)?;
 
-        Ok(Authorization { code, redirect_uri })
+        Ok(Authorization {
+            code,
+            redirect_uri,
+            scopes,
+        })
     }
 }
 
 pub(super) enum AuthorizationKind {
     User(Authorization),
-    Client(Scope),
+    Client,
 }
 
 impl Default for AuthorizationKind {
     fn default() -> Self {
-        Self::Client(Scope::Public)
+        Self::Client
     }
 }
 
 pub(super) struct Authorization {
     pub code: String,
     pub redirect_uri: String,
+    pub scopes: Scopes,
 }
 
 #[derive(Deserialize)]
@@ -257,36 +254,4 @@ pub(super) struct TokenResponse {
     #[serde(default)]
     pub refresh_token: Option<String>,
     pub token_type: String,
-}
-
-#[derive(Copy, Clone, Eq, PartialEq)]
-#[non_exhaustive]
-pub enum Scope {
-    ChatWrite,
-    Delegate,
-    ForumWrite,
-    FriendsRead,
-    Identify,
-    Lazer,
-    Public,
-}
-
-impl Scope {
-    pub const fn as_str(self) -> &'static str {
-        match self {
-            Scope::ChatWrite => "chat.write",
-            Scope::Delegate => "delegate",
-            Scope::ForumWrite => "forum.write",
-            Scope::FriendsRead => "friends.read",
-            Scope::Identify => "identify",
-            Scope::Lazer => "lazer",
-            Scope::Public => "public",
-        }
-    }
-}
-
-impl Display for Scope {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str(self.as_str())
-    }
 }

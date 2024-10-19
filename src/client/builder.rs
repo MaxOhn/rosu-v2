@@ -1,4 +1,6 @@
-use super::{token::AuthorizationBuilder, Authorization, AuthorizationKind, Osu, OsuRef, Token};
+use super::{
+    token::AuthorizationBuilder, Authorization, AuthorizationKind, Osu, OsuRef, Scopes, Token,
+};
 use crate::{error::OsuError, OsuResult};
 
 use hyper::client::Builder;
@@ -63,11 +65,12 @@ impl OsuBuilder {
         let auth_kind = match self.auth {
             Some(AuthorizationBuilder::Kind(kind)) => kind,
             #[cfg(feature = "local_oauth")]
-            Some(AuthorizationBuilder::LocalOauth { redirect_uri }) => {
-                AuthorizationBuilder::perform_local_oauth(redirect_uri, client_id)
-                    .await
-                    .map(AuthorizationKind::User)?
-            }
+            Some(AuthorizationBuilder::LocalOauth {
+                redirect_uri,
+                scopes,
+            }) => AuthorizationBuilder::perform_local_oauth(redirect_uri, client_id, scopes)
+                .await
+                .map(AuthorizationKind::User)?,
             None => AuthorizationKind::default(),
         };
 
@@ -91,7 +94,7 @@ impl OsuBuilder {
 
         let inner = Arc::new(OsuRef {
             client_id,
-            client_secret,
+            client_secret: client_secret.into_boxed_str(),
             http,
             ratelimiter,
             timeout: self.timeout,
@@ -159,9 +162,14 @@ impl OsuBuilder {
     /// [`with_authorization`]: OsuBuilder::with_authorization
     #[cfg(feature = "local_oauth")]
     #[cfg_attr(docsrs, doc(cfg(feature = "local_oauth")))]
-    pub fn with_local_authorization(mut self, redirect_uri: impl Into<String>) -> Self {
+    pub fn with_local_authorization(
+        mut self,
+        redirect_uri: impl Into<String>,
+        scopes: Scopes,
+    ) -> Self {
         self.auth = Some(AuthorizationBuilder::LocalOauth {
             redirect_uri: redirect_uri.into(),
+            scopes,
         });
 
         self
@@ -180,10 +188,12 @@ impl OsuBuilder {
         mut self,
         code: impl Into<String>,
         redirect_uri: impl Into<String>,
+        scopes: Scopes,
     ) -> Self {
         let authorization = Authorization {
             code: code.into(),
             redirect_uri: redirect_uri.into(),
+            scopes,
         };
 
         self.auth = Some(AuthorizationBuilder::Kind(AuthorizationKind::User(

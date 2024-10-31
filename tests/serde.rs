@@ -520,6 +520,7 @@ mod types {
 
     pub(super) fn get_score() -> Score {
         Score {
+            set_on_lazer: true,
             classic_score: 765_432_199,
             ranked: Some(true),
             preserve: Some(true),

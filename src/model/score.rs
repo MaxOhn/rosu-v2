@@ -42,6 +42,7 @@ impl BeatmapUserScore {
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub struct Score {
+    pub set_on_lazer: bool,
     #[cfg_attr(feature = "serialize", serde(rename = "classic_total_score"))]
     pub classic_score: u32,
     pub ranked: Option<bool>,
@@ -163,9 +164,10 @@ impl<'de> Deserialize<'de> for Score {
         // Lazer scores don't have `mode` specified; only `ruleset_id`
         // so we use that to determine if the score is legacy.
         // Maybe using `type` would be better? As of now it seems unreliable.
-        let is_legacy = score_raw.mode_.is_some();
+        let set_on_stable = score_raw.mode_.is_some();
 
         Ok(Score {
+            set_on_lazer: !set_on_stable,
             classic_score: score_raw.classic_score,
             ranked: score_raw.ranked,
             preserve: score_raw.preserve,
@@ -195,8 +197,8 @@ impl<'de> Deserialize<'de> for Score {
             legacy_perfect: score_raw.legacy_perfect,
             legacy_score_id: score_raw
                 .legacy_score_id
-                .or_else(|| is_legacy.then_some(score_raw.id)),
-            legacy_score: if is_legacy {
+                .or_else(|| set_on_stable.then_some(score_raw.id)),
+            legacy_score: if set_on_stable {
                 score_raw.score
             } else {
                 score_raw.legacy_score

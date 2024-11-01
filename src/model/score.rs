@@ -240,10 +240,19 @@ impl Score {
         self.statistics.total_hits(self.mode)
     }
 
-    /// Calculate the accuracy i.e. `0 <= accuracy <= 100`
+    /// Calculate the accuracy rounded to two decimal points i.e. `0 <= accuracy <= 100`.
     #[inline]
     pub fn accuracy(&self) -> f32 {
-        self.statistics.accuracy(self.mode)
+        self.statistics
+            .accuracy(self.mode, &self.maximum_statistics)
+    }
+
+    /// Calculate the accuracy rounded to two decimal points i.e. `0 <= accuracy <= 100`.
+    ///
+    /// Slider hits and such will not be considered.
+    #[inline]
+    pub fn legacy_accuracy(&self) -> f32 {
+        self.statistics.legacy_accuracy(self.mode)
     }
 
     /// Calculate the grade of the score.
@@ -378,7 +387,49 @@ impl ScoreStatistics {
     }
 
     /// Calculate the accuracy rounded to two decimal points i.e. `0 <= accuracy <= 100`
-    pub fn accuracy(&self, mode: GameMode) -> f32 {
+    pub fn accuracy(&self, mode: GameMode, max_statistics: &ScoreStatistics) -> f32 {
+        let numerator = self.accuracy_value(mode) as f32;
+        let denominator = max_statistics.accuracy_value(mode) as f32;
+
+        (10_000.0 * numerator / denominator).round() / 100.0
+    }
+
+    const fn accuracy_value(&self, mode: GameMode) -> u32 {
+        let mut sum = 0;
+
+        sum += match mode {
+            GameMode::Osu | GameMode::Taiko | GameMode::Mania => self.small_tick_hit * 10,
+            GameMode::Catch => self.small_tick_hit * 300,
+        };
+
+        sum += match mode {
+            GameMode::Osu | GameMode::Taiko | GameMode::Mania => self.large_tick_hit * 30,
+            GameMode::Catch => self.large_tick_hit * 300,
+        };
+
+        sum += self.slider_tail_hit * 150;
+        sum += self.meh * 50;
+
+        sum += match mode {
+            GameMode::Osu | GameMode::Catch | GameMode::Mania => self.ok * 100,
+            GameMode::Taiko => self.ok * 150,
+        };
+
+        sum += self.good * 200;
+        sum += self.great * 300;
+
+        sum += match mode {
+            GameMode::Osu | GameMode::Taiko | GameMode::Catch => self.perfect * 300,
+            GameMode::Mania => self.perfect * 305,
+        };
+
+        sum
+    }
+
+    /// Calculate the accuracy rounded to two decimal points i.e. `0 <= accuracy <= 100`.
+    ///
+    /// Slider hits and such will not be considered.
+    pub fn legacy_accuracy(&self, mode: GameMode) -> f32 {
         let numerator;
         let denominator;
 
@@ -388,8 +439,8 @@ impl ScoreStatistics {
                 denominator = (self.total_hits(mode) * 300) as f32;
             }
             GameMode::Taiko => {
-                numerator = 0.5 * self.ok as f32 + self.great as f32;
-                denominator = self.total_hits(mode) as f32;
+                numerator = (self.ok + self.great * 2) as f32;
+                denominator = (self.total_hits(mode) * 2) as f32;
             }
             GameMode::Catch => {
                 numerator = (self.large_tick_hit + self.great + self.small_tick_hit) as f32;

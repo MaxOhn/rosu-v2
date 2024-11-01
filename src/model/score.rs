@@ -286,8 +286,10 @@ impl Score {
         match self.mode {
             GameMode::Osu => osu_grade_legacy(self, passed_objects),
             GameMode::Taiko => taiko_grade_legacy(self, passed_objects),
-            GameMode::Catch => catch_grade_legacy(self, accuracy),
-            GameMode::Mania => mania_grade_legacy(self, passed_objects, accuracy),
+            GameMode::Catch => catch_grade_legacy(self, accuracy.ok_or(Score::legacy_accuracy)),
+            GameMode::Mania => {
+                mania_grade_legacy(self, passed_objects, accuracy.ok_or(Score::legacy_accuracy))
+            }
         }
     }
 }
@@ -635,11 +637,11 @@ fn taiko_grade(score: &Score, passed_objects: u32, accuracy: Option<f32>) -> Gra
 }
 
 fn catch_grade(score: &Score, accuracy: Option<f32>) -> Grade {
-    catch_grade_legacy(score, accuracy)
+    catch_grade_legacy(score, accuracy.ok_or(Score::accuracy))
 }
 
 fn mania_grade(score: &Score, passed_objects: u32, accuracy: Option<f32>) -> Grade {
-    mania_grade_legacy(score, passed_objects, accuracy)
+    mania_grade_legacy(score, passed_objects, accuracy.ok_or(Score::accuracy))
 }
 
 fn osu_grade_legacy(score: &Score, passed_objects: u32) -> Grade {
@@ -702,8 +704,8 @@ fn taiko_grade_legacy(score: &Score, passed_objects: u32) -> Grade {
     }
 }
 
-fn catch_grade_legacy(score: &Score, accuracy: Option<f32>) -> Grade {
-    let accuracy = accuracy.unwrap_or_else(|| score.accuracy());
+fn catch_grade_legacy(score: &Score, accuracy: Result<f32, fn(&Score) -> f32>) -> Grade {
+    let accuracy = accuracy.unwrap_or_else(|f| f(score));
 
     if (100.0 - accuracy).abs() < f32::EPSILON {
         if score.mods.contains_any(hdfl()) {
@@ -728,7 +730,11 @@ fn catch_grade_legacy(score: &Score, accuracy: Option<f32>) -> Grade {
     }
 }
 
-fn mania_grade_legacy(score: &Score, passed_objects: u32, accuracy: Option<f32>) -> Grade {
+fn mania_grade_legacy(
+    score: &Score,
+    passed_objects: u32,
+    accuracy: Result<f32, fn(&Score) -> f32>,
+) -> Grade {
     if score.statistics.perfect == passed_objects {
         return if score.mods.contains_any(hdflfi()) {
             Grade::XH
@@ -737,7 +743,7 @@ fn mania_grade_legacy(score: &Score, passed_objects: u32, accuracy: Option<f32>)
         };
     }
 
-    let accuracy = accuracy.unwrap_or_else(|| score.accuracy());
+    let accuracy = accuracy.unwrap_or_else(|f| f(score));
 
     if accuracy >= 95.0 {
         if score.mods.contains_any(hdflfi()) {

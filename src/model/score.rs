@@ -263,13 +263,11 @@ impl Score {
     /// objects is equal to the beatmaps total amount of objects. Otherwise,
     /// it may produce an incorrect grade.
     pub fn grade(&self, accuracy: Option<f32>) -> Grade {
-        let passed_objects = self.total_hits();
-
         match self.mode {
-            GameMode::Osu => osu_grade(self, passed_objects, accuracy),
-            GameMode::Taiko => taiko_grade(self, passed_objects, accuracy),
+            GameMode::Osu => osu_grade(self, accuracy),
+            GameMode::Taiko => taiko_grade(self, accuracy),
             GameMode::Catch => catch_grade(self, accuracy),
-            GameMode::Mania => mania_grade(self, passed_objects, accuracy),
+            GameMode::Mania => mania_grade(self, accuracy),
         }
     }
 
@@ -281,15 +279,11 @@ impl Score {
     /// objects is equal to the beatmaps total amount of objects. Otherwise,
     /// it may produce an incorrect grade.
     pub fn legacy_grade(&self, accuracy: Option<f32>) -> Grade {
-        let passed_objects = self.total_hits();
-
         match self.mode {
-            GameMode::Osu => osu_grade_legacy(self, passed_objects),
-            GameMode::Taiko => taiko_grade_legacy(self, passed_objects),
+            GameMode::Osu => osu_grade_legacy(self),
+            GameMode::Taiko => taiko_grade_legacy(self),
             GameMode::Catch => catch_grade_legacy(self, accuracy.ok_or(Score::legacy_accuracy)),
-            GameMode::Mania => {
-                mania_grade_legacy(self, passed_objects, accuracy.ok_or(Score::legacy_accuracy))
-            }
+            GameMode::Mania => mania_grade_legacy(self, accuracy.ok_or(Score::legacy_accuracy)),
         }
     }
 }
@@ -604,8 +598,11 @@ fn hdflfi() -> GameModsIntermode {
     .collect()
 }
 
-fn osu_grade(score: &Score, passed_objects: u32, accuracy: Option<f32>) -> Grade {
-    if score.statistics.great == passed_objects {
+fn osu_grade(score: &Score, accuracy: Option<f32>) -> Grade {
+    if score.statistics.great == score.maximum_statistics.great
+        && score.statistics.large_tick_hit == score.maximum_statistics.large_tick_hit
+        && score.statistics.slider_tail_hit == score.maximum_statistics.slider_tail_hit
+    {
         return if score.mods.contains_any(hdfl()) {
             Grade::XH
         } else {
@@ -615,7 +612,10 @@ fn osu_grade(score: &Score, passed_objects: u32, accuracy: Option<f32>) -> Grade
 
     let accuracy = accuracy.unwrap_or_else(|| score.accuracy());
 
-    if accuracy >= 95.0 && score.statistics.miss == 0 {
+    if accuracy >= 95.0
+        && score.statistics.miss == 0
+        && score.statistics.large_tick_hit == score.maximum_statistics.large_tick_hit
+    {
         if score.mods.contains_any(hdflfi()) {
             Grade::SH
         } else {
@@ -632,20 +632,20 @@ fn osu_grade(score: &Score, passed_objects: u32, accuracy: Option<f32>) -> Grade
     }
 }
 
-fn taiko_grade(score: &Score, passed_objects: u32, accuracy: Option<f32>) -> Grade {
-    osu_grade(score, passed_objects, accuracy)
+fn taiko_grade(score: &Score, accuracy: Option<f32>) -> Grade {
+    osu_grade(score, accuracy)
 }
 
 fn catch_grade(score: &Score, accuracy: Option<f32>) -> Grade {
     catch_grade_legacy(score, accuracy.ok_or(Score::accuracy))
 }
 
-fn mania_grade(score: &Score, passed_objects: u32, accuracy: Option<f32>) -> Grade {
-    mania_grade_legacy(score, passed_objects, accuracy.ok_or(Score::accuracy))
+fn mania_grade(score: &Score, accuracy: Option<f32>) -> Grade {
+    mania_grade_legacy(score, accuracy.ok_or(Score::accuracy))
 }
 
-fn osu_grade_legacy(score: &Score, passed_objects: u32) -> Grade {
-    if score.statistics.great == passed_objects {
+fn osu_grade_legacy(score: &Score) -> Grade {
+    if score.statistics.great == score.maximum_statistics.great {
         return if score.mods.contains_any(hdfl()) {
             Grade::XH
         } else {
@@ -654,6 +654,7 @@ fn osu_grade_legacy(score: &Score, passed_objects: u32) -> Grade {
     }
 
     let stats = &score.statistics;
+    let passed_objects = stats.total_hits(GameMode::Osu);
 
     let ratio300 = stats.great as f32 / passed_objects as f32;
     let ratio50 = stats.meh as f32 / passed_objects as f32;
@@ -675,8 +676,8 @@ fn osu_grade_legacy(score: &Score, passed_objects: u32) -> Grade {
     }
 }
 
-fn taiko_grade_legacy(score: &Score, passed_objects: u32) -> Grade {
-    if score.statistics.great == passed_objects {
+fn taiko_grade_legacy(score: &Score) -> Grade {
+    if score.statistics.great == score.maximum_statistics.great {
         return if score.mods.contains_any(hdfl()) {
             Grade::XH
         } else {
@@ -685,6 +686,7 @@ fn taiko_grade_legacy(score: &Score, passed_objects: u32) -> Grade {
     }
 
     let stats = &score.statistics;
+    let passed_objects = stats.total_hits(GameMode::Taiko);
     let ratio300 = stats.great as f32 / passed_objects as f32;
 
     if ratio300 > 0.9 && stats.miss == 0 {
@@ -730,12 +732,8 @@ fn catch_grade_legacy(score: &Score, accuracy: Result<f32, fn(&Score) -> f32>) -
     }
 }
 
-fn mania_grade_legacy(
-    score: &Score,
-    passed_objects: u32,
-    accuracy: Result<f32, fn(&Score) -> f32>,
-) -> Grade {
-    if score.statistics.perfect == passed_objects {
+fn mania_grade_legacy(score: &Score, accuracy: Result<f32, fn(&Score) -> f32>) -> Grade {
+    if score.statistics.perfect == score.maximum_statistics.perfect {
         return if score.mods.contains_any(hdflfi()) {
             Grade::XH
         } else {

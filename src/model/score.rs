@@ -8,10 +8,7 @@ use super::{
 use crate::{error::OsuError, request::GetUser, Osu};
 
 use rosu_mods::{serde::GameModsSeed, GameModIntermode, GameModsIntermode};
-use serde::{
-    de::{DeserializeSeed, IgnoredAny},
-    Deserialize, Deserializer,
-};
+use serde::{de::DeserializeSeed, Deserialize, Deserializer};
 
 use serde_json::value::RawValue;
 use time::OffsetDateTime;
@@ -131,8 +128,6 @@ impl<'de> Deserialize<'de> for Score {
             max_combo: u32,
             passed: bool,
             pp: Option<f32>,
-            #[serde(rename = "mode")]
-            mode_: Option<IgnoredAny>, // only available in legacy scores
             #[serde(rename = "ruleset_id", alias = "mode_int")]
             mode: GameMode,
             #[serde(default, with = "serde_util::option_datetime")]
@@ -160,11 +155,7 @@ impl<'de> Deserialize<'de> for Score {
         }
 
         let score_raw = <ScoreRawMods as serde::Deserialize>::deserialize(d)?;
-
-        // Lazer scores don't have `mode` specified; only `ruleset_id`
-        // so we use that to determine if the score is legacy.
-        // Maybe using `type` would be better? As of now it seems unreliable.
-        let set_on_stable = score_raw.mode_.is_some();
+        let set_on_stable = score_raw.legacy_score > 0;
 
         Ok(Score {
             set_on_lazer: !set_on_stable,

@@ -98,6 +98,7 @@ impl<'de> Deserialize<'de> for Score {
         #[derive(Deserialize)]
         #[cfg_attr(feature = "deny_unknown_fields", serde(deny_unknown_fields))]
         struct ScoreRawMods {
+            set_on_lazer: Option<bool>, // used for serialized score; not sent by osu!
             #[serde(default, rename = "classic_total_score")]
             classic_score: u32, // not available in legacy scores
             ranked: Option<bool>,
@@ -160,7 +161,9 @@ impl<'de> Deserialize<'de> for Score {
         }
 
         let score_raw = <ScoreRawMods as serde::Deserialize>::deserialize(d)?;
-        let set_on_stable = score_raw.legacy_score > 0;
+        let set_on_stable = score_raw
+            .set_on_lazer
+            .map_or(score_raw.legacy_score > 0, |b| !b);
 
         Ok(Score {
             set_on_lazer: !set_on_stable,

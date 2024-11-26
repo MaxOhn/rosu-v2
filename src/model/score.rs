@@ -8,7 +8,10 @@ use super::{
 use crate::{error::OsuError, request::GetUser, Osu};
 
 use rosu_mods::{serde::GameModsSeed, GameModIntermode, GameModsIntermode};
-use serde::{de::DeserializeSeed, Deserialize, Deserializer};
+use serde::{
+    de::{DeserializeSeed, IgnoredAny},
+    Deserialize, Deserializer,
+};
 
 use serde_json::value::RawValue;
 use time::OffsetDateTime;
@@ -128,6 +131,8 @@ impl<'de> Deserialize<'de> for Score {
             max_combo: u32,
             passed: bool,
             pp: Option<f32>,
+            #[serde(rename = "mode")]
+            _mode: Option<IgnoredAny>, // only available in legacy scores
             #[serde(rename = "ruleset_id", alias = "mode_int")]
             mode: GameMode,
             #[serde(default, with = "serde_util::option_datetime")]

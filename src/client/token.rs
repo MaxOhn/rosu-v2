@@ -1,3 +1,5 @@
+use crate::OsuResult;
+
 use super::{OsuRef, Scopes};
 
 use serde::Deserialize;
@@ -7,19 +9,51 @@ use tokio::{
     time::sleep,
 };
 
-#[derive(Debug, Default)]
-pub(super) struct Token {
-    pub access: Option<String>,
-    pub refresh: Option<String>,
+/// Token to interact with the osu! API.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct Token {
+    pub(crate) access: Option<Box<str>>,
+    pub(crate) refresh: Option<Box<str>>,
 }
 
 impl Token {
-    pub(super) fn update(&mut self, response: TokenResponse) {
-        self.access = Some(format!("Bearer {}", response.access_token));
-        self.refresh = response.refresh_token;
+    /// Value used to access the API.
+    ///
+    /// `None` if the token has not been refreshed.
+    pub fn access(&self) -> Option<&str> {
+        self.access.as_deref()
     }
 
-    pub(super) fn update_worker(osu: Arc<OsuRef>, mut expire: i64, mut dropped_rx: Receiver<()>) {
+    /// Value used to refresh the token.
+    pub fn refresh(&self) -> Option<&str> {
+        self.refresh.as_deref()
+    }
+
+    /// Create a new [`Token`] with the given values.
+    pub fn new(access: &str, refresh: Option<Box<str>>) -> Self {
+        let mut token = Self::default();
+        token.update(access, refresh);
+
+        token
+    }
+
+    pub(super) fn update(&mut self, access: &str, refresh: Option<Box<str>>) {
+        let access = if access.starts_with("Bearer ") {
+            access.into()
+        } else {
+            format!("Bearer {access}").into_boxed_str()
+        };
+
+        self.access = Some(access);
+        self.refresh = refresh;
+    }
+
+    pub(super) fn update_worker(
+        osu: Arc<OsuRef>,
+        auth_kind: AuthorizationKind,
+        mut expire: i64,
+        mut dropped_rx: Receiver<()>,
+    ) {
         tokio::spawn(async move {
             loop {
                 // In case acquiring a new token takes too long,
@@ -33,12 +67,12 @@ impl Token {
                         let _ = expire_tx.send(());
                         return debug!("Osu dropped; exiting token update loop");
                     }
-                    token = Self::update_routine(Arc::clone(&osu), expire, expire_rx) => {
+                    token = Self::update_routine(Arc::clone(&osu), &auth_kind, expire, expire_rx) => {
                         let _ = expire_tx.send(());
                         debug!("Successfully acquired new token");
 
                         expire = token.expires_in;
-                        osu.token.write().await.update(token);
+                        osu.token.write().await.update(token.access_token.as_ref(), token.refresh_token);
                     }
                 }
             }
@@ -47,6 +81,7 @@ impl Token {
 
     async fn update_routine(
         osu: Arc<OsuRef>,
+        auth_kind: &AuthorizationKind,
         expire: i64,
         mut expire_rx: Receiver<()>,
     ) -> TokenResponse {
@@ -67,32 +102,29 @@ impl Token {
         sleep(Duration::from_secs(adjusted_expire.max(0) as u64)).await;
         debug!("API token expired, acquiring new one...");
 
-        Token::request_loop(&osu).await
+        Token::request_loop(&osu, auth_kind).await
     }
 
     // Acquire a new token through exponential backoff
-    async fn request_loop(osu: &OsuRef) -> TokenResponse {
+    async fn request_loop(osu: &OsuRef, auth_kind: &AuthorizationKind) -> TokenResponse {
         let mut backoff = 400;
 
         loop {
-            match osu.request_token().await {
-                Ok(token) if token.token_type == "Bearer" => return token,
+            match auth_kind.request_token(osu).await {
+                Ok(token) if token.token_type.as_ref() == "Bearer" => return token,
                 Ok(token) => {
                     warn!(
-                        r#"Failed to acquire new token, "{}" != "Bearer"; retry in {}ms"#,
-                        token.token_type, backoff
+                        r#"Failed to acquire new token, "{}" != "Bearer"; retry in {backoff}ms"#,
+                        token.token_type
                     );
                 }
-                Err(why) => {
-                    warn!(
-                        "Failed to acquire new token: {}; retry in {}ms",
-                        why, backoff
-                    );
+                Err(err) => {
+                    warn!(?err, "Failed to acquire new token; retry in {backoff}ms");
 
-                    let mut err: &dyn Error = &why;
+                    let mut err: &dyn Error = &err;
 
                     while let Some(src) = err.source() {
-                        warn!("  - caused by: {}", src);
+                        warn!("  - caused by: {src}");
                         err = src;
                     }
                 }
@@ -115,6 +147,10 @@ pub(super) enum AuthorizationBuilder {
     LocalOauth {
         redirect_uri: String,
         scopes: Scopes,
+    },
+    Given {
+        token: Token,
+        expires_in: Option<i64>,
     },
 }
 
@@ -232,6 +268,29 @@ You may close this tab
 pub(super) enum AuthorizationKind {
     User(Authorization),
     Client,
+    BareToken,
+}
+
+impl AuthorizationKind {
+    pub async fn request_token(&self, osu: &OsuRef) -> OsuResult<TokenResponse> {
+        match self {
+            AuthorizationKind::User(auth) => match osu.token.read().await.refresh {
+                Some(ref refresh) => osu.request_refresh_token(refresh).await,
+                None => osu.request_user_token(auth).await,
+            },
+            AuthorizationKind::Client => osu.request_client_token().await,
+            AuthorizationKind::BareToken => {
+                let Some(ref refresh) = osu.token.read().await.refresh else {
+                    error!("Missing refresh token on bare authentication; all future requests will fail");
+
+                    futures::future::pending::<()>().await;
+                    unreachable!();
+                };
+
+                osu.request_refresh_token(refresh).await
+            }
+        }
+    }
 }
 
 impl Default for AuthorizationKind {
@@ -241,16 +300,16 @@ impl Default for AuthorizationKind {
 }
 
 pub(super) struct Authorization {
-    pub code: String,
-    pub redirect_uri: String,
+    pub code: Box<str>,
+    pub redirect_uri: Box<str>,
     pub scopes: Scopes,
 }
 
 #[derive(Deserialize)]
 pub(super) struct TokenResponse {
-    pub access_token: String,
+    pub access_token: Box<str>,
     pub expires_in: i64,
     #[serde(default)]
-    pub refresh_token: Option<String>,
-    pub token_type: String,
+    pub refresh_token: Option<Box<str>>,
+    pub token_type: Box<str>,
 }

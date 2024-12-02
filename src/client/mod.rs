@@ -3,10 +3,9 @@ mod scopes;
 mod token;
 
 use bytes::Bytes;
-use token::{Authorization, AuthorizationKind, Token, TokenResponse};
+use token::{Authorization, AuthorizationKind, TokenResponse};
 
-pub use builder::OsuBuilder;
-pub use scopes::Scopes;
+pub use self::{builder::OsuBuilder, scopes::Scopes, token::Token};
 
 #[allow(clippy::wildcard_imports)]
 use crate::{error::OsuError, model::GameMode, request::*, OsuResult};
@@ -59,6 +58,12 @@ impl Osu {
     #[inline]
     pub fn builder() -> OsuBuilder {
         OsuBuilder::default()
+    }
+
+    /// Return the [`Token`] that is being used when requesting data.
+    #[inline]
+    pub async fn token(&self) -> Token {
+        self.inner.token.read().await.to_owned()
     }
 
     /// Get a [`BeatmapExtended`](crate::model::beatmap::BeatmapExtended).
@@ -616,7 +621,6 @@ pub(crate) struct OsuRef {
     http: HyperClient<HttpsConnector<HttpConnector>, BodyBytes>,
     timeout: Duration,
     ratelimiter: LeakyBucket,
-    auth_kind: AuthorizationKind,
     token: RwLock<Token>,
     retries: usize,
 }
@@ -633,32 +637,42 @@ const APPLICATION_JSON: &str = "application/json";
 const X_API_VERSION: &str = "x-api-version";
 
 impl OsuRef {
-    async fn request_token(&self) -> OsuResult<TokenResponse> {
+    async fn request_client_token(&self) -> OsuResult<TokenResponse> {
         let mut body = Body::new();
+
+        body.push_str("grant_type", "client_credentials");
+        let mut scopes = String::new();
+        Scopes::Public.format(&mut scopes, ' ');
+        body.push_str("scope", &scopes);
+
+        self.finish_token_request(body).await
+    }
+
+    async fn request_user_token(&self, auth: &Authorization) -> OsuResult<TokenResponse> {
+        let mut body = Body::new();
+
+        body.push_str("grant_type", "authorization_code");
+        body.push_str("redirect_uri", &auth.redirect_uri);
+        body.push_str("code", &auth.code);
+        let mut scopes = String::new();
+        auth.scopes.format(&mut scopes, ' ');
+        body.push_str("scope", &scopes);
+
+        self.finish_token_request(body).await
+    }
+
+    async fn request_refresh_token(&self, refresh: &str) -> OsuResult<TokenResponse> {
+        let mut body = Body::new();
+
+        body.push_str("grant_type", "refresh_token");
+        body.push_str("refresh_token", refresh);
+
+        self.finish_token_request(body).await
+    }
+
+    async fn finish_token_request(&self, mut body: Body) -> OsuResult<TokenResponse> {
         body.push_int("client_id", self.client_id);
         body.push_str("client_secret", &self.client_secret);
-
-        match self.auth_kind {
-            AuthorizationKind::Client => {
-                body.push_str("grant_type", "client_credentials");
-                let mut scopes = String::new();
-                Scopes::Public.format(&mut scopes, ' ');
-                body.push_str("scope", &scopes);
-            }
-            AuthorizationKind::User(ref auth) => {
-                if let Some(ref refresh) = self.token.read().await.refresh {
-                    body.push_str("grant_type", "refresh_token");
-                    body.push_str("refresh_token", refresh);
-                } else {
-                    body.push_str("grant_type", "authorization_code");
-                    body.push_str("redirect_uri", &auth.redirect_uri);
-                    body.push_str("code", &auth.code);
-                    let mut scopes = String::new();
-                    auth.scopes.format(&mut scopes, ' ');
-                    body.push_str("scope", &scopes);
-                }
-            }
-        };
 
         let bytes = BodyBytes::from(body);
         let url = "https://osu.ppy.sh/oauth/token";

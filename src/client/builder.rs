@@ -62,18 +62,6 @@ impl OsuBuilder {
         let client_id = self.client_id.ok_or(OsuError::BuilderMissingId)?;
         let client_secret = self.client_secret.ok_or(OsuError::BuilderMissingSecret)?;
 
-        let auth_kind = match self.auth {
-            Some(AuthorizationBuilder::Kind(kind)) => kind,
-            #[cfg(feature = "local_oauth")]
-            Some(AuthorizationBuilder::LocalOauth {
-                redirect_uri,
-                scopes,
-            }) => AuthorizationBuilder::perform_local_oauth(redirect_uri, client_id, scopes)
-                .await
-                .map(AuthorizationKind::User)?,
-            None => AuthorizationKind::default(),
-        };
-
         let connector = HttpsConnectorBuilder::new()
             .with_native_roots()
             .https_or_http()
@@ -90,42 +78,67 @@ impl OsuBuilder {
             .refill_amount(1)
             .build();
 
-        let (tx, dropped_rx) = oneshot::channel();
-
         let inner = Arc::new(OsuRef {
             client_id,
             client_secret: client_secret.into_boxed_str(),
             http,
             ratelimiter,
             timeout: self.timeout,
-            auth_kind,
             token: RwLock::new(Token::default()),
             retries: self.retries,
         });
 
-        // Acquire the initial API token
-        let token = inner
-            .request_token()
-            .await
-            .map_err(Box::new)
-            .map_err(|source| OsuError::UpdateToken { source })?;
-
-        let expires_in = token.expires_in;
-        inner.token.write().await.update(token);
-
-        // Let an async worker update the token regularly
-        Token::update_worker(Arc::clone(&inner), expires_in, dropped_rx);
-
         #[cfg(feature = "metrics")]
         crate::metrics::init_metrics();
 
-        Ok(Osu {
-            inner,
-            token_loop_tx: Some(tx),
+        match self.auth {
+            Some(AuthorizationBuilder::Kind(kind)) => build_with_refresh(inner, kind).await,
+            #[cfg(feature = "local_oauth")]
+            Some(AuthorizationBuilder::LocalOauth {
+                redirect_uri,
+                scopes,
+            }) => {
+                let auth_kind =
+                    AuthorizationBuilder::perform_local_oauth(redirect_uri, client_id, scopes)
+                        .await
+                        .map(AuthorizationKind::User)?;
 
-            #[cfg(feature = "cache")]
-            cache: Box::new(DashMap::new()),
-        })
+                build_with_refresh(inner, auth_kind).await
+            }
+
+            Some(AuthorizationBuilder::Given {
+                token,
+                expires_in: Some(expires_in),
+            }) => {
+                let (tx, dropped_rx) = oneshot::channel();
+
+                *inner.token.write().await = token;
+                let auth_kind = AuthorizationKind::BareToken;
+
+                // Let an async worker update the token regularly
+                Token::update_worker(Arc::clone(&inner), auth_kind, expires_in, dropped_rx);
+
+                Ok(Osu {
+                    inner,
+                    token_loop_tx: Some(tx),
+
+                    #[cfg(feature = "cache")]
+                    cache: Box::new(DashMap::new()),
+                })
+            }
+            Some(AuthorizationBuilder::Given { token, .. }) => {
+                *inner.token.write().await = token;
+
+                Ok(Osu {
+                    inner,
+                    token_loop_tx: None,
+
+                    #[cfg(feature = "cache")]
+                    cache: Box::new(DashMap::new()),
+                })
+            }
+            None => build_with_refresh(inner, AuthorizationKind::default()).await,
+        }
     }
 
     /// Set the client id of the application.
@@ -191,14 +204,28 @@ impl OsuBuilder {
         scopes: Scopes,
     ) -> Self {
         let authorization = Authorization {
-            code: code.into(),
-            redirect_uri: redirect_uri.into(),
+            code: code.into().into_boxed_str(),
+            redirect_uri: redirect_uri.into().into_boxed_str(),
             scopes,
         };
 
         self.auth = Some(AuthorizationBuilder::Kind(AuthorizationKind::User(
             authorization,
         )));
+
+        self
+    }
+
+    /// Instead of acquiring a token upon building the client, use the given
+    /// token.
+    ///
+    /// If `Token::refresh` and `expires_in` are `Some`, the token will be
+    /// refreshed automatically.
+    ///
+    /// For more info, check out
+    /// <https://osu.ppy.sh/docs/index.html#authorization-code-grant>
+    pub fn with_token(mut self, token: Token, expires_in: Option<i64>) -> Self {
+        self.auth = Some(AuthorizationBuilder::Given { token, expires_in });
 
         self
     }
@@ -228,4 +255,33 @@ impl OsuBuilder {
 
         self
     }
+}
+
+async fn build_with_refresh(inner: Arc<OsuRef>, auth_kind: AuthorizationKind) -> OsuResult<Osu> {
+    let (tx, dropped_rx) = oneshot::channel();
+
+    // Acquire the initial API token
+    let token = auth_kind
+        .request_token(&inner)
+        .await
+        .map_err(Box::new)
+        .map_err(|source| OsuError::UpdateToken { source })?;
+
+    let expires_in = token.expires_in;
+    inner
+        .token
+        .write()
+        .await
+        .update(token.access_token.as_ref(), token.refresh_token);
+
+    // Let an async worker update the token regularly
+    Token::update_worker(Arc::clone(&inner), auth_kind, expires_in, dropped_rx);
+
+    Ok(Osu {
+        inner,
+        token_loop_tx: Some(tx),
+
+        #[cfg(feature = "cache")]
+        cache: Box::new(DashMap::new()),
+    })
 }

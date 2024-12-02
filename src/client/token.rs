@@ -228,7 +228,7 @@ impl AuthorizationBuilder {
                     start += KEY.len();
 
                     if let Some(end) = data[start..].find(char::is_whitespace) {
-                        return Some(data[start..][..end].to_owned());
+                        return Some(Box::from(&data[start..][..end]));
                     }
                 }
 
@@ -259,7 +259,7 @@ You may close this tab
 
         Ok(Authorization {
             code,
-            redirect_uri,
+            redirect_uri: redirect_uri.into_boxed_str(),
             scopes,
         })
     }

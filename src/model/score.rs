@@ -133,7 +133,7 @@ impl<'de> Deserialize<'de> for Score {
             passed: bool,
             pp: Option<f32>,
             #[serde(rename = "mode")]
-            _mode: Option<IgnoredAny>, // only available in legacy scores
+            mode_: Option<IgnoredAny>, // only available in legacy scores
             #[serde(rename = "ruleset_id", alias = "mode_int")]
             mode: GameMode,
             #[serde(default, with = "serde_util::option_datetime")]
@@ -161,9 +161,10 @@ impl<'de> Deserialize<'de> for Score {
         }
 
         let score_raw = <ScoreRawMods as serde::Deserialize>::deserialize(d)?;
-        let set_on_stable = score_raw
-            .set_on_lazer
-            .map_or(score_raw.legacy_score > 0, |b| !b);
+        let set_on_stable = score_raw.set_on_lazer.map_or(
+            score_raw.legacy_score > 0 || score_raw.mode_.is_some(),
+            <bool as std::ops::Not>::not,
+        );
 
         Ok(Score {
             set_on_lazer: !set_on_stable,

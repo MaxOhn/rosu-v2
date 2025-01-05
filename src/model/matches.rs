@@ -305,6 +305,7 @@ pub struct MatchGame {
     #[cfg_attr(
         feature = "serialize",
         serde(
+            default,
             skip_serializing_if = "Option::is_none",
             with = "serde_util::option_datetime"
         )
@@ -663,6 +664,7 @@ pub struct OsuMatch {
     #[cfg_attr(
         feature = "serialize",
         serde(
+            default,
             skip_serializing_if = "Option::is_none",
             with = "serde_util::option_datetime"
         )

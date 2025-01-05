@@ -33,6 +33,7 @@ pub struct BeatmapExtended {
     pub creator_id: u32,
     pub cs: f32,
     #[serde(
+        default,
         skip_serializing_if = "Option::is_none",
         with = "serde_util::option_datetime"
     )]
@@ -1416,10 +1417,18 @@ pub struct BeatmapsetVote {
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub struct FailTimes {
     /// List of length 100
-    #[serde(with = "hundred_items", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        default,
+        with = "hundred_items",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub exit: Option<Box<[u32; 100]>>,
     /// List of length 100
-    #[serde(with = "hundred_items", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        default,
+        with = "hundred_items",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub fail: Option<Box<[u32; 100]>>,
 }
 

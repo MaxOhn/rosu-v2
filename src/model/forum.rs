@@ -42,6 +42,7 @@ pub struct ForumPost {
     #[cfg_attr(
         feature = "serialize",
         serde(
+            default,
             skip_serializing_if = "Option::is_none",
             with = "serde_util::option_datetime"
         )
@@ -50,6 +51,7 @@ pub struct ForumPost {
     #[cfg_attr(
         feature = "serialize",
         serde(
+            default,
             skip_serializing_if = "Option::is_none",
             with = "serde_util::option_datetime"
         )

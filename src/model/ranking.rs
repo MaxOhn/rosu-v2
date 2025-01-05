@@ -325,6 +325,7 @@ struct UserWithoutStats<'u> {
     pub is_online: &'u bool,
     pub is_supporter: &'u bool,
     #[serde(
+        default,
         skip_serializing_if = "Option::is_none",
         with = "serde_util::option_datetime"
     )]

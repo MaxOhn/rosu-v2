@@ -115,11 +115,13 @@ pub struct DailyChallengeUserStatistics {
     pub daily_streak_best: u32,
     pub daily_streak_current: u32,
     #[serde(
+        default,
         skip_serializing_if = "Option::is_none",
         with = "serde_util::option_datetime"
     )]
     pub last_update: Option<OffsetDateTime>,
     #[serde(
+        default,
         skip_serializing_if = "Option::is_none",
         with = "serde_util::option_datetime"
     )]

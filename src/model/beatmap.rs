@@ -1409,7 +1409,7 @@ struct SubSort {
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub struct BeatmapsetVote {
     pub user_id: u32,
-    pub score: u32,
+    pub score: i32,
 }
 
 /// All fields are optional but there's always at least one field returned.

@@ -3,8 +3,8 @@ use super::{
 };
 use crate::{error::OsuError, OsuResult};
 
-use hyper::client::Builder;
 use hyper_rustls::HttpsConnectorBuilder;
+use hyper_util::{client::legacy::connect::HttpConnector, rt::TokioExecutor};
 use leaky_bucket_lite::LeakyBucket;
 use std::{sync::Arc, time::Duration};
 use tokio::sync::{oneshot, RwLock};
@@ -58,18 +58,24 @@ impl OsuBuilder {
     ///   - client id was not set
     ///   - client secret was not set
     ///   - API did not provide a token for the given client id and client secret
+    ///   - native roots are missing to build the https connector
     pub async fn build(self) -> OsuResult<Osu> {
         let client_id = self.client_id.ok_or(OsuError::BuilderMissingId)?;
         let client_secret = self.client_secret.ok_or(OsuError::BuilderMissingSecret)?;
 
+        let mut http = HttpConnector::new();
+        http.enforce_http(false);
+
         let connector = HttpsConnectorBuilder::new()
             .with_native_roots()
+            .map_err(|source| OsuError::ConnectorRoots { source })?
             .https_or_http()
             .enable_http1()
             .enable_http2()
-            .build();
+            .wrap_connector(http);
 
-        let http = Builder::default().build(connector);
+        let http =
+            hyper_util::client::legacy::Client::builder(TokioExecutor::new()).build(connector);
 
         let ratelimiter = LeakyBucket::builder()
             .max(self.per_second)

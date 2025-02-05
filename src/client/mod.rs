@@ -3,6 +3,8 @@ mod scopes;
 mod token;
 
 use bytes::Bytes;
+use http_body_util::{BodyExt, Full};
+use hyper_util::client::legacy::{connect::HttpConnector, Client as HyperClient};
 use token::{Authorization, AuthorizationKind, TokenResponse};
 
 pub use self::{builder::OsuBuilder, scopes::Scopes, token::Token};
@@ -11,23 +13,14 @@ pub use self::{builder::OsuBuilder, scopes::Scopes, token::Token};
 use crate::{error::OsuError, model::GameMode, request::*, OsuResult};
 
 use hyper::{
-    body::{Body as HyperBody, HttpBody, SizeHint},
-    client::{Client as HyperClient, HttpConnector},
+    body::Incoming,
     header::{HeaderValue, ACCEPT, AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE, USER_AGENT},
-    HeaderMap, Method, Request as HyperRequest, Response, StatusCode,
+    Method, Request as HyperRequest, Response, StatusCode,
 };
 use hyper_rustls::HttpsConnector;
 use leaky_bucket_lite::LeakyBucket;
 use serde::de::DeserializeOwned;
-use std::{
-    convert::Infallible,
-    mem,
-    ops::Drop,
-    pin::Pin,
-    sync::Arc,
-    task::{Context, Poll},
-    time::Duration,
-};
+use std::{ops::Drop, sync::Arc, time::Duration};
 use tokio::sync::{oneshot::Sender, RwLock};
 use url::Url;
 
@@ -615,10 +608,12 @@ impl Drop for Osu {
     }
 }
 
+type Body = Full<Bytes>;
+
 pub(crate) struct OsuRef {
     client_id: u64,
     client_secret: Box<str>,
-    http: HyperClient<HttpsConnector<HttpConnector>, BodyBytes>,
+    http: HyperClient<HttpsConnector<HttpConnector>, Body>,
     timeout: Duration,
     ratelimiter: LeakyBucket,
     token: RwLock<Token>,
@@ -638,7 +633,7 @@ const X_API_VERSION: &str = "x-api-version";
 
 impl OsuRef {
     async fn request_client_token(&self) -> OsuResult<TokenResponse> {
-        let mut body = Body::new();
+        let mut body = JsonBody::new();
 
         body.push_str("grant_type", "client_credentials");
         let mut scopes = String::new();
@@ -649,7 +644,7 @@ impl OsuRef {
     }
 
     async fn request_user_token(&self, auth: &Authorization) -> OsuResult<TokenResponse> {
-        let mut body = Body::new();
+        let mut body = JsonBody::new();
 
         body.push_str("grant_type", "authorization_code");
         body.push_str("redirect_uri", &auth.redirect_uri);
@@ -662,7 +657,7 @@ impl OsuRef {
     }
 
     async fn request_refresh_token(&self, refresh: &str) -> OsuResult<TokenResponse> {
-        let mut body = Body::new();
+        let mut body = JsonBody::new();
 
         body.push_str("grant_type", "refresh_token");
         body.push_str("refresh_token", refresh);
@@ -670,21 +665,21 @@ impl OsuRef {
         self.finish_token_request(body).await
     }
 
-    async fn finish_token_request(&self, mut body: Body) -> OsuResult<TokenResponse> {
+    async fn finish_token_request(&self, mut body: JsonBody) -> OsuResult<TokenResponse> {
         body.push_int("client_id", self.client_id);
         body.push_str("client_secret", &self.client_secret);
 
-        let bytes = BodyBytes::from(body);
+        let bytes = body.into_bytes();
+        let len = bytes.len();
+        let body = Full::from(bytes);
         let url = "https://osu.ppy.sh/oauth/token";
 
-        let req = HyperRequest::builder()
-            .method(Method::POST)
-            .uri(url)
+        let req = HyperRequest::post(url)
             .header(USER_AGENT, MY_USER_AGENT)
             .header(ACCEPT, APPLICATION_JSON)
             .header(CONTENT_TYPE, APPLICATION_JSON)
-            .header(CONTENT_LENGTH, bytes.len())
-            .body(bytes)?;
+            .header(CONTENT_LENGTH, len)
+            .body(body)?;
 
         let resp = self.send_request(req).await?;
         let bytes = self.handle_status(resp).await?;
@@ -734,9 +729,9 @@ impl OsuRef {
         &self,
         url: String,
         method: Method,
-        body: Body,
+        body: JsonBody,
         api_version: u32,
-    ) -> OsuResult<Response<HyperBody>> {
+    ) -> OsuResult<Response<Incoming>> {
         let url = Url::parse(&url).map_err(|source| OsuError::Url { source, url })?;
         debug!("URL: {url}");
 
@@ -747,7 +742,9 @@ impl OsuRef {
         let value = HeaderValue::from_str(token)
             .map_err(|source| OsuError::CreatingTokenHeader { source })?;
 
-        let bytes = BodyBytes::from(body);
+        let bytes = body.into_bytes();
+        let len = bytes.len();
+        let body = Body::from(bytes);
 
         let mut req_builder = HyperRequest::builder()
             .method(method)
@@ -756,18 +753,18 @@ impl OsuRef {
             .header(USER_AGENT, MY_USER_AGENT)
             .header(X_API_VERSION, api_version)
             .header(ACCEPT, APPLICATION_JSON)
-            .header(CONTENT_LENGTH, bytes.len());
+            .header(CONTENT_LENGTH, len);
 
-        if !bytes.is_empty() {
+        if len > 0 {
             req_builder = req_builder.header(CONTENT_TYPE, APPLICATION_JSON);
         }
 
-        let req = req_builder.body(bytes)?;
+        let req = req_builder.body(body)?;
 
         self.send_request(req).await
     }
 
-    async fn send_request(&self, req: HyperRequest<BodyBytes>) -> OsuResult<Response<HyperBody>> {
+    async fn send_request(&self, req: HyperRequest<Body>) -> OsuResult<Response<Incoming>> {
         self.ratelimiter.acquire_one().await;
 
         let mut attempt = 0;
@@ -786,12 +783,15 @@ impl OsuRef {
         }
     }
 
-    async fn handle_status(&self, resp: Response<HyperBody>) -> OsuResult<Bytes> {
+    async fn handle_status(&self, resp: Response<Incoming>) -> OsuResult<Bytes> {
         let status = resp.status();
 
-        let bytes = hyper::body::to_bytes(resp.into_body())
+        let bytes = resp
+            .into_body()
+            .collect()
             .await
-            .map_err(|source| OsuError::ChunkingResponse { source })?;
+            .map_err(|source| OsuError::ChunkingResponse { source })?
+            .to_bytes();
 
         match status {
             StatusCode::OK => return Ok(bytes),
@@ -829,7 +829,7 @@ fn parse_bytes<T: DeserializeOwned>(bytes: &Bytes) -> OsuResult<T> {
     })
 }
 
-fn clone_req(req: &HyperRequest<BodyBytes>) -> HyperRequest<BodyBytes> {
+fn clone_req(req: &HyperRequest<Body>) -> HyperRequest<Body> {
     let mut builder = HyperRequest::builder().method(req.method()).uri(req.uri());
 
     if let Some(headers) = builder.headers_mut() {
@@ -837,65 +837,4 @@ fn clone_req(req: &HyperRequest<BodyBytes>) -> HyperRequest<BodyBytes> {
     }
 
     builder.body(req.body().to_owned()).unwrap()
-}
-
-/// `hyper` requires the `HttpBody` trait to be implemented for the type that
-/// requests are generic over. Since that trait is not implemented for `Bytes`
-/// in hyper itself, we define a simple wrapper for which we implement the trait
-/// the same way it is implemented for `String` in hyper.
-#[derive(Clone, Default)]
-struct BodyBytes(Bytes);
-
-impl BodyBytes {
-    const fn is_empty(&self) -> bool {
-        self.0.is_empty()
-    }
-
-    const fn len(&self) -> usize {
-        self.0.len()
-    }
-}
-
-impl HttpBody for BodyBytes {
-    type Data = Bytes;
-    type Error = Infallible;
-
-    #[inline]
-    fn poll_data(
-        mut self: Pin<&mut Self>,
-        _cx: &mut Context<'_>,
-    ) -> Poll<Option<Result<Self::Data, Self::Error>>> {
-        if self.is_empty() {
-            Poll::Ready(None)
-        } else {
-            let bytes = mem::take(&mut self.0);
-
-            Poll::Ready(Some(Ok(bytes)))
-        }
-    }
-
-    #[inline]
-    fn poll_trailers(
-        self: Pin<&mut Self>,
-        _cx: &mut Context<'_>,
-    ) -> Poll<Result<Option<HeaderMap>, Self::Error>> {
-        Poll::Ready(Ok(None))
-    }
-
-    #[inline]
-    fn is_end_stream(&self) -> bool {
-        self.is_empty()
-    }
-
-    #[inline]
-    fn size_hint(&self) -> SizeHint {
-        SizeHint::with_exact(self.len() as u64)
-    }
-}
-
-impl From<Body> for BodyBytes {
-    #[inline]
-    fn from(body: Body) -> Self {
-        Self(body.into_bytes().into())
-    }
 }

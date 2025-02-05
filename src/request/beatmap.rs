@@ -26,7 +26,7 @@ use serde::ser::SerializeMap;
 use serde::{Serialize, Serializer};
 use std::{fmt::Write, mem};
 
-use super::Body;
+use super::JsonBody;
 #[cfg(feature = "cache")]
 use super::UserId;
 
@@ -187,7 +187,7 @@ impl<'a> GetBeatmapDifficultyAttributes<'a> {
             map_id: self.map_id,
         };
 
-        let mut body = Body::new();
+        let mut body = JsonBody::new();
 
         if let Some(mods) = self.mods {
             body.push_int("mods", mods);

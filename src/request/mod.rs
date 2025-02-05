@@ -34,6 +34,7 @@ mod user;
 mod wiki;
 
 pub use beatmap::*;
+use bytes::{Bytes, BytesMut};
 pub use comments::*;
 pub use event::*;
 pub use forum::*;
@@ -56,7 +57,7 @@ type Pending<'a, T> = Pin<Box<dyn Future<Output = OsuResult<T>> + Send + Sync + 
 pub(crate) struct Request {
     pub query: Option<String>,
     pub route: Route,
-    pub body: Body,
+    pub body: JsonBody,
     pub api_version: u32,
 }
 
@@ -64,11 +65,11 @@ impl Request {
     #[allow(clippy::unreadable_literal)]
     const API_VERSION: u32 = 20220705;
 
-    const fn new(route: Route) -> Self {
-        Self::with_body(route, Body::new())
+    fn new(route: Route) -> Self {
+        Self::with_body(route, JsonBody::new())
     }
 
-    const fn with_body(route: Route, body: Body) -> Self {
+    const fn with_body(route: Route, body: JsonBody) -> Self {
         Self {
             query: None,
             route,
@@ -77,11 +78,11 @@ impl Request {
         }
     }
 
-    const fn with_query(route: Route, query: String) -> Self {
-        Self::with_query_and_body(route, query, Body::new())
+    fn with_query(route: Route, query: String) -> Self {
+        Self::with_query_and_body(route, query, JsonBody::new())
     }
 
-    const fn with_query_and_body(route: Route, query: String, body: Body) -> Self {
+    const fn with_query_and_body(route: Route, query: String, body: JsonBody) -> Self {
         Self {
             query: Some(query),
             route,
@@ -95,51 +96,58 @@ impl Request {
     }
 }
 
-pub(crate) struct Body {
-    inner: Vec<u8>,
+pub(crate) struct JsonBody {
+    inner: BytesMut,
 }
 
-impl Body {
-    pub(crate) const fn new() -> Self {
-        Self { inner: Vec::new() }
+impl JsonBody {
+    pub(crate) fn new() -> Self {
+        Self {
+            inner: BytesMut::new(),
+        }
     }
 
     fn push_prefix(&mut self) {
         let prefix = if self.inner.is_empty() { b'{' } else { b',' };
-        self.inner.push(prefix);
+        self.inner.extend_from_slice(&[prefix]);
     }
 
     fn push_key(&mut self, key: &[u8]) {
         self.push_prefix();
-        self.inner.push(b'"');
+        self.inner.extend_from_slice(b"\"");
         self.inner.extend_from_slice(key);
         self.inner.extend_from_slice(b"\":");
     }
 
     fn push_value(&mut self, value: &[u8]) {
-        self.inner.push(b'"');
+        self.inner.extend_from_slice(b"\"");
         self.inner.extend_from_slice(value);
-        self.inner.push(b'"');
+        self.inner.extend_from_slice(b"\"");
     }
 
     pub(crate) fn push_str(&mut self, key: &str, value: &str) {
+        self.inner.reserve(4 + key.len() + 2 + value.len());
+
         self.push_key(key.as_bytes());
         self.push_value(value.as_bytes());
     }
 
     pub(crate) fn push_int(&mut self, key: &str, int: impl Integer) {
-        self.push_key(key.as_bytes());
-
         let mut buf = Buffer::new();
-        self.push_value(buf.format(int).as_bytes());
+        let int = buf.format(int);
+
+        self.inner.reserve(4 + key.len() + int.len());
+
+        self.push_key(key.as_bytes());
+        self.push_value(int.as_bytes());
     }
 
-    pub(crate) fn into_bytes(mut self) -> Vec<u8> {
+    pub(crate) fn into_bytes(mut self) -> Bytes {
         if !self.inner.is_empty() {
-            self.inner.push(b'}');
+            self.inner.extend_from_slice(b"}");
         }
 
-        self.inner
+        self.inner.freeze()
     }
 }
 

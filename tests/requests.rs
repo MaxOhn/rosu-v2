@@ -58,7 +58,7 @@ impl OsuSingleton {
                 .client_secret(client_secret)
                 .build()
                 .await
-                .wrap_err("failed to build osu! client")?;
+                .wrap_err("Failed to build osu! client")?;
 
             if self.inner.set(Mutex::new(osu)).is_err() {
                 eyre::bail!("Failed to set inner cell");

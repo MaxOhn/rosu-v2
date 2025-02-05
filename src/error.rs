@@ -61,6 +61,12 @@ pub enum OsuError {
         #[source]
         source: HyperError,
     },
+    /// No usable cipher suites in crypto provider
+    #[error("no usable cipher suites in crypto provider")]
+    ConnectorRoots {
+        #[source]
+        source: std::io::Error,
+    },
     /// Failed to create the token header for a request
     #[error("failed to parse token for authorization header")]
     CreatingTokenHeader {
@@ -111,7 +117,7 @@ pub enum OsuError {
     #[error("failed to send request")]
     Request {
         #[source]
-        source: HyperError,
+        source: hyper_util::client::legacy::Error,
     },
     /// Timeout while requesting from API
     #[error("osu!api did not respond in time")]

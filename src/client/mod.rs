@@ -383,6 +383,13 @@ impl Osu {
         GetScore::new(self, score_id)
     }
 
+    /// Get a list of recently processed [`Score`](crate::model::score::Score)
+    /// structs.
+    #[inline]
+    pub const fn scores(&self) -> GetScores<'_> {
+        GetScores::new(self)
+    }
+
     /// Get a [`Rankings`](crate::model::ranking::Rankings) struct whose
     /// [`User`](crate::model::user::User)s are sorted
     /// by their ranked score, i.e. the current ranked score leaderboard.

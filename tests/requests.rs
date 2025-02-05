@@ -448,6 +448,32 @@ async fn score() -> Result<()> {
 }
 
 #[tokio::test]
+async fn scores() -> Result<()> {
+    let osu = OSU.get().await?;
+
+    let scores = osu.scores().mode(GameMode::Osu).await?;
+    assert!(scores.scores.len() > 500);
+    scores
+        .scores
+        .iter()
+        .for_each(|score| assert_eq!(score.mode, GameMode::Osu));
+
+    let next = scores.get_next(&osu).await?;
+    assert!(next.scores.len() < 150, "got {} scores", next.scores.len());
+    next.scores
+        .iter()
+        .for_each(|score| assert_eq!(score.mode, GameMode::Osu));
+
+    println!(
+        "Received {} and then {} scores",
+        scores.scores.len(),
+        next.scores.len()
+    );
+
+    Ok(())
+}
+
+#[tokio::test]
 async fn score_rankings() -> Result<()> {
     let rankings = OSU.get().await?.score_rankings(GameMode::Osu).await?;
 

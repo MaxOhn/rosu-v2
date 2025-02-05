@@ -5,7 +5,7 @@ use super::{
     user::User,
     GameMode, Grade,
 };
-use crate::{error::OsuError, request::GetUser, Osu};
+use crate::{error::OsuError, request::GetUser, Osu, OsuResult};
 
 use rosu_mods::{serde::GameModsSeed, GameModIntermode, GameModsIntermode};
 use serde::{
@@ -36,6 +36,30 @@ impl BeatmapUserScore {
     #[inline]
     pub fn get_user<'o>(&self, osu: &'o Osu) -> GetUser<'o> {
         self.score.get_user(osu)
+    }
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
+pub struct ProcessedScores {
+    pub scores: Vec<Score>,
+    #[serde(default)]
+    pub(crate) mode: Option<GameMode>,
+    #[serde(rename = "cursor_string")]
+    pub(crate) cursor: Box<str>,
+}
+
+impl ProcessedScores {
+    /// Fetch the next batch of scores.
+    #[inline]
+    pub async fn get_next(&self, osu: &Osu) -> OsuResult<Self> {
+        let mut req = osu.scores().cursor(self.cursor.clone());
+
+        if let Some(mode) = self.mode {
+            req = req.mode(mode);
+        }
+
+        req.await
     }
 }
 

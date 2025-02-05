@@ -143,7 +143,7 @@ enum MatchEventType {
 
 struct MatchEventTypeVisitor;
 
-impl<'de> Visitor<'de> for MatchEventTypeVisitor {
+impl Visitor<'_> for MatchEventTypeVisitor {
     type Value = MatchEventType;
 
     #[inline]
@@ -411,7 +411,7 @@ impl<'m> Iterator for MatchGameIter<'m> {
     }
 }
 
-impl<'m> DoubleEndedIterator for MatchGameIter<'m> {
+impl DoubleEndedIterator for MatchGameIter<'_> {
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
         loop {
@@ -434,7 +434,7 @@ impl<'m> MatchGameDrain<'m> {
     }
 }
 
-impl<'m> Iterator for MatchGameDrain<'m> {
+impl Iterator for MatchGameDrain<'_> {
     type Item = MatchGame;
 
     #[inline]
@@ -447,7 +447,7 @@ impl<'m> Iterator for MatchGameDrain<'m> {
     }
 }
 
-impl<'m> DoubleEndedIterator for MatchGameDrain<'m> {
+impl DoubleEndedIterator for MatchGameDrain<'_> {
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
         loop {
@@ -843,7 +843,7 @@ impl OsuMatch {
     pub fn has_previous(&self) -> bool {
         self.events
             .first()
-            .map_or(false, |event| self.first_event_id != event.event_id())
+            .is_some_and(|event| self.first_event_id != event.event_id())
     }
 
     /// Get the [`OsuMatch`] containing only data before some event id.
@@ -1023,7 +1023,7 @@ impl Default for TeamType {
 struct Bool(bool);
 struct BoolVisitor;
 
-impl<'de> Visitor<'de> for BoolVisitor {
+impl Visitor<'_> for BoolVisitor {
     type Value = Bool;
 
     #[inline]

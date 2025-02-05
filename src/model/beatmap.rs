@@ -983,7 +983,7 @@ const SEARCH_RANK_STATUS_ANY: i8 = 9;
 
 struct SearchRankStatusVisitor;
 
-impl<'de> Visitor<'de> for SearchRankStatusVisitor {
+impl Visitor<'_> for SearchRankStatusVisitor {
     type Value = SearchRankStatus;
 
     fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {

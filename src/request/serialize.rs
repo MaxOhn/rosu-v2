@@ -5,6 +5,7 @@ use crate::request::UserId;
 use serde::ser::{SerializeMap, Serializer};
 use std::cmp;
 
+#[allow(clippy::ref_option)]
 fn maybe<F, T, S>(option: &Option<T>, serializer: S, f: F) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
@@ -16,7 +17,7 @@ where
     }
 }
 
-#[allow(clippy::trivially_copy_pass_by_ref)]
+#[allow(clippy::ref_option, clippy::trivially_copy_pass_by_ref)]
 pub(crate) fn maybe_mode_as_str<S: Serializer>(
     mode: &Option<GameMode>,
     serializer: S,
@@ -32,6 +33,7 @@ pub(crate) fn mode_as_str<S: Serializer>(
     serializer.serialize_str(mode.as_str())
 }
 
+#[allow(clippy::ref_option)]
 pub(crate) fn maybe_mods_as_list<S: Serializer>(
     mods: &Option<GameModsIntermode>,
     serializer: S,
@@ -56,7 +58,7 @@ pub(crate) fn mods_as_list<S: Serializer>(
     map.end()
 }
 
-#[allow(clippy::trivially_copy_pass_by_ref)]
+#[allow(clippy::ref_option, clippy::trivially_copy_pass_by_ref)]
 pub(crate) fn maybe_comment_sort<S: Serializer>(
     sort: &Option<CommentSort>,
     serializer: S,
@@ -64,6 +66,7 @@ pub(crate) fn maybe_comment_sort<S: Serializer>(
     maybe(sort, serializer, CommentSort::serialize_as_query)
 }
 
+#[allow(clippy::ref_option)]
 pub(crate) fn maybe_user_id_type<S: Serializer>(
     user_id: &Option<UserId>,
     serializer: S,
@@ -81,7 +84,7 @@ pub(crate) fn user_id_type<S: Serializer>(
     }
 }
 
-#[allow(clippy::trivially_copy_pass_by_ref)]
+#[allow(clippy::ref_option, clippy::trivially_copy_pass_by_ref)]
 pub(crate) fn maybe_bool_as_u8<S: Serializer>(
     b: &Option<bool>,
     serializer: S,

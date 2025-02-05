@@ -72,7 +72,7 @@ impl fmt::Display for Grade {
 
 struct GradeVisitor;
 
-impl<'de> Visitor<'de> for GradeVisitor {
+impl Visitor<'_> for GradeVisitor {
     type Value = Grade;
 
     #[inline]

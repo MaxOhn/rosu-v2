@@ -165,7 +165,7 @@ impl<'de> de::Deserialize<'de> for EventSort {
     fn deserialize<D: de::Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
         struct EventSortVisitor;
 
-        impl<'de> de::Visitor<'de> for EventSortVisitor {
+        impl de::Visitor<'_> for EventSortVisitor {
             type Value = EventSort;
 
             fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {

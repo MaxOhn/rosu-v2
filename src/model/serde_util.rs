@@ -67,7 +67,7 @@ pub(super) mod datetime {
 
     pub(super) struct DateTimeVisitor;
 
-    impl<'de> Visitor<'de> for DateTimeVisitor {
+    impl Visitor<'_> for DateTimeVisitor {
         type Value = OffsetDateTime;
 
         fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

@@ -1,4 +1,26 @@
-# v0.9.0 (2024-07-10)
+# v0.10.0 (2025-02-05)
+
+- __Breaking:__
+  - Added field `UserStatistics::rank_change_since_30_days` ([#30] - [@damaredayo])
+  - Added field `Score::total_score_without_mods` ([#31])
+  - Added field `Score::set_on_lazer`
+  - Added field `UserExtended::daily_challenge_stats` ([#33])
+  - Changed field types from `f32` to `f64` for `BeatmapDifficultyAttributes::stars`, `GameModeAttributes::Osu::{aim_difficulty, flashlight_difficulty, slider_factor, speed_difficulty}`, `GameModeAttributes::Taiko::{stamina_difficulty, rhythm_difficulty, colour_difficulty, peak_difficulty}` ([#35])
+  - Added field `GameModeAttributes::Osu::speed_note_count` ([#35])
+  - Removed field `GameModeAttributes::Mania::score_multiplier` ([#35])
+  - `OsuBuilder::with{_local}_authorization` now takes an additional argument of type `Scopes` ([#37])
+  - The method `ScoreStatistics::accuracy` now takes an additional argument `max_statistics: &ScoreStatistics`
+  - Changed field type from `u32` to `i32` for `BeatmapsetVote::score`
+  - Bumped `rosu-mods` to `0.2.0` ([#40] - [@natsukagami])
+  - Bumped `hyper` to `1.0.0`, as well as a bump for `bytes`, `http-body-util`, `hyper-util`, and `hyper-rustls` ([#42])
+
+- __Additions:__
+  - Added method `Osu::friends` to fetch the authorized user's friends list ([#38])
+  - Added methods `{Score, ScoreStatistics}::legacy_accuracy` as opposed to the types' `accuracy` methods
+  - Added method `OsuBuilder::with_token` ([#41])
+  - Added method `Osu::scores` to fetch recently processed scores (passes) ([#43])
+
+## v0.9.0 (2024-07-10)
 
 - __Breaking:__
   - All mods types are now re-exports from [`rosu-mods`](https://github.com/MaxOhn/rosu-mods) ([#28])
@@ -182,6 +204,7 @@
 [@Jeglerjeg]: https://github.com/Jeglerjeg
 [@mezo]: https://github.com/mezodev0
 [@natsukagami]: https://github.com/natsukagami
+[@damaredayo]: https://github.com/damaredayo
 
 [#1]: https://github.com/MaxOhn/rosu-v2/pull/1
 [#2]: https://github.com/MaxOhn/rosu-v2/pull/2
@@ -199,3 +222,13 @@
 [#27]: https://github.com/MaxOhn/rosu-v2/pull/27
 [#28]: https://github.com/MaxOhn/rosu-v2/pull/28
 [#29]: https://github.com/MaxOhn/rosu-v2/pull/29
+[#30]: https://github.com/MaxOhn/rosu-v2/pull/30
+[#31]: https://github.com/MaxOhn/rosu-v2/pull/31
+[#33]: https://github.com/MaxOhn/rosu-v2/pull/33
+[#35]: https://github.com/MaxOhn/rosu-v2/pull/35
+[#37]: https://github.com/MaxOhn/rosu-v2/pull/37
+[#38]: https://github.com/MaxOhn/rosu-v2/pull/38
+[#40]: https://github.com/MaxOhn/rosu-v2/pull/40
+[#41]: https://github.com/MaxOhn/rosu-v2/pull/41
+[#42]: https://github.com/MaxOhn/rosu-v2/pull/42
+[#43]: https://github.com/MaxOhn/rosu-v2/pull/43

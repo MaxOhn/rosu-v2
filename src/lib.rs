@@ -1,9 +1,15 @@
 //! rosu-v2 is a wrapper for the [osu!api v2].
 //! As such, it provides a bunch of additional endpoints and data over [`rosu`] which wraps the [osu!api v1].
 //!
-//! However, osu!'s api v2 is still very much a WIP and also weakly documented. Hence, there is a chance that some things might break either because of changes in the api or because the response is not being parsed properly.
-//!
 //! Feel free to open an issue when things don't work as expected.
+//!
+//! The branch `rosu-v2/main` should mirror the last published version. Upcoming changes
+//! will generally be added to the `rosu-v2/lazer` branch. If you want to stay up-to-date
+//! and use the `lazer` branch, you can add this in your `Cargo.toml`:
+//!
+//! ```toml
+//! rosu-v2 = { git = "https://github.com/MaxOhn/rosu-v2", branch = "lazer" }
+//! ```
 //!
 //! ## Authentication
 //!

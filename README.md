@@ -1,16 +1,5 @@
 [![crates.io](https://img.shields.io/crates/v/rosu-v2.svg)](https://crates.io/crates/rosu-v2) [![docs](https://docs.rs/rosu-v2/badge.svg)](https://docs.rs/rosu-v2)
 
-# Temporary note
-
-The osu!api is currently in an exceptionally unstable state regarding data structure due to the shift towards lazer.
-Instead of regularly re-publishing a new version, the `rosu-v2/lazer` branch will be kept updated.
-
-To use `rosu-v2`, it is recommended to put the following in your `Cargo.toml`:
-```toml
-rosu-v2 = { git = "https://github.com/MaxOhn/rosu-v2", branch = "lazer" }
-```
-Be warned though, breaking changes are likely to occur regularly for the time being.
-
 # rosu-v2
 
 <!-- cargo-rdme start -->
@@ -18,9 +7,15 @@ Be warned though, breaking changes are likely to occur regularly for the time be
 rosu-v2 is a wrapper for the [osu!api v2].
 As such, it provides a bunch of additional endpoints and data over [`rosu`] which wraps the [osu!api v1].
 
-However, osu!'s api v2 is still very much a WIP and also weakly documented. Hence, there is a chance that some things might break either because of changes in the api or because the response is not being parsed properly.
-
 Feel free to open an issue when things don't work as expected.
+
+The branch `rosu-v2/main` should mirror the last published version. Upcoming changes
+will generally be added to the `rosu-v2/lazer` branch. If you want to stay up-to-date
+and use the `lazer` branch, you can add this in your `Cargo.toml`:
+
+```toml
+rosu-v2 = { git = "https://github.com/MaxOhn/rosu-v2", branch = "lazer" }
+```
 
 ### Authentication
 

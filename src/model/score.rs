@@ -68,7 +68,7 @@ impl ProcessedScores {
 pub struct Score {
     pub set_on_lazer: bool,
     #[cfg_attr(feature = "serialize", serde(rename = "classic_total_score"))]
-    pub classic_score: u32,
+    pub classic_score: u64,
     pub ranked: Option<bool>,
     pub preserve: Option<bool>,
     pub processed: Option<bool>,
@@ -124,7 +124,7 @@ impl<'de> Deserialize<'de> for Score {
         struct ScoreRawMods {
             set_on_lazer: Option<bool>, // used for serialized score; not sent by osu!
             #[serde(default, rename = "classic_total_score")]
-            classic_score: u32, // not available in legacy scores
+            classic_score: u64, // not available in legacy scores
             ranked: Option<bool>,
             preserve: Option<bool>,
             processed: Option<bool>,

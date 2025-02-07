@@ -348,11 +348,6 @@ impl Osu {
     }
 
     /// Get the replay of a score in form of a [`Replay`](osu_db::Replay).
-    ///
-    /// Note that the client has to be initialized through the OAuth process
-    /// in order for this endpoint to not return an error.
-    ///
-    /// See [`OsuBuilder::with_authorization`](crate::OsuBuilder::with_authorization).
     #[cfg(feature = "replay")]
     #[cfg_attr(docsrs, doc(cfg(feature = "replay")))]
     #[inline]
@@ -361,11 +356,6 @@ impl Osu {
     }
 
     /// Get the bytes of a replay of a score in form of a `Vec<u8>`.
-    ///
-    /// Note that the client has to be initialized through the OAuth process
-    /// in order for this endpoint to not return an error.
-    ///
-    /// See [`OsuBuilder::with_authorization`](crate::OsuBuilder::with_authorization).
     #[inline]
     pub fn replay_raw(&self, score_id: u64) -> GetReplayRaw<'_> {
         GetReplayRaw::new(self, score_id)

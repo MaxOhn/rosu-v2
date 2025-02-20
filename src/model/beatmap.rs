@@ -322,6 +322,7 @@ fn deser_mapset_user<'de, D: Deserializer<'de>>(d: D) -> Result<Option<Box<User>
             let mut profile_color = None;
             let mut user_id: Option<Option<u32>> = None;
             let mut username = None;
+            let mut team = None;
 
             while let Some(key) = map.next_key()? {
                 match key {
@@ -337,6 +338,7 @@ fn deser_mapset_user<'de, D: Deserializer<'de>>(d: D) -> Result<Option<Box<User>
                     "last_visit" => last_visit = Some(map.next_value_seed(DateSeed)?),
                     "pm_friends_only" => pm_friends_only = Some(map.next_value()?),
                     "profile_colour" => profile_color = Some(map.next_value()?),
+                    "team" => team = Some(map.next_value()?),
                     "username" => username = Some(map.next_value()?),
                     _ => {
                         let _: IgnoredAny = map.next_value()?;
@@ -383,6 +385,7 @@ fn deser_mapset_user<'de, D: Deserializer<'de>>(d: D) -> Result<Option<Box<User>
                 last_visit,
                 pm_friends_only,
                 profile_color,
+                team,
                 user_id,
                 username,
                 account_history: None,

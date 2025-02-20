@@ -632,6 +632,15 @@ mod types {
         }
     }
 
+    pub(super) fn get_team() -> Team {
+        Team {
+            flag_url: None,
+            id: 1024,
+            name: "Traceable Enjoyer".to_owned(),
+            short_name: "TC".to_owned(),
+        }
+    }
+
     pub(super) fn get_user() -> UserExtended {
         UserExtended {
             avatar_url: String::new(),
@@ -668,12 +677,7 @@ mod types {
             forum_post_count: 0,
             profile_color: Some(String::new()),
             profile_order: vec![ProfilePage::Me, ProfilePage::TopRanks],
-            team: Some(Team {
-                flag_url: None,
-                id: 1024,
-                name: "Traceable Enjoyer".to_owned(),
-                short_name: "TC".to_owned(),
-            }),
+            team: Some(get_team()),
             title: Some(String::new()),
             title_url: Some(String::new()),
             twitter: Some(String::new()),
@@ -859,6 +863,7 @@ mod types {
             },
             support_level: Some(1),
             pending_mapset_count: Some(34),
+            team: Some(get_team()),
         }
     }
 

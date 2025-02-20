@@ -249,7 +249,7 @@ where
 struct UserCompactBorrowed<'u>(&'u User);
 
 #[cfg(feature = "serialize")]
-impl<'u> serde::Serialize for UserCompactBorrowed<'u> {
+impl serde::Serialize for UserCompactBorrowed<'_> {
     fn serialize<S: serde::ser::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
         use serde::ser::SerializeStruct;
 
@@ -423,6 +423,8 @@ struct UserWithoutStats<'u> {
         skip_serializing_if = "Option::is_none"
     )]
     pub pending_mapset_count: &'u Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub team: &'u Option<crate::prelude::Team>,
 }
 
 #[cfg(feature = "serialize")]
@@ -476,6 +478,7 @@ impl<'u> UserWithoutStats<'u> {
             statistics_modes: _,
             support_level,
             pending_mapset_count,
+            team,
         } = user;
 
         Self {
@@ -524,6 +527,7 @@ impl<'u> UserWithoutStats<'u> {
             scores_recent_count,
             support_level,
             pending_mapset_count,
+            team,
         }
     }
 }

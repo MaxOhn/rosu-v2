@@ -658,6 +658,8 @@ pub struct User {
         skip_serializing_if = "Option::is_none"
     )]
     pub pending_mapset_count: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub team: Option<Team>,
 }
 
 impl From<UserExtended> for User {
@@ -710,6 +712,7 @@ impl From<UserExtended> for User {
             statistics_modes: UserStatisticsModes::default(),
             support_level: user.support_level,
             pending_mapset_count: user.pending_mapset_count,
+            team: user.team,
         }
     }
 }

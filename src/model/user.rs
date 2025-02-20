@@ -279,6 +279,16 @@ pub enum ProfilePage {
     TopRanks,
 }
 
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
+pub struct Team {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub flag_url: Option<String>,
+    pub id: u32,
+    pub name: String,
+    pub short_name: String,
+}
+
 /// Represents a User. Extends [`User`] object with additional attributes.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
@@ -357,6 +367,8 @@ pub struct UserExtended {
     pub profile_color: Option<String>,
     /// ordered list of sections in user profile page
     pub profile_order: Vec<ProfilePage>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub team: Option<Team>,
     /// user-specific title
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,

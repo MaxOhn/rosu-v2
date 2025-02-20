@@ -176,15 +176,15 @@ pub enum ParsingError {
     /// Failed to parse a u8 into a [`Language`](crate::model::beatmap::Language)
     #[error("failed to parse {} into Language", .0)]
     Language(u8),
+    /// Failed to parse a u8 into a [`MatchTeam`](crate::model::matches::MatchTeam)
+    #[error("failed to parse {} into MatchTeam", .0)]
+    MatchTeam(u8),
     /// Failed to parse an i8 into a [`RankStatus`](crate::model::beatmap::RankStatus)
     #[error("failed to parse {} into RankStatus", .0)]
     RankStatus(i8),
     /// Failed to parse a u8 into a [`ScoringType`](crate::model::matches::ScoringType)
     #[error("failed to parse {} into ScoringType", .0)]
     ScoringType(u8),
-    /// Failed to parse a u8 into a [`Team`](crate::model::matches::Team)
-    #[error("failed to parse {} into Team", .0)]
-    Team(u8),
     /// Failed to parse a u8 into a [`TeamType`](crate::model::matches::TeamType)
     #[error("failed to parse {} into TeamType", .0)]
     TeamType(u8),

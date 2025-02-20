@@ -533,7 +533,7 @@ pub struct MatchScore {
     pub score: u32,
     pub slot: u8,
     pub statistics: LegacyScoreStatistics,
-    pub team: Team,
+    pub team: MatchTeam,
     pub user_id: u32,
 }
 
@@ -620,7 +620,7 @@ impl<'de> Deserialize<'de> for MatchScore {
 #[derive(Debug, Deserialize)]
 struct MatchScoreInfo {
     slot: u8,
-    team: Team,
+    team: MatchTeam,
     #[serde(deserialize_with = "to_bool")]
     pass: bool,
 }
@@ -993,13 +993,13 @@ impl Default for ScoringType {
     }
 }
 
-def_enum!(Team {
+def_enum!(MatchTeam {
     None = 0 ("none"),
     Blue = 1 ("blue"),
     Red = 2 ("red"),
 });
 
-impl Default for Team {
+impl Default for MatchTeam {
     #[inline]
     fn default() -> Self {
         Self::None

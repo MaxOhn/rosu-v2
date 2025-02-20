@@ -513,7 +513,7 @@ mod types {
                 count_miss: 5,
             },
             slot: 0,
-            team: Team::Red,
+            team: MatchTeam::Red,
             pass: true,
         }
     }
@@ -668,6 +668,12 @@ mod types {
             forum_post_count: 0,
             profile_color: Some(String::new()),
             profile_order: vec![ProfilePage::Me, ProfilePage::TopRanks],
+            team: Some(Team {
+                flag_url: None,
+                id: 1024,
+                name: "Traceable Enjoyer".to_owned(),
+                short_name: "TC".to_owned(),
+            }),
             title: Some(String::new()),
             title_url: Some(String::new()),
             twitter: Some(String::new()),

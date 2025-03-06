@@ -1,7 +1,7 @@
 use super::{
     beatmap::BeatmapsetExtended,
     serde_util,
-    user::{deserialize_country, User, UserStatistics},
+    user::{deserialize_country, Team, User, UserStatistics},
     GameMode,
 };
 use crate::{model::user::CountryCode, Osu, OsuResult};
@@ -556,6 +556,7 @@ pub(crate) enum RankingType {
     Country,
     Performance,
     Score,
+    Team,
 }
 
 impl RankingType {
@@ -565,6 +566,7 @@ impl RankingType {
             Self::Country => "country",
             Self::Performance => "performance",
             Self::Score => "score",
+            Self::Team => "team",
         }
     }
 }
@@ -581,7 +583,7 @@ impl Rankings {
         let rankings = match kind {
             RankingType::Performance => osu.performance_rankings(mode).page(page).await,
             RankingType::Score => osu.score_rankings(mode).page(page).await,
-            RankingType::Charts | RankingType::Country => unreachable!(),
+            RankingType::Charts | RankingType::Country | RankingType::Team => unreachable!(),
         };
 
         Some(rankings)
@@ -670,3 +672,46 @@ impl PartialEq for Spotlight {
 }
 
 impl Eq for Spotlight {}
+
+#[derive(Clone, Debug, Deserialize)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
+pub struct TeamRankingsEntry {
+    pub team_id: u32,
+    #[serde(rename = "ruleset_id")]
+    pub mode: GameMode,
+    #[serde(rename = "play_count")]
+    pub playcount: u64,
+    pub ranked_score: u64,
+    pub performance: f32,
+    pub member_count: u32,
+    pub team: Team,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
+pub struct TeamRankings {
+    pub ranking: Vec<TeamRankingsEntry>,
+    /// Total amount of teams
+    pub total: u32,
+    #[serde(
+        default,
+        rename = "cursor",
+        deserialize_with = "deserialize_rankings_cursor",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub next_page: Option<u32>,
+    #[serde(default)]
+    pub(crate) mode: Option<GameMode>,
+}
+
+impl TeamRankings {
+    /// If `next_page` is `Some`, the API can provide the next set of users and this method will request them.
+    /// Otherwise, this method returns `None`.
+    #[inline]
+    pub async fn get_next(&self, osu: &Osu) -> Option<OsuResult<TeamRankings>> {
+        let page = self.next_page?;
+        let mode = self.mode?;
+
+        Some(osu.team_rankings(mode).page(page).await)
+    }
+}

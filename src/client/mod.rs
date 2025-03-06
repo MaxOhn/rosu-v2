@@ -400,6 +400,13 @@ impl Osu {
         GetSpotlights::new(self)
     }
 
+    /// Get a [`TeamRankings`](crate::model::ranking::TeamRankings) struct whose
+    /// entries are sorted by pp.
+    #[inline]
+    pub const fn team_rankings(&self, mode: GameMode) -> GetTeamRankings<'_> {
+        GetTeamRankings::new(self, mode)
+    }
+
     /// Get a [`UserExtended`](crate::model::user::UserExtended).
     ///
     /// The following options will be filled if the user specified them:

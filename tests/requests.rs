@@ -513,6 +513,19 @@ async fn spotlights() -> Result<()> {
 }
 
 #[tokio::test]
+async fn team_rankings() -> Result<()> {
+    let rankings = OSU.get().await?.team_rankings(GameMode::Osu).await?;
+
+    println!(
+        "Received team rankings with {} out of {} teams",
+        rankings.ranking.len(),
+        rankings.total
+    );
+
+    Ok(())
+}
+
+#[tokio::test]
 async fn user() -> Result<()> {
     let user = OSU
         .get()

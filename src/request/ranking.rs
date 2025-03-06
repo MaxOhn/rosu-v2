@@ -4,6 +4,7 @@ use crate::{
         user::CountryCode,
         GameMode,
     },
+    prelude::TeamRankings,
     request::{Pending, Query, Request},
     routing::Route,
     Osu,
@@ -320,3 +321,63 @@ poll_req!(GetSpotlights => Vec<Spotlight>);
 struct Spotlights {
     spotlights: Vec<Spotlight>,
 }
+
+/// Get a [`TeamRankings`](crate::model::ranking::TeamRankings) struct whose
+/// entriess are sorted by their pp.
+#[must_use = "futures do nothing unless you `.await` or poll them"]
+#[derive(Serialize)]
+pub struct GetTeamRankings<'a> {
+    #[serde(skip)]
+    fut: Option<Pending<'a, TeamRankings>>,
+    #[serde(skip)]
+    osu: &'a Osu,
+    #[serde(skip)]
+    mode: GameMode,
+    #[serde(rename(serialize = "cursor[page]"))]
+    page: Option<u32>,
+}
+
+impl<'a> GetTeamRankings<'a> {
+    #[inline]
+    pub(crate) const fn new(osu: &'a Osu, mode: GameMode) -> Self {
+        Self {
+            fut: None,
+            osu,
+            mode,
+            page: None,
+        }
+    }
+
+    /// Pages range from 1 to 200.
+    #[inline]
+    pub const fn page(mut self, page: u32) -> Self {
+        self.page = Some(page);
+
+        self
+    }
+
+    fn start(&mut self) -> Pending<'a, TeamRankings> {
+        let mode = self.mode;
+        let query = Query::encode(self);
+
+        let route = Route::GetRankings {
+            mode,
+            ranking_type: RankingType::Team,
+        };
+
+        let req = Request::with_query(route, query);
+        let osu = self.osu;
+
+        let fut = osu
+            .request::<TeamRankings>(req)
+            .map_ok(move |mut rankings: TeamRankings| {
+                rankings.mode = Some(mode);
+
+                rankings
+            });
+
+        Box::pin(fut)
+    }
+}
+
+poll_req!(GetTeamRankings => TeamRankings);

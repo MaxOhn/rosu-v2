@@ -233,6 +233,7 @@ impl Route {
                 RankingType::Country => "GetRankings/Country",
                 RankingType::Performance => "GetRankings/Performance",
                 RankingType::Score => "GetRankings/Score",
+                RankingType::Team => "GetRankings/Team",
             },
             Self::GetRecentActivity { .. } => "GetRecentActivity",
             Self::GetReplay { .. } => "GetReplay",

@@ -197,9 +197,12 @@ impl<'de> Deserialize<'de> for Score {
             preserve: score_raw.preserve,
             processed: score_raw.processed,
             maximum_statistics: score_raw.maximum_statistics,
-            mods: GameModsSeed::Mode(score_raw.mode)
-                .deserialize(&*score_raw.mods)
-                .map_err(|e| OsuError::invalid_mods(&score_raw.mods, &e))?,
+            mods: GameModsSeed::Mode {
+                mode: score_raw.mode,
+                deny_unknown_fields: false,
+            }
+            .deserialize(&*score_raw.mods)
+            .map_err(|e| OsuError::invalid_mods(&score_raw.mods, &e))?,
             statistics: score_raw.statistics,
             map_id: score_raw
                 .map_id

@@ -344,9 +344,12 @@ impl<'de> Deserialize<'de> for MatchGame {
         let game_raw = <MatchGameRawMods as serde::Deserialize>::deserialize(d)?;
 
         Ok(MatchGame {
-            mods: GameModsSeed::Mode(game_raw.mode)
-                .deserialize(&*game_raw.mods)
-                .map_err(|e| OsuError::invalid_mods(&game_raw.mods, &e))?,
+            mods: GameModsSeed::Mode {
+                mode: game_raw.mode,
+                deny_unknown_fields: false,
+            }
+            .deserialize(&*game_raw.mods)
+            .map_err(|e| OsuError::invalid_mods(&game_raw.mods, &e))?,
             game_id: game_raw.game_id,
             start_time: game_raw.start_time,
             end_time: game_raw.end_time,

@@ -164,8 +164,8 @@ pub struct BeatmapDifficultyAttributes {
     pub max_combo: u32,
     #[serde(rename = "star_rating")]
     pub stars: f64,
-    #[serde(flatten)]
-    pub attrs: GameModeAttributes,
+    #[serde(flatten, skip_serializing_if = "Option::is_none")]
+    pub attrs: Option<GameModeAttributes>,
 }
 
 #[derive(Clone, Debug, PartialEq, Deserialize)]
@@ -173,29 +173,23 @@ pub struct BeatmapDifficultyAttributes {
 #[serde(untagged)]
 pub enum GameModeAttributes {
     Osu {
-        #[serde(rename = "approach_rate")]
-        ar: f32,
-        #[serde(rename = "overall_difficulty")]
-        od: f32,
         aim_difficulty: f64,
-        flashlight_difficulty: f64,
         slider_factor: f64,
         speed_difficulty: f64,
         speed_note_count: f64,
+        aim_difficult_slider_count: f64,
+        aim_difficult_strain_count: f64,
+        speed_difficult_strain_count: f64,
     },
     Taiko {
         stamina_difficulty: f64,
         rhythm_difficulty: f64,
+        reading_difficulty: f64,
         colour_difficulty: f64,
-        peak_difficulty: f64,
-        great_hit_window: f32,
-    },
-    Catch {
-        #[serde(rename = "approach_rate")]
-        ar: f32,
-    },
-    Mania {
-        great_hit_window: f32,
+        mono_stamina_factor: f64,
+        stamina_difficult_strains: f64,
+        rhythm_difficult_strains: f64,
+        colour_difficult_strains: f64,
     },
 }
 

@@ -912,33 +912,34 @@ mod types {
             BeatmapDifficultyAttributes {
                 max_combo: 1,
                 stars: 2.0,
-                attrs: GameModeAttributes::Osu {
-                    ar: 5.55,
-                    od: 6.66,
+                attrs: Some(GameModeAttributes::Osu {
                     aim_difficulty: 4.44,
-                    flashlight_difficulty: 3.33,
                     slider_factor: 2.22,
                     speed_difficulty: 1.11,
                     speed_note_count: 77.7777,
-                },
+                    aim_difficult_slider_count: 88.8888,
+                    aim_difficult_strain_count: 99.9999,
+                    speed_difficult_strain_count: 66.6666,
+                }),
             },
             BeatmapDifficultyAttributes {
                 max_combo: 3,
                 stars: 4.0,
-                attrs: GameModeAttributes::Taiko {
+                attrs: Some(GameModeAttributes::Taiko {
                     stamina_difficulty: 7.89,
                     rhythm_difficulty: 4.56,
                     colour_difficulty: 1.23,
-                    peak_difficulty: 999.99,
-                    great_hit_window: 10.0,
-                },
+                    reading_difficulty: 3.21,
+                    mono_stamina_factor: 0.0123,
+                    rhythm_difficult_strains: 0.0456,
+                    colour_difficult_strains: 0.0789,
+                    stamina_difficult_strains: 0.0321,
+                }),
             },
             BeatmapDifficultyAttributes {
                 max_combo: 5,
                 stars: 6.0,
-                attrs: GameModeAttributes::Mania {
-                    great_hit_window: 1.0,
-                },
+                attrs: None,
             },
         ]
     }

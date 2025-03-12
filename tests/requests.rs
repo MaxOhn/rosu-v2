@@ -98,14 +98,20 @@ async fn beatmap() -> Result<()> {
 
 #[tokio::test]
 async fn beatmap_difficulty_attributes() -> Result<()> {
-    let attrs = OSU
-        .get()
-        .await?
-        .beatmap_difficulty_attributes(ADESSO_BALLA)
-        .mode(GameMode::Taiko)
-        .await?;
+    let attrs = OSU.get().await?;
 
-    println!("{:?}", attrs.attrs);
+    for mode in [
+        GameMode::Osu,
+        GameMode::Taiko,
+        GameMode::Catch,
+        GameMode::Mania,
+    ] {
+        let attrs = attrs
+            .beatmap_difficulty_attributes(ADESSO_BALLA)
+            .mode(mode)
+            .await?;
+        println!("{:?}", attrs.attrs);
+    }
 
     Ok(())
 }

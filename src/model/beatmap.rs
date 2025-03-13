@@ -303,6 +303,17 @@ fn deser_mapset_user<'de, D: Deserializer<'de>>(d: D) -> Result<Option<Box<User>
                 }
             }
 
+            struct DefaultGroupSeed;
+
+            impl<'de> DeserializeSeed<'de> for DefaultGroupSeed {
+                type Value = String;
+
+                #[inline]
+                fn deserialize<D: Deserializer<'de>>(self, d: D) -> Result<Self::Value, D::Error> {
+                    serde_util::from_option::deserialize(d)
+                }
+            }
+
             let mut avatar_url: Option<Option<String>> = None;
             let mut country_code: Option<Option<CountryCode>> = None;
             let mut default_group = None;
@@ -322,7 +333,7 @@ fn deser_mapset_user<'de, D: Deserializer<'de>>(d: D) -> Result<Option<Box<User>
                 match key {
                     "avatar_url" => avatar_url = Some(map.next_value()?),
                     "country_code" => country_code = Some(map.next_value()?),
-                    "default_group" => default_group = Some(map.next_value()?),
+                    "default_group" => default_group = Some(map.next_value_seed(DefaultGroupSeed)?),
                     "id" => user_id = Some(map.next_value()?),
                     "is_active" => is_active = Some(map.next_value()?),
                     "is_bot" => is_bot = Some(map.next_value()?),

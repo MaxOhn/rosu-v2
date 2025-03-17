@@ -1,5 +1,5 @@
 use time::format_description::{
-    modifier::{Day, Hour, Minute, Month, OffsetHour, OffsetMinute, Second, Year},
+    modifier::{Day, Month, Year},
     Component, FormatItem,
 };
 
@@ -11,45 +11,13 @@ const DATE_FORMAT: &[FormatItem<'_>] = &[
     FormatItem::Component(Component::Day(Day::default())),
 ];
 
-const TIME_FORMAT: &[FormatItem<'_>] = &[
-    FormatItem::Component(Component::Hour(<Hour>::default())),
-    FormatItem::Literal(b":"),
-    FormatItem::Component(Component::Minute(<Minute>::default())),
-    FormatItem::Literal(b":"),
-    FormatItem::Component(Component::Second(<Second>::default())),
-];
-
-const PRIMITIVE_FORMAT: &[FormatItem<'_>] = &[
-    FormatItem::Compound(DATE_FORMAT),
-    FormatItem::Literal(b"T"),
-    FormatItem::Compound(TIME_FORMAT),
-];
-
-const OFFSET_FORMAT: &[FormatItem<'_>] = &[
-    FormatItem::Component(Component::OffsetHour(OffsetHour::default())),
-    FormatItem::Literal(b":"),
-    FormatItem::Component(Component::OffsetMinute(OffsetMinute::default())),
-];
-
-#[cfg(feature = "serialize")]
-const OFFSET_DATETIME_FORMAT: &[FormatItem<'_>] = &[
-    FormatItem::Compound(PRIMITIVE_FORMAT),
-    FormatItem::Compound(OFFSET_FORMAT),
-];
-
 pub(super) mod datetime {
-    use std::fmt;
 
-    use serde::{
-        de::{Error, Visitor},
-        Deserializer,
-    };
-    use time::{OffsetDateTime, PrimitiveDateTime, UtcOffset};
-
-    use super::{OFFSET_FORMAT, PRIMITIVE_FORMAT};
+    use serde::Deserializer;
+    use time::{serde::rfc3339, OffsetDateTime};
 
     pub fn deserialize<'de, D: Deserializer<'de>>(d: D) -> Result<OffsetDateTime, D::Error> {
-        d.deserialize_str(DateTimeVisitor)
+        rfc3339::deserialize(d)
     }
 
     #[cfg(feature = "serialize")]
@@ -57,62 +25,19 @@ pub(super) mod datetime {
         datetime: &OffsetDateTime,
         s: S,
     ) -> Result<S::Ok, S::Error> {
-        use serde::Serialize;
-
-        datetime
-            .format(&super::OFFSET_DATETIME_FORMAT)
-            .expect("incorrect format")
-            .serialize(s)
-    }
-
-    pub(super) struct DateTimeVisitor;
-
-    impl Visitor<'_> for DateTimeVisitor {
-        type Value = OffsetDateTime;
-
-        fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            f.write_str("a datetime string")
-        }
-
-        #[inline]
-        fn visit_str<E: Error>(self, v: &str) -> Result<Self::Value, E> {
-            if v.len() < 19 {
-                return Err(Error::custom(format!(
-                    "string too short for a datetime: `{v}`"
-                )));
-            }
-
-            let (prefix, suffix) = v.split_at(19);
-
-            let primitive =
-                PrimitiveDateTime::parse(prefix, PRIMITIVE_FORMAT).map_err(Error::custom)?;
-
-            let offset = if suffix == "Z" {
-                UtcOffset::UTC
-            } else {
-                UtcOffset::parse(suffix, OFFSET_FORMAT).map_err(Error::custom)?
-            };
-
-            Ok(primitive.assume_offset(offset))
-        }
+        rfc3339::serialize(datetime, s)
     }
 }
 
 pub(super) mod option_datetime {
-    use std::fmt;
 
-    use serde::{
-        de::{Error, Visitor},
-        Deserializer,
-    };
-    use time::OffsetDateTime;
-
-    use super::datetime::DateTimeVisitor;
+    use serde::Deserializer;
+    use time::{serde::rfc3339, OffsetDateTime};
 
     pub fn deserialize<'de, D: Deserializer<'de>>(
         d: D,
     ) -> Result<Option<OffsetDateTime>, D::Error> {
-        d.deserialize_option(OptionDateTimeVisitor)
+        rfc3339::option::deserialize(d)
     }
 
     #[cfg(feature = "serialize")]
@@ -120,40 +45,7 @@ pub(super) mod option_datetime {
         datetime: &Option<OffsetDateTime>,
         s: S,
     ) -> Result<S::Ok, S::Error> {
-        use serde::Serialize;
-
-        datetime
-            .map(|datetime| {
-                datetime
-                    .format(&super::OFFSET_DATETIME_FORMAT)
-                    .expect("incorrect format")
-            })
-            .serialize(s)
-    }
-
-    struct OptionDateTimeVisitor;
-
-    impl<'de> Visitor<'de> for OptionDateTimeVisitor {
-        type Value = Option<OffsetDateTime>;
-
-        fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            f.write_str("an optional datetime string")
-        }
-
-        #[inline]
-        fn visit_some<D: Deserializer<'de>>(self, d: D) -> Result<Self::Value, D::Error> {
-            d.deserialize_str(DateTimeVisitor).map(Some)
-        }
-
-        #[inline]
-        fn visit_none<E: Error>(self) -> Result<Self::Value, E> {
-            self.visit_unit()
-        }
-
-        #[inline]
-        fn visit_unit<E: Error>(self) -> Result<Self::Value, E> {
-            Ok(None)
-        }
+        rfc3339::option::serialize(datetime, s)
     }
 }
 

@@ -477,7 +477,7 @@ impl ScoreStatistics {
 
                 denominator = (self.total_hits(mode) * 300) as f32;
             }
-        };
+        }
 
         (10_000.0 * numerator / denominator).round() / 100.0
     }

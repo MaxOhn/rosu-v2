@@ -93,7 +93,7 @@ impl Request {
         }
     }
 
-    fn api_version(&mut self, api_version: u32) {
+    const fn api_version(&mut self, api_version: u32) {
         self.api_version = api_version;
     }
 }

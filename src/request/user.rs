@@ -1,11 +1,10 @@
 use crate::{
     model::{
-        beatmap::{BeatmapsetExtended, MostPlayedMap, RankStatus},
+        beatmap::{BeatmapsetExtended, MostPlayedMap},
         event::Event,
         kudosu::KudosuHistory,
         score::Score,
-        user::Users,
-        user::{User, UserExtended, Username},
+        user::{User, UserBeatmapsetsKind, UserExtended, Username, Users},
         GameMode,
     },
     request::{
@@ -216,14 +215,6 @@ impl<'a> GetUser<'a> {
 poll_req!(GetUser => UserExtended);
 
 /// Get the [`BeatmapsetExtended`](crate::model::beatmap::BeatmapsetExtended)s of a user by their id.
-///
-/// If no map type specified, either manually through
-/// [`status`](crate::request::GetUserBeatmapsets::status),
-/// or through any of the methods [`loved`](crate::request::GetUserBeatmapsets::loved),
-/// [`graveyard`](crate::request::GetUserBeatmapsets::graveyard),
-/// [`ranked`](crate::request::GetUserBeatmapsets::ranked),
-/// [`pending`](crate::request::GetUserBeatmapsets::pending),
-/// it defaults to `ranked`.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 #[derive(Serialize)]
 pub struct GetUserBeatmapsets<'a> {
@@ -232,7 +223,7 @@ pub struct GetUserBeatmapsets<'a> {
     #[serde(skip)]
     osu: &'a Osu,
     #[serde(skip)]
-    map_type: &'static str,
+    map_kind: UserBeatmapsetsKind,
     limit: Option<usize>,
     offset: Option<usize>,
 
@@ -248,12 +239,12 @@ pub struct GetUserBeatmapsets<'a> {
 impl<'a> GetUserBeatmapsets<'a> {
     #[cfg(not(feature = "cache"))]
     #[inline]
-    pub(crate) const fn new(osu: &'a Osu, user_id: u32) -> Self {
+    pub(crate) const fn new(osu: &'a Osu, user_id: u32, kind: UserBeatmapsetsKind) -> Self {
         Self {
             fut: None,
             osu,
             user_id,
-            map_type: "ranked_and_approved",
+            map_kind: kind,
             limit: None,
             offset: None,
         }
@@ -261,12 +252,12 @@ impl<'a> GetUserBeatmapsets<'a> {
 
     #[cfg(feature = "cache")]
     #[inline]
-    pub(crate) const fn new(osu: &'a Osu, user_id: UserId) -> Self {
+    pub(crate) const fn new(osu: &'a Osu, user_id: UserId, kind: UserBeatmapsetsKind) -> Self {
         Self {
             fut: None,
             osu,
             user_id,
-            map_type: "ranked",
+            map_kind: kind,
             limit: None,
             offset: None,
         }
@@ -289,54 +280,17 @@ impl<'a> GetUserBeatmapsets<'a> {
         self
     }
 
-    /// Only include mapsets with the specified status
+    /// Only include mapsets of the specified type
     #[inline]
-    pub const fn status(mut self, map_type: RankStatus) -> Self {
-        self.map_type = match map_type {
-            RankStatus::Approved | RankStatus::Ranked => "ranked",
-            RankStatus::Graveyard => "graveyard",
-            RankStatus::Pending | RankStatus::WIP | RankStatus::Qualified => "pending",
-            RankStatus::Loved => "loved",
-        };
-
-        self
-    }
-
-    /// Require mapset rank status to be `loved`
-    #[inline]
-    pub const fn loved(mut self) -> Self {
-        self.map_type = "loved";
-
-        self
-    }
-
-    /// Require mapset rank status to be `graveyard`
-    #[inline]
-    pub const fn graveyard(mut self) -> Self {
-        self.map_type = "graveyard";
-
-        self
-    }
-
-    /// Require mapset rank status to be either `ranked` or `approved`
-    #[inline]
-    pub const fn ranked(mut self) -> Self {
-        self.map_type = "ranked";
-
-        self
-    }
-
-    /// Require mapset rank status to be `pending`
-    #[inline]
-    pub const fn pending(mut self) -> Self {
-        self.map_type = "pending";
+    pub const fn kind(mut self, kind: UserBeatmapsetsKind) -> Self {
+        self.map_kind = kind;
 
         self
     }
 
     fn start(&mut self) -> Pending<'a, Vec<BeatmapsetExtended>> {
         let query = Query::encode(self);
-        let map_type = self.map_type;
+        let map_type = self.map_kind.as_str();
         let osu = self.osu;
 
         #[cfg(not(feature = "cache"))]

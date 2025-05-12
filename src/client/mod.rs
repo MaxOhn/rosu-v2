@@ -10,7 +10,12 @@ use token::{Authorization, AuthorizationKind, TokenResponse};
 pub use self::{builder::OsuBuilder, scopes::Scopes, token::Token};
 
 #[allow(clippy::wildcard_imports)]
-use crate::{error::OsuError, model::GameMode, request::*, OsuResult};
+use crate::{
+    error::OsuError,
+    model::{user::UserBeatmapsetsKind, GameMode},
+    request::*,
+    OsuResult,
+};
 
 use hyper::{
     body::Incoming,
@@ -424,22 +429,17 @@ impl Osu {
 
     /// Get the [`BeatmapsetExtended`](crate::model::beatmap::BeatmapsetExtended)s of a user by their id.
     ///
-    /// If no map type specified, either manually through
-    /// [`map_type`](crate::request::GetUserBeatmapsets::map_type),
-    /// or through any of the methods [`loved`](crate::request::GetUserBeatmapsets::loved),
-    /// [`favourite`](crate::request::GetUserBeatmapsets::favourite),
-    /// [`graveyard`](crate::request::GetUserBeatmapsets::graveyard),
-    /// [`ranked_and_approved`](crate::request::GetUserBeatmapsets::ranked_and_approved),
-    /// [`unranked`](crate::request::GetUserBeatmapsets::unranked),
-    /// it defaults to `ranked_and_approved`.
-    ///
     /// Filled options will be: `artist_unicode`, `legacy_thread_url`, `maps`, `title_unicode`.
     ///
     /// All options of the contained [`BeatmapExtended`](crate::model::beatmap::BeatmapExtended)s will be `None`.
     #[cfg(not(feature = "cache"))]
     #[inline]
-    pub const fn user_beatmapsets(&self, user_id: u32) -> GetUserBeatmapsets<'_> {
-        GetUserBeatmapsets::new(self, user_id)
+    pub const fn user_beatmapsets(
+        &self,
+        user_id: u32,
+        kind: UserBeatmapsetsKind,
+    ) -> GetUserBeatmapsets<'_> {
+        GetUserBeatmapsets::new(self, user_id, kind)
     }
 
     /// Get a vec of [`BeatmapsetExtended`](crate::model::beatmap::BeatmapsetExtended)s a user made.
@@ -449,8 +449,12 @@ impl Osu {
     /// All options of the contained [`BeatmapExtended`](crate::model::beatmap::BeatmapExtended)s will be `None`.
     #[cfg(feature = "cache")]
     #[inline]
-    pub fn user_beatmapsets(&self, user_id: impl Into<UserId>) -> GetUserBeatmapsets<'_> {
-        GetUserBeatmapsets::new(self, user_id.into())
+    pub fn user_beatmapsets(
+        &self,
+        user_id: impl Into<UserId>,
+        kind: UserBeatmapsetsKind,
+    ) -> GetUserBeatmapsets<'_> {
+        GetUserBeatmapsets::new(self, user_id.into(), kind)
     }
 
     /// Get a vec of a user's [`MostPlayedMap`](crate::model::beatmap::MostPlayedMap)s.

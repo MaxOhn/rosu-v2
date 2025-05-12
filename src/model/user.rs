@@ -722,6 +722,35 @@ pub(crate) struct Users {
     pub(crate) users: Vec<User>,
 }
 
+/// Specifies the type of mapsets returned by [`Osu::user_beatmapsets`].
+///
+/// [`Osu::user_beatmapsets`]: crate::Osu::user_beatmapsets
+#[derive(Copy, Clone, Debug)]
+pub enum UserBeatmapsetsKind {
+    Favourite,
+    Graveyard,
+    Guest,
+    Loved,
+    Nominated,
+    Pending,
+    /// Both ranked and approved
+    Ranked,
+}
+
+impl UserBeatmapsetsKind {
+    pub(crate) const fn as_str(self) -> &'static str {
+        match self {
+            Self::Favourite => "favourite",
+            Self::Graveyard => "graveyard",
+            Self::Guest => "guest",
+            Self::Loved => "loved",
+            Self::Nominated => "nominated",
+            Self::Pending => "pending",
+            Self::Ranked => "ranked",
+        }
+    }
+}
+
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub struct UserCover {

@@ -45,11 +45,15 @@ jobs:
 
       - name: Install stable toolchain
         uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
 
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v2
 
       - name: Run clippy
+        env:
+          RUSTFLAGS: -D warnings
         run: cargo clippy --features ${{ matrix.features }} --all-targets --no-deps
 
   rustfmt:

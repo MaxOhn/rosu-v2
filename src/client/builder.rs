@@ -9,9 +9,6 @@ use leaky_bucket_lite::LeakyBucket;
 use std::{sync::Arc, time::Duration};
 use tokio::sync::{oneshot, RwLock};
 
-#[cfg(feature = "cache")]
-use dashmap::DashMap;
-
 /// Builder struct for an [`Osu`](crate::Osu) client.
 ///
 /// `client_id` as well as `client_secret` **must** be specified before building.
@@ -129,7 +126,7 @@ impl OsuBuilder {
                     token_loop_tx: Some(tx),
 
                     #[cfg(feature = "cache")]
-                    cache: Box::new(DashMap::new()),
+                    cache: Box::new(dashmap::DashMap::new()),
                 })
             }
             Some(AuthorizationBuilder::Given { token, .. }) => {
@@ -140,7 +137,7 @@ impl OsuBuilder {
                     token_loop_tx: None,
 
                     #[cfg(feature = "cache")]
-                    cache: Box::new(DashMap::new()),
+                    cache: Box::new(dashmap::DashMap::new()),
                 })
             }
             None => build_with_refresh(inner, AuthorizationKind::default()).await,
@@ -288,6 +285,6 @@ async fn build_with_refresh(inner: Arc<OsuRef>, auth_kind: AuthorizationKind) ->
         token_loop_tx: Some(tx),
 
         #[cfg(feature = "cache")]
-        cache: Box::new(DashMap::new()),
+        cache: Box::new(dashmap::DashMap::new()),
     })
 }

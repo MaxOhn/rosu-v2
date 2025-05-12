@@ -26,9 +26,7 @@ use serde::ser::SerializeMap;
 use serde::{Serialize, Serializer};
 use std::{fmt::Write, mem};
 
-use super::JsonBody;
-#[cfg(feature = "cache")]
-use super::UserId;
+use super::{JsonBody, UserId};
 
 /// Get a [`BeatmapExtended`](crate::model::beatmap::BeatmapExtended).
 #[must_use = "futures do nothing unless you `.await` or poll them"]
@@ -396,32 +394,11 @@ pub struct GetBeatmapUserScore<'a> {
     #[serde(skip)]
     legacy_scores: bool,
 
-    #[cfg(not(feature = "cache"))]
-    #[serde(skip)]
-    user_id: u32,
-
-    #[cfg(feature = "cache")]
     #[serde(skip)]
     user_id: UserId,
 }
 
 impl<'a> GetBeatmapUserScore<'a> {
-    #[cfg(not(feature = "cache"))]
-    #[inline]
-    pub(crate) const fn new(osu: &'a Osu, map_id: u32, user_id: u32) -> Self {
-        Self {
-            fut: None,
-            osu,
-            map_id,
-            user_id,
-            mode: None,
-            mods: None,
-            legacy_only: false,
-            legacy_scores: false,
-        }
-    }
-
-    #[cfg(feature = "cache")]
     #[inline]
     pub(crate) const fn new(osu: &'a Osu, map_id: u32, user_id: UserId) -> Self {
         Self {
@@ -545,31 +522,11 @@ pub struct GetBeatmapUserScores<'a> {
     #[serde(skip)]
     legacy_scores: bool,
 
-    #[cfg(not(feature = "cache"))]
-    #[serde(skip)]
-    user_id: u32,
-
-    #[cfg(feature = "cache")]
     #[serde(skip)]
     user_id: UserId,
 }
 
 impl<'a> GetBeatmapUserScores<'a> {
-    #[cfg(not(feature = "cache"))]
-    #[inline]
-    pub(crate) const fn new(osu: &'a Osu, map_id: u32, user_id: u32) -> Self {
-        Self {
-            fut: None,
-            osu,
-            map_id,
-            user_id,
-            mode: None,
-            legacy_only: false,
-            legacy_scores: false,
-        }
-    }
-
-    #[cfg(feature = "cache")]
     #[inline]
     pub(crate) const fn new(osu: &'a Osu, map_id: u32, user_id: UserId) -> Self {
         Self {

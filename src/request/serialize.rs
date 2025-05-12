@@ -75,13 +75,17 @@ pub(crate) fn maybe_user_id_type<S: Serializer>(
 }
 
 pub(crate) fn user_id_type<S: Serializer>(
-    user_id: &UserId,
+    #[cfg_attr(not(feature = "cache"), expect(unused_variables))] user_id: &UserId,
     serializer: S,
 ) -> Result<S::Ok, S::Error> {
+    #[cfg(feature = "cache")]
     match user_id {
         UserId::Id(_) => serializer.serialize_str("id"),
         UserId::Name(_) => serializer.serialize_str("username"),
     }
+
+    #[cfg(not(feature = "cache"))]
+    serializer.serialize_str("id")
 }
 
 #[allow(clippy::ref_option, clippy::trivially_copy_pass_by_ref)]

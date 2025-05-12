@@ -138,7 +138,6 @@ async fn beatmap_scores() -> Result<()> {
     Ok(())
 }
 
-#[cfg(feature = "cache")]
 #[tokio::test]
 async fn beatmap_user_score() -> Result<()> {
     use rosu_v2::model::mods::{GameModIntermode, GameModsIntermode};
@@ -166,7 +165,6 @@ async fn beatmap_user_score() -> Result<()> {
     Ok(())
 }
 
-#[cfg(feature = "cache")]
 #[tokio::test]
 async fn beatmap_user_scores() -> Result<()> {
     let scores = OSU
@@ -532,6 +530,7 @@ async fn team_rankings() -> Result<()> {
     Ok(())
 }
 
+#[cfg(feature = "cache")]
 #[tokio::test]
 async fn user() -> Result<()> {
     let user = OSU
@@ -601,6 +600,15 @@ async fn user_scores() -> Result<()> {
         .await?;
 
     assert_eq!(scores.len(), 9);
+
+    Ok(())
+}
+
+#[cfg(not(feature = "cache"))]
+#[tokio::test]
+#[ignore = "just making sure it compiles"]
+async fn user_scores_no_cache() -> Result<()> {
+    let _ = OSU.get().await?.user_scores(BADEWANNE3).best().await?;
 
     Ok(())
 }

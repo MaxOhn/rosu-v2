@@ -7,9 +7,6 @@ use crate::{
 
 use serde::Serialize;
 
-#[cfg(feature = "cache")]
-use futures::TryFutureExt;
-
 /// Get an [`OsuMatch`](crate::model::matches::OsuMatch) by its id
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 #[derive(Serialize)]
@@ -78,7 +75,7 @@ impl<'a> GetMatch<'a> {
         let fut = osu.request::<OsuMatch>(req);
 
         #[cfg(feature = "cache")]
-        let fut = fut.inspect_ok(move |osu_match| {
+        let fut = futures::TryFutureExt::inspect_ok(fut, move |osu_match| {
             for user in osu_match.users.values() {
                 osu.update_cache(user.user_id, &user.username);
             }

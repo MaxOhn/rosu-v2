@@ -29,14 +29,11 @@ use std::{ops::Drop, sync::Arc, time::Duration};
 use tokio::sync::{oneshot::Sender, RwLock};
 use url::Url;
 
-#[cfg(feature = "cache")]
-use {crate::prelude::Username, dashmap::DashMap};
-
 /// The main osu client.
 pub struct Osu {
     pub(crate) inner: Arc<OsuRef>,
     #[cfg(feature = "cache")]
-    pub(crate) cache: Box<DashMap<Username, u32>>,
+    pub(crate) cache: Box<dashmap::DashMap<crate::prelude::Username, u32>>,
     token_loop_tx: Option<Sender<()>>,
 }
 
@@ -111,28 +108,6 @@ impl Osu {
     ///
     /// The contained [`Score`](crate::model::score::Score) will have the
     /// `map` and `user` options filled.
-    #[cfg(not(feature = "cache"))]
-    #[inline]
-    pub const fn beatmap_user_score(&self, map_id: u32, user_id: u32) -> GetBeatmapUserScore<'_> {
-        GetBeatmapUserScore::new(self, map_id, user_id)
-    }
-
-    /// Get the top score for each mod combination a user has on a
-    /// map in form of a vec of [`Score`](crate::model::score::Score)s.
-    ///
-    /// The contained scores won't have any Options filled except
-    /// for `pp` in case of a ranked map.
-    #[cfg(not(feature = "cache"))]
-    #[inline]
-    pub const fn beatmap_user_scores(&self, map_id: u32, user_id: u32) -> GetBeatmapUserScores<'_> {
-        GetBeatmapUserScores::new(self, map_id, user_id)
-    }
-
-    /// Get a [`BeatmapUserScore`](crate::model::score::BeatmapUserScore).
-    ///
-    /// The contained [`Score`](crate::model::score::Score) will have the
-    /// `map` and `user` options filled.
-    #[cfg(feature = "cache")]
     #[inline]
     pub fn beatmap_user_score(
         &self,
@@ -147,7 +122,6 @@ impl Osu {
     ///
     /// The contained scores won't have any Options filled except
     /// for `pp` in case of a ranked map.
-    #[cfg(feature = "cache")]
     #[inline]
     pub fn beatmap_user_scores(
         &self,
@@ -284,15 +258,6 @@ impl Osu {
 
     /// Get the kudosu history of a user in form of a vec of
     /// [`KudosuHistory`](crate::model::kudosu::KudosuHistory).
-    #[cfg(not(feature = "cache"))]
-    #[inline]
-    pub const fn kudosu(&self, user_id: u32) -> GetUserKudosu<'_> {
-        GetUserKudosu::new(self, user_id)
-    }
-
-    /// Get the kudosu history of a user in form of a vec of
-    /// [`KudosuHistory`](crate::model::kudosu::KudosuHistory).
-    #[cfg(feature = "cache")]
     #[inline]
     pub fn kudosu(&self, user_id: impl Into<UserId>) -> GetUserKudosu<'_> {
         GetUserKudosu::new(self, user_id.into())
@@ -338,15 +303,6 @@ impl Osu {
 
     /// Get the recent activity of a user in form of a vec of
     /// [`Event`](crate::model::event::Event)s.
-    #[cfg(not(feature = "cache"))]
-    #[inline]
-    pub const fn recent_activity(&self, user_id: u32) -> GetRecentActivity<'_> {
-        GetRecentActivity::new(self, user_id)
-    }
-
-    /// Get the recent activity of a user in form of a vec of
-    /// [`Event`](crate::model::event::Event)s.
-    #[cfg(feature = "cache")]
     #[inline]
     pub fn recent_activity(&self, user_id: impl Into<UserId>) -> GetRecentActivity<'_> {
         GetRecentActivity::new(self, user_id.into())
@@ -427,27 +383,11 @@ impl Osu {
         GetUser::new(self, user_id)
     }
 
-    /// Get the [`BeatmapsetExtended`](crate::model::beatmap::BeatmapsetExtended)s of a user by their id.
-    ///
-    /// Filled options will be: `artist_unicode`, `legacy_thread_url`, `maps`, `title_unicode`.
-    ///
-    /// All options of the contained [`BeatmapExtended`](crate::model::beatmap::BeatmapExtended)s will be `None`.
-    #[cfg(not(feature = "cache"))]
-    #[inline]
-    pub const fn user_beatmapsets(
-        &self,
-        user_id: u32,
-        kind: UserBeatmapsetsKind,
-    ) -> GetUserBeatmapsets<'_> {
-        GetUserBeatmapsets::new(self, user_id, kind)
-    }
-
     /// Get a vec of [`BeatmapsetExtended`](crate::model::beatmap::BeatmapsetExtended)s a user made.
     ///
     /// Filled options will be: `artist_unicode`, `legacy_thread_url`, `maps`, `title_unicode`.
     ///
     /// All options of the contained [`BeatmapExtended`](crate::model::beatmap::BeatmapExtended)s will be `None`.
-    #[cfg(feature = "cache")]
     #[inline]
     pub fn user_beatmapsets(
         &self,
@@ -465,55 +405,9 @@ impl Osu {
     /// ## Limit
     ///
     /// The API provides at most 100 results, defaults to 5.
-    #[cfg(not(feature = "cache"))]
-    #[inline]
-    pub const fn user_most_played(&self, user_id: u32) -> GetUserMostPlayed<'_> {
-        GetUserMostPlayed::new(self, user_id)
-    }
-
-    /// Get a vec of a user's [`MostPlayedMap`](crate::model::beatmap::MostPlayedMap)s.
-    ///
-    /// All options of the contained [`Beatmap`](crate::model::beatmap::Beatmap) and
-    /// [`Beatmapset`](crate::model::beatmap::Beatmapset) will be `None`.
-    ///
-    /// ## Limit
-    ///
-    /// The API provides at most 100 results, defaults to 5.
-    #[cfg(feature = "cache")]
     #[inline]
     pub fn user_most_played(&self, user_id: impl Into<UserId>) -> GetUserMostPlayed<'_> {
         GetUserMostPlayed::new(self, user_id.into())
-    }
-
-    /// Get either top, global firsts, pinned, or recent scores of a user,
-    /// i.e. a vec of [`Score`](crate::model::score::Score).
-    ///
-    /// If no score type is specified by either
-    /// [`best`](crate::request::GetUserScores::best),
-    /// [`firsts`](crate::request::GetUserScores::firsts),
-    /// [`pinned`](crate::request::GetUserScores::pinned),
-    /// or [`recent`](crate::request::GetUserScores::recent), it defaults to `best`.
-    ///
-    /// The resulting scores will have these options filled: `map`, `mapset`, `pp`, `user`
-    ///
-    /// Additionally, the `best` score type will provide the `weight` option.
-    ///
-    /// All options of the contained [`BeatmapExtended`](crate::model::beatmap::BeatmapExtended),
-    /// [`Beatmapset`](crate::model::beatmap::BeatmapsetExtended), and
-    /// [`User`](crate::model::user::User) will be `None`.
-    ///
-    /// ## Note
-    ///
-    /// - The API provides at most 100 results per requests and defaults to 5.
-    /// - For the `recent` score type, failed score are excluded by default.
-    /// Use [`include_fails`](crate::request::GetUserScores::include_fails)
-    /// to include them.
-    /// - For the `firsts` score type, `pp` will only be `Some` if the map
-    /// is not loved.
-    #[cfg(not(feature = "cache"))]
-    #[inline]
-    pub const fn user_scores(&self, user_id: u32) -> GetUserScores<'_> {
-        GetUserScores::new(self, user_id)
     }
 
     /// Get either top, global firsts, pinned, or recent scores of a user,
@@ -541,7 +435,6 @@ impl Osu {
     ///   to include them.
     /// - For the `firsts` score type, `pp` will only be `Some` if the map
     ///   is not loved.
-    #[cfg(feature = "cache")]
     #[inline]
     pub fn user_scores(&self, user_id: impl Into<UserId>) -> GetUserScores<'_> {
         GetUserScores::new(self, user_id.into())
@@ -564,7 +457,17 @@ impl Osu {
         GetWikiPage::new(self, locale)
     }
 
-    #[cfg(feature = "cache")]
+    pub(crate) async fn request<T: DeserializeOwned>(&self, req: Request) -> OsuResult<T> {
+        self.inner.request(req).await
+    }
+
+    pub(crate) async fn request_raw(&self, req: Request) -> OsuResult<Bytes> {
+        self.inner.request_raw(req).await
+    }
+}
+
+#[cfg(feature = "cache")]
+impl Osu {
     pub(crate) async fn cache_user(&self, user_id: UserId) -> OsuResult<u32> {
         match user_id {
             UserId::Id(id) => Ok(id),
@@ -591,19 +494,10 @@ impl Osu {
         }
     }
 
-    #[cfg(feature = "cache")]
-    pub(crate) fn update_cache(&self, user_id: u32, username: &Username) {
+    pub(crate) fn update_cache(&self, user_id: u32, username: &crate::prelude::Username) {
         let mut name = username.to_owned();
         name.make_ascii_lowercase();
         self.cache.insert(name, user_id);
-    }
-
-    pub(crate) async fn request<T: DeserializeOwned>(&self, req: Request) -> OsuResult<T> {
-        self.inner.request(req).await
-    }
-
-    pub(crate) async fn request_raw(&self, req: Request) -> OsuResult<Bytes> {
-        self.inner.request_raw(req).await
     }
 }
 

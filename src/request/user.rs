@@ -4,7 +4,7 @@ use crate::{
         event::Event,
         kudosu::KudosuHistory,
         score::Score,
-        user::{User, UserBeatmapsetsKind, UserExtended, Username, Users},
+        user::{User, UserBeatmapsetsKind, UserExtended, Users},
         GameMode,
     },
     request::{
@@ -18,64 +18,78 @@ use crate::{
 use futures::future::TryFutureExt;
 use itoa::Buffer;
 use serde::Serialize;
-use smallstr::SmallString;
-use std::fmt;
 
-/// Either a user id as u32 or a username as String.
-///
-/// Use the `From` implementations to create this enum
-///
-/// # Example
-///
-/// ```
-/// use rosu_v2::request::UserId;
-///
-/// let user_id: UserId = 123_456.into();
-/// let user_id: UserId = "my username".into();
-/// ```
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub enum UserId {
-    /// Represents a user through their user id
-    Id(u32),
-    /// Represents a user through their username
-    Name(Username),
-}
+pub use self::user_id::UserId;
 
-impl From<u32> for UserId {
-    #[inline]
-    fn from(id: u32) -> Self {
-        Self::Id(id)
+#[cfg(feature = "cache")]
+mod user_id {
+    use smallstr::SmallString;
+    use std::fmt;
+
+    use crate::model::user::Username;
+
+    /// Either a user id as u32 or a username as String.
+    ///
+    /// Use the `From` implementations to create this enum
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use rosu_v2::request::UserId;
+    ///
+    /// let user_id: UserId = 123_456.into();
+    /// let user_id: UserId = "my username".into();
+    /// ```
+    #[derive(Clone, Debug, Eq, Hash, PartialEq)]
+    pub enum UserId {
+        /// Represents a user through their user id
+        Id(u32),
+        /// Represents a user through their username
+        Name(Username),
     }
-}
 
-impl From<&str> for UserId {
-    #[inline]
-    fn from(name: &str) -> Self {
-        Self::Name(SmallString::from_str(name))
-    }
-}
-
-impl From<&String> for UserId {
-    #[inline]
-    fn from(name: &String) -> Self {
-        Self::Name(SmallString::from_str(name))
-    }
-}
-
-impl From<String> for UserId {
-    #[inline]
-    fn from(name: String) -> Self {
-        Self::Name(SmallString::from_string(name))
-    }
-}
-
-impl fmt::Display for UserId {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Id(id) => write!(f, "{id}"),
-            Self::Name(name) => f.write_str(name),
+    impl From<u32> for UserId {
+        #[inline]
+        fn from(id: u32) -> Self {
+            Self::Id(id)
         }
     }
+
+    impl From<&str> for UserId {
+        #[inline]
+        fn from(name: &str) -> Self {
+            Self::Name(SmallString::from_str(name))
+        }
+    }
+
+    impl From<&String> for UserId {
+        #[inline]
+        fn from(name: &String) -> Self {
+            Self::Name(SmallString::from_str(name))
+        }
+    }
+
+    impl From<String> for UserId {
+        #[inline]
+        fn from(name: String) -> Self {
+            Self::Name(SmallString::from_string(name))
+        }
+    }
+
+    impl fmt::Display for UserId {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            match self {
+                Self::Id(id) => write!(f, "{id}"),
+                Self::Name(name) => f.write_str(name),
+            }
+        }
+    }
+}
+
+#[cfg(not(feature = "cache"))]
+mod user_id {
+    /// A `u32` user id.
+    pub type UserId = u32;
 }
 
 /// Get the [`UserExtended`](crate::model::user::UserExtended) of the authenticated user.
@@ -227,30 +241,11 @@ pub struct GetUserBeatmapsets<'a> {
     limit: Option<usize>,
     offset: Option<usize>,
 
-    #[cfg(not(feature = "cache"))]
-    #[serde(skip)]
-    user_id: u32,
-
-    #[cfg(feature = "cache")]
     #[serde(skip)]
     user_id: UserId,
 }
 
 impl<'a> GetUserBeatmapsets<'a> {
-    #[cfg(not(feature = "cache"))]
-    #[inline]
-    pub(crate) const fn new(osu: &'a Osu, user_id: u32, kind: UserBeatmapsetsKind) -> Self {
-        Self {
-            fut: None,
-            osu,
-            user_id,
-            map_kind: kind,
-            limit: None,
-            offset: None,
-        }
-    }
-
-    #[cfg(feature = "cache")]
     #[inline]
     pub(crate) const fn new(osu: &'a Osu, user_id: UserId, kind: UserBeatmapsetsKind) -> Self {
         Self {
@@ -331,29 +326,11 @@ pub struct GetUserKudosu<'a> {
     limit: Option<usize>,
     offset: Option<usize>,
 
-    #[cfg(not(feature = "cache"))]
-    #[serde(skip)]
-    user_id: u32,
-
-    #[cfg(feature = "cache")]
     #[serde(skip)]
     user_id: UserId,
 }
 
 impl<'a> GetUserKudosu<'a> {
-    #[cfg(not(feature = "cache"))]
-    #[inline]
-    pub(crate) const fn new(osu: &'a Osu, user_id: u32) -> Self {
-        Self {
-            fut: None,
-            osu,
-            user_id,
-            limit: None,
-            offset: None,
-        }
-    }
-
-    #[cfg(feature = "cache")]
     #[inline]
     pub(crate) const fn new(osu: &'a Osu, user_id: UserId) -> Self {
         Self {
@@ -422,29 +399,11 @@ pub struct GetUserMostPlayed<'a> {
     limit: Option<usize>,
     offset: Option<usize>,
 
-    #[cfg(not(feature = "cache"))]
-    #[serde(skip)]
-    user_id: u32,
-
-    #[cfg(feature = "cache")]
     #[serde(skip)]
     user_id: UserId,
 }
 
 impl<'a> GetUserMostPlayed<'a> {
-    #[cfg(not(feature = "cache"))]
-    #[inline]
-    pub(crate) const fn new(osu: &'a Osu, user_id: u32) -> Self {
-        Self {
-            fut: None,
-            osu,
-            user_id,
-            limit: None,
-            offset: None,
-        }
-    }
-
-    #[cfg(feature = "cache")]
     #[inline]
     pub(crate) const fn new(osu: &'a Osu, user_id: UserId) -> Self {
         Self {
@@ -523,29 +482,11 @@ pub struct GetRecentActivity<'a> {
     limit: Option<usize>,
     offset: Option<usize>,
 
-    #[cfg(not(feature = "cache"))]
-    #[serde(skip)]
-    user_id: u32,
-
-    #[cfg(feature = "cache")]
     #[serde(skip)]
     user_id: UserId,
 }
 
 impl<'a> GetRecentActivity<'a> {
-    #[cfg(not(feature = "cache"))]
-    #[inline]
-    pub(crate) const fn new(osu: &'a Osu, user_id: u32) -> Self {
-        Self {
-            fut: None,
-            osu,
-            user_id,
-            limit: None,
-            offset: None,
-        }
-    }
-
-    #[cfg(feature = "cache")]
     #[inline]
     pub(crate) const fn new(osu: &'a Osu, user_id: UserId) -> Self {
         Self {
@@ -648,34 +589,11 @@ pub struct GetUserScores<'a> {
     #[serde(skip)]
     legacy_scores: bool,
 
-    #[cfg(not(feature = "cache"))]
-    #[serde(skip)]
-    user_id: u32,
-
-    #[cfg(feature = "cache")]
     #[serde(skip)]
     user_id: UserId,
 }
 
 impl<'a> GetUserScores<'a> {
-    #[cfg(not(feature = "cache"))]
-    #[inline]
-    pub(crate) const fn new(osu: &'a Osu, user_id: u32) -> Self {
-        Self {
-            fut: None,
-            osu,
-            user_id,
-            score_type: ScoreType::Best,
-            limit: None,
-            offset: None,
-            include_fails: None,
-            mode: None,
-            legacy_only: false,
-            legacy_scores: false,
-        }
-    }
-
-    #[cfg(feature = "cache")]
     #[inline]
     pub(crate) const fn new(osu: &'a Osu, user_id: UserId) -> Self {
         Self {

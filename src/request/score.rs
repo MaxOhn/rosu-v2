@@ -143,7 +143,6 @@ impl<'a> GetScores<'a> {
 
         #[cfg(feature = "cache")]
         let fut = fut.inspect_ok(|scores| {
-            #[cfg(feature = "cache")]
             for score in scores.scores.iter() {
                 if let Some(ref user) = score.user {
                     osu.update_cache(user.user_id, &user.username);

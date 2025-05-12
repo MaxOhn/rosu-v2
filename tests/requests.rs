@@ -14,6 +14,7 @@ use rosu_v2::{
         event::EventSort,
         GameMode,
     },
+    prelude::UserBeatmapsetsKind,
     Osu,
 };
 use tokio::sync::{Mutex, MutexGuard};
@@ -547,16 +548,22 @@ async fn user() -> Result<()> {
 
 #[tokio::test]
 async fn user_beatmapsets() -> Result<()> {
-    let mapsets = OSU
-        .get()
-        .await?
-        .user_beatmapsets(SYLAS)
-        .limit(5)
-        .ranked()
-        .offset(2)
-        .await?;
+    let kinds = [
+        UserBeatmapsetsKind::Favourite,
+        UserBeatmapsetsKind::Graveyard,
+        UserBeatmapsetsKind::Guest,
+        UserBeatmapsetsKind::Loved,
+        UserBeatmapsetsKind::Nominated,
+        UserBeatmapsetsKind::Pending,
+        UserBeatmapsetsKind::Ranked,
+    ];
 
-    println!("Received {} mapsets of the user", mapsets.len());
+    let osu = OSU.get().await?;
+
+    for kind in kinds {
+        let mapsets = osu.user_beatmapsets(SYLAS, kind).limit(5).offset(2).await?;
+        println!("Received {} {kind:?} mapsets of the user", mapsets.len());
+    }
 
     Ok(())
 }

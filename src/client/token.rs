@@ -214,7 +214,7 @@ impl AuthorizationBuilder {
                         break;
                     }
                 }
-                Err(ref e) if e.kind() == ErrorKind::WouldBlock => continue,
+                Err(ref e) if e.kind() == ErrorKind::WouldBlock => {}
                 Err(e) => return Err(OAuthError::Read(e)),
             }
         }

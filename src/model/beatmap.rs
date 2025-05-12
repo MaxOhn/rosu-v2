@@ -1451,6 +1451,7 @@ mod hundred_items {
     }
 
     #[cfg(feature = "serialize")]
+    #[allow(clippy::ref_option, reason = "required by serde")]
     pub(super) fn serialize<S: serde::Serializer>(
         opt: &Option<Box<[u32; 100]>>,
         s: S,

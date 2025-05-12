@@ -41,6 +41,7 @@ pub(super) mod option_datetime {
     }
 
     #[cfg(feature = "serialize")]
+    #[allow(clippy::ref_option, reason = "required by serde")]
     pub fn serialize<S: serde::ser::Serializer>(
         datetime: &Option<OffsetDateTime>,
         s: S,

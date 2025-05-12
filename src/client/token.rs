@@ -9,43 +9,78 @@ use tokio::{
     time::sleep,
 };
 
-/// Token to interact with the osu! API.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub struct Token {
-    pub(crate) access: Option<Box<str>>,
-    pub(crate) refresh: Option<Box<str>>,
+/// The current [`Token`] to interact with the osu! API.
+pub(crate) struct CurrentToken {
+    inner: current_token::CurrentToken,
 }
 
-impl Token {
-    /// Value used to access the API.
+mod current_token {
+    use std::sync::{PoisonError, RwLock, RwLockReadGuard, RwLockWriteGuard};
+
+    use super::Token;
+
+    pub(super) struct CurrentToken {
+        token: RwLock<Token>,
+    }
+
+    impl CurrentToken {
+        /// Create a new token.
+        pub const fn new() -> Self {
+            Self {
+                token: RwLock::new(Token::DEFAULT),
+            }
+        }
+
+        /// Read access to the current token.
+        pub fn read(&self) -> RwLockReadGuard<'_, Token> {
+            self.token.read().unwrap_or_else(PoisonError::into_inner)
+        }
+
+        /// Write access to the current token.
+        pub fn write(&self) -> RwLockWriteGuard<'_, Token> {
+            self.token.write().unwrap_or_else(PoisonError::into_inner)
+        }
+    }
+}
+
+impl CurrentToken {
+    pub const fn new() -> Self {
+        Self {
+            inner: current_token::CurrentToken::new(),
+        }
+    }
+
+    /// Set the current token.
+    pub fn set(&self, token: Token) {
+        *self.inner.write() = token;
+    }
+
+    /// Update the current token.
+    pub fn update(&self, token: TokenResponse) {
+        self.inner
+            .write()
+            .update(token.access_token.as_ref(), token.refresh_token);
+    }
+
+    /// Remove the current access token to prevent future requests.
+    fn prevent_access(&self) {
+        self.inner.write().access.take();
+    }
+
+    /// Accesses the current token.
     ///
-    /// `None` if the token has not been refreshed.
-    pub fn access(&self) -> Option<&str> {
-        self.access.as_deref()
+    /// `f` should perform as little work as possible as to not block the inner
+    /// lock for too long.
+    pub fn get<F, O>(&self, f: F) -> O
+    where
+        F: FnOnce(&Token) -> O,
+    {
+        f(&self.inner.read())
     }
 
-    /// Value used to refresh the token.
-    pub fn refresh(&self) -> Option<&str> {
-        self.refresh.as_deref()
-    }
-
-    /// Create a new [`Token`] with the given values.
-    pub fn new(access: &str, refresh: Option<Box<str>>) -> Self {
-        let mut token = Self::default();
-        token.update(access, refresh);
-
-        token
-    }
-
-    pub(super) fn update(&mut self, access: &str, refresh: Option<Box<str>>) {
-        let access = if access.starts_with("Bearer ") {
-            access.into()
-        } else {
-            format!("Bearer {access}").into_boxed_str()
-        };
-
-        self.access = Some(access);
-        self.refresh = refresh;
+    /// Returns the current refresh token.
+    pub fn get_refresh(&self) -> Option<Box<str>> {
+        self.get(|token| token.refresh.clone())
     }
 
     pub(super) fn update_worker(
@@ -72,7 +107,7 @@ impl Token {
                         debug!("Successfully acquired new token");
 
                         expire = token.expires_in;
-                        osu.token.write().await.update(token.access_token.as_ref(), token.refresh_token);
+                        osu.token.update(token);
                     }
                 }
             }
@@ -91,7 +126,7 @@ impl Token {
                 _ = &mut expire_rx => {}
                 _ = sleep(Duration::from_secs(expire.max(0) as u64)) => {
                     warn!("Acquiring new token took too long, removed current token");
-                    osu_clone.token.write().await.access.take();
+                    osu_clone.token.prevent_access();
                 }
             }
         });
@@ -102,7 +137,7 @@ impl Token {
         sleep(Duration::from_secs(adjusted_expire.max(0) as u64)).await;
         debug!("API token expired, acquiring new one...");
 
-        Token::request_loop(&osu, auth_kind).await
+        CurrentToken::request_loop(&osu, auth_kind).await
     }
 
     // Acquire a new token through exponential backoff
@@ -133,6 +168,57 @@ impl Token {
             sleep(Duration::from_millis(backoff)).await;
             backoff = (backoff * 2).min(60_000);
         }
+    }
+}
+
+/// Token to interact with the osu! API.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Token {
+    pub(crate) access: Option<Box<str>>,
+    pub(crate) refresh: Option<Box<str>>,
+}
+
+impl Default for Token {
+    fn default() -> Self {
+        Self::DEFAULT
+    }
+}
+
+impl Token {
+    const DEFAULT: Self = Self {
+        access: None,
+        refresh: None,
+    };
+
+    /// Value used to access the API.
+    ///
+    /// `None` if the token has not been refreshed.
+    pub fn access(&self) -> Option<&str> {
+        self.access.as_deref()
+    }
+
+    /// Value used to refresh the token.
+    pub fn refresh(&self) -> Option<&str> {
+        self.refresh.as_deref()
+    }
+
+    /// Create a new [`Token`] with the given values.
+    pub fn new(access: &str, refresh: Option<Box<str>>) -> Self {
+        let mut token = Self::default();
+        token.update(access, refresh);
+
+        token
+    }
+
+    pub(super) fn update(&mut self, access: &str, refresh: Option<Box<str>>) {
+        let access = if access.starts_with("Bearer ") {
+            access.into()
+        } else {
+            format!("Bearer {access}").into_boxed_str()
+        };
+
+        self.access = Some(access);
+        self.refresh = refresh;
     }
 }
 
@@ -274,20 +360,20 @@ pub(super) enum AuthorizationKind {
 impl AuthorizationKind {
     pub async fn request_token(&self, osu: &OsuRef) -> OsuResult<TokenResponse> {
         match self {
-            AuthorizationKind::User(auth) => match osu.token.read().await.refresh {
-                Some(ref refresh) => osu.request_refresh_token(refresh).await,
+            AuthorizationKind::User(auth) => match osu.token.get_refresh() {
+                Some(refresh) => osu.request_refresh_token(&refresh).await,
                 None => osu.request_user_token(auth).await,
             },
             AuthorizationKind::Client => osu.request_client_token().await,
             AuthorizationKind::BareToken => {
-                let Some(ref refresh) = osu.token.read().await.refresh else {
+                let Some(refresh) = osu.token.get_refresh() else {
                     error!("Missing refresh token on bare authentication; all future requests will fail");
 
                     futures::future::pending::<()>().await;
                     unreachable!();
                 };
 
-                osu.request_refresh_token(refresh).await
+                osu.request_refresh_token(&refresh).await
             }
         }
     }

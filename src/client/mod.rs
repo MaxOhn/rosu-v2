@@ -5,7 +5,7 @@ mod token;
 use bytes::Bytes;
 use http_body_util::{BodyExt, Full};
 use hyper_util::client::legacy::{connect::HttpConnector, Client as HyperClient};
-use token::{Authorization, AuthorizationKind, TokenResponse};
+use token::{Authorization, AuthorizationKind, CurrentToken, TokenResponse};
 
 pub use self::{builder::OsuBuilder, scopes::Scopes, token::Token};
 
@@ -26,7 +26,7 @@ use hyper_rustls::HttpsConnector;
 use leaky_bucket_lite::LeakyBucket;
 use serde::de::DeserializeOwned;
 use std::{ops::Drop, sync::Arc, time::Duration};
-use tokio::sync::{oneshot::Sender, RwLock};
+use tokio::sync::oneshot::Sender;
 use url::Url;
 
 /// The main osu client.
@@ -58,7 +58,7 @@ impl Osu {
     /// Return the [`Token`] that is being used when requesting data.
     #[inline]
     pub async fn token(&self) -> Token {
-        self.inner.token.read().await.to_owned()
+        self.inner.token.get(Token::to_owned)
     }
 
     /// Get a [`BeatmapExtended`](crate::model::beatmap::BeatmapExtended).
@@ -518,7 +518,7 @@ pub(crate) struct OsuRef {
     http: HyperClient<HttpsConnector<HttpConnector>, Body>,
     timeout: Duration,
     ratelimiter: LeakyBucket,
-    token: RwLock<Token>,
+    token: CurrentToken,
     retries: usize,
 }
 
@@ -637,13 +637,15 @@ impl OsuRef {
         let url = Url::parse(&url).map_err(|source| OsuError::Url { source, url })?;
         debug!("URL: {url}");
 
-        let Some(ref token) = self.token.read().await.access else {
-            return Err(OsuError::NoToken);
-        };
+        let token_res = self.token.get(|token| match token.access {
+            Some(ref access) => match HeaderValue::from_str(access) {
+                Ok(header) => Ok(header),
+                Err(source) => Err(OsuError::CreatingTokenHeader { source }),
+            },
+            None => Err(OsuError::NoToken),
+        });
 
-        let value = HeaderValue::from_str(token)
-            .map_err(|source| OsuError::CreatingTokenHeader { source })?;
-
+        let token_header = token_res?;
         let bytes = body.into_bytes();
         let len = bytes.len();
         let body = Body::from(bytes);
@@ -651,7 +653,7 @@ impl OsuRef {
         let mut req_builder = HyperRequest::builder()
             .method(method)
             .uri(url.as_str())
-            .header(AUTHORIZATION, value)
+            .header(AUTHORIZATION, token_header)
             .header(USER_AGENT, MY_USER_AGENT)
             .header(X_API_VERSION, api_version)
             .header(ACCEPT, APPLICATION_JSON)

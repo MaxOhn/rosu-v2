@@ -1,5 +1,6 @@
 use super::{
-    token::AuthorizationBuilder, Authorization, AuthorizationKind, Osu, OsuRef, Scopes, Token,
+    token::{AuthorizationBuilder, CurrentToken},
+    Authorization, AuthorizationKind, Osu, OsuRef, Scopes, Token,
 };
 use crate::{error::OsuError, OsuResult};
 
@@ -7,7 +8,7 @@ use hyper_rustls::HttpsConnectorBuilder;
 use hyper_util::{client::legacy::connect::HttpConnector, rt::TokioExecutor};
 use leaky_bucket_lite::LeakyBucket;
 use std::{sync::Arc, time::Duration};
-use tokio::sync::{oneshot, RwLock};
+use tokio::sync::oneshot;
 
 /// Builder struct for an [`Osu`](crate::Osu) client.
 ///
@@ -87,7 +88,7 @@ impl OsuBuilder {
             http,
             ratelimiter,
             timeout: self.timeout,
-            token: RwLock::new(Token::default()),
+            token: CurrentToken::new(),
             retries: self.retries,
         });
 
@@ -115,11 +116,11 @@ impl OsuBuilder {
             }) => {
                 let (tx, dropped_rx) = oneshot::channel();
 
-                *inner.token.write().await = token;
+                inner.token.set(token);
                 let auth_kind = AuthorizationKind::BareToken;
 
                 // Let an async worker update the token regularly
-                Token::update_worker(Arc::clone(&inner), auth_kind, expires_in, dropped_rx);
+                CurrentToken::update_worker(Arc::clone(&inner), auth_kind, expires_in, dropped_rx);
 
                 Ok(Osu {
                     inner,
@@ -130,7 +131,7 @@ impl OsuBuilder {
                 })
             }
             Some(AuthorizationBuilder::Given { token, .. }) => {
-                *inner.token.write().await = token;
+                inner.token.set(token);
 
                 Ok(Osu {
                     inner,
@@ -271,14 +272,10 @@ async fn build_with_refresh(inner: Arc<OsuRef>, auth_kind: AuthorizationKind) ->
         .map_err(|source| OsuError::UpdateToken { source })?;
 
     let expires_in = token.expires_in;
-    inner
-        .token
-        .write()
-        .await
-        .update(token.access_token.as_ref(), token.refresh_token);
+    inner.token.update(token);
 
     // Let an async worker update the token regularly
-    Token::update_worker(Arc::clone(&inner), auth_kind, expires_in, dropped_rx);
+    CurrentToken::update_worker(Arc::clone(&inner), auth_kind, expires_in, dropped_rx);
 
     Ok(Osu {
         inner,

@@ -66,26 +66,14 @@ pub(crate) fn maybe_comment_sort<S: Serializer>(
     maybe(sort, serializer, CommentSort::serialize_as_query)
 }
 
-#[allow(clippy::ref_option)]
-pub(crate) fn maybe_user_id_type<S: Serializer>(
-    user_id: &Option<UserId>,
-    serializer: S,
-) -> Result<S::Ok, S::Error> {
-    maybe(user_id, serializer, user_id_type)
-}
-
 pub(crate) fn user_id_type<S: Serializer>(
-    #[cfg_attr(not(feature = "cache"), expect(unused_variables))] user_id: &UserId,
+    user_id: &UserId,
     serializer: S,
 ) -> Result<S::Ok, S::Error> {
-    #[cfg(feature = "cache")]
     match user_id {
         UserId::Id(_) => serializer.serialize_str("id"),
         UserId::Name(_) => serializer.serialize_str("username"),
     }
-
-    #[cfg(not(feature = "cache"))]
-    serializer.serialize_str("id")
 }
 
 #[allow(clippy::ref_option, clippy::trivially_copy_pass_by_ref)]

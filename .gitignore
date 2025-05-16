@@ -4,3 +4,4 @@ Cargo.lock
 output.*
 expanded.*
 /tests/custom.rs
+/.vscode

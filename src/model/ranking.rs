@@ -1,17 +1,19 @@
-use super::{
-    beatmap::BeatmapsetExtended,
-    serde_util,
-    user::{deserialize_country, Team, User, UserStatistics},
-    GameMode,
-};
-use crate::{model::user::CountryCode, Osu, OsuResult};
+use std::fmt;
 
 use ::serde::{
     de::{Deserializer, Error, IgnoredAny, MapAccess, SeqAccess, Visitor},
     Deserialize,
 };
-use std::fmt;
 use time::OffsetDateTime;
+
+use crate::{model::user::CountryCode, Osu, OsuResult};
+
+use super::{
+    beatmap::BeatmapsetExtended,
+    serde_util,
+    user::{deserialize_country, Team, User, UserStatistics},
+    CacheUserFn, ContainedUsers, GameMode,
+};
 
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
@@ -27,6 +29,13 @@ pub struct ChartRankings {
     pub ranking: Vec<User>,
     /// Spotlight details
     pub spotlight: Spotlight,
+}
+
+impl ContainedUsers for ChartRankings {
+    fn apply_to_users(&self, f: impl CacheUserFn) {
+        self.mapsets.apply_to_users(f);
+        self.ranking.apply_to_users(f);
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq)]
@@ -75,6 +84,10 @@ impl CountryRankings {
     }
 }
 
+impl ContainedUsers for CountryRankings {
+    fn apply_to_users(&self, _: impl CacheUserFn) {}
+}
+
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub struct Rankings {
@@ -95,6 +108,12 @@ pub struct Rankings {
     #[serde(default)]
     pub(crate) ranking_type: Option<RankingType>,
     pub total: u32,
+}
+
+impl ContainedUsers for Rankings {
+    fn apply_to_users(&self, f: impl CacheUserFn) {
+        self.ranking.apply_to_users(f);
+    }
 }
 
 struct UserStatsVecVisitor;
@@ -662,6 +681,10 @@ pub struct Spotlight {
     pub start_date: OffsetDateTime,
 }
 
+impl ContainedUsers for Spotlight {
+    fn apply_to_users(&self, _: impl CacheUserFn) {}
+}
+
 impl PartialEq for Spotlight {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
@@ -714,4 +737,8 @@ impl TeamRankings {
 
         Some(osu.team_rankings(mode).page(page).await)
     }
+}
+
+impl ContainedUsers for TeamRankings {
+    fn apply_to_users(&self, _: impl CacheUserFn) {}
 }

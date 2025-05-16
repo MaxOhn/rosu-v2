@@ -9,7 +9,7 @@ use super::{
     beatmap::RankStatus,
     serde_util,
     user::{Medal, Username},
-    GameMode, Grade,
+    CacheUserFn, ContainedUsers, GameMode, Grade,
 };
 
 #[derive(Clone, Debug, Deserialize)]
@@ -45,6 +45,12 @@ impl Events {
     }
 }
 
+impl ContainedUsers for Events {
+    fn apply_to_users(&self, f: impl CacheUserFn) {
+        self.events.apply_to_users(f);
+    }
+}
+
 /// The object has different attributes depending on its type.
 #[derive(Clone, Debug, Deserialize)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
@@ -55,6 +61,10 @@ pub struct Event {
     pub event_id: u32,
     #[serde(flatten)]
     pub event_type: EventType,
+}
+
+impl ContainedUsers for Event {
+    fn apply_to_users(&self, _: impl CacheUserFn) {}
 }
 
 #[derive(Clone, Debug, Deserialize)]

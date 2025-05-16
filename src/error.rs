@@ -1,5 +1,6 @@
 use hyper::{
-    header::InvalidHeaderValue, http::Error as HttpError, Error as HyperError, StatusCode,
+    body::Bytes, header::InvalidHeaderValue, http::Error as HttpError, Error as HyperError,
+    StatusCode,
 };
 use serde::Deserialize;
 use serde_json::Error as SerdeError;
@@ -101,9 +102,9 @@ pub enum OsuError {
         source: osu_db::Error,
     },
     /// Failed to deserialize response
-    #[error("failed to deserialize response: {}", .body)]
+    #[error("failed to deserialize response: {:?}", .bytes)]
     Parsing {
-        body: String,
+        bytes: Bytes,
         #[source]
         source: SerdeError,
     },
@@ -125,14 +126,14 @@ pub enum OsuError {
     /// API returned an error
     #[error("response error, status {}", .status)]
     Response {
-        body: String,
+        bytes: Bytes,
         #[source]
         source: ApiError,
         status: StatusCode,
     },
     /// Temporal (?) downtime of the osu API
-    #[error("osu!api may be temporarily unavailable (received 503): {}", .0)]
-    ServiceUnavailable(String),
+    #[error("osu!api may be temporarily unavailable (received 503)")]
+    ServiceUnavailable { body: hyper::body::Incoming },
     /// The client's authentication is not sufficient for the endpoint
     #[error("the endpoint is not available for the client's authorization level")]
     UnavailableEndpoint,

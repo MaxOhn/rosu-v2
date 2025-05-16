@@ -344,7 +344,6 @@ async fn forum_posts() -> Result<()> {
     Ok(())
 }
 
-#[cfg(feature = "cache")]
 #[tokio::test]
 async fn recent_activity() -> Result<()> {
     let events = OSU
@@ -530,7 +529,6 @@ async fn team_rankings() -> Result<()> {
     Ok(())
 }
 
-#[cfg(feature = "cache")]
 #[tokio::test]
 async fn user() -> Result<()> {
     let user = OSU
@@ -586,7 +584,6 @@ async fn user_most_played() -> Result<()> {
     Ok(())
 }
 
-#[cfg(feature = "cache")]
 #[tokio::test]
 async fn user_scores() -> Result<()> {
     let scores = OSU

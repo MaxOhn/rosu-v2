@@ -1,4 +1,15 @@
-use super::{serde_util, user::User, GameMode};
+use std::{
+    convert::TryFrom,
+    fmt::{Display, Formatter, Result as FmtResult},
+    str::FromStr,
+};
+
+use serde::{
+    de::{DeserializeSeed, Deserializer, Error, IgnoredAny, MapAccess, Unexpected, Visitor},
+    Deserialize,
+};
+use time::OffsetDateTime;
+
 use crate::{
     error::ParsingError,
     prelude::{CountryCode, OsuError, UserStatisticsModes, Username},
@@ -6,16 +17,7 @@ use crate::{
     Osu, OsuResult,
 };
 
-use serde::{
-    de::{DeserializeSeed, Deserializer, Error, IgnoredAny, MapAccess, Unexpected, Visitor},
-    Deserialize,
-};
-use std::{
-    convert::TryFrom,
-    fmt::{Display, Formatter, Result as FmtResult},
-    str::FromStr,
-};
-use time::OffsetDateTime;
+use super::{serde_util, user::User, CacheUserFn, ContainedUsers, GameMode};
 
 #[derive(Clone, Debug, Deserialize)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
@@ -79,8 +81,17 @@ impl BeatmapExtended {
 
     /// Request the [`BeatmapDifficultyAttributes`] for this map.
     #[inline]
-    pub fn difficulty_attributes<'o>(&self, osu: &'o Osu) -> GetBeatmapDifficultyAttributes<'o> {
+    pub const fn difficulty_attributes<'o>(
+        &self,
+        osu: &'o Osu,
+    ) -> GetBeatmapDifficultyAttributes<'o> {
         GetBeatmapDifficultyAttributes::new(osu, self.map_id)
+    }
+}
+
+impl ContainedUsers for BeatmapExtended {
+    fn apply_to_users(&self, f: impl CacheUserFn) {
+        self.mapset.apply_to_users(f);
     }
 }
 
@@ -122,8 +133,17 @@ pub struct Beatmap {
 impl Beatmap {
     /// Request the [`BeatmapDifficultyAttributes`] for this map.
     #[inline]
-    pub fn difficulty_attributes<'o>(&self, osu: &'o Osu) -> GetBeatmapDifficultyAttributes<'o> {
+    pub const fn difficulty_attributes<'o>(
+        &self,
+        osu: &'o Osu,
+    ) -> GetBeatmapDifficultyAttributes<'o> {
         GetBeatmapDifficultyAttributes::new(osu, self.map_id)
+    }
+}
+
+impl ContainedUsers for Beatmap {
+    fn apply_to_users(&self, f: impl CacheUserFn) {
+        self.mapset.apply_to_users(f);
     }
 }
 
@@ -148,14 +168,16 @@ impl From<BeatmapExtended> for Beatmap {
 }
 
 #[derive(Deserialize)]
-pub(crate) struct Beatmaps {
+#[doc(hidden)]
+pub struct Beatmaps {
     #[serde(rename = "beatmaps")]
     pub(crate) maps: Vec<Beatmap>,
 }
 
 #[derive(Deserialize)]
-pub(crate) struct BeatmapDifficultyAttributesWrapper {
-    pub attributes: BeatmapDifficultyAttributes,
+#[doc(hidden)]
+pub struct BeatmapDifficultyAttributesWrapper {
+    pub(crate) attributes: BeatmapDifficultyAttributes,
 }
 
 #[derive(Clone, Debug, PartialEq, Deserialize)]
@@ -166,6 +188,10 @@ pub struct BeatmapDifficultyAttributes {
     pub stars: f64,
     #[serde(flatten, skip_serializing_if = "Option::is_none")]
     pub attrs: Option<GameModeAttributes>,
+}
+
+impl ContainedUsers for BeatmapDifficultyAttributes {
+    fn apply_to_users(&self, _: impl CacheUserFn) {}
 }
 
 #[derive(Clone, Debug, PartialEq, Deserialize)]
@@ -275,6 +301,14 @@ pub struct BeatmapsetExtended {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub title_unicode: Option<String>,
     pub video: bool,
+}
+
+impl ContainedUsers for BeatmapsetExtended {
+    fn apply_to_users(&self, f: impl CacheUserFn) {
+        f(self.creator_id, &self.creator_name);
+        self.maps.apply_to_users(f);
+        self.converts.apply_to_users(f);
+    }
 }
 
 // Deserialize the creator's `UserCompact` manually for edge cases
@@ -629,6 +663,12 @@ impl Beatmapset {
     }
 }
 
+impl ContainedUsers for Beatmapset {
+    fn apply_to_users(&self, f: impl CacheUserFn) {
+        f(self.creator_id, &self.creator_name);
+    }
+}
+
 impl From<BeatmapsetExtended> for Beatmapset {
     fn from(mapset: BeatmapsetExtended) -> Self {
         Self {
@@ -908,8 +948,35 @@ pub enum BeatmapsetEvent {
         comment: BeatmapsetCommentEdit<String>,
         #[serde(with = "serde_util::datetime")]
         created_at: OffsetDateTime,
-        beatmapset: Box<Beatmapset>,
+        #[serde(rename = "beatmapset")]
+        mapset: Box<Beatmapset>,
     },
+}
+
+impl ContainedUsers for BeatmapsetEvent {
+    fn apply_to_users(&self, f: impl CacheUserFn) {
+        let mapset = match self {
+            BeatmapsetEvent::Disqualify { mapset, .. } => mapset,
+            BeatmapsetEvent::GenreEdit { mapset, .. } => mapset,
+            BeatmapsetEvent::IssueReopen { mapset, .. } => mapset,
+            BeatmapsetEvent::IssueResolve { mapset, .. } => mapset,
+            BeatmapsetEvent::KudosuDeny { mapset, .. } => mapset,
+            BeatmapsetEvent::KudosuGain { mapset, .. } => mapset,
+            BeatmapsetEvent::KudosuLost { mapset, .. } => mapset,
+            BeatmapsetEvent::LanguageEdit { mapset, .. } => mapset,
+            BeatmapsetEvent::Love { mapset, .. } => mapset,
+            BeatmapsetEvent::Nominate { mapset, .. } => mapset,
+            BeatmapsetEvent::NominationReset { mapset, .. } => mapset,
+            BeatmapsetEvent::NominationResetReceived { mapset, .. } => mapset,
+            BeatmapsetEvent::NsfwToggle { mapset, .. } => mapset,
+            BeatmapsetEvent::OwnerChange { mapset, .. } => mapset,
+            BeatmapsetEvent::Rank { mapset, .. } => mapset,
+            BeatmapsetEvent::Qualify { mapset, .. } => mapset,
+            BeatmapsetEvent::TagsEdit { mapset, .. } => mapset,
+        };
+
+        mapset.apply_to_users(f);
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq)]
@@ -919,6 +986,13 @@ pub struct BeatmapsetEvents {
     #[serde(rename = "reviewsConfig")]
     pub reviews_config: BeatmapsetReviewsConfig,
     pub users: Vec<User>,
+}
+
+impl ContainedUsers for BeatmapsetEvents {
+    fn apply_to_users(&self, f: impl CacheUserFn) {
+        self.events.apply_to_users(f);
+        self.users.apply_to_users(f);
+    }
 }
 
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
@@ -1284,6 +1358,12 @@ impl BeatmapsetSearchResult {
     }
 }
 
+impl ContainedUsers for BeatmapsetSearchResult {
+    fn apply_to_users(&self, f: impl CacheUserFn) {
+        self.mapsets.apply_to_users(f);
+    }
+}
+
 struct BeatmapsetSearchResultVisitor;
 
 impl<'de> Visitor<'de> for BeatmapsetSearchResultVisitor {
@@ -1520,6 +1600,13 @@ pub struct MostPlayedMap {
     pub map_id: u32,
     #[serde(rename = "beatmapset")]
     pub mapset: Box<Beatmapset>,
+}
+
+impl ContainedUsers for MostPlayedMap {
+    fn apply_to_users(&self, f: impl CacheUserFn) {
+        self.map.apply_to_users(f);
+        self.mapset.apply_to_users(f);
+    }
 }
 
 impl PartialEq for MostPlayedMap {

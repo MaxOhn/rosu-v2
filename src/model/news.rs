@@ -1,9 +1,9 @@
-use super::serde_util;
+use serde::Deserialize;
+use time::OffsetDateTime;
+
 use crate::{prelude::Username, Osu, OsuResult};
 
-use serde::Deserialize;
-
-use time::OffsetDateTime;
+use super::{serde_util, CacheUserFn, ContainedUsers};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
@@ -35,6 +35,10 @@ impl News {
     pub async fn get_next(&self, osu: &Osu) -> Option<OsuResult<News>> {
         Some(osu.news().cursor(self.cursor.as_deref()?).await)
     }
+}
+
+impl ContainedUsers for News {
+    fn apply_to_users(&self, _: impl CacheUserFn) {}
 }
 
 #[derive(Clone, Debug, Deserialize)]

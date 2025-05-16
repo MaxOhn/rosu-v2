@@ -1,18 +1,16 @@
 use crate::{
     model::matches::{MatchList, OsuMatch},
-    request::{Pending, Query, Request},
+    request::{Query, Request},
     routing::Route,
     Osu,
 };
 
 use serde::Serialize;
 
-/// Get an [`OsuMatch`](crate::model::matches::OsuMatch) by its id
-#[must_use = "futures do nothing unless you `.await` or poll them"]
+/// Get an [`OsuMatch`].
+#[must_use = "requests must be configured and executed"]
 #[derive(Serialize)]
 pub struct GetMatch<'a> {
-    #[serde(skip)]
-    fut: Option<Pending<'a, OsuMatch>>,
     #[serde(skip)]
     osu: &'a Osu,
     #[serde(skip)]
@@ -23,10 +21,8 @@ pub struct GetMatch<'a> {
 }
 
 impl<'a> GetMatch<'a> {
-    #[inline]
     pub(crate) const fn new(osu: &'a Osu, match_id: u32) -> Self {
         Self {
-            fut: None,
             osu,
             match_id,
             after: None,
@@ -62,38 +58,22 @@ impl<'a> GetMatch<'a> {
 
         self
     }
+}
 
-    fn start(&mut self) -> Pending<'a, OsuMatch> {
-        let query = Query::encode(self);
-
+into_future! {
+    |self: GetMatch<'_>| -> OsuMatch {
         let route = Route::GetMatch {
             match_id: Some(self.match_id),
         };
 
-        let req = Request::with_query(route, query);
-        let osu = self.osu;
-        let fut = osu.request::<OsuMatch>(req);
-
-        #[cfg(feature = "cache")]
-        let fut = futures::TryFutureExt::inspect_ok(fut, move |osu_match| {
-            for user in osu_match.users.values() {
-                osu.update_cache(user.user_id, &user.username);
-            }
-        });
-
-        Box::pin(fut)
+        Request::with_query(route, Query::encode(&self))
     }
 }
 
-poll_req!(GetMatch => OsuMatch);
-
-/// Get a [`MatchList`](crate::model::matches::MatchList) containing all
-/// currently open multiplayer lobbies.
-#[must_use = "futures do nothing unless you `.await` or poll them"]
+/// Get a [`MatchList`] containing all currently open multiplayer lobbies.
+#[must_use = "requests must be configured and executed"]
 #[derive(Serialize)]
 pub struct GetMatches<'a> {
-    #[serde(skip)]
-    fut: Option<Pending<'a, MatchList>>,
     #[serde(skip)]
     osu: &'a Osu,
     #[serde(rename = "cursor_string")]
@@ -101,13 +81,8 @@ pub struct GetMatches<'a> {
 }
 
 impl<'a> GetMatches<'a> {
-    #[inline]
-    pub(crate) fn new(osu: &'a Osu) -> Self {
-        Self {
-            fut: None,
-            osu,
-            cursor: None,
-        }
+    pub(crate) const fn new(osu: &'a Osu) -> Self {
+        Self { osu, cursor: None }
     }
 
     #[inline]
@@ -116,13 +91,13 @@ impl<'a> GetMatches<'a> {
 
         self
     }
-
-    fn start(&mut self) -> Pending<'a, MatchList> {
-        let query = Query::encode(self);
-        let req = Request::with_query(Route::GetMatch { match_id: None }, query);
-
-        Box::pin(self.osu.request(req))
-    }
 }
 
-poll_req!(GetMatches => MatchList);
+into_future! {
+    |self: GetMatches<'_>| -> MatchList {
+        Request::with_query(
+            Route::GetMatch { match_id: None },
+            Query::encode(&self),
+        )
+    }
+}

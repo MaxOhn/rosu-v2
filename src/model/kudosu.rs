@@ -3,6 +3,8 @@ use time::OffsetDateTime;
 
 use crate::model::user::Username;
 
+use super::{CacheUserFn, ContainedUsers};
+
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub enum KudosuAction {
@@ -40,6 +42,10 @@ pub struct KudosuHistory {
     pub giver: Option<KudosuGiver>,
     /// Simple detail of the object for display.
     pub post: KudosuPost,
+}
+
+impl ContainedUsers for KudosuHistory {
+    fn apply_to_users(&self, _: impl CacheUserFn) {}
 }
 
 impl PartialEq for KudosuHistory {

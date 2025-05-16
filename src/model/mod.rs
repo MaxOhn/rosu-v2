@@ -174,16 +174,73 @@ pub mod user;
 /// Wiki related types
 pub mod wiki;
 
-pub use grade::Grade;
+use std::{collections::HashMap, marker::PhantomData};
 
 pub use rosu_mods::GameMode;
 
-use std::marker::PhantomData;
+pub use self::grade::Grade;
+
+use self::user::Username;
 
 struct EnumVisitor<T>(PhantomData<T>);
 
 impl<T> EnumVisitor<T> {
     const fn new() -> Self {
         Self(PhantomData)
+    }
+}
+
+/// Trait alias for `Copy + Fn(u32, &str)`.
+///
+/// Awaiting <https://github.com/rust-lang/rust/issues/41517>
+pub(crate) trait CacheUserFn: Copy + Fn(u32, &Username) {}
+
+impl<T: Copy + Fn(u32, &Username)> CacheUserFn for T {}
+
+/// A way to apply a given function to all users contained in `Self`.
+pub(crate) trait ContainedUsers {
+    /// Applies `f` to all (user id, username) pairs contained in `self`.
+    #[cfg_attr(
+        not(feature = "cache"),
+        allow(dead_code, reason = "its only used to put all users in the cache")
+    )]
+    fn apply_to_users(&self, f: impl CacheUserFn);
+}
+
+impl<T: ContainedUsers> ContainedUsers for Box<T> {
+    fn apply_to_users(&self, f: impl CacheUserFn) {
+        (**self).apply_to_users(f);
+    }
+}
+
+impl<T: ContainedUsers> ContainedUsers for Option<T> {
+    fn apply_to_users(&self, f: impl CacheUserFn) {
+        if let Some(item) = self {
+            item.apply_to_users(f);
+        }
+    }
+}
+
+impl<T: ContainedUsers, E> ContainedUsers for Result<T, E> {
+    fn apply_to_users(&self, f: impl CacheUserFn) {
+        if let Ok(ok) = self {
+            ok.apply_to_users(f);
+        }
+    }
+}
+
+impl<T: ContainedUsers> ContainedUsers for Vec<T> {
+    fn apply_to_users(&self, f: impl CacheUserFn) {
+        for item in self {
+            item.apply_to_users(f);
+        }
+    }
+}
+
+impl<K, T: ContainedUsers, S> ContainedUsers for HashMap<K, T, S> {
+    fn apply_to_users(&self, f: impl CacheUserFn) {
+        for value in self.values() {
+            value.apply_to_users(f);
+        }
     }
 }

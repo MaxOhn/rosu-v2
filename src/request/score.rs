@@ -1,4 +1,3 @@
-use futures::TryFutureExt;
 use rosu_mods::GameMode;
 use serde::Serialize;
 
@@ -8,12 +7,11 @@ use crate::{
     Osu,
 };
 
-use super::{serialize::maybe_mode_as_str, Pending, Query, Request};
+use super::{serialize::maybe_mode_as_str, Query, Request};
 
 /// Get a [`Score`] struct.
-#[must_use = "futures do nothing unless you `.await` or poll them"]
+#[must_use = "requests must be configured and executed"]
 pub struct GetScore<'a> {
-    fut: Option<Pending<'a, Score>>,
     osu: &'a Osu,
     mode: Option<GameMode>,
     score_id: u64,
@@ -21,10 +19,8 @@ pub struct GetScore<'a> {
 }
 
 impl<'a> GetScore<'a> {
-    #[inline]
     pub(crate) const fn new(osu: &'a Osu, score_id: u64) -> Self {
         Self {
-            fut: None,
             osu,
             mode: None,
             score_id,
@@ -50,41 +46,29 @@ impl<'a> GetScore<'a> {
 
         self
     }
+}
 
-    fn start(&mut self) -> Pending<'a, Score> {
+into_future! {
+    |self: GetScore<'_>| -> Score {
         let route = Route::GetScore {
             mode: self.mode,
             score_id: self.score_id,
         };
 
-        let osu = self.osu;
         let mut req = Request::new(route);
 
         if self.legacy_scores {
             req.api_version(0);
         }
 
-        let fut = osu.request::<Score>(req);
-
-        #[cfg(feature = "cache")]
-        let fut = fut.inspect_ok(move |score| {
-            if let Some(ref user) = score.user {
-                osu.update_cache(user.user_id, &user.username);
-            }
-        });
-
-        Box::pin(fut)
+        req
     }
 }
 
-poll_req!(GetScore => Score);
-
 /// Get a list of recently processed [`Score`] structs.
-#[must_use = "futures do nothing unless you `.await` or poll them"]
+#[must_use = "requests must be configured and executed"]
 #[derive(Serialize)]
 pub struct GetScores<'a> {
-    #[serde(skip)]
-    fut: Option<Pending<'a, ProcessedScores>>,
     #[serde(skip)]
     osu: &'a Osu,
     #[serde(rename(serialize = "ruleset"), serialize_with = "maybe_mode_as_str")]
@@ -98,7 +82,6 @@ pub struct GetScores<'a> {
 impl<'a> GetScores<'a> {
     pub(crate) const fn new(osu: &'a Osu) -> Self {
         Self {
-            fut: None,
             osu,
             mode: None,
             score_id: None,
@@ -126,32 +109,14 @@ impl<'a> GetScores<'a> {
 
         self
     }
-
-    fn start(&mut self) -> Pending<'a, ProcessedScores> {
-        let req = Request::with_query(Route::GetScores, Query::encode(self));
-
-        let osu = self.osu;
-        let mode = self.mode;
-
-        let fut = osu
-            .request::<ProcessedScores>(req)
-            .map_ok(move |mut scores| {
-                scores.mode = mode;
-
-                scores
-            });
-
-        #[cfg(feature = "cache")]
-        let fut = fut.inspect_ok(|scores| {
-            for score in scores.scores.iter() {
-                if let Some(ref user) = score.user {
-                    osu.update_cache(user.user_id, &user.username);
-                }
-            }
-        });
-
-        Box::pin(fut)
-    }
 }
 
-poll_req!(GetScores => ProcessedScores);
+into_future! {
+    |self: GetScores<'_>| -> ProcessedScores {
+        (Request::with_query(Route::GetScores, Query::encode(&self)), self.mode)
+    } => |scores, mode: Option<GameMode>| -> ProcessedScores {
+        scores.mode = mode;
+
+        Ok(scores)
+    }
+}

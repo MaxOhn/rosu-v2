@@ -57,7 +57,7 @@ impl Osu {
 
     /// Return the [`Token`] that is being used when requesting data.
     #[inline]
-    pub async fn token(&self) -> Token {
+    pub fn token(&self) -> Token {
         self.inner.token.get(Token::to_owned)
     }
 

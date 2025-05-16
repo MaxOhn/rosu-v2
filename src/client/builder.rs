@@ -1,12 +1,12 @@
 use super::{
     token::{AuthorizationBuilder, CurrentToken},
-    Authorization, AuthorizationKind, Osu, OsuRef, Scopes, Token,
+    Authorization, AuthorizationKind, Osu, OsuInner, Scopes, Token,
 };
 use crate::{error::OsuError, OsuResult};
 
 use hyper_rustls::HttpsConnectorBuilder;
 use hyper_util::{client::legacy::connect::HttpConnector, rt::TokioExecutor};
-use leaky_bucket_lite::LeakyBucket;
+use leaky_bucket::RateLimiter;
 use std::{sync::Arc, time::Duration};
 use tokio::sync::oneshot;
 
@@ -20,7 +20,7 @@ pub struct OsuBuilder {
     auth: Option<AuthorizationBuilder>,
     client_id: Option<u64>,
     client_secret: Option<String>,
-    retries: usize,
+    retries: u8,
     timeout: Duration,
     per_second: u32,
 }
@@ -75,21 +75,23 @@ impl OsuBuilder {
         let http =
             hyper_util::client::legacy::Client::builder(TokioExecutor::new()).build(connector);
 
-        let ratelimiter = LeakyBucket::builder()
-            .max(self.per_second)
-            .tokens(self.per_second)
-            .refill_interval(Duration::from_millis(1000 / u64::from(self.per_second)))
-            .refill_amount(1)
+        let ratelimiter = RateLimiter::builder()
+            .max(self.per_second as usize)
+            .initial(self.per_second as usize)
+            .interval(Duration::from_millis(1000 / u64::from(self.per_second)))
+            .refill(1)
             .build();
 
-        let inner = Arc::new(OsuRef {
+        let inner = Arc::new(OsuInner {
             client_id,
             client_secret: client_secret.into_boxed_str(),
             http,
-            ratelimiter,
+            ratelimiter: Arc::new(ratelimiter),
             timeout: self.timeout,
             token: CurrentToken::new(),
             retries: self.retries,
+            #[cfg(feature = "cache")]
+            cache: dashmap::DashMap::new(),
         });
 
         #[cfg(feature = "metrics")]
@@ -125,9 +127,6 @@ impl OsuBuilder {
                 Ok(Osu {
                     inner,
                     token_loop_tx: Some(tx),
-
-                    #[cfg(feature = "cache")]
-                    cache: Box::new(dashmap::DashMap::new()),
                 })
             }
             Some(AuthorizationBuilder::Given { token, .. }) => {
@@ -136,9 +135,6 @@ impl OsuBuilder {
                 Ok(Osu {
                     inner,
                     token_loop_tx: None,
-
-                    #[cfg(feature = "cache")]
-                    cache: Box::new(dashmap::DashMap::new()),
                 })
             }
             None => build_with_refresh(inner, AuthorizationKind::default()).await,
@@ -235,7 +231,7 @@ impl OsuBuilder {
     }
 
     /// In case the request times out, retry up to this many times, defaults to 2.
-    pub const fn retries(mut self, retries: usize) -> Self {
+    pub const fn retries(mut self, retries: u8) -> Self {
         self.retries = retries;
 
         self
@@ -261,12 +257,12 @@ impl OsuBuilder {
     }
 }
 
-async fn build_with_refresh(inner: Arc<OsuRef>, auth_kind: AuthorizationKind) -> OsuResult<Osu> {
+async fn build_with_refresh(inner: Arc<OsuInner>, auth_kind: AuthorizationKind) -> OsuResult<Osu> {
     let (tx, dropped_rx) = oneshot::channel();
 
     // Acquire the initial API token
     let token = auth_kind
-        .request_token(&inner)
+        .request_token(Arc::clone(&inner))
         .await
         .map_err(Box::new)
         .map_err(|source| OsuError::UpdateToken { source })?;
@@ -280,8 +276,5 @@ async fn build_with_refresh(inner: Arc<OsuRef>, auth_kind: AuthorizationKind) ->
     Ok(Osu {
         inner,
         token_loop_tx: Some(tx),
-
-        #[cfg(feature = "cache")]
-        cache: Box::new(dashmap::DashMap::new()),
     })
 }

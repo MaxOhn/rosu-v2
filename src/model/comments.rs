@@ -1,9 +1,11 @@
-use super::{serde_util, user::User};
-use crate::{prelude::Username, request::GetUser, Osu, OsuResult};
+use std::fmt;
 
 use serde::{Deserialize, Serializer};
-use std::fmt;
 use time::OffsetDateTime;
+
+use crate::{prelude::Username, request::GetUser, Osu, OsuResult};
+
+use super::{serde_util, user::User, CacheUserFn, ContainedUsers};
 
 /// Represents an single comment.
 #[derive(Clone, Debug, Deserialize)]
@@ -135,6 +137,12 @@ impl CommentBundle {
         debug_assert!(self.has_more == self.cursor.is_some());
 
         Some(osu.comments().cursor(self.cursor.as_deref()?).await)
+    }
+}
+
+impl ContainedUsers for CommentBundle {
+    fn apply_to_users(&self, f: impl CacheUserFn) {
+        self.users.apply_to_users(f);
     }
 }
 

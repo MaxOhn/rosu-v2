@@ -1,23 +1,24 @@
-use super::{
-    beatmap::{BeatmapExtended, Beatmapset},
-    mods::GameMods,
-    serde_util,
-    user::User,
-    GameMode, Grade,
-};
-use crate::{error::OsuError, request::GetUser, Osu, OsuResult};
-
 use rosu_mods::{serde::GameModsSeed, GameModIntermode, GameModsIntermode};
 use serde::{
     de::{DeserializeSeed, IgnoredAny},
     Deserialize, Deserializer,
 };
-
 use serde_json::value::RawValue;
 use time::OffsetDateTime;
 
+use crate::{error::OsuError, request::GetUser, Osu, OsuResult};
+
+use super::{
+    beatmap::{BeatmapExtended, Beatmapset},
+    mods::GameMods,
+    serde_util,
+    user::User,
+    CacheUserFn, ContainedUsers, GameMode, Grade,
+};
+
 #[derive(Debug, Deserialize)]
-pub(crate) struct BeatmapScores {
+#[doc(hidden)]
+pub struct BeatmapScores {
     pub(crate) scores: Vec<Score>,
 }
 
@@ -36,6 +37,12 @@ impl BeatmapUserScore {
     #[inline]
     pub fn get_user<'o>(&self, osu: &'o Osu) -> GetUser<'o> {
         self.score.get_user(osu)
+    }
+}
+
+impl ContainedUsers for BeatmapUserScore {
+    fn apply_to_users(&self, f: impl CacheUserFn) {
+        self.score.apply_to_users(f);
     }
 }
 
@@ -60,6 +67,12 @@ impl ProcessedScores {
         }
 
         req.await
+    }
+}
+
+impl ContainedUsers for ProcessedScores {
+    fn apply_to_users(&self, f: impl CacheUserFn) {
+        self.scores.apply_to_users(f);
     }
 }
 
@@ -114,6 +127,14 @@ pub struct Score {
     pub rank_global: Option<u32>,
     pub user: Option<Box<User>>,
     pub weight: Option<ScoreWeight>,
+}
+
+impl ContainedUsers for Score {
+    fn apply_to_users(&self, f: impl CacheUserFn) {
+        self.user.apply_to_users(f);
+        self.map.apply_to_users(f);
+        self.mapset.apply_to_users(f);
+    }
 }
 
 impl<'de> Deserialize<'de> for Score {
@@ -327,7 +348,8 @@ impl PartialEq for Score {
 impl Eq for Score {}
 
 #[derive(Deserialize)]
-pub(crate) struct Scores {
+#[doc(hidden)]
+pub struct Scores {
     pub(crate) scores: Vec<Score>,
 }
 

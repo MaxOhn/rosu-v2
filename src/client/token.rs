@@ -1,13 +1,14 @@
-use crate::OsuResult;
-
-use super::{OsuRef, Scopes};
-
-use serde::Deserialize;
 use std::{error::Error, sync::Arc, time::Duration};
 use tokio::{
     sync::oneshot::{self, Receiver},
     time::sleep,
 };
+
+use serde::Deserialize;
+
+use crate::{future::TokenFuture, OsuResult};
+
+use super::{OsuInner, Scopes};
 
 /// The current [`Token`] to interact with the osu! API.
 pub(crate) struct CurrentToken {
@@ -84,7 +85,7 @@ impl CurrentToken {
     }
 
     pub(super) fn update_worker(
-        osu: Arc<OsuRef>,
+        osu: Arc<OsuInner>,
         auth_kind: AuthorizationKind,
         mut expire: i64,
         mut dropped_rx: Receiver<()>,
@@ -115,7 +116,7 @@ impl CurrentToken {
     }
 
     async fn update_routine(
-        osu: Arc<OsuRef>,
+        osu: Arc<OsuInner>,
         auth_kind: &AuthorizationKind,
         expire: i64,
         mut expire_rx: Receiver<()>,
@@ -125,8 +126,8 @@ impl CurrentToken {
             tokio::select! {
                 _ = &mut expire_rx => {}
                 _ = sleep(Duration::from_secs(expire.max(0) as u64)) => {
-                    warn!("Acquiring new token took too long, removed current token");
                     osu_clone.token.prevent_access();
+                    warn!("Acquiring new token took too long, removed current token");
                 }
             }
         });
@@ -137,15 +138,15 @@ impl CurrentToken {
         sleep(Duration::from_secs(adjusted_expire.max(0) as u64)).await;
         debug!("API token expired, acquiring new one...");
 
-        CurrentToken::request_loop(&osu, auth_kind).await
+        CurrentToken::request_loop(osu, auth_kind).await
     }
 
     // Acquire a new token through exponential backoff
-    async fn request_loop(osu: &OsuRef, auth_kind: &AuthorizationKind) -> TokenResponse {
+    async fn request_loop(osu: Arc<OsuInner>, auth_kind: &AuthorizationKind) -> TokenResponse {
         let mut backoff = 400;
 
         loop {
-            match auth_kind.request_token(osu).await {
+            match auth_kind.request_token(Arc::clone(&osu)).await {
                 Ok(token) if token.token_type.as_ref() == "Bearer" => return token,
                 Ok(token) => {
                     warn!(
@@ -358,13 +359,13 @@ pub(super) enum AuthorizationKind {
 }
 
 impl AuthorizationKind {
-    pub async fn request_token(&self, osu: &OsuRef) -> OsuResult<TokenResponse> {
+    pub async fn request_token(&self, osu: Arc<OsuInner>) -> OsuResult<TokenResponse> {
         match self {
             AuthorizationKind::User(auth) => match osu.token.get_refresh() {
-                Some(refresh) => osu.request_refresh_token(&refresh).await,
-                None => osu.request_user_token(auth).await,
+                Some(refresh) => TokenFuture::new_refresh(osu, &refresh).await,
+                None => TokenFuture::new_user(osu, auth).await,
             },
-            AuthorizationKind::Client => osu.request_client_token().await,
+            AuthorizationKind::Client => TokenFuture::new_client(osu).await,
             AuthorizationKind::BareToken => {
                 let Some(refresh) = osu.token.get_refresh() else {
                     error!("Missing refresh token on bare authentication; all future requests will fail");
@@ -373,7 +374,7 @@ impl AuthorizationKind {
                     unreachable!();
                 };
 
-                osu.request_refresh_token(&refresh).await
+                TokenFuture::new_refresh(osu, &refresh).await
             }
         }
     }
@@ -385,14 +386,14 @@ impl Default for AuthorizationKind {
     }
 }
 
-pub(super) struct Authorization {
+pub(crate) struct Authorization {
     pub code: Box<str>,
     pub redirect_uri: Box<str>,
     pub scopes: Scopes,
 }
 
 #[derive(Deserialize)]
-pub(super) struct TokenResponse {
+pub(crate) struct TokenResponse {
     pub access_token: Box<str>,
     pub expires_in: i64,
     #[serde(default)]

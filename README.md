@@ -111,7 +111,7 @@ async fn main() {
 | Flag          | Description                              | Dependencies
 | ------------- | ---------------------------------------- | ------------
 | `default`     | Enable the `cache` and `macros` features |
-| `cache`       | Cache username-user_id pairs so that usernames can be used on all user endpoints instead of only user ids | [`dashmap`]
+| `cache`       | Cache username-userid pairs so that fetching data by username does one instead of two requests | [`dashmap`]
 | `macros`      | Re-exports `rosu-mods`'s `mods!` macro to easily create mods for a given mode | [`paste`]
 | `serialize`   | Implement `serde::Serialize` for most types, allowing for manual serialization |
 | `metrics`     | Uses the global metrics registry to store response time for each endpoint | [`metrics`]

@@ -3,37 +3,30 @@ mod scopes;
 mod token;
 
 use bytes::Bytes;
-use http_body_util::{BodyExt, Full};
+use http_body_util::Full;
 use hyper_util::client::legacy::{connect::HttpConnector, Client as HyperClient};
-use token::{Authorization, AuthorizationKind, CurrentToken, TokenResponse};
 
 pub use self::{builder::OsuBuilder, scopes::Scopes, token::Token};
 
+pub(crate) use self::token::{Authorization, TokenResponse};
+
+use self::token::{AuthorizationKind, CurrentToken};
+
 #[allow(clippy::wildcard_imports)]
 use crate::{
-    error::OsuError,
     model::{user::UserBeatmapsetsKind, GameMode},
     request::*,
     OsuResult,
 };
 
-use hyper::{
-    body::Incoming,
-    header::{HeaderValue, ACCEPT, AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE, USER_AGENT},
-    Method, Request as HyperRequest, Response, StatusCode,
-};
 use hyper_rustls::HttpsConnector;
-use leaky_bucket_lite::LeakyBucket;
-use serde::de::DeserializeOwned;
+use leaky_bucket::RateLimiter;
 use std::{ops::Drop, sync::Arc, time::Duration};
 use tokio::sync::oneshot::Sender;
-use url::Url;
 
 /// The main osu client.
 pub struct Osu {
-    pub(crate) inner: Arc<OsuRef>,
-    #[cfg(feature = "cache")]
-    pub(crate) cache: Box<dashmap::DashMap<crate::prelude::Username, u32>>,
+    pub(crate) inner: Arc<OsuInner>,
     token_loop_tx: Option<Sender<()>>,
 }
 
@@ -100,7 +93,10 @@ impl Osu {
 
     /// Get the [`BeatmapDifficultyAttributes`](crate::model::beatmap::BeatmapDifficultyAttributes) for a map.
     #[inline]
-    pub fn beatmap_difficulty_attributes(&self, map_id: u32) -> GetBeatmapDifficultyAttributes<'_> {
+    pub const fn beatmap_difficulty_attributes(
+        &self,
+        map_id: u32,
+    ) -> GetBeatmapDifficultyAttributes<'_> {
         GetBeatmapDifficultyAttributes::new(self, map_id)
     }
 
@@ -142,7 +138,7 @@ impl Osu {
     /// will contain `Some` in `fail_times`, `max_combo`
     /// (if available for mode), and `deleted_at` (if deleted).
     #[inline]
-    pub fn beatmapset(&self, mapset_id: u32) -> GetBeatmapset<'_> {
+    pub const fn beatmapset(&self, mapset_id: u32) -> GetBeatmapset<'_> {
         GetBeatmapset::new(self, mapset_id)
     }
 
@@ -157,14 +153,14 @@ impl Osu {
     /// will contain `Some` in `fail_times`, `max_combo`
     /// (if available for mode), and `deleted_at` (if deleted).
     #[inline]
-    pub fn beatmapset_from_map_id(&self, map_id: u32) -> GetBeatmapsetFromMapId<'_> {
+    pub const fn beatmapset_from_map_id(&self, map_id: u32) -> GetBeatmapsetFromMapId<'_> {
         GetBeatmapsetFromMapId::new(self, map_id)
     }
 
     /// Get a [`BeatmapsetEvents`](crate::model::beatmap::BeatmapsetEvents)
     /// struct containing the most recent mapset events.
     #[inline]
-    pub fn beatmapset_events(&self) -> GetBeatmapsetEvents<'_> {
+    pub const fn beatmapset_events(&self) -> GetBeatmapsetEvents<'_> {
         GetBeatmapsetEvents::new(self)
     }
 
@@ -265,7 +261,7 @@ impl Osu {
 
     /// Get [`News`](crate::model::news::News).
     #[inline]
-    pub fn news(&self) -> GetNews<'_> {
+    pub const fn news(&self) -> GetNews<'_> {
         GetNews::new(self)
     }
 
@@ -278,7 +274,7 @@ impl Osu {
     /// Get a [`MatchList`](crate::model::matches::MatchList) containing all
     /// currently open multiplayer lobbies.
     #[inline]
-    pub fn osu_matches(&self) -> GetMatches<'_> {
+    pub const fn osu_matches(&self) -> GetMatches<'_> {
         GetMatches::new(self)
     }
 
@@ -312,13 +308,13 @@ impl Osu {
     #[cfg(feature = "replay")]
     #[cfg_attr(docsrs, doc(cfg(feature = "replay")))]
     #[inline]
-    pub fn replay(&self, score_id: u64) -> GetReplay<'_> {
+    pub const fn replay(&self, score_id: u64) -> GetReplay<'_> {
         GetReplay::new(self, score_id)
     }
 
     /// Get the bytes of a replay of a score in form of a `Vec<u8>`.
     #[inline]
-    pub fn replay_raw(&self, score_id: u64) -> GetReplayRaw<'_> {
+    pub const fn replay_raw(&self, score_id: u64) -> GetReplayRaw<'_> {
         GetReplayRaw::new(self, score_id)
     }
 
@@ -351,13 +347,13 @@ impl Osu {
 
     /// Get [`SeasonalBackgrounds`](crate::model::seasonal_backgrounds::SeasonalBackgrounds).
     #[inline]
-    pub fn seasonal_backgrounds(&self) -> GetSeasonalBackgrounds<'_> {
+    pub const fn seasonal_backgrounds(&self) -> GetSeasonalBackgrounds<'_> {
         GetSeasonalBackgrounds::new(self)
     }
 
     /// Get the vec of [`Spotlight`](crate::model::ranking::Spotlight).
     #[inline]
-    pub fn spotlights(&self) -> GetSpotlights<'_> {
+    pub const fn spotlights(&self) -> GetSpotlights<'_> {
         GetSpotlights::new(self)
     }
 
@@ -380,7 +376,7 @@ impl Osu {
     /// All other options will be filled.
     #[inline]
     pub fn user(&self, user_id: impl Into<UserId>) -> GetUser<'_> {
-        GetUser::new(self, user_id)
+        GetUser::new(self, user_id.into())
     }
 
     /// Get a vec of [`BeatmapsetExtended`](crate::model::beatmap::BeatmapsetExtended)s a user made.
@@ -456,53 +452,9 @@ impl Osu {
     pub fn wiki(&self, locale: impl Into<String>) -> GetWikiPage<'_> {
         GetWikiPage::new(self, locale)
     }
-
-    pub(crate) async fn request<T: DeserializeOwned>(&self, req: Request) -> OsuResult<T> {
-        self.inner.request(req).await
-    }
-
-    pub(crate) async fn request_raw(&self, req: Request) -> OsuResult<Bytes> {
-        self.inner.request_raw(req).await
-    }
-}
-
-#[cfg(feature = "cache")]
-impl Osu {
-    pub(crate) async fn cache_user(&self, user_id: UserId) -> OsuResult<u32> {
-        match user_id {
-            UserId::Id(id) => Ok(id),
-            UserId::Name(mut name) => {
-                // osu! usernames are ASCII-only
-                name.make_ascii_lowercase();
-
-                if let Some(id) = self.cache.get(&name) {
-                    return Ok(*id.value());
-                }
-
-                let user = self.user(UserId::Name(name.clone())).await?;
-                self.cache.insert(name, user.user_id);
-
-                #[cfg(feature = "metrics")]
-                // ! BUG: It's possible to increment twice for the same name due to
-                // ! concurrent function calls but since `DashMap::len` is a non-trivial
-                // ! method to call and `cache_user` is called frequently, it's hopefully
-                // ! fine to just naively increment here and ignore double-countings.
-                ::metrics::counter!("osu_username_cache_size").increment(1);
-
-                Ok(user.user_id)
-            }
-        }
-    }
-
-    pub(crate) fn update_cache(&self, user_id: u32, username: &crate::prelude::Username) {
-        let mut name = username.to_owned();
-        name.make_ascii_lowercase();
-        self.cache.insert(name, user_id);
-    }
 }
 
 impl Drop for Osu {
-    #[inline]
     fn drop(&mut self) {
         if let Some(tx) = self.token_loop_tx.take() {
             let _ = tx.send(());
@@ -510,235 +462,23 @@ impl Drop for Osu {
     }
 }
 
-type Body = Full<Bytes>;
-
-pub(crate) struct OsuRef {
-    client_id: u64,
-    client_secret: Box<str>,
-    http: HyperClient<HttpsConnector<HttpConnector>, Body>,
-    timeout: Duration,
-    ratelimiter: LeakyBucket,
-    token: CurrentToken,
-    retries: usize,
+pub(crate) struct OsuInner {
+    pub(crate) client_id: u64,
+    pub(crate) client_secret: Box<str>,
+    pub(crate) http: HyperClient<HttpsConnector<HttpConnector>, Full<Bytes>>,
+    pub(crate) timeout: Duration,
+    pub(crate) ratelimiter: Arc<RateLimiter>,
+    pub(crate) token: CurrentToken,
+    pub(crate) retries: u8,
+    #[cfg(feature = "cache")]
+    pub(crate) cache: dashmap::DashMap<crate::prelude::Username, u32>,
 }
 
-static MY_USER_AGENT: &str = concat!(
-    "Rust API v2 (",
-    env!("CARGO_PKG_REPOSITORY"),
-    " v",
-    env!("CARGO_PKG_VERSION"),
-    ")",
-);
-
-const APPLICATION_JSON: &str = "application/json";
-const X_API_VERSION: &str = "x-api-version";
-
-impl OsuRef {
-    async fn request_client_token(&self) -> OsuResult<TokenResponse> {
-        let mut body = JsonBody::new();
-
-        body.push_str("grant_type", "client_credentials");
-        let mut scopes = String::new();
-        Scopes::Public.format(&mut scopes, ' ');
-        body.push_str("scope", &scopes);
-
-        self.finish_token_request(body).await
+#[cfg(feature = "cache")]
+impl OsuInner {
+    pub(crate) fn update_cache(&self, user_id: u32, username: &crate::prelude::Username) {
+        let mut name = username.to_owned();
+        name.make_ascii_lowercase();
+        self.cache.insert(name, user_id);
     }
-
-    async fn request_user_token(&self, auth: &Authorization) -> OsuResult<TokenResponse> {
-        let mut body = JsonBody::new();
-
-        body.push_str("grant_type", "authorization_code");
-        body.push_str("redirect_uri", &auth.redirect_uri);
-        body.push_str("code", &auth.code);
-        let mut scopes = String::new();
-        auth.scopes.format(&mut scopes, ' ');
-        body.push_str("scope", &scopes);
-
-        self.finish_token_request(body).await
-    }
-
-    async fn request_refresh_token(&self, refresh: &str) -> OsuResult<TokenResponse> {
-        let mut body = JsonBody::new();
-
-        body.push_str("grant_type", "refresh_token");
-        body.push_str("refresh_token", refresh);
-
-        self.finish_token_request(body).await
-    }
-
-    async fn finish_token_request(&self, mut body: JsonBody) -> OsuResult<TokenResponse> {
-        body.push_int("client_id", self.client_id);
-        body.push_str("client_secret", &self.client_secret);
-
-        let bytes = body.into_bytes();
-        let len = bytes.len();
-        let body = Full::from(bytes);
-        let url = "https://osu.ppy.sh/oauth/token";
-
-        let req = HyperRequest::post(url)
-            .header(USER_AGENT, MY_USER_AGENT)
-            .header(ACCEPT, APPLICATION_JSON)
-            .header(CONTENT_TYPE, APPLICATION_JSON)
-            .header(CONTENT_LENGTH, len)
-            .body(body)?;
-
-        let resp = self.send_request(req).await?;
-        let bytes = self.handle_status(resp).await?;
-
-        parse_bytes(&bytes)
-    }
-
-    async fn request<T: DeserializeOwned>(&self, req: Request) -> OsuResult<T> {
-        let bytes = self.request_raw(req).await?;
-
-        // let text = String::from_utf8_lossy(&bytes);
-        // println!("Response:\n{text}");
-
-        parse_bytes(&bytes)
-    }
-
-    async fn request_raw(&self, req: Request) -> OsuResult<Bytes> {
-        let Request {
-            query,
-            route,
-            body,
-            api_version,
-        } = req;
-
-        let (method, path) = route.to_parts();
-
-        #[cfg(feature = "metrics")]
-        let start = std::time::Instant::now();
-
-        let mut url = format!("https://osu.ppy.sh/api/v2/{path}");
-
-        if let Some(ref query) = query {
-            url.push('?');
-            url.push_str(query);
-        }
-
-        let resp = self.raw(url, method, body, api_version).await?;
-        let bytes = self.handle_status(resp).await?;
-
-        #[cfg(feature = "metrics")]
-        ::metrics::histogram!("osu_response_time", "route" => route.name()).record(start.elapsed());
-
-        Ok(bytes)
-    }
-
-    async fn raw(
-        &self,
-        url: String,
-        method: Method,
-        body: JsonBody,
-        api_version: u32,
-    ) -> OsuResult<Response<Incoming>> {
-        let url = Url::parse(&url).map_err(|source| OsuError::Url { source, url })?;
-        debug!("URL: {url}");
-
-        let token_res = self.token.get(|token| match token.access {
-            Some(ref access) => match HeaderValue::from_str(access) {
-                Ok(header) => Ok(header),
-                Err(source) => Err(OsuError::CreatingTokenHeader { source }),
-            },
-            None => Err(OsuError::NoToken),
-        });
-
-        let token_header = token_res?;
-        let bytes = body.into_bytes();
-        let len = bytes.len();
-        let body = Body::from(bytes);
-
-        let mut req_builder = HyperRequest::builder()
-            .method(method)
-            .uri(url.as_str())
-            .header(AUTHORIZATION, token_header)
-            .header(USER_AGENT, MY_USER_AGENT)
-            .header(X_API_VERSION, api_version)
-            .header(ACCEPT, APPLICATION_JSON)
-            .header(CONTENT_LENGTH, len);
-
-        if len > 0 {
-            req_builder = req_builder.header(CONTENT_TYPE, APPLICATION_JSON);
-        }
-
-        let req = req_builder.body(body)?;
-
-        self.send_request(req).await
-    }
-
-    async fn send_request(&self, req: HyperRequest<Body>) -> OsuResult<Response<Incoming>> {
-        self.ratelimiter.acquire_one().await;
-
-        let mut attempt = 0;
-
-        loop {
-            let req = clone_req(&req);
-
-            match tokio::time::timeout(self.timeout, self.http.request(req)).await {
-                Ok(res) => return res.map_err(|source| OsuError::Request { source }),
-                Err(_) if attempt < self.retries => {
-                    warn!("Timed out on attempt {attempt}, retry...");
-                    attempt += 1;
-                }
-                Err(_) => return Err(OsuError::RequestTimeout),
-            }
-        }
-    }
-
-    async fn handle_status(&self, resp: Response<Incoming>) -> OsuResult<Bytes> {
-        let status = resp.status();
-
-        let bytes = resp
-            .into_body()
-            .collect()
-            .await
-            .map_err(|source| OsuError::ChunkingResponse { source })?
-            .to_bytes();
-
-        match status {
-            StatusCode::OK => return Ok(bytes),
-            StatusCode::NOT_FOUND => return Err(OsuError::NotFound),
-            StatusCode::SERVICE_UNAVAILABLE => {
-                let body = String::from_utf8_lossy(&bytes).into_owned();
-
-                return Err(OsuError::ServiceUnavailable(body));
-            }
-            StatusCode::TOO_MANY_REQUESTS => warn!("Got a 429 response"),
-            _ => {}
-        }
-
-        let body = String::from_utf8_lossy(&bytes).into_owned();
-
-        let source = match serde_json::from_slice(&bytes) {
-            Ok(source) => source,
-            Err(source) => return Err(OsuError::Parsing { body, source }),
-        };
-
-        Err(OsuError::Response {
-            body,
-            source,
-            status,
-        })
-    }
-}
-
-#[inline]
-fn parse_bytes<T: DeserializeOwned>(bytes: &Bytes) -> OsuResult<T> {
-    serde_json::from_slice(bytes).map_err(|source| {
-        let body = String::from_utf8_lossy(bytes).into_owned();
-
-        OsuError::Parsing { body, source }
-    })
-}
-
-fn clone_req(req: &HyperRequest<Body>) -> HyperRequest<Body> {
-    let mut builder = HyperRequest::builder().method(req.method()).uri(req.uri());
-
-    if let Some(headers) = builder.headers_mut() {
-        req.headers().clone_into(headers);
-    }
-
-    builder.body(req.body().to_owned()).unwrap()
 }

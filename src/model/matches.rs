@@ -1,12 +1,4 @@
-use super::{
-    beatmap::Beatmap,
-    mods::{GameMods, GameModsIntermode},
-    score::LegacyScoreStatistics,
-    serde_util,
-    user::User,
-    GameMode,
-};
-use crate::{error::OsuError, Osu, OsuResult};
+use std::{collections::HashMap, fmt, slice::Iter, vec::Drain};
 
 use rosu_mods::serde::GameModsSeed;
 use serde::{
@@ -16,8 +8,18 @@ use serde::{
     Deserialize,
 };
 use serde_json::value::RawValue;
-use std::{collections::HashMap, fmt, slice::Iter, vec::Drain};
 use time::OffsetDateTime;
+
+use crate::{error::OsuError, Osu, OsuResult};
+
+use super::{
+    beatmap::Beatmap,
+    mods::{GameMods, GameModsIntermode},
+    score::LegacyScoreStatistics,
+    serde_util,
+    user::User,
+    CacheUserFn, ContainedUsers, GameMode,
+};
 
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
@@ -516,6 +518,10 @@ impl MatchList {
     }
 }
 
+impl ContainedUsers for MatchList {
+    fn apply_to_users(&self, _: impl CacheUserFn) {}
+}
+
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub struct MatchListParams {
@@ -683,6 +689,12 @@ pub struct OsuMatch {
     /// Maps user ids to users
     #[cfg_attr(feature = "serialize", serde(serialize_with = "serialize_match_users"))]
     pub users: HashMap<u32, User>,
+}
+
+impl ContainedUsers for OsuMatch {
+    fn apply_to_users(&self, f: impl CacheUserFn) {
+        self.users.apply_to_users(f);
+    }
 }
 
 #[cfg(feature = "serialize")]

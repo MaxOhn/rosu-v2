@@ -1,11 +1,12 @@
-use super::serde_util;
+use std::fmt;
 
 use serde::{
     de::{Deserializer, Error, IgnoredAny, MapAccess, Visitor},
     Deserialize,
 };
-use std::fmt;
 use time::OffsetDateTime;
+
+use super::{serde_util, CacheUserFn, ContainedUsers};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
@@ -32,6 +33,10 @@ impl ForumPosts {
     pub const fn has_more(&self) -> bool {
         self.cursor.is_some()
     }
+}
+
+impl ContainedUsers for ForumPosts {
+    fn apply_to_users(&self, _: impl CacheUserFn) {}
 }
 
 #[derive(Clone, Debug)]

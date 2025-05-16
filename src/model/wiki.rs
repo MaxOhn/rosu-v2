@@ -1,5 +1,7 @@
 use serde::Deserialize;
 
+use super::{CacheUserFn, ContainedUsers};
+
 /// Represents a wiki article
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
@@ -23,4 +25,8 @@ pub struct WikiPage {
     pub tags: Vec<String>,
     /// The article's title
     pub title: String,
+}
+
+impl ContainedUsers for WikiPage {
+    fn apply_to_users(&self, _: impl CacheUserFn) {}
 }

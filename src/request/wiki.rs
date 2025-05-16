@@ -1,26 +1,18 @@
-use crate::{
-    model::wiki::WikiPage,
-    request::{Pending, Request},
-    routing::Route,
-    Osu,
-};
+use crate::{model::wiki::WikiPage, request::Request, routing::Route, Osu};
 
-/// Get a [`WikiPage`](crate::model::wiki::WikiPage) or image data.
-#[must_use = "futures do nothing unless you `.await` or poll them"]
+/// Get a [`WikiPage`] or image data.
+#[must_use = "requests must be configured and executed"]
 pub struct GetWikiPage<'a> {
-    fut: Option<Pending<'a, WikiPage>>, // TODO: Make this enum; either WikiPage or binary blob
     osu: &'a Osu,
-    locale: Option<Box<str>>,
+    locale: Box<str>,
     page: Option<Box<str>>,
 }
 
 impl<'a> GetWikiPage<'a> {
-    #[inline]
     pub(crate) fn new(osu: &'a Osu, locale: impl Into<String>) -> Self {
         Self {
-            fut: None,
             osu,
-            locale: Some(Box::from(locale.into())),
+            locale: Box::from(locale.into()),
             page: None,
         }
     }
@@ -32,15 +24,13 @@ impl<'a> GetWikiPage<'a> {
 
         self
     }
-
-    fn start(&mut self) -> Pending<'a, WikiPage> {
-        let req = Request::new(Route::GetWikiPage {
-            locale: self.locale.take().unwrap(),
-            page: self.page.take(),
-        });
-
-        Box::pin(self.osu.request(req))
-    }
 }
 
-poll_req!(GetWikiPage => WikiPage);
+into_future! {
+    |self: GetWikiPage<'_>| -> WikiPage {
+        Request::new(Route::GetWikiPage {
+            locale: self.locale,
+            page: self.page,
+        })
+    }
+}

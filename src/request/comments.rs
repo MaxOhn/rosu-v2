@@ -1,19 +1,17 @@
 use crate::{
     model::comments::{CommentBundle, CommentSort},
-    request::{serialize::maybe_comment_sort, Pending, Query, Request},
+    request::{serialize::maybe_comment_sort, Query, Request},
     routing::Route,
     Osu,
 };
 
 use serde::Serialize;
 
-/// Get a list of comments and their replies up to two levels deep
-/// in form of a [`CommentBundle`](crate::model::comments::CommentBundle).
-#[must_use = "futures do nothing unless you `.await` or poll them"]
+/// Get a list of comments and their replies up to two levels deep in form of a
+/// [`CommentBundle`].
+#[must_use = "requests must be configured and executed"]
 #[derive(Serialize)]
 pub struct GetComments<'a> {
-    #[serde(skip)]
-    fut: Option<Pending<'a, CommentBundle>>,
     #[serde(skip)]
     osu: &'a Osu,
     commentable_type: Option<String>,
@@ -26,10 +24,8 @@ pub struct GetComments<'a> {
 }
 
 impl<'a> GetComments<'a> {
-    #[inline]
     pub(crate) const fn new(osu: &'a Osu) -> Self {
         Self {
-            fut: None,
             osu,
             commentable_type: None,
             commentable_id: None,
@@ -93,13 +89,10 @@ impl<'a> GetComments<'a> {
 
         self
     }
-
-    fn start(&mut self) -> Pending<'a, CommentBundle> {
-        let query = Query::encode(self);
-        let req = Request::with_query(Route::GetComments, query);
-
-        Box::pin(self.osu.request(req))
-    }
 }
 
-poll_req!(GetComments => CommentBundle);
+into_future! {
+    |self: GetComments<'_>| -> CommentBundle {
+        Request::with_query(Route::GetComments, Query::encode(&self))
+    }
+}

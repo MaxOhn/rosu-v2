@@ -1,4 +1,4 @@
-use super::{serde_util, GameMode};
+use super::{serde_util, CacheUserFn, ContainedUsers, GameMode};
 
 use serde::{
     de::{Error, IgnoredAny, MapAccess, SeqAccess, Visitor},
@@ -500,6 +500,12 @@ pub struct UserExtended {
     pub medals: Option<Vec<MedalCompact>>,
 }
 
+impl ContainedUsers for UserExtended {
+    fn apply_to_users(&self, f: impl CacheUserFn) {
+        f(self.user_id, &self.username);
+    }
+}
+
 /// Mainly used for embedding in certain responses to save additional api lookups.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
@@ -662,6 +668,12 @@ pub struct User {
     pub team: Option<Team>,
 }
 
+impl ContainedUsers for User {
+    fn apply_to_users(&self, f: impl CacheUserFn) {
+        f(self.user_id, &self.username);
+    }
+}
+
 impl From<UserExtended> for User {
     fn from(user: UserExtended) -> Self {
         Self {
@@ -718,7 +730,8 @@ impl From<UserExtended> for User {
 }
 
 #[derive(Deserialize)]
-pub(crate) struct Users {
+#[doc(hidden)]
+pub struct Users {
     pub(crate) users: Vec<User>,
 }
 

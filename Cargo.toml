@@ -26,12 +26,13 @@ deny_unknown_fields = []
 [dependencies]
 bytes = { version = "1.10.0", default-features = false }
 futures = { version = "0.3", default-features = false }
-leaky-bucket-lite = { version = "0.5" }
+leaky-bucket = { version = "1.1.2" }
 http-body-util = { version = "0.1.2", default-features = false }
 hyper = { version = "1.6.0", default-features = false }
 hyper-util = { version = "0.1.10", default-features = false, features = ["client-legacy", "http1", "http2", "tokio"] }
 hyper-rustls = { version = "0.27.5", default-features = false, features = ["http1", "http2", "native-tokio", "ring"] }
 itoa = { version = "1.0.9" }
+pin-project = { version = "1.1.10" }
 rosu-mods = { version = "0.3.0", features = ["serde"] }
 serde = { version = "1.0.203", default-features = false, features = ["derive"] }
 serde_json = { version = "1.0", default-features = false, features = ["std", "raw_value"] }

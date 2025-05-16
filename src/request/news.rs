@@ -1,18 +1,16 @@
 use crate::{
     model::news::News,
-    request::{Pending, Query, Request},
+    request::{Query, Request},
     routing::Route,
     Osu,
 };
 
 use serde::Serialize;
 
-/// Get a [`News`](crate::model::news::News) struct.
-#[must_use = "futures do nothing unless you `.await` or poll them"]
+/// Get a [`News`] struct.
+#[must_use = "requests must be configured and executed"]
 #[derive(Serialize)]
 pub struct GetNews<'a> {
-    #[serde(skip)]
-    fut: Option<Pending<'a, News>>,
     #[serde(skip)]
     osu: &'a Osu,
     news: Option<()>, // TODO
@@ -21,23 +19,13 @@ pub struct GetNews<'a> {
 }
 
 impl<'a> GetNews<'a> {
-    #[inline]
-    pub(crate) fn new(osu: &'a Osu) -> Self {
+    pub(crate) const fn new(osu: &'a Osu) -> Self {
         Self {
-            fut: None,
             osu,
             news: None,
             cursor: None,
         }
     }
-
-    // TODO
-    // #[inline]
-    // pub fn news(mut self, news: ()) -> Self {
-    //     self.news = Some(news);
-
-    //     self
-    // }
 
     #[inline]
     pub(crate) const fn cursor(mut self, cursor: &'a str) -> Self {
@@ -45,13 +33,13 @@ impl<'a> GetNews<'a> {
 
         self
     }
-
-    fn start(&mut self) -> Pending<'a, News> {
-        let query = Query::encode(self);
-        let req = Request::with_query(Route::GetNews { news: self.news }, query);
-
-        Box::pin(self.osu.request(req))
-    }
 }
 
-poll_req!(GetNews => News);
+into_future! {
+    |self: GetNews<'_>| -> News {
+        Request::with_query(
+            Route::GetNews { news: self.news },
+            Query::encode(&self),
+        )
+    }
+}

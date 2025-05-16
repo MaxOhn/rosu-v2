@@ -1,118 +1,98 @@
+use std::fmt;
+
+use itoa::Buffer;
+use serde::Serialize;
+use smallstr::SmallString;
+
 use crate::{
     model::{
         beatmap::{BeatmapsetExtended, MostPlayedMap},
         event::Event,
         kudosu::KudosuHistory,
         score::Score,
-        user::{User, UserBeatmapsetsKind, UserExtended, Users},
+        user::{User, UserBeatmapsetsKind, UserExtended, Username, Users},
         GameMode,
     },
     request::{
-        serialize::{maybe_bool_as_u8, maybe_mode_as_str, maybe_user_id_type},
-        Pending, Query, Request,
+        serialize::{maybe_bool_as_u8, maybe_mode_as_str, user_id_type},
+        Query, Request,
     },
     routing::Route,
     Osu,
 };
 
-use futures::future::TryFutureExt;
-use itoa::Buffer;
-use serde::Serialize;
+/// Either a user id as `u32` or a username as [`Username`].
+///
+/// Use the `From` implementations to create this enum.
+///
+/// # Example
+///
+/// ```
+/// use rosu_v2::request::UserId;
+///
+/// let user_id: UserId = 123_456.into();
+/// let user_id: UserId = "my username".into();
+/// ```
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub enum UserId {
+    /// Represents a user through their user id
+    Id(u32),
+    /// Represents a user through their username
+    Name(Username),
+}
 
-pub use self::user_id::UserId;
-
-#[cfg(feature = "cache")]
-mod user_id {
-    use smallstr::SmallString;
-    use std::fmt;
-
-    use crate::model::user::Username;
-
-    /// Either a user id as u32 or a username as String.
-    ///
-    /// Use the `From` implementations to create this enum
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use rosu_v2::request::UserId;
-    ///
-    /// let user_id: UserId = 123_456.into();
-    /// let user_id: UserId = "my username".into();
-    /// ```
-    #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-    pub enum UserId {
-        /// Represents a user through their user id
-        Id(u32),
-        /// Represents a user through their username
-        Name(Username),
+impl From<u32> for UserId {
+    #[inline]
+    fn from(id: u32) -> Self {
+        Self::Id(id)
     }
+}
 
-    impl From<u32> for UserId {
-        #[inline]
-        fn from(id: u32) -> Self {
-            Self::Id(id)
-        }
+impl From<&str> for UserId {
+    #[inline]
+    fn from(name: &str) -> Self {
+        Self::Name(SmallString::from_str(name))
     }
+}
 
-    impl From<&str> for UserId {
-        #[inline]
-        fn from(name: &str) -> Self {
-            Self::Name(SmallString::from_str(name))
-        }
+impl From<&String> for UserId {
+    #[inline]
+    fn from(name: &String) -> Self {
+        Self::Name(SmallString::from_str(name))
     }
+}
 
-    impl From<&String> for UserId {
-        #[inline]
-        fn from(name: &String) -> Self {
-            Self::Name(SmallString::from_str(name))
-        }
+impl From<String> for UserId {
+    #[inline]
+    fn from(name: String) -> Self {
+        Self::Name(SmallString::from_string(name))
     }
+}
 
-    impl From<String> for UserId {
-        #[inline]
-        fn from(name: String) -> Self {
-            Self::Name(SmallString::from_string(name))
-        }
-    }
-
-    impl fmt::Display for UserId {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            match self {
-                Self::Id(id) => write!(f, "{id}"),
-                Self::Name(name) => f.write_str(name),
-            }
+impl fmt::Display for UserId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Id(id) => write!(f, "{id}"),
+            Self::Name(name) => f.write_str(name),
         }
     }
 }
 
-#[cfg(not(feature = "cache"))]
-mod user_id {
-    /// A `u32` user id.
-    pub type UserId = u32;
-}
-
-/// Get the [`UserExtended`](crate::model::user::UserExtended) of the authenticated user.
+/// Get the [`UserExtended`] of the authenticated user.
 ///
 /// Note that the client has to be initialized with the `Identify` scope
 /// through the OAuth process in order for this endpoint to not return an error.
 ///
 /// See [`OsuBuilder::with_authorization`](crate::OsuBuilder::with_authorization).
-#[must_use = "futures do nothing unless you `.await` or poll them"]
+#[must_use = "requests must be configured and executed"]
 pub struct GetOwnData<'a> {
-    fut: Option<Pending<'a, UserExtended>>,
     osu: &'a Osu,
     mode: Option<GameMode>,
 }
 
 impl<'a> GetOwnData<'a> {
-    #[inline]
     pub(crate) const fn new(osu: &'a Osu) -> Self {
-        Self {
-            fut: None,
-            osu,
-            mode: None,
-        }
+        Self { osu, mode: None }
     }
 
     /// Specify the mode for which the user data should be retrieved
@@ -122,78 +102,50 @@ impl<'a> GetOwnData<'a> {
 
         self
     }
+}
 
-    fn start(&mut self) -> Pending<'a, UserExtended> {
-        let req = Request::new(Route::GetOwnData { mode: self.mode });
-        let osu = self.osu;
-        let fut = osu.request::<UserExtended>(req);
-
-        #[cfg(feature = "cache")]
-        let fut = fut.inspect_ok(move |user| osu.update_cache(user.user_id, &user.username));
-
-        Box::pin(fut)
+into_future! {
+    |self: GetOwnData<'_>| -> UserExtended {
+        Request::new(Route::GetOwnData { mode: self.mode })
     }
 }
 
-poll_req!(GetOwnData => UserExtended);
-
-/// Get all friends of the authenticated user as a vec of [`User`](crate::model::user::User).
+/// Get all friends of the authenticated user as a vec of [`User`].
 ///
 /// Note that the client has to be initialized with the `FriendsRead` scope
 /// through the OAuth process in order for this endpoint to not return an error.
 ///
 /// See [`OsuBuilder::with_authorization`](crate::OsuBuilder::with_authorization).
-#[must_use = "futures do nothing unless you `.await` or poll them"]
+#[must_use = "requests must be configured and executed"]
 pub struct GetFriends<'a> {
-    fut: Option<Pending<'a, Vec<User>>>,
     osu: &'a Osu,
 }
 
 impl<'a> GetFriends<'a> {
-    #[inline]
     pub(crate) const fn new(osu: &'a Osu) -> Self {
-        Self { fut: None, osu }
-    }
-
-    fn start(&mut self) -> Pending<'a, Vec<User>> {
-        let req = Request::new(Route::GetFriends);
-        let osu = self.osu;
-        let fut = osu.request::<Vec<User>>(req);
-
-        #[cfg(feature = "cache")]
-        let fut = fut.inspect_ok(move |users| {
-            for user in users.iter() {
-                osu.update_cache(user.user_id, &user.username);
-            }
-        });
-
-        Box::pin(fut)
+        Self { osu }
     }
 }
 
-poll_req!(GetFriends => Vec<User>);
+into_future! {
+    |self: GetFriends<'_>| -> Vec<User> {
+        Request::new(Route::GetFriends)
+    }
+}
 
-/// Get a [`UserExtended`](crate::model::user::UserExtended) by their id.
-#[must_use = "futures do nothing unless you `.await` or poll them"]
-#[derive(Serialize)]
+/// Get a [`UserExtended`].
+#[must_use = "requests must be configured and executed"]
 pub struct GetUser<'a> {
-    #[serde(skip)]
-    fut: Option<Pending<'a, UserExtended>>,
-    #[serde(skip)]
     osu: &'a Osu,
-    #[serde(rename(serialize = "key"), serialize_with = "maybe_user_id_type")]
-    user_id: Option<UserId>,
-    #[serde(skip)]
+    user_id: UserId,
     mode: Option<GameMode>,
 }
 
 impl<'a> GetUser<'a> {
-    #[inline]
-    pub(crate) fn new(osu: &'a Osu, user_id: impl Into<UserId>) -> Self {
+    pub(crate) const fn new(osu: &'a Osu, user_id: UserId) -> Self {
         Self {
-            fut: None,
             osu,
-            user_id: Some(user_id.into()),
+            user_id,
             mode: None,
         }
     }
@@ -206,50 +158,50 @@ impl<'a> GetUser<'a> {
         self
     }
 
-    fn start(&mut self) -> Pending<'a, UserExtended> {
-        let query = Query::encode(self);
-        let user_id = self.user_id.take().unwrap();
+    /// Auxiliary function so that [`GetUser`]'s future can be created without
+    /// an actual [`GetUser`] instance.
+    ///
+    /// Used for username caching.
+    pub(crate) fn create_request(user_id: UserId, mode: Option<GameMode>) -> Request {
+        #[derive(Serialize)]
+        pub struct UserQuery {
+            #[serde(rename(serialize = "key"), serialize_with = "user_id_type")]
+            user_id: UserId,
+        }
 
-        let route = Route::GetUser {
-            user_id,
-            mode: self.mode,
-        };
+        let user_query = UserQuery { user_id };
+        let query = Query::encode(&user_query);
+        let user_id = user_query.user_id;
 
-        let req = Request::with_query(route, query);
-        let osu = self.osu;
-        let fut = osu.request::<UserExtended>(req);
+        let route = Route::GetUser { user_id, mode };
 
-        #[cfg(feature = "cache")]
-        let fut = fut.inspect_ok(move |user| osu.update_cache(user.user_id, &user.username));
-
-        Box::pin(fut)
+        Request::with_query(route, query)
     }
 }
 
-poll_req!(GetUser => UserExtended);
+into_future! {
+    |self: GetUser<'_>| -> UserExtended {
+        Self::create_request(self.user_id, self.mode)
+    }
+}
 
-/// Get the [`BeatmapsetExtended`](crate::model::beatmap::BeatmapsetExtended)s of a user by their id.
-#[must_use = "futures do nothing unless you `.await` or poll them"]
+/// Get the [`BeatmapsetExtended`]s of a user.
+#[must_use = "requests must be configured and executed"]
 #[derive(Serialize)]
 pub struct GetUserBeatmapsets<'a> {
-    #[serde(skip)]
-    fut: Option<Pending<'a, Vec<BeatmapsetExtended>>>,
     #[serde(skip)]
     osu: &'a Osu,
     #[serde(skip)]
     map_kind: UserBeatmapsetsKind,
     limit: Option<usize>,
     offset: Option<usize>,
-
     #[serde(skip)]
     user_id: UserId,
 }
 
 impl<'a> GetUserBeatmapsets<'a> {
-    #[inline]
     pub(crate) const fn new(osu: &'a Osu, user_id: UserId, kind: UserBeatmapsetsKind) -> Self {
         Self {
-            fut: None,
             osu,
             user_id,
             map_kind: kind,
@@ -282,59 +234,40 @@ impl<'a> GetUserBeatmapsets<'a> {
 
         self
     }
+}
 
-    fn start(&mut self) -> Pending<'a, Vec<BeatmapsetExtended>> {
-        let query = Query::encode(self);
-        let map_type = self.map_kind.as_str();
-        let osu = self.osu;
-
-        #[cfg(not(feature = "cache"))]
-        {
-            let user_id = self.user_id;
-            let req = Request::with_query(Route::GetUserBeatmapsets { user_id, map_type }, query);
-
-            Box::pin(osu.request(req))
+into_future! {
+    |self: GetUserBeatmapsets<'_>| -> Vec<BeatmapsetExtended> {
+        GetUserBeatmapsetsData {
+            map_kind: UserBeatmapsetsKind = self.map_kind,
+            query: String = Query::encode(&self),
         }
-
-        #[cfg(feature = "cache")]
-        {
-            let user_id = std::mem::replace(&mut self.user_id, UserId::Id(0));
-
-            let fut = osu
-                .cache_user(user_id)
-                .map_ok(move |user_id| {
-                    Request::with_query(Route::GetUserBeatmapsets { user_id, map_type }, query)
-                })
-                .and_then(move |req| osu.request(req));
-
-            Box::pin(fut)
-        }
+    } => |user_id, data| {
+        Request::with_query(
+            Route::GetUserBeatmapsets {
+                user_id,
+                map_type: data.map_kind.as_str(),
+            },
+            data.query,
+        )
     }
 }
 
-poll_req!(GetUserBeatmapsets => Vec<BeatmapsetExtended>);
-
-/// Get a user's kudosu history by their user id in form of a vec
-/// of [`KudosuHistory`](crate::model::kudosu::KudosuHistory).
-#[must_use = "futures do nothing unless you `.await` or poll them"]
+/// Get a user's kudosu history as a vec of [`KudosuHistory`].
+#[must_use = "requests must be configured and executed"]
 #[derive(Serialize)]
 pub struct GetUserKudosu<'a> {
-    #[serde(skip)]
-    fut: Option<Pending<'a, Vec<KudosuHistory>>>,
     #[serde(skip)]
     osu: &'a Osu,
     limit: Option<usize>,
     offset: Option<usize>,
-
     #[serde(skip)]
     user_id: UserId,
 }
 
 impl<'a> GetUserKudosu<'a> {
-    #[inline]
     pub(crate) const fn new(osu: &'a Osu, user_id: UserId) -> Self {
         Self {
-            fut: None,
             osu,
             user_id,
             limit: None,
@@ -358,56 +291,33 @@ impl<'a> GetUserKudosu<'a> {
 
         self
     }
+}
 
-    fn start(&mut self) -> Pending<'a, Vec<KudosuHistory>> {
-        let query = Query::encode(self);
-        let osu = self.osu;
-
-        #[cfg(not(feature = "cache"))]
-        {
-            let user_id = self.user_id;
-            let req = Request::with_query(Route::GetUserKudosu { user_id }, query);
-
-            Box::pin(osu.request(req))
+into_future! {
+    |self: GetUserKudosu<'_>| -> Vec<KudosuHistory> {
+        GetUserKudosuData {
+            query: String = Query::encode(&self),
         }
-
-        #[cfg(feature = "cache")]
-        {
-            let user_id = std::mem::replace(&mut self.user_id, UserId::Id(0));
-
-            let fut = osu
-                .cache_user(user_id)
-                .map_ok(move |user_id| Request::with_query(Route::GetUserKudosu { user_id }, query))
-                .and_then(move |req| osu.request(req));
-
-            Box::pin(fut)
-        }
+    } => |user_id, data| {
+        Request::with_query(Route::GetUserKudosu { user_id }, data.query)
     }
 }
 
-poll_req!(GetUserKudosu => Vec<KudosuHistory>);
-
-/// Get the most played beatmaps of a user by their id in form
-/// of a vec of [`MostPlayedMap`](crate::model::beatmap::MostPlayedMap).
-#[must_use = "futures do nothing unless you `.await` or poll them"]
+/// Get the most played beatmaps of a user as a vec of [`MostPlayedMap`].
+#[must_use = "requests must be configured and executed"]
 #[derive(Serialize)]
 pub struct GetUserMostPlayed<'a> {
-    #[serde(skip)]
-    fut: Option<Pending<'a, Vec<MostPlayedMap>>>,
     #[serde(skip)]
     osu: &'a Osu,
     limit: Option<usize>,
     offset: Option<usize>,
-
     #[serde(skip)]
     user_id: UserId,
 }
 
 impl<'a> GetUserMostPlayed<'a> {
-    #[inline]
     pub(crate) const fn new(osu: &'a Osu, user_id: UserId) -> Self {
         Self {
-            fut: None,
             osu,
             user_id,
             limit: None,
@@ -431,66 +341,38 @@ impl<'a> GetUserMostPlayed<'a> {
 
         self
     }
+}
 
-    fn start(&mut self) -> Pending<'a, Vec<MostPlayedMap>> {
-        let query = Query::encode(self);
-        let osu = self.osu;
-
-        #[cfg(not(feature = "cache"))]
-        {
-            let route = Route::GetUserBeatmapsets {
-                user_id: self.user_id,
-                map_type: "most_played",
-            };
-
-            let req = Request::with_query(route, query);
-
-            Box::pin(osu.request(req))
+into_future! {
+    |self: GetUserMostPlayed<'_>| -> Vec<MostPlayedMap> {
+        GetUserMostPlayedData {
+            query: String = Query::encode(&self),
         }
+    } => |user_id, data| {
+        let route = Route::GetUserBeatmapsets {
+            user_id,
+            map_type: "most_played",
+        };
 
-        #[cfg(feature = "cache")]
-        {
-            let user_id = std::mem::replace(&mut self.user_id, UserId::Id(0));
-
-            let fut = osu
-                .cache_user(user_id)
-                .map_ok(move |user_id| {
-                    let route = Route::GetUserBeatmapsets {
-                        user_id,
-                        map_type: "most_played",
-                    };
-
-                    Request::with_query(route, query)
-                })
-                .and_then(move |req| osu.request::<Vec<MostPlayedMap>>(req));
-
-            Box::pin(fut)
-        }
+        Request::with_query(route, data.query)
     }
 }
 
-poll_req!(GetUserMostPlayed => Vec<MostPlayedMap>);
-
-/// Get a vec of [`Event`](crate::model::event::Event) of a user by their id.
-#[must_use = "futures do nothing unless you `.await` or poll them"]
+/// Get a vec of [`Event`] of a user.
+#[must_use = "requests must be configured and executed"]
 #[derive(Serialize)]
 pub struct GetRecentActivity<'a> {
-    #[serde(skip)]
-    fut: Option<Pending<'a, Vec<Event>>>,
     #[serde(skip)]
     osu: &'a Osu,
     limit: Option<usize>,
     offset: Option<usize>,
-
     #[serde(skip)]
     user_id: UserId,
 }
 
 impl<'a> GetRecentActivity<'a> {
-    #[inline]
     pub(crate) const fn new(osu: &'a Osu, user_id: UserId) -> Self {
         Self {
-            fut: None,
             osu,
             user_id,
             limit: None,
@@ -514,36 +396,17 @@ impl<'a> GetRecentActivity<'a> {
 
         self
     }
-
-    fn start(&mut self) -> Pending<'a, Vec<Event>> {
-        let query = Query::encode(self);
-        let osu = self.osu;
-
-        #[cfg(not(feature = "cache"))]
-        {
-            let user_id = self.user_id;
-            let req = Request::with_query(Route::GetRecentActivity { user_id }, query);
-
-            Box::pin(osu.request(req))
-        }
-
-        #[cfg(feature = "cache")]
-        {
-            let user_id = std::mem::replace(&mut self.user_id, UserId::Id(0));
-
-            let fut = osu
-                .cache_user(user_id)
-                .map_ok(move |user_id| {
-                    Request::with_query(Route::GetRecentActivity { user_id }, query)
-                })
-                .and_then(move |req| osu.request(req));
-
-            Box::pin(fut)
-        }
-    }
 }
 
-poll_req!(GetRecentActivity => Vec<Event>);
+into_future! {
+    |self: GetRecentActivity<'_>| -> Vec<Event> {
+        GetRecentActivityData {
+            query: String = Query::encode(&self),
+        }
+    } => |user_id, data| {
+        Request::with_query(Route::GetRecentActivity { user_id }, data.query)
+    }
+}
 
 #[derive(Copy, Clone, Debug)]
 pub(crate) enum ScoreType {
@@ -564,17 +427,15 @@ impl ScoreType {
     }
 }
 
-/// Get a vec of [`Score`](crate::model::score::Score) of a user by the user's id.
+/// Get a vec of [`Score`]s of a user.
 ///
 /// If no score type is specified by either
 /// [`best`](crate::request::GetUserScores::best),
 /// [`firsts`](crate::request::GetUserScores::firsts),
 /// or [`recent`](crate::request::GetUserScores::recent), it defaults to `best`.
-#[must_use = "futures do nothing unless you `.await` or poll them"]
+#[must_use = "requests must be configured and executed"]
 #[derive(Serialize)]
 pub struct GetUserScores<'a> {
-    #[serde(skip)]
-    fut: Option<Pending<'a, Vec<Score>>>,
     #[serde(skip)]
     osu: &'a Osu,
     #[serde(skip)]
@@ -588,16 +449,13 @@ pub struct GetUserScores<'a> {
     legacy_only: bool,
     #[serde(skip)]
     legacy_scores: bool,
-
     #[serde(skip)]
     user_id: UserId,
 }
 
 impl<'a> GetUserScores<'a> {
-    #[inline]
     pub(crate) const fn new(osu: &'a Osu, user_id: UserId) -> Self {
         Self {
-            fut: None,
             osu,
             user_id,
             score_type: ScoreType::Best,
@@ -695,69 +553,39 @@ impl<'a> GetUserScores<'a> {
 
         self
     }
+}
 
-    fn start(&mut self) -> Pending<'a, Vec<Score>> {
-        let query = Query::encode(self);
-        let osu = self.osu;
+into_future! {
+    |self: GetUserScores<'_>| -> Vec<Score> {
+        GetUserScoresData {
+            query: String = Query::encode(&self),
+            score_type: ScoreType = self.score_type,
+            legacy_scores: bool = self.legacy_scores,
+        }
+    } => |user_id, data| {
+        let route = Route::GetUserScores {
+            user_id,
+            score_type: data.score_type,
+        };
 
-        #[cfg(not(feature = "cache"))]
-        {
-            let route = Route::GetUserScores {
-                user_id: self.user_id,
-                score_type: self.score_type,
-            };
+        let mut req = Request::with_query(route, data.query);
 
-            let mut req = Request::with_query(route, query);
-
-            if self.legacy_scores {
-                req.api_version(0);
-            }
-
-            Box::pin(osu.request(req))
+        if data.legacy_scores {
+            req.api_version(0);
         }
 
-        #[cfg(feature = "cache")]
-        {
-            let score_type = self.score_type;
-            let legacy_scores = self.legacy_scores;
-            let user_id = std::mem::replace(&mut self.user_id, UserId::Id(0));
-
-            let fut = osu
-                .cache_user(user_id)
-                .map_ok(move |user_id| {
-                    let route = Route::GetUserScores {
-                        user_id,
-                        score_type,
-                    };
-
-                    let mut req = Request::with_query(route, query);
-
-                    if legacy_scores {
-                        req.api_version(0);
-                    }
-
-                    req
-                })
-                .and_then(move |req| osu.request::<Vec<Score>>(req));
-
-            Box::pin(fut)
-        }
+        req
     }
 }
 
-poll_req!(GetUserScores => Vec<Score>);
-
-/// Get a vec of [`User`](crate::model::user::User) by their ids.
-#[allow(dead_code)]
-#[must_use = "futures do nothing unless you `.await` or poll them"]
+/// Get a vec of [`User`].
+#[must_use = "requests must be configured and executed"]
 pub struct GetUsers<'a> {
-    fut: Option<Pending<'a, Vec<User>>>,
     osu: &'a Osu,
-    query: Option<String>,
+    query: String,
 }
 
 impl<'a> GetUsers<'a> {
-    #[inline]
     pub(crate) fn new<I>(osu: &'a Osu, user_ids: I) -> Self
     where
         I: IntoIterator<Item = u32>,
@@ -777,31 +605,14 @@ impl<'a> GetUsers<'a> {
             }
         }
 
-        Self {
-            fut: None,
-            osu,
-            query: Some(query),
-        }
-    }
-
-    fn start(&mut self) -> Pending<'a, Vec<User>> {
-        let query = self.query.take().unwrap();
-        let req = Request::with_query(Route::GetUsers, query);
-        let osu = self.osu;
-
-        let fut = osu.request::<Users>(req);
-
-        let fut = fut.map_ok(|users| {
-            #[cfg(feature = "cache")]
-            for user in users.users.iter() {
-                osu.update_cache(user.user_id, &user.username);
-            }
-
-            users.users
-        });
-
-        Box::pin(fut)
+        Self { osu, query }
     }
 }
 
-poll_req!(GetUsers => Vec<User>);
+into_future! {
+    |self: GetUsers<'_>| -> Users {
+        Request::with_query(Route::GetUsers, self.query)
+    } => |users, _| -> Vec<User> {
+        Ok(users.users)
+    }
+}

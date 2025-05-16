@@ -1,18 +1,16 @@
 use crate::{
     model::forum::ForumPosts,
-    request::{Pending, Query, Request},
+    request::{Query, Request},
     routing::Route,
     Osu,
 };
 
 use serde::Serialize;
 
-/// Get a [`ForumPosts`](crate::model::forum::ForumPosts) struct for a forum topic
-#[must_use = "futures do nothing unless you `.await` or poll them"]
+/// Get a [`ForumPosts`] struct for a forum topic
+#[must_use = "requests must be configured and executed"]
 #[derive(Serialize)]
 pub struct GetForumPosts<'a> {
-    #[serde(skip)]
-    fut: Option<Pending<'a, ForumPosts>>,
     #[serde(skip)]
     osu: &'a Osu,
     #[serde(skip)]
@@ -26,10 +24,8 @@ pub struct GetForumPosts<'a> {
 }
 
 impl<'a> GetForumPosts<'a> {
-    #[inline]
     pub(crate) const fn new(osu: &'a Osu, topic_id: u64) -> Self {
         Self {
-            fut: None,
             osu,
             topic_id,
             sort: None,
@@ -89,18 +85,13 @@ impl<'a> GetForumPosts<'a> {
 
         self
     }
-
-    fn start(&mut self) -> Pending<'a, ForumPosts> {
-        let query = Query::encode(self);
-
-        let route = Route::GetForumPosts {
-            topic_id: self.topic_id,
-        };
-
-        let req = Request::with_query(route, query);
-
-        Box::pin(self.osu.request(req))
-    }
 }
 
-poll_req!(GetForumPosts => ForumPosts);
+into_future! {
+    |self: GetForumPosts<'_>| -> ForumPosts {
+        Request::with_query(
+            Route::GetForumPosts { topic_id: self.topic_id },
+            Query::encode(&self),
+        )
+    }
+}

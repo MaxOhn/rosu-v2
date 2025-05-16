@@ -79,7 +79,7 @@ impl Osu {
         GetBeatmaps::new(self, map_ids)
     }
 
-    /// Get a vec of [`Score`](crate::model::score::Score).
+    /// Get [`BeatmapScores`](crate::model::beatmap::BeatmapScores).
     ///
     /// The contained scores will have the following options filled:
     /// `pp` (if ranked or approved), and `user`.

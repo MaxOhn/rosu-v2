@@ -16,12 +16,6 @@ use super::{
     CacheUserFn, ContainedUsers, GameMode, Grade,
 };
 
-#[derive(Debug, Deserialize)]
-#[doc(hidden)]
-pub struct BeatmapScores {
-    pub(crate) scores: Vec<Score>,
-}
-
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub struct BeatmapUserScore {
@@ -346,12 +340,6 @@ impl PartialEq for Score {
 }
 
 impl Eq for Score {}
-
-#[derive(Deserialize)]
-#[doc(hidden)]
-pub struct Scores {
-    pub(crate) scores: Vec<Score>,
-}
 
 #[derive(Clone, Debug, Default, Deserialize, PartialEq, Eq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]

@@ -10,8 +10,8 @@ use crate::{
         event::Event,
         kudosu::KudosuHistory,
         score::Score,
-        user::{User, UserBeatmapsetsKind, UserExtended, Username, Users},
-        GameMode,
+        user::{User, UserBeatmapsetsKind, UserExtended, Username},
+        DeserializedList, GameMode,
     },
     request::{
         serialize::{maybe_bool_as_u8, maybe_mode_as_str, user_id_type},
@@ -610,9 +610,9 @@ impl<'a> GetUsers<'a> {
 }
 
 into_future! {
-    |self: GetUsers<'_>| -> Users {
+    |self: GetUsers<'_>| -> DeserializedList<User> {
         Request::with_query(Route::GetUsers, self.query)
     } => |users, _| -> Vec<User> {
-        Ok(users.users)
+        Ok(users.0)
     }
 }

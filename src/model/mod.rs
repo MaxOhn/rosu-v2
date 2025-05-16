@@ -178,7 +178,7 @@ use std::{collections::HashMap, marker::PhantomData};
 
 pub use rosu_mods::GameMode;
 
-pub use self::grade::Grade;
+pub use self::{grade::Grade, serde_util::DeserializedList};
 
 use self::user::Username;
 

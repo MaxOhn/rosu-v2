@@ -729,12 +729,6 @@ impl From<UserExtended> for User {
     }
 }
 
-#[derive(Deserialize)]
-#[doc(hidden)]
-pub struct Users {
-    pub(crate) users: Vec<User>,
-}
-
 /// Specifies the type of mapsets returned by [`Osu::user_beatmapsets`].
 ///
 /// [`Osu::user_beatmapsets`]: crate::Osu::user_beatmapsets

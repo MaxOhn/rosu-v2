@@ -17,7 +17,7 @@ use crate::{
     Osu, OsuResult,
 };
 
-use super::{serde_util, user::User, CacheUserFn, ContainedUsers, GameMode};
+use super::{score::Score, serde_util, user::User, CacheUserFn, ContainedUsers, GameMode};
 
 #[derive(Clone, Debug, Deserialize)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
@@ -165,13 +165,6 @@ impl From<BeatmapExtended> for Beatmap {
             version: map.version,
         }
     }
-}
-
-#[derive(Deserialize)]
-#[doc(hidden)]
-pub struct Beatmaps {
-    #[serde(rename = "beatmaps")]
-    pub(crate) maps: Vec<Beatmap>,
 }
 
 #[derive(Deserialize)]
@@ -1053,6 +1046,18 @@ pub struct BeatmapsetPost {
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub struct BeatmapsetReviewsConfig {
     pub max_blocks: u32,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+pub struct BeatmapScores {
+    pub score_count: usize,
+    pub scores: Vec<Score>,
+}
+
+impl ContainedUsers for BeatmapScores {
+    fn apply_to_users(&self, f: impl CacheUserFn) {
+        self.scores.apply_to_users(f);
+    }
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]

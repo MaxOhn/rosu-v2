@@ -100,7 +100,6 @@ macro_rules! into_future {
                 )
             }
         }
-
     };
 
     // Helper rules

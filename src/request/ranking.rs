@@ -2,7 +2,7 @@ use crate::{
     model::{
         ranking::{ChartRankings, CountryRankings, RankingType, Rankings, Spotlight},
         user::CountryCode,
-        GameMode,
+        DeserializedList, GameMode,
     },
     prelude::TeamRankings,
     request::{Query, Request},
@@ -10,7 +10,7 @@ use crate::{
     Osu,
 };
 
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 /// Get a [`ChartRankings`] struct containing a [`Spotlight`], its
 /// [`BeatmapsetExtended`]s, and participating [`User`]s.
@@ -255,17 +255,11 @@ impl<'a> GetSpotlights<'a> {
 }
 
 into_future! {
-    |self: GetSpotlights<'_>| -> Spotlights {
+    |self: GetSpotlights<'_>| -> DeserializedList<Spotlight> {
         Request::new(Route::GetSpotlights)
-    } => |s, _| -> Vec<Spotlight> {
-        Ok(s.spotlights)
+    } => |spotlights, _| -> Vec<Spotlight> {
+        Ok(spotlights.0)
     }
-}
-
-#[derive(Deserialize)]
-#[doc(hidden)]
-pub struct Spotlights {
-    spotlights: Vec<Spotlight>,
 }
 
 /// Get a [`TeamRankings`] struct whose entries are sorted by their pp.

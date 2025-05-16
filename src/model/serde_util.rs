@@ -1,3 +1,12 @@
+use std::{
+    fmt::{Formatter, Result as FmtResult},
+    marker::PhantomData,
+};
+
+use serde::{
+    de::{Error as DeError, IgnoredAny, MapAccess, Visitor},
+    Deserialize, Deserializer,
+};
 use time::format_description::{
     modifier::{Day, Month, Year},
     Component, FormatItem,
@@ -129,5 +138,37 @@ pub(super) mod date {
 
             Date::from_ordinal_date(year, ordinal).map_err(Error::custom)
         }
+    }
+}
+
+#[doc(hidden)]
+pub struct DeserializedList<T>(pub(crate) Vec<T>);
+
+impl<'de, T: Deserialize<'de>> Deserialize<'de> for DeserializedList<T> {
+    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        struct ListVisitor<T>(PhantomData<T>);
+
+        impl<'de, T: Deserialize<'de>> Visitor<'de> for ListVisitor<T> {
+            type Value = Vec<T>;
+
+            fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+                f.write_str("a struct with a single list field")
+            }
+
+            fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
+                const ERR: &str = "struct must contain exactly one field";
+
+                let _: IgnoredAny = map.next_key()?.ok_or_else(|| DeError::custom(ERR))?;
+                let list = map.next_value()?;
+
+                if map.next_key::<IgnoredAny>()?.is_some() {
+                    return Err(DeError::custom(ERR));
+                }
+
+                Ok(list)
+            }
+        }
+
+        d.deserialize_map(ListVisitor(PhantomData)).map(Self)
     }
 }

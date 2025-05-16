@@ -1,14 +1,15 @@
 use crate::{
     model::{
         beatmap::{
-            BeatmapDifficultyAttributes, BeatmapDifficultyAttributesWrapper, BeatmapExtended,
-            Beatmaps, BeatmapsetEvents, BeatmapsetExtended, BeatmapsetSearchResult,
-            BeatmapsetSearchSort, Genre, Language, RankStatus, SearchRankStatus,
+            Beatmap, BeatmapDifficultyAttributes, BeatmapDifficultyAttributesWrapper,
+            BeatmapExtended, BeatmapScores, BeatmapsetEvents, BeatmapsetExtended,
+            BeatmapsetSearchParameters, BeatmapsetSearchResult, BeatmapsetSearchSort, Genre,
+            Language, RankStatus, SearchRankStatus,
         },
-        score::{BeatmapScores, BeatmapUserScore, Score, Scores},
-        GameMode,
+        score::{BeatmapUserScore, Score},
+        DeserializedList, GameMode,
     },
-    prelude::{Beatmap, BeatmapsetSearchParameters, GameModsIntermode},
+    prelude::GameModsIntermode,
     request::{
         serialize::{maybe_mode_as_str, maybe_mods_as_list},
         Query, Request,
@@ -109,10 +110,10 @@ impl<'a> GetBeatmaps<'a> {
 }
 
 into_future! {
-    |self: GetBeatmaps<'_>| -> Beatmaps {
+    |self: GetBeatmaps<'_>| -> DeserializedList<Beatmap> {
         Request::with_query(Route::GetBeatmaps, self.query)
     } => |maps, _| -> Vec<Beatmap> {
-        Ok(maps.maps)
+        Ok(maps.0)
     }
 }
 
@@ -198,7 +199,7 @@ impl Serialize for ScoreType {
     }
 }
 
-/// Get top scores of a beatmap as a vec of [`Score`]s.
+/// Get top scores of a beatmap as [`BeatmapScores`].
 #[must_use = "requests must be configured and executed"]
 #[derive(Serialize)]
 pub struct GetBeatmapScores<'a> {
@@ -311,8 +312,6 @@ into_future! {
         }
 
         req
-    } => |scores, _| -> Vec<Score> {
-        Ok(scores.scores)
     }
 }
 
@@ -466,7 +465,7 @@ impl<'a> GetBeatmapUserScores<'a> {
 }
 
 into_future! {
-    |self: GetBeatmapUserScores<'_>| -> Scores {
+    |self: GetBeatmapUserScores<'_>| -> DeserializedList<Score> {
         GetBeatmapUserScoresData {
             query: String = Query::encode(&self),
             map_id: u32 = self.map_id,
@@ -484,7 +483,7 @@ into_future! {
 
         req
     } => |scores, _| -> Vec<Score> {
-        Ok(scores.scores)
+        Ok(scores.0)
     }
 }
 

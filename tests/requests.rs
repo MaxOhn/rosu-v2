@@ -133,7 +133,12 @@ async fn beatmaps() -> Result<()> {
 #[tokio::test]
 async fn beatmap_scores() -> Result<()> {
     let scores = OSU.get().await?.beatmap_scores(ADESSO_BALLA).await?;
-    println!("Received {} scores", scores.len());
+
+    println!(
+        "Received {}/{} scores",
+        scores.scores.len(),
+        scores.score_count
+    );
 
     Ok(())
 }

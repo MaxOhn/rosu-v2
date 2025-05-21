@@ -1,6 +1,6 @@
 [package]
 name          = "rosu-v2"
-version       = "0.10.0"
+version       = "0.11.0"
 description   = "An osu! API v2 wrapper"
 readme        = "README.md"
 keywords      = ["osu", "api", "wrapper"]

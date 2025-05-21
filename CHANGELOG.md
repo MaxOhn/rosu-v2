@@ -1,4 +1,21 @@
-# v0.10.0 (2025-02-05)
+# v0.11.0 (2025-05-21)
+
+- __Breaking:__
+  - `Score.classic_score` is now a `u64` instead of `u32`
+  - The type `rosu_v2::model::matches::Team` was renamed to `MatchTeam`, the variant `ParsingError::Team` was renamed to `MatchTeam`, and added the field `team: Option<Team>` to `User` and `UserExtended` ([#44])
+  - Adjusted fields in the `GameModeAttributes` enum ([#47])
+  - The method `Osu::user_beatmapsets` now takes an additional `UserBeatmapsetsKind` argument, `GetUserBeatmapsets::status` was replaced by `kind` and `GetUserBeatmapsets::loved`, `ranked`, `pending`, and `graveyard` were removed ([#52])
+  - The method `Osu::token` is no longer async ([#53])
+  - The endpoint structs (e.g. `GetUser`, `GetBeatmapScores`, ...) no longer implement `Future` and instead they implement `IntoFuture` by transforming into the struct `OsuFuture`. Also, methods on `Osu` that took `u32` user ids now take `Into<UserId>`, the `body: String` fields of the `OsuError::Parsing` and `OsuError::Response` variants are replaced by `bytes: Bytes` and the variant `OsuError::ServiceUnavailable` now contains a `body: hyper::body::Incoming` field instead of an unnamed String ([#54])
+  - `Osu::beatmap_scores` now returns `BeatmapScores` instead of `Vec<Score>` ([#55])
+
+- __Additions:__
+  - Added the method `Osu::team_rankings` ([#45])
+
+- __Adjustments:__
+  - Use proper rfc3339 to (de)serialize datetimes ([#49])
+
+## v0.10.0 (2025-02-05)
 
 - __Breaking:__
   - Added field `UserStatistics::rank_change_since_30_days` ([#30] - [@damaredayo])
@@ -232,3 +249,11 @@
 [#41]: https://github.com/MaxOhn/rosu-v2/pull/41
 [#42]: https://github.com/MaxOhn/rosu-v2/pull/42
 [#43]: https://github.com/MaxOhn/rosu-v2/pull/43
+[#44]: https://github.com/MaxOhn/rosu-v2/pull/44
+[#45]: https://github.com/MaxOhn/rosu-v2/pull/45
+[#47]: https://github.com/MaxOhn/rosu-v2/pull/47
+[#49]: https://github.com/MaxOhn/rosu-v2/pull/49
+[#52]: https://github.com/MaxOhn/rosu-v2/pull/52
+[#53]: https://github.com/MaxOhn/rosu-v2/pull/53
+[#54]: https://github.com/MaxOhn/rosu-v2/pull/54
+[#55]: https://github.com/MaxOhn/rosu-v2/pull/55

@@ -484,12 +484,22 @@ async fn scores() -> Result<()> {
 
 #[tokio::test]
 async fn score_rankings() -> Result<()> {
-    let rankings = OSU.get().await?.score_rankings(GameMode::Osu).await?;
+    let osu = OSU.get().await?;
+
+    let global_rankings = osu.score_rankings(GameMode::Osu).await?;
 
     println!(
-        "Received score rankings with {} out of {} users",
-        rankings.ranking.len(),
-        rankings.total
+        "Received global score rankings with {} out of {} users",
+        global_rankings.ranking.len(),
+        global_rankings.total
+    );
+
+    let national_rankings = osu.score_rankings(GameMode::Osu).country("BE").await?;
+
+    println!(
+        "Received national score rankings with {} out of {} users",
+        national_rankings.ranking.len(),
+        national_rankings.total
     );
 
     Ok(())

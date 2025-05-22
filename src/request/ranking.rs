@@ -201,6 +201,7 @@ pub struct GetScoreRankings<'a> {
     osu: &'a Osu,
     #[serde(skip)]
     mode: GameMode,
+    country: Option<CountryCode>,
     #[serde(rename(serialize = "cursor[page]"))]
     page: Option<u32>,
 }
@@ -210,8 +211,17 @@ impl<'a> GetScoreRankings<'a> {
         Self {
             osu,
             mode,
+            country: None,
             page: None,
         }
+    }
+
+    /// Specify a country code.
+    #[inline]
+    pub fn country(mut self, country: impl Into<CountryCode>) -> Self {
+        self.country = Some(country.into());
+
+        self
     }
 
     /// Pages range from 1 to 200.

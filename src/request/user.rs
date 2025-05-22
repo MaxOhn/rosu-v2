@@ -85,6 +85,7 @@ impl fmt::Display for UserId {
 ///
 /// See [`OsuBuilder::with_authorization`](crate::OsuBuilder::with_authorization).
 #[must_use = "requests must be configured and executed"]
+#[derive(Clone)]
 pub struct GetOwnData<'a> {
     osu: &'a Osu,
     mode: Option<GameMode>,
@@ -117,6 +118,7 @@ into_future! {
 ///
 /// See [`OsuBuilder::with_authorization`](crate::OsuBuilder::with_authorization).
 #[must_use = "requests must be configured and executed"]
+#[derive(Clone)]
 pub struct GetFriends<'a> {
     osu: &'a Osu,
 }
@@ -135,6 +137,7 @@ into_future! {
 
 /// Get a [`UserExtended`].
 #[must_use = "requests must be configured and executed"]
+#[derive(Clone)]
 pub struct GetUser<'a> {
     osu: &'a Osu,
     user_id: UserId,
@@ -187,7 +190,7 @@ into_future! {
 
 /// Get the [`BeatmapsetExtended`]s of a user.
 #[must_use = "requests must be configured and executed"]
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 pub struct GetUserBeatmapsets<'a> {
     #[serde(skip)]
     osu: &'a Osu,
@@ -255,7 +258,7 @@ into_future! {
 
 /// Get a user's kudosu history as a vec of [`KudosuHistory`].
 #[must_use = "requests must be configured and executed"]
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 pub struct GetUserKudosu<'a> {
     #[serde(skip)]
     osu: &'a Osu,
@@ -305,7 +308,7 @@ into_future! {
 
 /// Get the most played beatmaps of a user as a vec of [`MostPlayedMap`].
 #[must_use = "requests must be configured and executed"]
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 pub struct GetUserMostPlayed<'a> {
     #[serde(skip)]
     osu: &'a Osu,
@@ -360,7 +363,7 @@ into_future! {
 
 /// Get a vec of [`Event`] of a user.
 #[must_use = "requests must be configured and executed"]
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 pub struct GetRecentActivity<'a> {
     #[serde(skip)]
     osu: &'a Osu,
@@ -434,7 +437,7 @@ impl ScoreType {
 /// [`firsts`](crate::request::GetUserScores::firsts),
 /// or [`recent`](crate::request::GetUserScores::recent), it defaults to `best`.
 #[must_use = "requests must be configured and executed"]
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 pub struct GetUserScores<'a> {
     #[serde(skip)]
     osu: &'a Osu,
@@ -580,6 +583,7 @@ into_future! {
 
 /// Get a vec of [`User`].
 #[must_use = "requests must be configured and executed"]
+#[derive(Clone)]
 pub struct GetUsers<'a> {
     osu: &'a Osu,
     query: String,

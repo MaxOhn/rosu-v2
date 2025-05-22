@@ -4,6 +4,7 @@ use crate::{
 
 /// Get [`SeasonalBackgrounds`].
 #[must_use = "requests must be configured and executed"]
+#[derive(Clone)]
 pub struct GetSeasonalBackgrounds<'a> {
     osu: &'a Osu,
 }

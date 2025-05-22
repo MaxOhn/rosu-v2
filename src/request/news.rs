@@ -9,7 +9,7 @@ use serde::Serialize;
 
 /// Get a [`News`] struct.
 #[must_use = "requests must be configured and executed"]
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 pub struct GetNews<'a> {
     #[serde(skip)]
     osu: &'a Osu,

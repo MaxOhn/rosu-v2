@@ -27,7 +27,7 @@ use super::{JsonBody, UserId};
 
 /// Get a [`BeatmapExtended`].
 #[must_use = "requests must be configured and executed"]
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 pub struct GetBeatmap<'a> {
     #[serde(skip)]
     osu: &'a Osu,
@@ -80,6 +80,7 @@ into_future! {
 
 /// Get a vec of [`Beatmap`].
 #[must_use = "requests must be configured and executed"]
+#[derive(Clone)]
 pub struct GetBeatmaps<'a> {
     osu: &'a Osu,
     query: String,
@@ -119,6 +120,7 @@ into_future! {
 
 /// Get [`BeatmapDifficultyAttributes`] of a map.
 #[must_use = "requests must be configured and executed"]
+#[derive(Clone)]
 pub struct GetBeatmapDifficultyAttributes<'a> {
     osu: &'a Osu,
     map_id: u32,
@@ -201,7 +203,7 @@ impl Serialize for ScoreType {
 
 /// Get top scores of a beatmap as [`BeatmapScores`].
 #[must_use = "requests must be configured and executed"]
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 pub struct GetBeatmapScores<'a> {
     #[serde(skip)]
     osu: &'a Osu,
@@ -317,7 +319,7 @@ into_future! {
 
 /// Get [`BeatmapUserScore`] of a user on a beatmap.
 #[must_use = "requests must be configured and executed"]
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 pub struct GetBeatmapUserScore<'a> {
     #[serde(skip)]
     osu: &'a Osu,
@@ -409,7 +411,7 @@ into_future! {
 
 /// Get all [`Score`]s of a user on a map.
 #[must_use = "requests must be configured and executed"]
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 pub struct GetBeatmapUserScores<'a> {
     #[serde(skip)]
     osu: &'a Osu,
@@ -489,6 +491,7 @@ into_future! {
 
 /// Get a [`BeatmapsetExtended`].
 #[must_use = "requests must be configured and executed"]
+#[derive(Clone)]
 pub struct GetBeatmapset<'a> {
     osu: &'a Osu,
     mapset_id: u32,
@@ -510,7 +513,7 @@ into_future! {
 
 /// Get a [`BeatmapsetExtended`].
 #[must_use = "requests must be configured and executed"]
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 pub struct GetBeatmapsetFromMapId<'a> {
     #[serde(skip)]
     osu: &'a Osu,
@@ -532,6 +535,7 @@ into_future! {
 
 /// Get [`BeatmapsetEvents`].
 #[must_use = "requests must be configured and executed"]
+#[derive(Clone)]
 pub struct GetBeatmapsetEvents<'a> {
     osu: &'a Osu,
 }
@@ -579,6 +583,7 @@ into_future! {
 /// let query = "status=loved artist=camellia stars>8";
 /// ```
 #[must_use = "requests must be configured and executed"]
+#[derive(Clone)]
 pub struct GetBeatmapsetSearch<'a> {
     osu: &'a Osu,
     data: GetBeatmapsetSearchData,
@@ -750,6 +755,7 @@ impl<'a> GetBeatmapsetSearch<'a> {
 }
 
 #[doc(hidden)]
+#[derive(Clone)]
 pub struct GetBeatmapsetSearchData {
     query: Option<String>,
     mode: Option<u8>,

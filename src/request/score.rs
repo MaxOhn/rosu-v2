@@ -11,6 +11,7 @@ use super::{serialize::maybe_mode_as_str, Query, Request};
 
 /// Get a [`Score`] struct.
 #[must_use = "requests must be configured and executed"]
+#[derive(Clone)]
 pub struct GetScore<'a> {
     osu: &'a Osu,
     mode: Option<GameMode>,
@@ -67,7 +68,7 @@ into_future! {
 
 /// Get a list of recently processed [`Score`] structs.
 #[must_use = "requests must be configured and executed"]
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 pub struct GetScores<'a> {
     #[serde(skip)]
     osu: &'a Osu,

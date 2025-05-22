@@ -2,6 +2,7 @@ use crate::{model::wiki::WikiPage, request::Request, routing::Route, Osu};
 
 /// Get a [`WikiPage`] or image data.
 #[must_use = "requests must be configured and executed"]
+#[derive(Clone)]
 pub struct GetWikiPage<'a> {
     osu: &'a Osu,
     locale: Box<str>,

@@ -25,7 +25,7 @@ use serde::Serialize;
 /// [`BeatmapsetExtended`]: crate::model::beatmap::BeatmapsetExtended
 /// [`User`]: crate::model::user::User
 #[must_use = "requests must be configured and executed"]
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 pub struct GetChartRankings<'a> {
     #[serde(skip)]
     osu: &'a Osu,
@@ -70,7 +70,7 @@ into_future! {
 ///
 /// [`CountryRanking`]: crate::model::ranking::CountryRanking
 #[must_use = "requests must be configured and executed"]
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 pub struct GetCountryRankings<'a> {
     #[serde(skip)]
     osu: &'a Osu,
@@ -115,7 +115,7 @@ into_future! {
 ///
 /// [`User`]: crate::model::user::User
 #[must_use = "requests must be configured and executed"]
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 pub struct GetPerformanceRankings<'a> {
     #[serde(skip)]
     osu: &'a Osu,
@@ -195,7 +195,7 @@ into_future! {
 ///
 /// [`User`]: crate::model::user::User
 #[must_use = "requests must be configured and executed"]
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 pub struct GetScoreRankings<'a> {
     #[serde(skip)]
     osu: &'a Osu,
@@ -254,6 +254,7 @@ into_future! {
 
 /// Get a vec of [`Spotlight`]s.
 #[must_use = "requests must be configured and executed"]
+#[derive(Clone)]
 pub struct GetSpotlights<'a> {
     osu: &'a Osu,
 }
@@ -274,7 +275,7 @@ into_future! {
 
 /// Get a [`TeamRankings`] struct whose entries are sorted by their pp.
 #[must_use = "requests must be configured and executed"]
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 pub struct GetTeamRankings<'a> {
     #[serde(skip)]
     osu: &'a Osu,

@@ -10,7 +10,7 @@ use super::{Query, Request};
 
 /// Get [`Events`].
 #[must_use = "requests must be configured and executed"]
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 pub struct GetEvents<'a> {
     #[serde(skip)]
     osu: &'a Osu,

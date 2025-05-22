@@ -9,7 +9,7 @@ use serde::Serialize;
 
 /// Get an [`OsuMatch`].
 #[must_use = "requests must be configured and executed"]
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 pub struct GetMatch<'a> {
     #[serde(skip)]
     osu: &'a Osu,
@@ -72,7 +72,7 @@ into_future! {
 
 /// Get a [`MatchList`] containing all currently open multiplayer lobbies.
 #[must_use = "requests must be configured and executed"]
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 pub struct GetMatches<'a> {
     #[serde(skip)]
     osu: &'a Osu,

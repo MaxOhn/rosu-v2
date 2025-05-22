@@ -10,7 +10,7 @@ use serde::Serialize;
 /// Get a list of comments and their replies up to two levels deep in form of a
 /// [`CommentBundle`].
 #[must_use = "requests must be configured and executed"]
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 pub struct GetComments<'a> {
     #[serde(skip)]
     osu: &'a Osu,

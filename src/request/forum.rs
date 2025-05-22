@@ -9,7 +9,7 @@ use serde::Serialize;
 
 /// Get a [`ForumPosts`] struct for a forum topic
 #[must_use = "requests must be configured and executed"]
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 pub struct GetForumPosts<'a> {
     #[serde(skip)]
     osu: &'a Osu,

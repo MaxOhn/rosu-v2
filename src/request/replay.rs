@@ -9,6 +9,7 @@ use super::Request;
 
 /// Get a raw replay as a `Vec<u8>`
 #[must_use = "requests must be configured and executed"]
+#[derive(Clone)]
 pub struct GetReplayRaw<'a> {
     osu: &'a Osu,
     mode: Option<GameMode>,
@@ -54,6 +55,7 @@ impl ContainedUsers for Vec<u8> {
 #[cfg(feature = "replay")]
 #[cfg_attr(docsrs, doc(cfg(feature = "replay")))]
 #[must_use = "requests must be configured and executed"]
+#[derive(Clone)]
 pub struct GetReplay<'a> {
     osu: &'a Osu,
     mode: Option<GameMode>,

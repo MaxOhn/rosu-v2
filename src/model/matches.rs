@@ -14,11 +14,11 @@ use crate::{error::OsuError, Osu, OsuResult};
 
 use super::{
     beatmap::Beatmap,
-    mods::{GameMods, GameModsIntermode},
-    score::LegacyScoreStatistics,
+    mods::GameMods,
+    score::{ScoreStatistics, UserAttributes},
     serde_util,
     user::User,
-    CacheUserFn, ContainedUsers, GameMode,
+    CacheUserFn, ContainedUsers, GameMode, Grade,
 };
 
 #[derive(Clone, Debug, PartialEq)]
@@ -327,7 +327,7 @@ pub struct MatchGame {
 impl<'de> Deserialize<'de> for MatchGame {
     fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
         #[derive(Deserialize)]
-        struct MatchGameRawMods {
+        struct MatchGameRaw {
             #[serde(rename = "id")]
             game_id: u64,
             #[serde(with = "serde_util::datetime")]
@@ -340,10 +340,10 @@ impl<'de> Deserialize<'de> for MatchGame {
             mods: Box<RawValue>,
             #[serde(rename = "beatmap")]
             map: Option<Box<Beatmap>>,
-            scores: Vec<MatchScore>,
+            scores: Box<RawValue>,
         }
 
-        let game_raw = <MatchGameRawMods as serde::Deserialize>::deserialize(d)?;
+        let game_raw = <MatchGameRaw as Deserialize>::deserialize(d)?;
 
         Ok(MatchGame {
             mods: GameModsSeed::Mode {
@@ -359,7 +359,9 @@ impl<'de> Deserialize<'de> for MatchGame {
             scoring_type: game_raw.scoring_type,
             team_type: game_raw.team_type,
             map: game_raw.map,
-            scores: game_raw.scores,
+            scores: MatchScoreSeed(game_raw.mode)
+                .deserialize(&*game_raw.scores)
+                .map_err(|e| Error::custom(format!("invalid scores `{}`: {e}", game_raw.scores)))?,
         })
     }
 }
@@ -532,106 +534,167 @@ pub struct MatchListParams {
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub struct MatchScore {
-    /// Accuracy between `0.0` and `100.0`
+    pub set_on_lazer: bool,
+    pub maximum_statistics: ScoreStatistics,
+    pub mods: GameMods,
+    pub statistics: ScoreStatistics,
+    #[cfg_attr(feature = "serialize", serde(rename = "beatmap_id"))]
+    pub map_id: u32,
+    pub best_id: Option<u64>,
+    pub id: Option<u64>,
+    #[cfg_attr(feature = "serialize", serde(rename = "rank"))]
+    pub grade: Grade,
+    #[cfg_attr(feature = "serialize", serde(rename = "type"))]
+    pub kind: Box<str>,
+    pub user_id: u32,
     #[cfg_attr(feature = "serialize", serde(with = "serde_util::adjust_acc"))]
     pub accuracy: f32,
+    pub build_id: Option<u32>,
+    #[cfg_attr(feature = "serialize", serde(with = "serde_util::datetime"))]
+    pub ended_at: OffsetDateTime,
+    pub has_replay: bool,
+    pub is_perfect_combo: bool,
+    pub legacy_perfect: Option<bool>,
+    pub legacy_score_id: Option<u64>,
+    #[cfg_attr(feature = "serialize", serde(rename = "legacy_total_score"))]
+    pub legacy_score: u32,
     pub max_combo: u32,
-    pub mods: GameModsIntermode,
-    pub pass: bool,
-    pub perfect: bool,
+    pub passed: bool,
+    pub pp: Option<f32>,
+    #[cfg_attr(feature = "serialize", serde(with = "serde_util::option_datetime"))]
+    pub started_at: Option<OffsetDateTime>,
+    #[cfg_attr(feature = "serialize", serde(rename = "total_score"))]
     pub score: u32,
-    pub slot: u8,
-    pub statistics: LegacyScoreStatistics,
-    pub team: MatchTeam,
-    pub user_id: u32,
+    pub replay: bool,
+    pub current_user_attributes: UserAttributes,
+    #[cfg_attr(feature = "serialize", serde(rename = "match"))]
+    pub info: MatchScoreInfo,
 }
 
-struct MatchScoreVisitor;
+struct MatchScoreSeed(GameMode);
 
-impl<'de> Visitor<'de> for MatchScoreVisitor {
-    type Value = MatchScore;
+impl<'de> DeserializeSeed<'de> for MatchScoreSeed {
+    type Value = <Self as Visitor<'de>>::Value;
 
-    #[inline]
-    fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("a MatchScore struct")
+    fn deserialize<D: Deserializer<'de>>(self, d: D) -> Result<Self::Value, D::Error> {
+        d.deserialize_seq(self)
+    }
+}
+
+impl<'de> Visitor<'de> for MatchScoreSeed {
+    type Value = Vec<MatchScore>;
+
+    fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str("a sequence of match scores")
     }
 
-    fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
-        let mut accuracy = None;
-        let mut max_combo = None;
-        let mut mods = None;
-        let mut pass = None;
-        let mut perfect = None;
-        let mut score = None;
-        let mut slot = None;
-        let mut statistics = None;
-        let mut team = None;
-        let mut user_id = None;
-
-        while let Some(key) = map.next_key()? {
-            match key {
-                "accuracy" => accuracy = Some(map.next_value::<f32>()? * 100.0),
-                "match" => {
-                    let info: MatchScoreInfo = map.next_value()?;
-
-                    pass = Some(info.pass);
-                    slot = Some(info.slot);
-                    team = Some(info.team);
-                }
-                "max_combo" => max_combo = Some(map.next_value()?),
-                "mods" => mods = Some(map.next_value()?),
-                "pass" => pass = Some(map.next_value()?),
-                "perfect" => perfect = Some(map.next_value::<Bool>()?.0),
-                "score" => score = Some(map.next_value()?),
-                "slot" => slot = Some(map.next_value()?),
-                "statistics" => statistics = Some(map.next_value()?),
-                "team" => team = Some(map.next_value()?),
-                "user_id" => user_id = Some(map.next_value()?),
-                _ => {
-                    let _: IgnoredAny = map.next_value()?;
-                }
-            }
+    fn visit_seq<A: SeqAccess<'de>>(self, mut seq: A) -> Result<Self::Value, A::Error> {
+        #[derive(Deserialize)]
+        struct MatchScoreRaw {
+            set_on_lazer: Option<bool>,
+            #[serde(default)]
+            maximum_statistics: ScoreStatistics,
+            mods: Box<RawValue>,
+            statistics: ScoreStatistics,
+            #[serde(rename = "beatmap_id")]
+            map_id: u32,
+            best_id: Option<u64>,
+            id: Option<u64>,
+            #[serde(rename = "rank")]
+            grade: Grade,
+            #[serde(rename = "type")]
+            kind: Box<str>,
+            user_id: u32,
+            #[serde(with = "serde_util::adjust_acc")]
+            accuracy: f32,
+            build_id: Option<u32>,
+            #[serde(alias = "created_at", with = "serde_util::datetime")]
+            ended_at: OffsetDateTime,
+            has_replay: Option<bool>,
+            is_perfect_combo: Option<bool>,
+            #[serde(alias = "perfect")]
+            legacy_perfect: Option<bool>,
+            legacy_score_id: Option<u64>,
+            #[serde(default, rename = "legacy_total_score")]
+            legacy_score: u32,
+            max_combo: u32,
+            passed: bool,
+            pp: Option<f32>,
+            #[serde(default, with = "serde_util::option_datetime")]
+            started_at: Option<OffsetDateTime>,
+            #[serde(rename = "total_score", alias = "score")]
+            score: u32,
+            replay: bool,
+            current_user_attributes: UserAttributes,
+            #[serde(rename = "match")]
+            info: MatchScoreInfo,
         }
 
-        let accuracy = accuracy.ok_or_else(|| Error::missing_field("accuracy"))?;
-        let max_combo = max_combo.ok_or_else(|| Error::missing_field("max_combo"))?;
-        let mods = mods.ok_or_else(|| Error::missing_field("mods"))?;
-        let pass = pass.ok_or_else(|| Error::missing_field("match or pass"))?;
-        let perfect = perfect.ok_or_else(|| Error::missing_field("perfect"))?;
-        let score = score.ok_or_else(|| Error::missing_field("score"))?;
-        let slot = slot.ok_or_else(|| Error::missing_field("match or slot"))?;
-        let statistics = statistics.ok_or_else(|| Error::missing_field("statistics"))?;
-        let team = team.ok_or_else(|| Error::missing_field("match or team"))?;
-        let user_id = user_id.ok_or_else(|| Error::missing_field("user_id"))?;
+        let mode = self.0;
+        let mut scores = Vec::new();
 
-        Ok(MatchScore {
-            accuracy,
-            max_combo,
-            mods,
-            pass,
-            perfect,
-            score,
-            slot,
-            statistics,
-            team,
-            user_id,
-        })
+        while let Some(score_raw) = seq.next_element::<MatchScoreRaw>()? {
+            let set_on_stable = score_raw
+                .set_on_lazer
+                .map_or(score_raw.legacy_score > 0, <bool as std::ops::Not>::not);
+
+            let score = MatchScore {
+                set_on_lazer: !set_on_stable,
+                maximum_statistics: score_raw.maximum_statistics,
+                mods: GameModsSeed::Mode {
+                    mode,
+                    deny_unknown_fields: false,
+                }
+                .deserialize(&*score_raw.mods)
+                .map_err(|e| OsuError::invalid_mods(&score_raw.mods, &e))?,
+                statistics: score_raw.statistics,
+                map_id: score_raw.map_id,
+                best_id: score_raw.best_id,
+                id: score_raw.id,
+                grade: score_raw.grade,
+                kind: score_raw.kind,
+                user_id: score_raw.user_id,
+                accuracy: score_raw.accuracy,
+                build_id: score_raw.build_id,
+                ended_at: score_raw.ended_at,
+                has_replay: score_raw.has_replay.unwrap_or(score_raw.replay),
+                is_perfect_combo: score_raw
+                    .is_perfect_combo
+                    .or(score_raw.legacy_perfect)
+                    .unwrap_or(false),
+                legacy_perfect: score_raw.legacy_perfect,
+                legacy_score_id: score_raw
+                    .legacy_score_id
+                    .or_else(|| score_raw.id.filter(|_| set_on_stable)),
+                legacy_score: if set_on_stable {
+                    score_raw.score
+                } else {
+                    score_raw.legacy_score
+                },
+                max_combo: score_raw.max_combo,
+                passed: score_raw.passed,
+                pp: score_raw.pp,
+                started_at: score_raw.started_at,
+                score: score_raw.score,
+                replay: score_raw.replay,
+                current_user_attributes: score_raw.current_user_attributes,
+                info: score_raw.info,
+            };
+
+            scores.push(score);
+        }
+
+        Ok(scores)
     }
 }
 
-impl<'de> Deserialize<'de> for MatchScore {
-    #[inline]
-    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
-        d.deserialize_map(MatchScoreVisitor)
-    }
-}
-
-#[derive(Debug, Deserialize)]
-struct MatchScoreInfo {
-    slot: u8,
-    team: MatchTeam,
+#[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
+pub struct MatchScoreInfo {
+    pub slot: u8,
+    pub team: MatchTeam,
     #[serde(deserialize_with = "to_bool")]
-    pass: bool,
+    pub pass: bool,
 }
 
 struct MatchUsers(HashMap<u32, User>);
@@ -643,7 +706,7 @@ impl<'de> Visitor<'de> for MatchUsersVisitor {
 
     #[inline]
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("a sequence containing UserCompact")
+        f.write_str("a sequence containing users")
     }
 
     #[inline]

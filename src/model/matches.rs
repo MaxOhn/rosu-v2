@@ -361,7 +361,7 @@ impl<'de> Deserialize<'de> for MatchGame {
             map: game_raw.map,
             scores: MatchScoreSeed(game_raw.mode)
                 .deserialize(&*game_raw.scores)
-                .map_err(|e| Error::custom(format!("invalid scores `{}`: {e}", game_raw.mods)))?,
+                .map_err(|e| Error::custom(format!("invalid scores `{}`: {e}", game_raw.scores)))?,
         })
     }
 }

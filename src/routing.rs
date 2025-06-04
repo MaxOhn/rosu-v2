@@ -56,6 +56,15 @@ pub(crate) enum Route {
         mode: Option<GameMode>,
         score_id: u64,
     },
+    GetRoom {
+        room_id: u64,
+    },
+    GetRoomEvents {
+        room_id: u64,
+    },
+    GetRoomLeaderboard {
+        room_id: u64,
+    },
     GetRooms,
     GetScore {
         mode: Option<GameMode>,
@@ -158,6 +167,13 @@ impl Route {
                 };
                 (Method::Get, path)
             }
+            Self::GetRoom { room_id } => (Method::Get, format!("rooms/{room_id}").into()),
+            Self::GetRoomEvents { room_id } => {
+                (Method::Get, format!("rooms/{room_id}/events").into())
+            }
+            Self::GetRoomLeaderboard { room_id } => {
+                (Method::Get, format!("rooms/{room_id}/leaderboard").into())
+            }
             Self::GetRooms => (Method::Get, "rooms".into()),
             Self::GetScore { mode, score_id } => {
                 let path = match mode {
@@ -237,6 +253,9 @@ impl Route {
             },
             Self::GetRecentActivity { .. } => "GetRecentActivity",
             Self::GetReplay { .. } => "GetReplay",
+            Self::GetRoom { .. } => "GetRoom",
+            Self::GetRoomEvents { .. } => "GetRoomEvents",
+            Self::GetRoomLeaderboard { .. } => "GetRoomLeaderboard",
             Self::GetRooms => "GetRooms",
             Self::GetScore { .. } => "GetScore",
             Self::GetScores => "GetScores",

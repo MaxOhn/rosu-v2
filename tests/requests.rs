@@ -497,6 +497,22 @@ async fn rooms() -> Result<()> {
 }
 
 #[tokio::test]
+async fn room() -> Result<()> {
+    let room = OSU.get().await?.room(1403108).await?;
+    println!("Received room {:?}", room.name);
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn room_leaderboard() -> Result<()> {
+    let res = OSU.get().await?.room_leaderboard(1403108).await?;
+    println!("Received {} room scores", res.leaderboard.len());
+
+    Ok(())
+}
+
+#[tokio::test]
 async fn score() -> Result<()> {
     let score = OSU.get().await?.score(COOKIEZI_FREEDOM_DIVE).await?;
 

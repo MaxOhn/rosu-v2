@@ -147,12 +147,12 @@ pub struct Room {
 
 impl Room {
     /// Get the [`RoomEvents`] for this [`Room`].
-    pub fn get_events<'osu>(&self, osu: &'osu Osu) -> GetRoomEvents<'osu> {
+    pub const fn get_events<'osu>(&self, osu: &'osu Osu) -> GetRoomEvents<'osu> {
         osu.room_events(self.room_id)
     }
 
     /// Get the [`RoomLeaderboard`] for this [`Room`].
-    pub fn get_leaderboard<'osu>(&self, osu: &'osu Osu) -> GetRoomLeaderboard<'osu> {
+    pub const fn get_leaderboard<'osu>(&self, osu: &'osu Osu) -> GetRoomLeaderboard<'osu> {
         osu.room_leaderboard(self.room_id)
     }
 }

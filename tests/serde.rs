@@ -10,7 +10,7 @@ mod types {
 
     pub(super) fn get_chart_rankings() -> ChartRankings {
         ChartRankings {
-            mapsets: vec![get_mapset()],
+            mapsets: vec![get_mapset_extended()],
             ranking: vec![User {
                 statistics_modes: UserStatisticsModes {
                     osu: None,
@@ -18,7 +18,7 @@ mod types {
                     catch: None,
                     mania: None,
                 },
-                ..get_user_compact()
+                ..get_user()
             }],
             spotlight: get_spotlight(),
         }
@@ -91,7 +91,7 @@ mod types {
         }
     }
 
-    pub(super) fn get_mapset() -> BeatmapsetExtended {
+    pub(super) fn get_mapset_extended() -> BeatmapsetExtended {
         BeatmapsetExtended {
             artist: "artist".to_owned(),
             artist_unicode: Some("äöü".to_owned()),
@@ -103,7 +103,7 @@ mod types {
             can_be_hyped: true,
             converts: Some(vec![]),
             covers: get_mapset_covers(),
-            creator: Some(Box::new(get_user_compact())),
+            creator: Some(Box::new(get_user())),
             creator_name: "god".into(),
             creator_id: 2,
             description: Some("description".to_owned()),
@@ -134,7 +134,7 @@ mod types {
             preview_url: "b.ppy.sh/preview/12345.mp3".to_owned(),
             ratings: Some(vec![1, 2, 3, 4, 5, 6]),
             ranked_date: Some(get_date()),
-            recent_favourites: Some(vec![get_user_compact()]),
+            recent_favourites: Some(vec![get_user()]),
             source: String::new(),
             status: RankStatus::WIP,
             storyboard: true,
@@ -146,7 +146,7 @@ mod types {
         }
     }
 
-    pub(super) fn get_map() -> BeatmapExtended {
+    pub(super) fn get_map_extended() -> BeatmapExtended {
         BeatmapExtended {
             ar: 9.3,
             bpm: 182.3,
@@ -166,7 +166,7 @@ mod types {
             is_scoreable: true,
             last_updated: get_date(),
             map_id: 123456,
-            mapset: Some(Box::new(get_mapset())),
+            mapset: Some(Box::new(get_mapset_extended())),
             mapset_id: 12345,
             max_combo: Some(1750),
             mode: GameMode::Osu,
@@ -182,13 +182,13 @@ mod types {
         }
     }
 
-    pub(super) fn get_map_compact() -> Beatmap {
+    pub(super) fn get_map() -> Beatmap {
         Beatmap {
             checksum: Some("ABC123".to_owned()),
             creator_id: 456,
             fail_times: None,
             map_id: 123456,
-            mapset: Some(Box::new(get_mapset_compact())),
+            mapset: Some(Box::new(get_mapset())),
             mapset_id: 2345,
             max_combo: Some(1000),
             mode: GameMode::Catch,
@@ -199,7 +199,7 @@ mod types {
         }
     }
 
-    pub(super) fn get_mapset_compact() -> Beatmapset {
+    pub(super) fn get_mapset() -> Beatmapset {
         Beatmapset {
             artist: "artist".to_owned(),
             artist_unicode: Some("äöü".to_owned()),
@@ -270,7 +270,7 @@ mod types {
                         mapset_discussion_post_id: None,
                     },
                     created_at: get_date(),
-                    mapset: Box::new(get_mapset_compact()),
+                    mapset: Box::new(get_mapset()),
                     user_id: 123456,
                     discussion: get_mapset_discussion(),
                 },
@@ -288,7 +288,7 @@ mod types {
                     },
                     created_at: get_date(),
                     user_id: 123456,
-                    mapset: Box::new(get_mapset_compact()),
+                    mapset: Box::new(get_mapset()),
                 },
                 BeatmapsetEvent::IssueReopen {
                     event_id: 1,
@@ -300,7 +300,7 @@ mod types {
                     },
                     created_at: get_date(),
                     user_id: 123456,
-                    mapset: Box::new(get_mapset_compact()),
+                    mapset: Box::new(get_mapset()),
                     discussion: get_mapset_discussion(),
                 },
                 BeatmapsetEvent::IssueResolve {
@@ -313,7 +313,7 @@ mod types {
                     },
                     created_at: get_date(),
                     user_id: 123456,
-                    mapset: Box::new(get_mapset_compact()),
+                    mapset: Box::new(get_mapset()),
                     discussion: get_mapset_discussion(),
                 },
                 BeatmapsetEvent::KudosuDeny {
@@ -325,7 +325,7 @@ mod types {
                         mapset_discussion_post_id: Some(3),
                     },
                     created_at: get_date(),
-                    mapset: Box::new(get_mapset_compact()),
+                    mapset: Box::new(get_mapset()),
                     discussion: get_mapset_discussion(),
                 },
                 BeatmapsetEvent::KudosuGain {
@@ -348,7 +348,7 @@ mod types {
                     },
                     created_at: get_date(),
                     user_id: 123456,
-                    mapset: Box::new(get_mapset_compact()),
+                    mapset: Box::new(get_mapset()),
                     discussion: get_mapset_discussion(),
                 },
                 BeatmapsetEvent::LanguageEdit {
@@ -365,7 +365,7 @@ mod types {
                     },
                     created_at: get_date(),
                     user_id: 123456,
-                    mapset: Box::new(get_mapset_compact()),
+                    mapset: Box::new(get_mapset()),
                 },
                 BeatmapsetEvent::Nominate {
                     event_id: 5,
@@ -379,7 +379,7 @@ mod types {
                     },
                     created_at: get_date(),
                     user_id: 123456,
-                    mapset: Box::new(get_mapset_compact()),
+                    mapset: Box::new(get_mapset()),
                 },
                 BeatmapsetEvent::NsfwToggle {
                     event_id: 6,
@@ -395,7 +395,7 @@ mod types {
                     },
                     created_at: get_date(),
                     user_id: 123456,
-                    mapset: Box::new(get_mapset_compact()),
+                    mapset: Box::new(get_mapset()),
                 },
                 BeatmapsetEvent::OwnerChange {
                     event_id: 9,
@@ -409,21 +409,21 @@ mod types {
                     },
                     created_at: get_date(),
                     user_id: 99,
-                    mapset: Box::new(get_mapset_compact()),
+                    mapset: Box::new(get_mapset()),
                 },
                 BeatmapsetEvent::Rank {
                     event_id: 7,
                     created_at: get_date(),
-                    mapset: Box::new(get_mapset_compact()),
+                    mapset: Box::new(get_mapset()),
                 },
                 BeatmapsetEvent::Qualify {
                     event_id: 8,
                     created_at: get_date(),
-                    mapset: Box::new(get_mapset_compact()),
+                    mapset: Box::new(get_mapset()),
                 },
             ],
             reviews_config: BeatmapsetReviewsConfig { max_blocks: 100 },
-            users: vec![get_user_compact()],
+            users: vec![get_user()],
         }
     }
 
@@ -469,7 +469,7 @@ mod types {
                         ]
                         .into_iter()
                         .collect(),
-                        map: Some(Box::new(get_map_compact())),
+                        map: Some(Box::new(get_map())),
                         scores: vec![get_match_score()],
                     }),
                     match_name: "other name".to_owned(),
@@ -487,7 +487,7 @@ mod types {
             start_time: get_date(),
             users: {
                 let mut map = HashMap::new();
-                map.insert(3, get_user_compact());
+                map.insert(3, get_user());
 
                 map
             },
@@ -577,6 +577,68 @@ mod types {
         }
     }
 
+    pub(super) fn get_room() -> Room {
+        Room {
+            room_id: 123,
+            name: "room name".to_owned(),
+            category: RoomCategory::FeaturedArtist,
+            status: RoomStatus::Playing,
+            type_group: RoomTypeGroup::TagTeamVersus,
+            user_id: 456,
+            starts_at: get_date(),
+            ends_at: Some(get_date()),
+            max_attempts: Some(2),
+            participant_count: 9001,
+            channel_id: Some(1234),
+            active: true,
+            has_password: false,
+            queue_mode: RoomQueueMode::AllPlayersRoundRobin,
+            auto_skip: false,
+            current_playlist_item: Some(get_playlist_item()),
+            host: get_user(),
+            recent_participants: vec![get_user()],
+            playlist_item_stats: PlaylistItemStats {
+                count_active: 4,
+                count_total: 5,
+                modes: vec![GameMode::Taiko, GameMode::Mania],
+            },
+            difficulty_range: RoomDifficultyRange {
+                min: 12.34,
+                max: 3.1419,
+            },
+        }
+    }
+
+    pub(super) fn get_playlist_item() -> PlaylistItem {
+        PlaylistItem {
+            map: get_map(),
+            map_id: 123,
+            created_at: Some(get_date()),
+            playlist_item_id: 123,
+            owner_id: 456,
+            room_id: 789,
+            mode: GameMode::Catch,
+            freestyle: true,
+            expired: false,
+            played_at: Some(get_date()),
+            playlist_order: Some(0),
+            allowed_mods: [
+                GameMod::DifficultyAdjustCatch(DifficultyAdjustCatch {
+                    circle_size: Some(1.0),
+                    approach_rate: None,
+                    hard_rock_offsets: Some(false),
+                    drain_rate: None,
+                    overall_difficulty: Some(10.0),
+                    extended_limits: None,
+                }),
+                GameMod::HardRockCatch(HardRockCatch {}),
+            ]
+            .into_iter()
+            .collect(),
+            required_mods: GameMods::new(),
+        }
+    }
+
     pub(super) fn get_score() -> Score {
         Score {
             set_on_lazer: true,
@@ -591,8 +653,8 @@ mod types {
             map_id: 123,
             max_combo: 1234,
             total_score_without_mods: Some(987_654),
-            map: Some(Box::new(get_map())),
-            mapset: Some(Box::new(get_mapset_compact())),
+            map: Some(Box::new(get_map_extended())),
+            mapset: Some(Box::new(get_mapset())),
             mode: GameMode::Catch,
             mods: [
                 GameMod::DifficultyAdjustCatch(DifficultyAdjustCatch {
@@ -634,7 +696,7 @@ mod types {
                 combo_break: 0,
                 legacy_combo_increase: 0,
             },
-            user: Some(Box::new(get_user_compact())),
+            user: Some(Box::new(get_user())),
             user_id: 2,
             weight: Some(ScoreWeight {
                 percentage: 1.0,
@@ -674,7 +736,7 @@ mod types {
             ends_at: get_date(),
             backgrounds: vec![SeasonalBackground {
                 url: "https://www.bing.com".to_owned(),
-                artist: get_user_compact(),
+                artist: get_user(),
             }],
         }
     }
@@ -700,7 +762,7 @@ mod types {
         }
     }
 
-    pub(super) fn get_user() -> UserExtended {
+    pub(super) fn get_user_extended() -> UserExtended {
         UserExtended {
             avatar_url: String::new(),
             comments_count: 0,
@@ -830,7 +892,7 @@ mod types {
         }
     }
 
-    pub(super) fn get_user_compact() -> User {
+    pub(super) fn get_user() -> User {
         User {
             avatar_url: String::new(),
             country_code: "be".into(),
@@ -1056,6 +1118,11 @@ mod serde_tests {
     #[test]
     fn serde_match() {
         roundtrip(&get_match());
+    }
+
+    #[test]
+    fn serde_room() {
+        roundtrip(&get_room());
     }
 
     #[test]

@@ -318,6 +318,12 @@ impl Osu {
         GetReplayRaw::new(self, score_id)
     }
 
+    /// Get a vec of [`Room`](crate::model::multiplayer::Room).
+    #[inline]
+    pub const fn rooms(&self) -> GetRooms<'_> {
+        GetRooms::new(self)
+    }
+
     /// Get a [`Score`](crate::model::score::Score) struct.
     ///
     /// The contained score will have the following options filled:

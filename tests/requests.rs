@@ -14,7 +14,8 @@ use rosu_v2::{
         event::EventSort,
         GameMode,
     },
-    prelude::UserBeatmapsetsKind,
+    prelude::{RoomCategory, RoomTypeGroup, UserBeatmapsetsKind},
+    request::{RoomsFilter, RoomsTypeGroup},
     Osu,
 };
 use tokio::sync::{Mutex, MutexGuard};
@@ -440,6 +441,57 @@ async fn performance_rankings() -> Result<()> {
         rankings.ranking.len(),
         rankings.total
     );
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn rooms() -> Result<()> {
+    let osu = OSU.get().await?;
+
+    let params = [
+        (
+            RoomCategory::DailyChallenge,
+            RoomsFilter::All,
+            RoomsTypeGroup::Playlists,
+        ),
+        (
+            RoomCategory::Normal,
+            RoomsFilter::Active,
+            RoomsTypeGroup::Realtime,
+        ),
+        (
+            RoomCategory::FeaturedArtist,
+            RoomsFilter::Ended,
+            RoomsTypeGroup::Playlists,
+        ),
+    ];
+
+    for (category, filter, type_group) in params {
+        let rooms = osu
+            .rooms()
+            .category(category)
+            .limit(10)
+            .filter(filter)
+            .type_group(type_group)
+            .await?;
+
+        for room in rooms.iter() {
+            assert_eq!(room.category, category);
+
+            match type_group {
+                RoomsTypeGroup::Playlists => assert_eq!(room.type_group, RoomTypeGroup::Playlists),
+                RoomsTypeGroup::Realtime => assert_ne!(room.type_group, RoomTypeGroup::Playlists),
+                _ => {}
+            }
+        }
+
+        println!(
+            "Received {} rooms for \
+            category={category:?}, filter={filter:?}, type_group={type_group:?}",
+            rooms.len()
+        );
+    }
 
     Ok(())
 }

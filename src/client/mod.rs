@@ -324,13 +324,13 @@ impl Osu {
         GetRoom::new(self, room_id)
     }
 
-    /// TODO: docs
+    /// Get [`RoomEvents`](crate::model::multiplayer::RoomEvents).
     #[inline]
     pub const fn room_events(&self, room_id: u64) -> GetRoomEvents<'_> {
         GetRoomEvents::new(self, room_id)
     }
 
-    /// TODO: docs
+    /// Get a [`RoomLeaderboard`](crate::model::multiplayer::RoomLeaderboard).
     #[inline]
     pub const fn room_leaderboard(&self, room_id: u64) -> GetRoomLeaderboard<'_> {
         GetRoomLeaderboard::new(self, room_id)

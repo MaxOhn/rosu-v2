@@ -184,6 +184,7 @@ pub struct RoomDifficultyRange {
     pub max: f32,
 }
 
+/// An event of a [`Room`].
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct RoomEvent {
@@ -197,6 +198,7 @@ pub struct RoomEvent {
     pub user_id: Option<u32>,
 }
 
+/// The type of a [`RoomEvent`].
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Deserialize)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 #[serde(rename_all = "snake_case")]
@@ -213,6 +215,7 @@ pub enum RoomEventKind {
     Unknown,
 }
 
+/// Events of a [`Room`].
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct RoomEvents {
@@ -255,6 +258,7 @@ impl ContainedUsers for RoomEvents {
     }
 }
 
+/// The leaderboard of a [`Room`].
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct RoomLeaderboard {
@@ -280,6 +284,7 @@ pub enum RoomQueueMode {
     HostOnly,
 }
 
+/// A score within a [`RoomLeaderboard`].
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct RoomScore {

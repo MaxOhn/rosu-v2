@@ -604,7 +604,7 @@ mod types {
             },
             difficulty_range: RoomDifficultyRange {
                 min: 12.34,
-                max: 3.1415,
+                max: 3.1419,
             },
         }
     }

@@ -318,6 +318,24 @@ impl Osu {
         GetReplayRaw::new(self, score_id)
     }
 
+    /// Get a [`Room`](crate::model::multiplayer::Room).
+    #[inline]
+    pub const fn room(&self, room_id: u64) -> GetRoom<'_> {
+        GetRoom::new(self, room_id)
+    }
+
+    /// Get [`RoomEvents`](crate::model::multiplayer::RoomEvents).
+    #[inline]
+    pub const fn room_events(&self, room_id: u64) -> GetRoomEvents<'_> {
+        GetRoomEvents::new(self, room_id)
+    }
+
+    /// Get a [`RoomLeaderboard`](crate::model::multiplayer::RoomLeaderboard).
+    #[inline]
+    pub const fn room_leaderboard(&self, room_id: u64) -> GetRoomLeaderboard<'_> {
+        GetRoomLeaderboard::new(self, room_id)
+    }
+
     /// Get a vec of [`Room`](crate::model::multiplayer::Room).
     #[inline]
     pub const fn rooms(&self) -> GetRooms<'_> {

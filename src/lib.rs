@@ -43,6 +43,9 @@
 //! - `news`: Recent news
 //! - `rankings/{mode}/{ranking_type}`: The global leaderboard of either performance points, ranked score, countries, or a spotlight
 //! - `rooms`: Multiplayer rooms
+//! - `rooms/{room_id}`: A specific multiplayer room
+//! - `rooms/{room_id}/events`: Events for a multiplayer room
+//! - `rooms/{room_id}/leaderboard`: The leaderboard for a multiplayer room
 //! - `users/{user_id}/{recent_activity}`: List of a user's recent events like achieved medals, ranks on a beatmaps, username changes, supporter status updates, beatmapset status updates, ...
 //! - `scores/{mode}/{score_id}`: A specific score including its beatmap, beatmapset, and user
 //! - `scores`: Up to 1000 most recently processed scores (passes)

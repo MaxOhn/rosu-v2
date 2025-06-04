@@ -597,15 +597,16 @@ mod types {
             current_playlist_item: Some(get_playlist_item()),
             host: get_user(),
             recent_participants: vec![get_user()],
-            playlist_item_stats: PlaylistItemStats {
+            playlist_item_stats: Some(PlaylistItemStats {
                 count_active: 4,
                 count_total: 5,
                 modes: vec![GameMode::Taiko, GameMode::Mania],
-            },
-            difficulty_range: RoomDifficultyRange {
+            }),
+            difficulty_range: Some(RoomDifficultyRange {
                 min: 12.34,
                 max: 3.1419,
-            },
+            }),
+            playlist: vec![get_playlist_item()],
         }
     }
 
@@ -636,6 +637,7 @@ mod types {
             .into_iter()
             .collect(),
             required_mods: GameMods::new(),
+            scores: vec![get_score()],
         }
     }
 

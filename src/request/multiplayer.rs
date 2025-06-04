@@ -2,10 +2,120 @@ use serde::Serialize;
 
 use crate::{
     model::multiplayer::{Room, RoomCategory},
+    prelude::{RoomEvents, RoomLeaderboard},
     request::{Query, Request},
     routing::Route,
     Osu,
 };
+
+/// Get a [`Room`].
+#[must_use = "requests must be configured and executed"]
+#[derive(Clone)]
+pub struct GetRoom<'a> {
+    osu: &'a Osu,
+    room_id: u64,
+}
+
+impl<'a> GetRoom<'a> {
+    pub(crate) const fn new(osu: &'a Osu, room_id: u64) -> Self {
+        Self { osu, room_id }
+    }
+}
+
+into_future! {
+    |self: GetRoom<'_>| -> Room {
+        Request::new(Route::GetRoom { room_id: self.room_id })
+    }
+}
+
+/// Get [`RoomEvents`].
+#[must_use = "requests must be configured and executed"]
+#[derive(Clone, Serialize)]
+pub struct GetRoomEvents<'a> {
+    #[serde(skip)]
+    osu: &'a Osu,
+    #[serde(skip)]
+    room_id: u64,
+    limit: Option<usize>,
+    after: Option<u64>,
+    before: Option<u64>,
+}
+
+impl<'a> GetRoomEvents<'a> {
+    pub(crate) const fn new(osu: &'a Osu, room_id: u64) -> Self {
+        Self {
+            osu,
+            room_id,
+            limit: None,
+            after: None,
+            before: None,
+        }
+    }
+
+    /// Maximum number of results.
+    #[inline]
+    pub const fn limit(mut self, limit: usize) -> Self {
+        // FIXME: awaiting usize::clamp to be const
+        const fn clamp(value: usize, min: usize, max: usize) -> usize {
+            if value < min {
+                min
+            } else if value > max {
+                max
+            } else {
+                value
+            }
+        }
+
+        self.limit = Some(clamp(limit, 1, 100));
+
+        self
+    }
+
+    /// Only include events after the given event id.
+    #[inline]
+    pub const fn after(mut self, event_id: u64) -> Self {
+        self.after = Some(event_id);
+
+        self
+    }
+
+    /// Only include events before the given event id.
+    #[inline]
+    pub const fn before(mut self, event_id: u64) -> Self {
+        self.before = Some(event_id);
+
+        self
+    }
+}
+
+into_future! {
+    |self: GetRoomEvents<'_>| -> RoomEvents {
+        Request::with_query(
+            Route::GetRoomEvents { room_id: self.room_id },
+            Query::encode(&self),
+        )
+    }
+}
+
+/// Get a [`RoomLeaderboard`].
+#[must_use = "requests must be configured and executed"]
+#[derive(Clone)]
+pub struct GetRoomLeaderboard<'a> {
+    osu: &'a Osu,
+    room_id: u64,
+}
+
+impl<'a> GetRoomLeaderboard<'a> {
+    pub(crate) const fn new(osu: &'a Osu, room_id: u64) -> Self {
+        Self { osu, room_id }
+    }
+}
+
+into_future! {
+    |self: GetRoomLeaderboard<'_>| -> RoomLeaderboard {
+        Request::new(Route::GetRoomLeaderboard { room_id: self.room_id })
+    }
+}
 
 /// The "sort" for [`GetRooms`].
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize)]

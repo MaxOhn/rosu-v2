@@ -139,8 +139,8 @@ use crate::routing::Route;
 pub use crate::future::OsuFuture;
 
 pub use self::{
-    beatmap::*, comments::*, event::*, forum::*, matches::*, news::*, ranking::*, replay::*,
-    score::*, seasonal_backgrounds::*, user::*, wiki::*,
+    beatmap::*, comments::*, event::*, forum::*, matches::*, multiplayer::*, news::*, ranking::*,
+    replay::*, score::*, seasonal_backgrounds::*, user::*, wiki::*,
 };
 
 mod beatmap;
@@ -148,6 +148,7 @@ mod comments;
 mod event;
 mod forum;
 mod matches;
+mod multiplayer;
 mod news;
 mod ranking;
 mod replay;

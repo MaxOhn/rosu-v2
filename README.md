@@ -48,6 +48,7 @@ The following endpoints are currently supported:
 - `me[/{mode}]`: Detailed info about the authenticated user [in the specified mode] (requires OAuth)
 - `news`: Recent news
 - `rankings/{mode}/{ranking_type}`: The global leaderboard of either performance points, ranked score, countries, or a spotlight
+- `rooms`: Multiplayer rooms
 - `users/{user_id}/{recent_activity}`: List of a user's recent events like achieved medals, ranks on a beatmaps, username changes, supporter status updates, beatmapset status updates, ...
 - `scores/{mode}/{score_id}`: A specific score including its beatmap, beatmapset, and user
 - `scores`: Up to 1000 most recently processed scores (passes)

@@ -56,6 +56,7 @@ pub(crate) enum Route {
         mode: Option<GameMode>,
         score_id: u64,
     },
+    GetRooms,
     GetScore {
         mode: Option<GameMode>,
         score_id: u64,
@@ -157,6 +158,7 @@ impl Route {
                 };
                 (Method::Get, path)
             }
+            Self::GetRooms => (Method::Get, "rooms".into()),
             Self::GetScore { mode, score_id } => {
                 let path = match mode {
                     Some(mode) => format!("scores/{mode}/{score_id}").into(),
@@ -235,6 +237,7 @@ impl Route {
             },
             Self::GetRecentActivity { .. } => "GetRecentActivity",
             Self::GetReplay { .. } => "GetReplay",
+            Self::GetRooms => "GetRooms",
             Self::GetScore { .. } => "GetScore",
             Self::GetScores => "GetScores",
             Self::GetSeasonalBackgrounds => "GetSeasonalBackgrounds",

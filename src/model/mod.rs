@@ -156,6 +156,9 @@ pub mod matches;
 /// Re-exports of `rosu-mods`
 pub mod mods;
 
+/// Multiplayer related types
+pub mod multiplayer;
+
 /// News related types
 pub mod news;
 

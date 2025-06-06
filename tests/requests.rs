@@ -14,7 +14,7 @@ use rosu_v2::{
         event::EventSort,
         GameMode,
     },
-    prelude::{RoomCategory, RoomTypeGroup, UserBeatmapsetsKind},
+    prelude::{PlaylistScoresSort, RoomCategory, RoomTypeGroup, UserBeatmapsetsKind},
     request::{RoomsFilter, RoomsTypeGroup},
     Osu,
 };
@@ -440,6 +440,37 @@ async fn performance_rankings() -> Result<()> {
         "Received performance rankings with {} out of {} users",
         rankings.ranking.len(),
         rankings.total
+    );
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn playlist_scores() -> Result<()> {
+    let osu = OSU.get().await?;
+
+    let room = osu
+        .rooms()
+        .category(RoomCategory::DailyChallenge)
+        .filter(RoomsFilter::Active)
+        .await?
+        .pop()
+        .unwrap();
+
+    let playlist_item_id = room.current_playlist_item.unwrap().playlist_item_id;
+
+    let scores = osu
+        .playlist_scores(room.room_id, playlist_item_id)
+        .limit(2)
+        .sort(PlaylistScoresSort::Ascending)
+        .await?;
+
+    let next = scores.get_next(&osu).await.unwrap()?;
+
+    println!(
+        "Got {} and {} scores",
+        scores.scores.len(),
+        next.scores.len()
     );
 
     Ok(())

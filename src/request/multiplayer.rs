@@ -2,11 +2,89 @@ use serde::Serialize;
 
 use crate::{
     model::multiplayer::{Room, RoomCategory},
-    prelude::{RoomEvents, RoomLeaderboard},
+    prelude::{PlaylistScores, PlaylistScoresSort, RoomEvents, RoomLeaderboard},
     request::{Query, Request},
     routing::Route,
     Osu,
 };
+
+/// Get [`PlaylistScores`].
+#[must_use = "requests must be configured and executed"]
+#[derive(Clone, Serialize)]
+pub struct GetPlaylistScores<'a> {
+    #[serde(skip)]
+    osu: &'a Osu,
+    #[serde(skip)]
+    room_id: u64,
+    #[serde(skip)]
+    playlist_id: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    limit: Option<usize>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    sort: Option<PlaylistScoresSort>,
+    #[serde(
+        rename = "cursor_string",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    cursor: Option<&'a str>,
+}
+
+impl<'a> GetPlaylistScores<'a> {
+    pub(crate) const fn new(osu: &'a Osu, room_id: u64, playlist_id: u32) -> Self {
+        Self {
+            osu,
+            room_id,
+            playlist_id,
+            limit: None,
+            sort: None,
+            cursor: None,
+        }
+    }
+
+    /// Maximum number of results.
+    #[inline]
+    pub const fn limit(mut self, limit: usize) -> Self {
+        self.limit = Some(limit);
+
+        self
+    }
+
+    /// Sort order.
+    #[inline]
+    pub const fn sort(mut self, sort: PlaylistScoresSort) -> Self {
+        self.sort = Some(sort);
+
+        self
+    }
+
+    /// Cursor for pagination.
+    #[inline]
+    pub const fn cursor(mut self, cursor: &'a str) -> Self {
+        self.cursor = Some(cursor);
+
+        self
+    }
+}
+
+into_future! {
+    |self: GetPlaylistScores<'_>| -> PlaylistScores {
+        let route = Route::GetPlaylistScores {
+            room_id: self.room_id,
+            playlist_id: self.playlist_id,
+        };
+
+        let req = Request::with_query(route, Query::encode(&self));
+
+        (req, (self.room_id, self.playlist_id))
+    } => |scores, data: (u64, u32)| -> PlaylistScores {
+        let (room_id, playlist_id) = data;
+        scores.room_id = room_id;
+        scores.playlist_id = playlist_id;
+
+        Ok(scores)
+    }
+}
 
 /// Get a [`Room`].
 #[must_use = "requests must be configured and executed"]
@@ -36,8 +114,11 @@ pub struct GetRoomEvents<'a> {
     osu: &'a Osu,
     #[serde(skip)]
     room_id: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     limit: Option<usize>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     after: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     before: Option<u64>,
 }
 
@@ -155,12 +236,17 @@ pub enum RoomsFilter {
 pub struct GetRooms<'a> {
     #[serde(skip)]
     osu: &'a Osu,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     limit: Option<usize>,
-    #[serde(rename = "mode")]
+    #[serde(rename = "mode", default, skip_serializing_if = "Option::is_none")]
     filter: Option<RoomsFilter>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     season_id: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     sort: Option<RoomsSort>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     type_group: Option<RoomsTypeGroup>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     category: Option<RoomCategory>,
 }
 

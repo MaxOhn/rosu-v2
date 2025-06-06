@@ -730,6 +730,8 @@ mod types {
             legacy_score: 765_432_198,
             started_at: Some(get_date()),
             current_user_attributes: UserAttributes { pin: None },
+            playlist_item_id: Some(999),
+            room_id: Some(888),
         }
     }
 

@@ -112,6 +112,66 @@ pub struct PlaylistItemStats {
     pub modes: Vec<GameMode>,
 }
 
+/// Scores of a [`Room`]'s playlist.
+#[derive(Clone, Debug, PartialEq, Deserialize)]
+#[cfg_attr(feature = "serialize", derive(Serialize))]
+pub struct PlaylistScores {
+    #[serde(default)]
+    pub room_id: u64,
+    #[serde(default)]
+    pub playlist_id: u32,
+    pub params: PlaylistScoresParams,
+    pub scores: Vec<Score>,
+    pub total: usize,
+    pub user_score: Option<Score>,
+    #[serde(rename = "cursor_string")]
+    pub cursor: Box<str>,
+}
+
+impl PlaylistScores {
+    /// Get the next set of [`PlaylistScores`].
+    ///
+    /// Returns `None` if there are no more events.
+    pub async fn get_next(&self, osu: &Osu) -> Option<OsuResult<Self>> {
+        if self.scores.is_empty() {
+            return None;
+        }
+
+        let res = osu
+            .playlist_scores(self.room_id, self.playlist_id)
+            .limit(self.params.limit)
+            .sort(self.params.sort)
+            .cursor(self.cursor.as_ref())
+            .await;
+
+        Some(res)
+    }
+}
+
+impl ContainedUsers for PlaylistScores {
+    fn apply_to_users(&self, f: impl CacheUserFn) {
+        self.scores.apply_to_users(f);
+        self.user_score.apply_to_users(f);
+    }
+}
+
+/// Request parameters for [`PlaylistScores`].
+#[derive(Clone, Debug, PartialEq, Deserialize)]
+#[cfg_attr(feature = "serialize", derive(Serialize))]
+pub struct PlaylistScoresParams {
+    pub limit: usize,
+    pub sort: PlaylistScoresSort,
+}
+
+/// The sort order of [`PlaylistScores`].
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+pub enum PlaylistScoresSort {
+    #[serde(rename = "score_desc")]
+    Descending,
+    #[serde(rename = "score_asc")]
+    Ascending,
+}
+
 /// A multiplayer room.
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 #[cfg_attr(feature = "deny_unknown_fields", serde(deny_unknown_fields))]

@@ -297,6 +297,12 @@ impl Osu {
         GetPerformanceRankings::new(self, mode)
     }
 
+    /// Get [`PlaylistScores`](crate::model::multiplayer::PlaylistScores).
+    #[inline]
+    pub const fn playlist_scores(&self, room_id: u64, playlist_id: u32) -> GetPlaylistScores<'_> {
+        GetPlaylistScores::new(self, room_id, playlist_id)
+    }
+
     /// Get the recent activity of a user in form of a vec of
     /// [`Event`](crate::model::event::Event)s.
     #[inline]

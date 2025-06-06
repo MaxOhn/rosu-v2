@@ -121,6 +121,8 @@ pub struct Score {
     pub rank_global: Option<u32>,
     pub user: Option<Box<User>>,
     pub weight: Option<ScoreWeight>,
+    pub playlist_item_id: Option<u32>,
+    pub room_id: Option<u64>,
 }
 
 impl ContainedUsers for Score {
@@ -191,6 +193,13 @@ impl<'de> Deserialize<'de> for Score {
             // TODO: This is just a temporary fix for <https://github.com/ppy/osu-web/issues/10932>.
             // Once the issue is resolved, `Option<ScoreWeight>` can be used again.
             weight: Option<MaybeWeight>,
+            playlist_item_id: Option<u32>,
+            room_id: Option<u64>,
+            #[expect(
+                unused,
+                reason = "should be the same as `score_id`; only available for playlist scores"
+            )]
+            solo_score_id: Option<u64>,
         }
 
         #[derive(Deserialize)]
@@ -264,6 +273,8 @@ impl<'de> Deserialize<'de> for Score {
                     pp: weight.pp?,
                 })
             }),
+            playlist_item_id: score_raw.playlist_item_id,
+            room_id: score_raw.room_id,
         })
     }
 }

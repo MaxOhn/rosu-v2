@@ -45,6 +45,10 @@ pub(crate) enum Route {
     GetOwnData {
         mode: Option<GameMode>,
     },
+    GetPlaylistScores {
+        room_id: u64,
+        playlist_id: u32,
+    },
     GetRankings {
         mode: GameMode,
         ranking_type: RankingType,
@@ -152,6 +156,13 @@ impl Route {
 
                 (Method::Get, path)
             }
+            Self::GetPlaylistScores {
+                room_id,
+                playlist_id,
+            } => (
+                Method::Get,
+                format!("rooms/{room_id}/playlist/{playlist_id}/scores").into(),
+            ),
             Self::GetRankings { mode, ranking_type } => (
                 Method::Get,
                 format!("rankings/{mode}/{}", ranking_type.as_str()).into(),
@@ -244,6 +255,7 @@ impl Route {
             },
             Self::GetNews { .. } => "GetNews",
             Self::GetOwnData { .. } => "GetOwnData",
+            Self::GetPlaylistScores { .. } => "GetPlaylistScores",
             Self::GetRankings { ranking_type, .. } => match ranking_type {
                 RankingType::Charts => "GetRankings/Charts",
                 RankingType::Country => "GetRankings/Country",

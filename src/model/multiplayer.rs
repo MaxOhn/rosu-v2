@@ -322,9 +322,9 @@ impl ContainedUsers for RoomEvents {
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct RoomLeaderboard {
-    pub leaderboard: Vec<RoomScore>,
+    pub leaderboard: Vec<RoomLeaderboardItem>,
     /// `None` if not authenticated via `OAuth2`.
-    pub user_score: Option<RoomScore>,
+    pub user_score: Option<RoomLeaderboardItem>,
 }
 
 impl ContainedUsers for RoomLeaderboard {
@@ -344,10 +344,10 @@ pub enum RoomQueueMode {
     HostOnly,
 }
 
-/// A score within a [`RoomLeaderboard`].
+/// An entry within a [`RoomLeaderboard`].
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
-pub struct RoomScore {
+pub struct RoomLeaderboardItem {
     #[serde(with = "serde_util::adjust_acc")]
     pub accuracy: f32,
     pub attempts: usize,
@@ -360,7 +360,7 @@ pub struct RoomScore {
     pub user: User,
 }
 
-impl ContainedUsers for RoomScore {
+impl ContainedUsers for RoomLeaderboardItem {
     fn apply_to_users(&self, f: impl CacheUserFn) {
         self.user.apply_to_users(f);
     }

@@ -125,7 +125,7 @@ pub struct PlaylistScores {
     pub total: usize,
     pub user_score: Option<Score>,
     #[serde(rename = "cursor_string")]
-    pub cursor: Box<str>,
+    pub cursor: Option<Box<str>>,
 }
 
 impl PlaylistScores {
@@ -141,7 +141,12 @@ impl PlaylistScores {
             .playlist_scores(self.room_id, self.playlist_id)
             .limit(self.params.limit)
             .sort(self.params.sort)
-            .cursor(self.cursor.as_ref())
+            .cursor(
+                self.cursor
+                    .as_ref()
+                    .map(std::convert::AsRef::as_ref)
+                    .unwrap_or_default(),
+            )
             .await;
 
         Some(res)

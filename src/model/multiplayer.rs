@@ -180,6 +180,7 @@ pub struct Room {
     #[serde(rename = "id")]
     pub room_id: u64,
     pub name: String,
+    pub description: Option<String>,
     pub category: RoomCategory,
     pub status: RoomStatus,
     #[serde(rename = "type")]
@@ -196,6 +197,8 @@ pub struct Room {
     pub has_password: bool,
     pub queue_mode: RoomQueueMode,
     pub auto_skip: bool,
+    #[serde(default)]
+    pub pinned: bool,
     pub current_playlist_item: Option<PlaylistItem>,
     pub host: User,
     pub recent_participants: Vec<User>,

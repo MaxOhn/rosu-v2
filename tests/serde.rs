@@ -581,6 +581,7 @@ mod types {
         Room {
             room_id: 123,
             name: "room name".to_owned(),
+            description: Some("room description".to_owned()),
             category: RoomCategory::FeaturedArtist,
             status: RoomStatus::Playing,
             type_group: RoomTypeGroup::TagTeamVersus,
@@ -594,6 +595,7 @@ mod types {
             has_password: false,
             queue_mode: RoomQueueMode::AllPlayersRoundRobin,
             auto_skip: false,
+            pinned: true,
             current_playlist_item: Some(get_playlist_item()),
             host: get_user(),
             recent_participants: vec![get_user()],

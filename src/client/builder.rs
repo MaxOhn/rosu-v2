@@ -53,14 +53,9 @@ impl OsuBuilder {
     /// # Errors
     ///
     /// Returns an error if
-    ///   - client id was not set
-    ///   - client secret was not set
     ///   - API did not provide a token for the given client id and client secret
     ///   - native roots are missing to build the https connector
     pub async fn build(self) -> OsuResult<Osu> {
-        let client_id = self.client_id.ok_or(OsuError::BuilderMissingId)?;
-        let client_secret = self.client_secret.ok_or(OsuError::BuilderMissingSecret)?;
-
         let mut http = HttpConnector::new();
         http.enforce_http(false);
 
@@ -82,17 +77,14 @@ impl OsuBuilder {
             .refill(1)
             .build();
 
-        let inner = Arc::new(OsuInner {
-            client_id,
-            client_secret: client_secret.into_boxed_str(),
+        let inner = Arc::new(OsuInner::new(
+            self.client_id,
+            self.client_secret.clone(),
             http,
-            ratelimiter: Arc::new(ratelimiter),
-            timeout: self.timeout,
-            token: CurrentToken::new(),
-            retries: self.retries,
-            #[cfg(feature = "cache")]
-            cache: dashmap::DashMap::new(),
-        });
+            self.timeout,
+            Arc::new(ratelimiter),
+            self.retries,
+        ));
 
         #[cfg(feature = "metrics")]
         crate::metrics::init_metrics();
@@ -104,6 +96,7 @@ impl OsuBuilder {
                 redirect_uri,
                 scopes,
             }) => {
+                let client_id = self.client_id.ok_or(OsuError::BuilderMissingId)?;
                 let auth_kind =
                     AuthorizationBuilder::perform_local_oauth(redirect_uri, client_id, scopes)
                         .await

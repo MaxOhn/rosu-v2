@@ -362,10 +362,10 @@ impl AuthorizationKind {
     pub async fn request_token(&self, osu: Arc<OsuInner>) -> OsuResult<TokenResponse> {
         match self {
             AuthorizationKind::User(auth) => match osu.token.get_refresh() {
-                Some(refresh) => TokenFuture::new_refresh(osu, &refresh).await,
-                None => TokenFuture::new_user(osu, auth).await,
+                Some(refresh) => TokenFuture::new_refresh(osu, &refresh)?.await,
+                None => TokenFuture::new_user(osu, auth)?.await,
             },
-            AuthorizationKind::Client => TokenFuture::new_client(osu).await,
+            AuthorizationKind::Client => TokenFuture::new_client(osu)?.await,
             AuthorizationKind::BareToken => {
                 let Some(refresh) = osu.token.get_refresh() else {
                     error!("Missing refresh token on bare authentication; all future requests will fail");
@@ -374,7 +374,7 @@ impl AuthorizationKind {
                     unreachable!();
                 };
 
-                TokenFuture::new_refresh(osu, &refresh).await
+                TokenFuture::new_refresh(osu, &refresh)?.await
             }
         }
     }

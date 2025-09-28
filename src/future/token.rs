@@ -35,13 +35,20 @@ struct TokenRequestGenerator {
 }
 
 impl TokenRequestGenerator {
-    fn new(osu: &OsuInner, mut body: JsonBody) -> Self {
-        body.push_int("client_id", osu.client_id);
-        body.push_str("client_secret", &osu.client_secret);
-
-        Self {
-            body: body.into_bytes(),
+    fn new(osu: &OsuInner, mut body: JsonBody) -> Result<Self, OsuError> {
+        match osu.client_id {
+            Some(client_id) => body.push_int("client_id", client_id),
+            None => return Err(OsuError::BuilderMissingId),
         }
+
+        match &osu.client_secret {
+            Some(client_secret) => body.push_str("client_secret", client_secret),
+            None => return Err(OsuError::BuilderMissingSecret),
+        }
+
+        Ok(Self {
+            body: body.into_bytes(),
+        })
     }
 
     fn generate(self) -> OsuResult<HyperRequest<Full<Bytes>>> {
@@ -133,7 +140,7 @@ pub(crate) struct TokenFuture {
 }
 
 impl TokenFuture {
-    pub(crate) fn new_client(osu: Arc<OsuInner>) -> Self {
+    pub(crate) fn new_client(osu: Arc<OsuInner>) -> Result<Self, OsuError> {
         let mut body = JsonBody::new();
 
         body.push_str("grant_type", "client_credentials");
@@ -144,7 +151,7 @@ impl TokenFuture {
         Self::new(osu, body)
     }
 
-    pub(crate) fn new_user(osu: Arc<OsuInner>, auth: &Authorization) -> Self {
+    pub(crate) fn new_user(osu: Arc<OsuInner>, auth: &Authorization) -> Result<Self, OsuError> {
         let mut body = JsonBody::new();
 
         body.push_str("grant_type", "authorization_code");
@@ -157,7 +164,7 @@ impl TokenFuture {
         Self::new(osu, body)
     }
 
-    pub(crate) fn new_refresh(osu: Arc<OsuInner>, refresh: &str) -> Self {
+    pub(crate) fn new_refresh(osu: Arc<OsuInner>, refresh: &str) -> Result<Self, OsuError> {
         let mut body = JsonBody::new();
 
         body.push_str("grant_type", "refresh_token");
@@ -166,13 +173,13 @@ impl TokenFuture {
         Self::new(osu, body)
     }
 
-    fn new(osu: Arc<OsuInner>, body: JsonBody) -> Self {
-        let inner = match TokenRequestGenerator::new(&osu, body).generate() {
+    fn new(osu: Arc<OsuInner>, body: JsonBody) -> Result<Self, OsuError> {
+        let inner = match TokenRequestGenerator::new(&osu, body)?.generate() {
             Ok(req) => TokenFutureInner::InFlight(TokenInFlight::new(osu.http.request(req), osu)),
             Err(err) => TokenFutureInner::Completed(Some(err)),
         };
 
-        Self { inner }
+        Ok(Self { inner })
     }
 }
 

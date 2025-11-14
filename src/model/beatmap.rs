@@ -138,6 +138,7 @@ pub struct Beatmap {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_combo: Option<u32>,
     pub mode: GameMode,
+    pub owners: Option<Vec<BeatmapOwner>>,
     #[serde(rename = "total_length")]
     pub seconds_total: u32,
     #[serde(rename = "difficulty_rating")]
@@ -160,6 +161,7 @@ impl Beatmap {
 impl ContainedUsers for Beatmap {
     fn apply_to_users(&self, f: impl CacheUserFn) {
         self.mapset.apply_to_users(f);
+        self.owners.apply_to_users(f);
     }
 }
 
@@ -175,6 +177,7 @@ impl From<BeatmapExtended> for Beatmap {
             mapset_id: map.mapset_id,
             max_combo: map.max_combo,
             mode: map.mode,
+            owners: map.owners,
             seconds_total: map.seconds_total,
             stars: map.stars,
             status: map.status,

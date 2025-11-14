@@ -70,6 +70,7 @@ pub struct BeatmapExtended {
     /// Full URL, i.e. `https://osu.ppy.sh/beatmaps/{map_id}`
     pub url: String,
     pub version: String,
+    pub owners: Option<Vec<BeatmapOwner>>,
 }
 
 impl BeatmapExtended {
@@ -92,6 +93,7 @@ impl BeatmapExtended {
 impl ContainedUsers for BeatmapExtended {
     fn apply_to_users(&self, f: impl CacheUserFn) {
         self.mapset.apply_to_users(f);
+        self.owners.apply_to_users(f);
     }
 }
 
@@ -103,6 +105,20 @@ impl PartialEq for BeatmapExtended {
 }
 
 impl Eq for BeatmapExtended {}
+
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
+pub struct BeatmapOwner {
+    #[serde(rename = "id")]
+    pub user_id: u32,
+    pub username: Username,
+}
+
+impl ContainedUsers for BeatmapOwner {
+    fn apply_to_users(&self, f: impl CacheUserFn) {
+        f(self.user_id, &self.username);
+    }
+}
 
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
@@ -122,6 +138,7 @@ pub struct Beatmap {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_combo: Option<u32>,
     pub mode: GameMode,
+    pub owners: Option<Vec<BeatmapOwner>>,
     #[serde(rename = "total_length")]
     pub seconds_total: u32,
     #[serde(rename = "difficulty_rating")]
@@ -144,6 +161,7 @@ impl Beatmap {
 impl ContainedUsers for Beatmap {
     fn apply_to_users(&self, f: impl CacheUserFn) {
         self.mapset.apply_to_users(f);
+        self.owners.apply_to_users(f);
     }
 }
 
@@ -159,6 +177,7 @@ impl From<BeatmapExtended> for Beatmap {
             mapset_id: map.mapset_id,
             max_combo: map.max_combo,
             mode: map.mode,
+            owners: map.owners,
             seconds_total: map.seconds_total,
             stars: map.stars,
             status: map.status,
@@ -212,10 +231,14 @@ pub enum GameModeAttributes {
     },
 }
 
-/// Represents a beatmapset. This extends [`Beatmapset`] with additional attributes.
+/// Represents a beatmapset.
+///
+/// This extends [`Beatmapset`] with additional attributes.
 #[derive(Clone, Debug, Deserialize)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub struct BeatmapsetExtended {
+    #[serde(default)]
+    pub anime_cover: bool,
     pub artist: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub artist_unicode: Option<String>,
@@ -266,10 +289,14 @@ pub struct BeatmapsetExtended {
     pub mapset_id: u32,
     pub nominations_summary: BeatmapsetNominations,
     pub nsfw: bool,
+    #[serde(default)]
+    pub offset: i32,
     #[serde(rename = "play_count")]
     pub playcount: u32,
     /// Full URL, i.e. `b.ppy.sh/preview/{mapset_id}.mp3`
     pub preview_url: String,
+    #[serde(default)]
+    pub rating: f32,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ratings: Option<Vec<u32>>,
     #[serde(
@@ -281,6 +308,8 @@ pub struct BeatmapsetExtended {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub recent_favourites: Option<Vec<User>>,
     pub source: String,
+    #[serde(default)]
+    pub spotlight: bool,
     pub status: RankStatus,
     pub storyboard: bool,
     #[serde(

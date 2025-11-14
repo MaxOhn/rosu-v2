@@ -93,6 +93,7 @@ mod types {
 
     pub(super) fn get_mapset_extended() -> BeatmapsetExtended {
         BeatmapsetExtended {
+            anime_cover: true,
             artist: "artist".to_owned(),
             artist_unicode: Some("äöü".to_owned()),
             availability: BeatmapsetAvailability {
@@ -130,12 +131,15 @@ mod types {
                 },
             },
             nsfw: true,
+            offset: -42,
             playcount: 0,
             preview_url: "b.ppy.sh/preview/12345.mp3".to_owned(),
+            rating: 12.345,
             ratings: Some(vec![1, 2, 3, 4, 5, 6]),
             ranked_date: Some(get_date()),
             recent_favourites: Some(vec![get_user()]),
             source: String::new(),
+            spotlight: false,
             status: RankStatus::WIP,
             storyboard: true,
             submitted_date: Some(get_date()),
@@ -179,6 +183,10 @@ mod types {
             status: RankStatus::Approved,
             url: "https://osu.ppy.sh/beatmaps/123456".to_owned(),
             version: "Insane".to_owned(),
+            owners: Some(vec![BeatmapOwner {
+                user_id: 2,
+                username: "peppy".into(),
+            }]),
         }
     }
 
@@ -192,6 +200,10 @@ mod types {
             mapset_id: 2345,
             max_combo: Some(1000),
             mode: GameMode::Catch,
+            owners: Some(vec![BeatmapOwner {
+                user_id: 2,
+                username: "peppy".into(),
+            }]),
             seconds_total: 120,
             stars: 5.5,
             status: RankStatus::Loved,

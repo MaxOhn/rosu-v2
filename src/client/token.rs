@@ -352,8 +352,10 @@ You may close this tab
     }
 }
 
+#[derive(Default)]
 pub(super) enum AuthorizationKind {
     User(Authorization),
+    #[default]
     Client,
     BareToken,
 }
@@ -377,12 +379,6 @@ impl AuthorizationKind {
                 TokenFuture::new_refresh(osu, &refresh)?.await
             }
         }
-    }
-}
-
-impl Default for AuthorizationKind {
-    fn default() -> Self {
-        Self::Client
     }
 }
 

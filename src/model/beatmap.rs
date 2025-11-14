@@ -227,10 +227,14 @@ pub enum GameModeAttributes {
     },
 }
 
-/// Represents a beatmapset. This extends [`Beatmapset`] with additional attributes.
+/// Represents a beatmapset.
+///
+/// This extends [`Beatmapset`] with additional attributes.
 #[derive(Clone, Debug, Deserialize)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub struct BeatmapsetExtended {
+    #[serde(default)]
+    pub anime_cover: bool,
     pub artist: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub artist_unicode: Option<String>,
@@ -281,10 +285,14 @@ pub struct BeatmapsetExtended {
     pub mapset_id: u32,
     pub nominations_summary: BeatmapsetNominations,
     pub nsfw: bool,
+    #[serde(default)]
+    pub offset: i32,
     #[serde(rename = "play_count")]
     pub playcount: u32,
     /// Full URL, i.e. `b.ppy.sh/preview/{mapset_id}.mp3`
     pub preview_url: String,
+    #[serde(default)]
+    pub rating: f32,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ratings: Option<Vec<u32>>,
     #[serde(
@@ -296,6 +304,8 @@ pub struct BeatmapsetExtended {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub recent_favourites: Option<Vec<User>>,
     pub source: String,
+    #[serde(default)]
+    pub spotlight: bool,
     pub status: RankStatus,
     pub storyboard: bool,
     #[serde(

@@ -70,6 +70,7 @@ pub struct BeatmapExtended {
     /// Full URL, i.e. `https://osu.ppy.sh/beatmaps/{map_id}`
     pub url: String,
     pub version: String,
+    pub owners: Option<Vec<BeatmapOwner>>,
 }
 
 impl BeatmapExtended {
@@ -92,6 +93,7 @@ impl BeatmapExtended {
 impl ContainedUsers for BeatmapExtended {
     fn apply_to_users(&self, f: impl CacheUserFn) {
         self.mapset.apply_to_users(f);
+        self.owners.apply_to_users(f);
     }
 }
 
@@ -103,6 +105,19 @@ impl PartialEq for BeatmapExtended {
 }
 
 impl Eq for BeatmapExtended {}
+
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
+pub struct BeatmapOwner {
+    #[serde(rename = "id")]
+    pub user_id: u32,
+    pub username: Username,
+}
+
+impl ContainedUsers for BeatmapOwner {
+    fn apply_to_users(&self, f: impl CacheUserFn) {
+        f(self.user_id, &self.username);
+    }
+}
 
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]

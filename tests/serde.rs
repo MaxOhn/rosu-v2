@@ -179,6 +179,10 @@ mod types {
             status: RankStatus::Approved,
             url: "https://osu.ppy.sh/beatmaps/123456".to_owned(),
             version: "Insane".to_owned(),
+            owners: Some(vec![BeatmapOwner {
+                user_id: 2,
+                username: "peppy".into(),
+            }]),
         }
     }
 

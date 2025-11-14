@@ -107,6 +107,7 @@ impl PartialEq for BeatmapExtended {
 impl Eq for BeatmapExtended {}
 
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub struct BeatmapOwner {
     #[serde(rename = "id")]
     pub user_id: u32,

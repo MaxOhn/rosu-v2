@@ -200,6 +200,10 @@ mod types {
             mapset_id: 2345,
             max_combo: Some(1000),
             mode: GameMode::Catch,
+            owners: Some(vec![BeatmapOwner {
+                user_id: 2,
+                username: "peppy".into(),
+            }]),
             seconds_total: 120,
             stars: 5.5,
             status: RankStatus::Loved,

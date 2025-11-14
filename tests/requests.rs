@@ -19,10 +19,10 @@ use tokio::time::sleep;
 use tracing_subscriber::{fmt::TestWriter, EnvFilter};
 
 async fn osu() -> Result<Osu> {
-    tracing_subscriber::fmt()
+    let _ = tracing_subscriber::fmt()
         .with_writer(TestWriter::new())
         .with_env_filter(EnvFilter::builder().parse("rosu_v2=trace,info").unwrap())
-        .init();
+        .try_init();
 
     dotenv().ok();
 

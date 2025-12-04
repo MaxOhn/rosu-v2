@@ -161,14 +161,18 @@ mod wiki;
 #[derive(Copy, Clone)]
 pub(crate) enum Method {
     Get,
+    Delete,
     Post,
+    Put,
 }
 
 impl Method {
     pub const fn into_hyper(self) -> hyper::Method {
         match self {
             Method::Get => hyper::Method::GET,
+            Method::Delete => hyper::Method::DELETE,
             Method::Post => hyper::Method::POST,
+            Method::Put => hyper::Method::PUT,
         }
     }
 }

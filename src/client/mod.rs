@@ -210,6 +210,14 @@ impl Osu {
         PostChatKeepalive::new(self)
     }
 
+    /// Get information about a chat channel in form of a
+    /// [`ChatChannelInfo`](crate::model::chat::ChatChannelInfo). The list of online users is
+    /// empty for all [`ChannelType`]s except PM.
+    #[inline]
+    pub const fn chat_channel(&self, channel_id: u32) -> GetChatChannel<'_> {
+        GetChatChannel::new(self, channel_id)
+    }
+
     /// Get a list of comments and their replies up to two levels deep
     /// in form of a [`CommentBundle`](crate::model::comments::CommentBundle) .
     #[inline]

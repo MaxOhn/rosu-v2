@@ -198,6 +198,18 @@ impl Osu {
         GetBeatmapsetSearch::new(self)
     }
 
+    /// Refresh chat activity status, and optionally get a history of recent silences in form of
+    /// [`ChatSilenceHistory`](crate::model::chat::ChatSilenceHistory).
+    ///
+    /// Frequent keepalive signals are necessary for using websocket chat API: the client must send
+    /// them roughly every 30 seconds to remain active and keep receiving public messages. See also:
+    /// [osu!web Documentation § Using Chat](https://osu.ppy.sh/docs/index.html#using-chat).
+    ///
+    #[inline]
+    pub const fn chat_keepalive(&self) -> PostChatKeepalive<'_> {
+        PostChatKeepalive::new(self)
+    }
+
     /// Get a list of comments and their replies up to two levels deep
     /// in form of a [`CommentBundle`](crate::model::comments::CommentBundle) .
     #[inline]

@@ -951,3 +951,11 @@ impl<'de> Visitor<'de> for RankHistoryVisitor {
         Ok(None)
     }
 }
+
+/// A record indicating a [`User`] was silenced.
+#[derive(Clone, Debug, Eq, Deserialize, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
+pub struct UserSilence {
+    pub id: u32,
+    pub user_id: u32,
+}

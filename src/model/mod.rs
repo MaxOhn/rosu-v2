@@ -138,6 +138,9 @@ mod serde_util;
 /// Beatmap(set) related types
 pub mod beatmap;
 
+/// Chat-related types
+pub mod chat;
+
 /// Comment related types
 pub mod comments;
 

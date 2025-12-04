@@ -30,6 +30,7 @@ pub(crate) enum Route {
     GetBeatmapsetFromMapId,
     GetBeatmapsetEvents,
     GetBeatmapsetSearch,
+    PostChatKeepalive,
     GetComments,
     GetEvents,
     GetForumPosts {
@@ -126,6 +127,7 @@ impl Route {
             Self::GetBeatmapsetFromMapId => (Method::Get, "beatmapsets/lookup".into()),
             Self::GetBeatmapsetEvents => (Method::Get, "beatmapsets/events".into()),
             Self::GetBeatmapsetSearch => (Method::Get, "beatmapsets/search".into()),
+            Self::PostChatKeepalive => (Method::Post, "chat/ack".into()),
             Self::GetComments => (Method::Get, "comments".into()),
             Self::GetEvents => (Method::Get, "events".into()),
             Self::GetForumPosts { topic_id } => {

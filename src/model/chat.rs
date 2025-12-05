@@ -69,7 +69,7 @@ pub struct ChatChannelUserAttributes {
     // The reason why messages cannot be sent to this channel.
     pub can_message_error: Option<String>,
     // `message_id` of the last read message.
-    pub last_read_id: u32,
+    pub last_read_id: Option<u32>,
 }
 
 /// Chat channel information.

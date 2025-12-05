@@ -47,11 +47,8 @@ into_future! {
 
 /// Read information about a specific channel.
 #[must_use = "requests must be configured and executed"]
-#[derive(Serialize)]
 pub struct GetChatChannel<'a> {
-    #[serde(skip)]
     osu: &'a Osu,
-    #[serde(skip)]
     channel_id: u32,
 }
 
@@ -63,15 +60,13 @@ impl<'a> GetChatChannel<'a> {
 
 into_future! {
     |self: GetChatChannel<'_>| -> ChatChannelInfo {
-        Request::with_query(Route::GetChatChannel { channel_id: self.channel_id }, Query::encode(&self))
+        Request::new(Route::GetChatChannel { channel_id: self.channel_id })
     }
 }
 
 /// List all public channels that can be joined.
 #[must_use = "requests must be configured and executed"]
-#[derive(Serialize)]
 pub struct GetChatChannelList<'a> {
-    #[serde(skip)]
     osu: &'a Osu,
 }
 
@@ -83,7 +78,7 @@ impl<'a> GetChatChannelList<'a> {
 
 into_future! {
     |self: GetChatChannelList<'_>| -> Vec<ChatChannel> {
-        Request::with_query(Route::GetChatChannelList, Query::encode(&self))
+        Request::new(Route::GetChatChannelList)
     }
 }
 
@@ -141,9 +136,7 @@ into_future! {
 /// Read the list of channels the current user is in, as well as the list of silences that were
 /// recently issued there.
 #[must_use = "requests must be configured and executed"]
-#[derive(Serialize)]
 pub struct GetChatUpdates<'a> {
-    #[serde(skip)]
     osu: &'a Osu,
 }
 
@@ -155,19 +148,15 @@ impl<'a> GetChatUpdates<'a> {
 
 into_future! {
     |self: GetChatUpdates<'_>| -> ChatUpdate {
-        Request::with_query(Route::GetChatUpdates, Query::encode(&self))
+        Request::new(Route::GetChatUpdates)
     }
 }
 
 /// Join a public or multiplayer channel.
 #[must_use = "requests must be configured and executed"]
-#[derive(Serialize)]
 pub struct PutChatJoinChannel<'a> {
-    #[serde(skip)]
     osu: &'a Osu,
-    #[serde(skip)]
     channel_id: u32,
-    #[serde(skip)]
     user_id: u32,
 }
 
@@ -183,19 +172,15 @@ impl<'a> PutChatJoinChannel<'a> {
 
 into_future! {
     |self: PutChatJoinChannel<'_>| -> ChatChannel {
-        Request::with_query(Route::PutChatJoinChannel { channel_id: self.channel_id, user_id: self.user_id }, Query::encode(&self))
+        Request::new(Route::PutChatJoinChannel { channel_id: self.channel_id, user_id: self.user_id })
     }
 }
 
 /// Leave a public or multiplayer channel.
 #[must_use = "requests must be configured and executed"]
-#[derive(Serialize)]
 pub struct DeleteChatLeaveChannel<'a> {
-    #[serde(skip)]
     osu: &'a Osu,
-    #[serde(skip)]
     channel_id: u32,
-    #[serde(skip)]
     user_id: u32,
 }
 
@@ -211,11 +196,10 @@ impl<'a> DeleteChatLeaveChannel<'a> {
 
 into_future! {
     |self: DeleteChatLeaveChannel<'_>| -> () {
-        Request::with_query(Route::DeleteChatLeaveChannel { channel_id: self.channel_id, user_id: self.user_id }, Query::encode(&self))
+        Request::new(Route::DeleteChatLeaveChannel { channel_id: self.channel_id, user_id: self.user_id })
     }
 }
 
-#[derive(Serialize)]
 struct PostChannelCreateAnnouncementChannelBody {
     pub name: Option<String>,
     pub description: Option<String>,
@@ -223,9 +207,7 @@ struct PostChannelCreateAnnouncementChannelBody {
 
 /// Leave a public or multiplayer channel.
 #[must_use = "requests must be configured and executed"]
-#[derive(Serialize)]
 pub struct PostChatCreateAnnouncement<'a> {
-    #[serde(skip)]
     osu: &'a Osu,
     channel: PostChannelCreateAnnouncementChannelBody,
     message: Option<String>,
@@ -296,11 +278,8 @@ into_future! {
 
 /// Create a private channel with another user (PM).
 #[must_use = "requests must be configured and executed"]
-#[derive(Serialize)]
 pub struct PostChatCreatePM<'a> {
-    #[serde(skip)]
     osu: &'a Osu,
-
     target_id: Option<u32>,
     message: Option<String>,
     is_action: Option<bool>,
@@ -366,13 +345,9 @@ into_future! {
 
 /// Mark a channel as read, up to a specific message.
 #[must_use = "requests must be configured and executed"]
-#[derive(Serialize)]
 pub struct PutChatMarkChannelAsRead<'a> {
-    #[serde(skip)]
     osu: &'a Osu,
-    #[serde(skip)]
     channel_id: u32,
-    #[serde(skip)]
     message_id: u32,
 }
 
@@ -388,7 +363,9 @@ impl<'a> PutChatMarkChannelAsRead<'a> {
 
 into_future! {
     |self: PutChatMarkChannelAsRead<'_>| -> () {
-        Request::with_query(Route::PutChatMarkChannelAsRead { channel_id: self.channel_id, message_id: self.message_id }, Query::encode(&self))
+        Request::new(Route::PutChatMarkChannelAsRead { channel_id: self.channel_id, message_id: self.message_id })
+    }
+}
 
 /// Send a message to a chat channel.
 #[must_use = "requests must be configured and executed"]

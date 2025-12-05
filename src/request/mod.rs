@@ -291,6 +291,15 @@ impl JsonBody {
         self.push_value(value.as_bytes());
     }
 
+    pub(crate) fn push_bool(&mut self, key: &str, value: bool) {
+        self.push_key(key.as_bytes());
+        if value {
+            self.inner.extend_from_slice("true".as_bytes());
+        } else {
+            self.inner.extend_from_slice("false".as_bytes());
+        }
+    }
+
     pub(crate) fn push_int(&mut self, key: &str, int: impl Integer) {
         let mut buf = Buffer::new();
         let int = buf.format(int);

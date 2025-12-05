@@ -233,6 +233,13 @@ impl Osu {
         PostChatCreateAnnouncement::new(self)
     }
 
+    /// Create a private channel with another user (PM), and receive its details as
+    /// [`ChatNewPrivateChannel`](crate::model::chat::ChatNewPrivateChannel).
+    #[inline]
+    pub const fn chat_create_private_channel(&self) -> PostChatCreatePM<'_> {
+        PostChatCreatePM::new(self)
+    }
+
     /// Join a public or multiplayer channel and read its details in form of a
     /// [`ChatChannel`](crate::model::chat::ChatChannel).
     #[inline]

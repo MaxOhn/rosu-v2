@@ -1,7 +1,7 @@
 use crate::{
     model::chat::{
-        ChannelType, ChatChannel, ChatChannelInfo, ChatChannelMessage, ChatSilenceHistory,
-        ChatUpdate, SilenceHistoryFilter,
+        ChannelType, ChatChannel, ChatChannelInfo, ChatChannelMessage, ChatNewPrivateChannel,
+        ChatSilenceHistory, ChatUpdate, SilenceHistoryFilter,
     },
     request::{JsonBody, Query, Request},
     routing::Route,
@@ -291,6 +291,76 @@ into_future! {
         }
 
         Request::with_body(Route::PostChatCreateAnnouncement, body)
+    }
+}
+
+/// Create a private channel with another user (PM).
+#[must_use = "requests must be configured and executed"]
+#[derive(Serialize)]
+pub struct PostChatCreatePM<'a> {
+    #[serde(skip)]
+    osu: &'a Osu,
+
+    target_id: Option<u32>,
+    message: Option<String>,
+    is_action: Option<bool>,
+    uuid: Option<String>,
+}
+
+impl<'a> PostChatCreatePM<'a> {
+    pub(crate) const fn new(osu: &'a Osu) -> Self {
+        Self {
+            osu,
+            target_id: None,
+            message: None,
+            is_action: None,
+            uuid: None,
+        }
+    }
+
+    pub fn target_id(mut self, target_id: u32) -> Self {
+        self.target_id = Some(target_id);
+        self
+    }
+
+    pub fn message(mut self, message: String) -> Self {
+        self.message = Some(message);
+        self
+    }
+
+    pub fn is_action(mut self, is_action: bool) -> Self {
+        self.is_action = Some(is_action);
+        self
+    }
+
+    pub fn uuid(mut self, uuid: String) -> Self {
+        self.uuid = Some(uuid);
+        self
+    }
+
+}
+
+into_future! {
+    |self: PostChatCreatePM<'_>| -> ChatNewPrivateChannel {
+        let mut body = JsonBody::new();
+
+        if let Some(target_id) = self.target_id {
+            body.push_int("target_id", target_id);
+        }
+
+        if let Some(message) = self.message {
+            body.push_str("message", &message);
+        }
+
+        if let Some(is_action) = self.is_action {
+            body.push_bool("is_action", is_action);
+        }
+
+        if let Some(uuid) = self.uuid {
+            body.push_str("uuid", &uuid);
+        }
+
+        Request::with_body(Route::PostChatCreatePM, body)
     }
 }
 

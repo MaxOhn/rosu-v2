@@ -6,9 +6,7 @@ use dotenvy::dotenv;
 use eyre::{Result, WrapErr};
 
 use hyper::StatusCode;
-use rosu_v2::{
-    Osu, error::OsuError, prelude::Token,
-};
+use rosu_v2::{error::OsuError, model::chat::ChatChannelId, prelude::Token, Osu};
 
 #[cfg(feature = "local_oauth")]
 use rosu_v2::prelude::Scopes;
@@ -59,8 +57,9 @@ async fn osu() -> Result<Osu> {
 
     #[cfg(not(feature = "local_oauth"))]
     {
-        let access_token = env::var("ACCESS_TOKEN")
-            .expect("Either set ACCESS_TOKEN in .env, or enable 'local_oauth' feature and set REDIRECT_URL");
+        let access_token = env::var("ACCESS_TOKEN").expect(
+            "Either set ACCESS_TOKEN in .env, or enable 'local_oauth' feature and set REDIRECT_URL",
+        );
 
         builder = builder.with_token(Token::new(&access_token, None), None);
     }
@@ -68,8 +67,8 @@ async fn osu() -> Result<Osu> {
     Ok(builder.build().await?)
 }
 
-const OSU_CHANNEL_ID: u32 = 5;
-const LAZER_CHANNEL_ID: u32 = 14599138;
+const OSU_CHANNEL_ID: ChatChannelId = 5;
+const LAZER_CHANNEL_ID: ChatChannelId = 14599138;
 
 #[tokio::test]
 #[serial]
@@ -113,8 +112,7 @@ async fn chat() -> Result<()> {
                     assert_eq!(another_middle.id, middle.id)
                 }
                 _ => panic!(
-                    "Chat: Expected to re-read two messages, got: {:?}",
-                    filtered_messages
+                    "Chat: Expected to re-read two messages, got: {filtered_messages:?}"
                 ),
             };
         }
@@ -174,7 +172,8 @@ async fn chat_post_messages() -> Result<()> {
 
     // Avoid the "New osu! notifications" email triggered by an unread message from BanchoBot.
     // (At the same time, test the API method.)
-    osu.chat_mark_as_read(channel.channel.id, channel.message.id + 10000).await?;
+    osu.chat_mark_as_read(channel.channel.id, channel.message.id + 10000)
+        .await?;
 
     Ok(())
 }
@@ -189,22 +188,31 @@ async fn chat_create_announcement() -> Result<()> {
         .description("Test announcement".into())
         .message("test message".into())
         .name("rosu-v2".into())
-        .user_ids(&[BANCHOBOT_USER_ID]).await;
+        .user_ids(&[BANCHOBOT_USER_ID])
+        .await;
 
     match channel {
         Ok(announcement) => {
-            println!("Chat: Created announcement with yourself and BanchoBot: {:?}", announcement);
-        }
-        Err(OsuError::Response { source, status, bytes }) => {
-            assert_eq!(
-                status, StatusCode::FORBIDDEN,
-                "Unexpected error -- expected failure due to lack of announcement rights: {}",
-                source
+            println!(
+                "Chat: Created announcement with yourself and BanchoBot: {announcement:?}"
             );
-            println!("Chat: EXPECTED failure during announcement creation: {:?} {} {:?}", source, status, bytes);
+        }
+        Err(OsuError::Response {
+            source,
+            status,
+            bytes,
+        }) => {
+            assert_eq!(
+                status,
+                StatusCode::FORBIDDEN,
+                "Unexpected error -- expected failure due to lack of announcement rights: {source}"
+            );
+            println!(
+                "Chat: EXPECTED failure during announcement creation: {source:?} {status} {bytes:?}"
+            );
         }
         Err(e) => {
-            panic!("Unexpected error: {}", e);
+            panic!("Unexpected error: {e}");
         }
     }
 

@@ -12,6 +12,7 @@ pub(crate) use self::token::{Authorization, TokenResponse};
 
 use self::token::{AuthorizationKind, CurrentToken};
 
+use crate::model::chat::{ChatChannelId, ChatMessageId};
 #[allow(clippy::wildcard_imports)]
 use crate::{
     model::{user::UserBeatmapsetsKind, GameMode},
@@ -221,7 +222,7 @@ impl Osu {
     /// [`ChatChannelInfo`](crate::model::chat::ChatChannelInfo). The list of online users is
     /// empty for all [`ChannelType`]s except PM.
     #[inline]
-    pub const fn chat_channel(&self, channel_id: u32) -> GetChatChannel<'_> {
+    pub const fn chat_channel(&self, channel_id: ChatChannelId) -> GetChatChannel<'_> {
         GetChatChannel::new(self, channel_id)
     }
 
@@ -244,8 +245,8 @@ impl Osu {
     #[inline]
     pub const fn chat_mark_as_read(
         &self,
-        channel_id: u32,
-        message_id: u32,
+        channel_id: ChatChannelId,
+        message_id: ChatMessageId,
     ) -> PutChatMarkChannelAsRead<'_> {
         PutChatMarkChannelAsRead::new(self, channel_id, message_id)
     }
@@ -253,7 +254,11 @@ impl Osu {
     /// Join a public or multiplayer channel and read its details in form of a
     /// [`ChatChannel`](crate::model::chat::ChatChannel).
     #[inline]
-    pub const fn chat_join_channel(&self, channel_id: u32, user_id: u32) -> PutChatJoinChannel<'_> {
+    pub const fn chat_join_channel(
+        &self,
+        channel_id: ChatChannelId,
+        user_id: u32,
+    ) -> PutChatJoinChannel<'_> {
         PutChatJoinChannel::new(self, channel_id, user_id)
     }
 
@@ -261,7 +266,7 @@ impl Osu {
     #[inline]
     pub const fn chat_leave_channel(
         &self,
-        channel_id: u32,
+        channel_id: ChatChannelId,
         user_id: u32,
     ) -> DeleteChatLeaveChannel<'_> {
         DeleteChatLeaveChannel::new(self, channel_id, user_id)
@@ -270,14 +275,17 @@ impl Osu {
     /// Read recent messages from a chat channel in form of a
     /// [`Vec<ChatChannelMessage>`](crate::model::chat::ChatChannelMessage), sorted by their IDs.
     #[inline]
-    pub const fn chat_channel_messages(&self, channel_id: u32) -> GetChatChannelMessages<'_> {
+    pub const fn chat_channel_messages(
+        &self,
+        channel_id: ChatChannelId,
+    ) -> GetChatChannelMessages<'_> {
         GetChatChannelMessages::new(self, channel_id)
     }
 
     /// Send a message to a chat channel. The message is returned in form of a
     /// [`ChannelChatMessage`](crate::model::chat::ChatChannelMessage).
     #[inline]
-    pub const fn chat_send_message(&self, channel_id: u32) -> PostChatChannelMessage<'_> {
+    pub const fn chat_send_message(&self, channel_id: ChatChannelId) -> PostChatChannelMessage<'_> {
         PostChatChannelMessage::new(self, channel_id)
     }
 

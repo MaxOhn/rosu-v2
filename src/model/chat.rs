@@ -5,12 +5,16 @@ use crate::prelude::{User, UserSilence};
 
 use super::{serde_util, CacheUserFn, ContainedUsers};
 
+pub type ChatChannelId = u64;
+pub type ChatMessageId = u64;
+pub type ChatSilenceId = u32;
+
 /// Available filters for silence history received through the chat keepalive response
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub enum SilenceHistoryFilter {
-    SinceSilenceId(u32),
-    SinceMessageId(u32),
+    SinceSilenceId(ChatSilenceId),
+    SinceMessageId(ChatMessageId),
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
@@ -91,7 +95,7 @@ pub struct ChatChannelUserAttributes {
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub struct ChatChannel {
     #[serde(rename = "channel_id")]
-    pub id: u32,
+    pub id: ChatChannelId,
     pub name: String,
     pub description: Option<String>,
     /// Path to the chat icon, relative to the website domain.
@@ -108,7 +112,7 @@ pub struct ChatChannel {
     pub current_user_attributes: Option<ChatChannelUserAttributes>,
     /// `message_id` of last known message (only returned in presence responses).
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_message_id: Option<u32>,
+    pub last_message_id: Option<ChatMessageId>,
     /// Array of `user_id`s that are in the channel (not included for [`ChannelType::Public`] channels)
     #[serde(rename = "users", skip_serializing_if = "Option::is_none")]
     pub user_ids: Option<Vec<u32>>,
@@ -133,8 +137,8 @@ pub enum ChannelMessageType {
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub struct ChatChannelMessage {
     #[serde(rename = "message_id")]
-    pub id: u32,
-    pub channel_id: u32,
+    pub id: ChatMessageId,
+    pub channel_id: ChatChannelId,
     pub sender_id: u32,
     pub content: String,
     pub is_action: bool,

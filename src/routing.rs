@@ -1,5 +1,9 @@
 use crate::{
-    model::{ranking::RankingType, GameMode},
+    model::{
+        chat::{ChatChannelId, ChatMessageId},
+        ranking::RankingType,
+        GameMode,
+    },
     request::{Method, ScoreType, UserId},
 };
 
@@ -31,30 +35,30 @@ pub(crate) enum Route {
     GetBeatmapsetEvents,
     GetBeatmapsetSearch,
     GetChatChannel {
-        channel_id: u32,
+        channel_id: ChatChannelId,
     },
     GetChatChannelList,
     GetChatChannelMessages {
-        channel_id: u32,
+        channel_id: ChatChannelId,
     },
     GetChatUpdates,
     DeleteChatLeaveChannel {
-        channel_id: u32,
+        channel_id: ChatChannelId,
         user_id: u32,
     },
     PostChatCreateAnnouncement,
     PostChatCreatePM,
     PostChatChannelMessage {
-        channel_id: u32,
+        channel_id: ChatChannelId,
     },
     PostChatKeepalive,
     PutChatJoinChannel {
-        channel_id: u32,
+        channel_id: ChatChannelId,
         user_id: u32,
     },
     PutChatMarkChannelAsRead {
-        channel_id: u32,
-        message_id: u32,
+        channel_id: ChatChannelId,
+        message_id: ChatMessageId,
     },
     GetComments,
     GetEvents,

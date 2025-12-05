@@ -1,8 +1,12 @@
 use crate::{
-    Osu, model::chat::{
-        ChannelType, ChatChannel, ChatChannelInfo, ChatChannelMessage, ChatNewPrivateChannel,
-        ChatSilenceHistory, ChatUpdate, SilenceHistoryFilter,
-    }, request::{JsonBody, Query, Request}, routing::Route
+    model::chat::{
+        ChannelType, ChatChannel, ChatChannelId, ChatChannelInfo, ChatChannelMessage,
+        ChatMessageId, ChatNewPrivateChannel, ChatSilenceHistory, ChatSilenceId, ChatUpdate,
+        SilenceHistoryFilter,
+    },
+    request::{JsonBody, Query, Request},
+    routing::Route,
+    Osu,
 };
 
 use serde::Serialize;
@@ -13,8 +17,8 @@ use serde::Serialize;
 pub struct PostChatKeepalive<'a> {
     #[serde(skip)]
     osu: &'a Osu,
-    history_since: Option<u32>,
-    since: Option<u32>,
+    history_since: Option<ChatSilenceId>,
+    since: Option<ChatMessageId>,
 }
 
 impl<'a> PostChatKeepalive<'a> {
@@ -46,11 +50,11 @@ into_future! {
 #[must_use = "requests must be configured and executed"]
 pub struct GetChatChannel<'a> {
     osu: &'a Osu,
-    channel_id: u32,
+    channel_id: ChatChannelId,
 }
 
 impl<'a> GetChatChannel<'a> {
-    pub(crate) const fn new(osu: &'a Osu, channel_id: u32) -> Self {
+    pub(crate) const fn new(osu: &'a Osu, channel_id: ChatChannelId) -> Self {
         Self { osu, channel_id }
     }
 }
@@ -86,14 +90,14 @@ pub struct GetChatChannelMessages<'a> {
     #[serde(skip)]
     osu: &'a Osu,
     #[serde(skip)]
-    channel_id: u32,
+    channel_id: ChatChannelId,
     limit: Option<u32>,
-    since: Option<u32>,
-    until: Option<u32>,
+    since: Option<ChatMessageId>,
+    until: Option<ChatMessageId>,
 }
 
 impl<'a> GetChatChannelMessages<'a> {
-    pub(crate) const fn new(osu: &'a Osu, channel_id: u32) -> Self {
+    pub(crate) const fn new(osu: &'a Osu, channel_id: ChatChannelId) -> Self {
         Self {
             osu,
             channel_id,
@@ -111,14 +115,14 @@ impl<'a> GetChatChannelMessages<'a> {
 
     /// The message after which to return results (non-inclusive).
     #[inline]
-    pub const fn since_message_id(mut self, message_id: u32) -> Self {
+    pub const fn since_message_id(mut self, message_id: ChatMessageId) -> Self {
         self.since = Some(message_id);
         self
     }
 
     /// The message up to which to return results (inclusive).
     #[inline]
-    pub const fn until_message_id(mut self, message_id: u32) -> Self {
+    pub const fn until_message_id(mut self, message_id: ChatMessageId) -> Self {
         self.until = Some(message_id);
         self
     }
@@ -153,12 +157,12 @@ into_future! {
 #[must_use = "requests must be configured and executed"]
 pub struct PutChatJoinChannel<'a> {
     osu: &'a Osu,
-    channel_id: u32,
+    channel_id: ChatChannelId,
     user_id: u32,
 }
 
 impl<'a> PutChatJoinChannel<'a> {
-    pub(crate) const fn new(osu: &'a Osu, channel_id: u32, user_id: u32) -> Self {
+    pub(crate) const fn new(osu: &'a Osu, channel_id: ChatChannelId, user_id: u32) -> Self {
         Self {
             osu,
             channel_id,
@@ -177,12 +181,12 @@ into_future! {
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteChatLeaveChannel<'a> {
     osu: &'a Osu,
-    channel_id: u32,
+    channel_id: ChatChannelId,
     user_id: u32,
 }
 
 impl<'a> DeleteChatLeaveChannel<'a> {
-    pub(crate) const fn new(osu: &'a Osu, channel_id: u32, user_id: u32) -> Self {
+    pub(crate) const fn new(osu: &'a Osu, channel_id: ChatChannelId, user_id: u32) -> Self {
         Self {
             osu,
             channel_id,
@@ -342,12 +346,16 @@ into_future! {
 #[must_use = "requests must be configured and executed"]
 pub struct PutChatMarkChannelAsRead<'a> {
     osu: &'a Osu,
-    channel_id: u32,
-    message_id: u32,
+    channel_id: ChatChannelId,
+    message_id: ChatMessageId,
 }
 
 impl<'a> PutChatMarkChannelAsRead<'a> {
-    pub(crate) const fn new(osu: &'a Osu, channel_id: u32, message_id: u32) -> Self {
+    pub(crate) const fn new(
+        osu: &'a Osu,
+        channel_id: ChatChannelId,
+        message_id: ChatMessageId,
+    ) -> Self {
         Self {
             osu,
             channel_id,
@@ -366,13 +374,13 @@ into_future! {
 #[must_use = "requests must be configured and executed"]
 pub struct PostChatChannelMessage<'a> {
     osu: &'a Osu,
-    channel_id: u32,
+    channel_id: ChatChannelId,
     message: Option<String>,
     is_action: Option<bool>,
 }
 
 impl<'a> PostChatChannelMessage<'a> {
-    pub(crate) const fn new(osu: &'a Osu, channel_id: u32) -> Self {
+    pub(crate) const fn new(osu: &'a Osu, channel_id: ChatChannelId) -> Self {
         Self {
             osu,
             channel_id,

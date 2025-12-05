@@ -1,3 +1,5 @@
+use crate::model::chat::ChatSilenceId;
+
 use super::{serde_util, CacheUserFn, ContainedUsers, GameMode};
 
 use serde::{
@@ -956,6 +958,6 @@ impl<'de> Visitor<'de> for RankHistoryVisitor {
 #[derive(Clone, Debug, Eq, Deserialize, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub struct UserSilence {
-    pub id: u32,
+    pub id: ChatSilenceId,
     pub user_id: u32,
 }

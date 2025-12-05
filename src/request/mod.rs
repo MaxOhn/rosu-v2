@@ -267,6 +267,10 @@ impl JsonBody {
         self.inner.push(prefix);
     }
 
+    fn push_suffix(&mut self) {
+        self.inner.push(b'}');
+    }
+
     fn push_key(&mut self, key: &[u8]) {
         self.push_prefix();
         self.inner.push(b'\"');
@@ -299,10 +303,43 @@ impl JsonBody {
 
     pub(crate) fn into_bytes(mut self) -> Vec<u8> {
         if !self.inner.is_empty() {
-            self.inner.push(b'}');
+            self.push_suffix();
         }
 
         self.inner
+    }
+}
+
+pub(crate) trait JsonArrayValue {
+    fn write_to(&self, buf: &mut Vec<u8>);
+}
+
+impl JsonArrayValue for u32 {
+    fn write_to(&self, buf: &mut Vec<u8>) {
+        let mut itoa_buf = Buffer::new();
+        buf.extend_from_slice(itoa_buf.format(*self).as_bytes());
+    }
+}
+
+impl JsonArrayValue for &str {
+    fn write_to(&self, buf: &mut Vec<u8>) {
+        buf.push(b'\"');
+        buf.extend_from_slice(self.as_bytes());
+        buf.push(b'\"');
+    }
+}
+
+impl JsonBody {
+    pub(crate) fn push_array<T: JsonArrayValue>(&mut self, key: &str, arr: &[T]) {
+        self.push_key(key.as_bytes());
+        self.inner.push(b'[');
+        for (idx, value) in arr.iter().enumerate() {
+            value.write_to(&mut self.inner);
+            if idx + 1 != arr.len() {
+                self.inner.push(b',');
+            }
+        }
+        self.inner.push(b']');
     }
 }
 

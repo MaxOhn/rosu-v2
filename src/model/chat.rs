@@ -43,19 +43,33 @@ impl ContainedUsers for ChatChannelInfo {
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub enum ChannelType {
-    #[serde(rename = "PUBLIC")]
-    Public,
-    #[serde(rename = "PRIVATE")]
-    Private,
-    #[serde(rename = "MULTIPLAYER")]
-    Multiplayer,
-    #[serde(rename = "SPECTATOR")]
-    Spectator,
-    PM,
-    #[serde(rename = "GROUP")]
-    Group,
     #[serde(rename = "ANNOUNCE")]
     Announce,
+    #[serde(rename = "GROUP")]
+    Group,
+    #[serde(rename = "MULTIPLAYER")]
+    Multiplayer,
+    PM,
+    #[serde(rename = "PRIVATE")]
+    Private,
+    #[serde(rename = "PUBLIC")]
+    Public,
+    #[serde(rename = "SPECTATOR")]
+    Spectator,
+}
+
+impl From<ChannelType> for &str {
+    fn from(value: ChannelType) -> Self {
+        match value {
+            ChannelType::Announce => "ANNOUNCE",
+            ChannelType::Group => "GROUP",
+            ChannelType::Multiplayer => "MULTIPLAYER",
+            ChannelType::PM => "PM",
+            ChannelType::Private => "PRIVATE",
+            ChannelType::Public => "PUBLIC",
+            ChannelType::Spectator => "SPECTATOR",
+        }
+    }
 }
 
 /// User capabilities and properties related to a specific channel.
@@ -150,4 +164,19 @@ pub struct ChatUpdate {
 
 impl ContainedUsers for ChatUpdate {
     fn apply_to_users(&self, _: impl CacheUserFn) {}
+}
+
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
+pub struct ChatNewPrivateChannel {
+    pub channel: ChatChannel,
+    pub message: ChatChannelMessage,
+}
+
+impl ContainedUsers for ChatNewPrivateChannel {
+    fn apply_to_users(&self, f: impl CacheUserFn) {
+        if let Some(user) = &self.message.sender {
+            f(user.user_id, &user.username);
+        }
+    }
 }

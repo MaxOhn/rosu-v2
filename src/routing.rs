@@ -42,6 +42,7 @@ pub(crate) enum Route {
         channel_id: u32,
         user_id: u32,
     },
+    PostChatCreateAnnouncement,
     PostChatKeepalive,
     PutChatJoinChannel {
         channel_id: u32,
@@ -159,6 +160,7 @@ impl Route {
                 Method::Delete,
                 format!("chat/channels/{channel}/users/{user}").into(),
             ),
+            Self::PostChatCreateAnnouncement => (Method::Post, "chat/channels".into()),
             Self::PostChatKeepalive => (Method::Post, "chat/ack".into()),
             Self::PutChatJoinChannel {
                 channel_id: channel,

@@ -1,9 +1,9 @@
 use crate::{
     model::chat::{
-        ChatChannel, ChatChannelInfo, ChatChannelMessage, ChatSilenceHistory, ChatUpdate,
-        SilenceHistoryFilter,
+        ChannelType, ChatChannel, ChatChannelInfo, ChatChannelMessage, ChatSilenceHistory,
+        ChatUpdate, SilenceHistoryFilter,
     },
-    request::{Query, Request},
+    request::{JsonBody, Query, Request},
     routing::Route,
     Osu,
 };
@@ -214,3 +214,83 @@ into_future! {
         Request::with_query(Route::DeleteChatLeaveChannel { channel_id: self.channel_id, user_id: self.user_id }, Query::encode(&self))
     }
 }
+
+#[derive(Serialize)]
+struct PostChannelCreateAnnouncementChannelBody {
+    pub name: Option<String>,
+    pub description: Option<String>,
+}
+
+/// Leave a public or multiplayer channel.
+#[must_use = "requests must be configured and executed"]
+#[derive(Serialize)]
+pub struct PostChatCreateAnnouncement<'a> {
+    #[serde(skip)]
+    osu: &'a Osu,
+    channel: PostChannelCreateAnnouncementChannelBody,
+    message: Option<String>,
+    target_ids: Option<Vec<u32>>,
+}
+
+impl<'a> PostChatCreateAnnouncement<'a> {
+    pub(crate) const fn new(osu: &'a Osu) -> Self {
+        Self {
+            osu,
+            channel: PostChannelCreateAnnouncementChannelBody {
+                name: None,
+                description: None,
+            },
+            message: None,
+            target_ids: None,
+        }
+    }
+
+    pub fn name(mut self, name: String) -> Self {
+        self.channel.name = Some(name);
+        self
+    }
+
+    pub fn description(mut self, description: String) -> Self {
+        self.channel.description = Some(description);
+        self
+    }
+
+    pub fn message(mut self, message: String) -> Self {
+        self.message = Some(message);
+        self
+    }
+
+    pub fn user_ids(mut self, user_ids: Vec<u32>) -> Self {
+        self.target_ids = Some(user_ids);
+        self
+    }
+}
+
+into_future! {
+    |self: PostChatCreateAnnouncement<'_>| -> ChatChannel {
+        let mut body = JsonBody::new();
+
+        body.push_key(b"channel");
+        body.push_prefix();
+        if let Some(name) = &self.channel.name {
+            body.push_str("name", name);
+        }
+        if let Some(description) = &self.channel.description {
+            body.push_str("description", description);
+        }
+        body.push_prefix();
+
+        if let Some(message) = self.message {
+            body.push_str("message", &message);
+        }
+
+        body.push_str("type", Into::<&str>::into(ChannelType::Announce));
+
+        if let Some(target_ids) = self.target_ids {
+            body.push_array("target_ids", &target_ids);
+        }
+
+        Request::with_body(Route::PostChatCreateAnnouncement, body)
+    }
+}
+

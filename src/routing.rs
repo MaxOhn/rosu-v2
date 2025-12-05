@@ -37,6 +37,7 @@ pub(crate) enum Route {
     GetChatChannelMessages {
         channel_id: u32,
     },
+    GetChatUpdates,
     PostChatKeepalive,
     GetComments,
     GetEvents,

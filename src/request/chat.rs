@@ -1,6 +1,7 @@
 use crate::{
     model::chat::{
-        ChatChannel, ChatChannelInfo, ChatChannelMessage, ChatSilenceHistory, SilenceHistoryFilter,
+        ChatChannel, ChatChannelInfo, ChatChannelMessage, ChatSilenceHistory, ChatUpdate,
+        SilenceHistoryFilter,
     },
     request::{Query, Request},
     routing::Route,
@@ -134,5 +135,26 @@ impl<'a> GetChatChannelMessages<'a> {
 into_future! {
     |self: GetChatChannelMessages<'_>| -> Vec<ChatChannelMessage> {
         Request::with_query(Route::GetChatChannelMessages { channel_id: self.channel_id }, Query::encode(&self))
+    }
+}
+
+/// Read the list of channels the current user is in, as well as the list of silences that were
+/// recently issued there.
+#[must_use = "requests must be configured and executed"]
+#[derive(Serialize)]
+pub struct GetChatUpdates<'a> {
+    #[serde(skip)]
+    osu: &'a Osu,
+}
+
+impl<'a> GetChatUpdates<'a> {
+    pub(crate) const fn new(osu: &'a Osu) -> Self {
+        Self { osu }
+    }
+}
+
+into_future! {
+    |self: GetChatUpdates<'_>| -> ChatUpdate {
+        Request::with_query(Route::GetChatUpdates, Query::encode(&self))
     }
 }

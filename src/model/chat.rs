@@ -140,3 +140,14 @@ impl ContainedUsers for ChatChannelMessage {
         }
     }
 }
+
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
+pub struct ChatUpdate {
+    pub presence: Vec<ChatChannel>,
+    pub silences: Vec<UserSilence>,
+}
+
+impl ContainedUsers for ChatUpdate {
+    fn apply_to_users(&self, _: impl CacheUserFn) {}
+}

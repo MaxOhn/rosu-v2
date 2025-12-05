@@ -232,6 +232,15 @@ impl Osu {
         GetChatChannelMessages::new(self, channel_id)
     }
 
+    /// NOTE: This method is not public and requires `lazer` OAuth access scope (2025-12-05).
+    ///
+    /// Read the list of channels the current user is in, as well as the list of silences that
+    /// were recently issued there, in form of [`ChatUpdate`](crate::model::chat::ChatUpdate).
+    #[inline]
+    pub const fn chat_updates(&self) -> GetChatUpdates<'_> {
+        GetChatUpdates::new(self)
+    }
+
     /// Get a list of comments and their replies up to two levels deep
     /// in form of a [`CommentBundle`](crate::model::comments::CommentBundle) .
     #[inline]

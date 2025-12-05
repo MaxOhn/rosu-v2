@@ -389,6 +389,49 @@ impl<'a> PutChatMarkChannelAsRead<'a> {
 into_future! {
     |self: PutChatMarkChannelAsRead<'_>| -> () {
         Request::with_query(Route::PutChatMarkChannelAsRead { channel_id: self.channel_id, message_id: self.message_id }, Query::encode(&self))
+
+/// Send a message to a chat channel.
+#[must_use = "requests must be configured and executed"]
+pub struct PostChatChannelMessage<'a> {
+    osu: &'a Osu,
+    channel_id: u32,
+    message: Option<String>,
+    is_action: Option<bool>,
+}
+
+impl<'a> PostChatChannelMessage<'a> {
+    pub(crate) const fn new(osu: &'a Osu, channel_id: u32) -> Self {
+        Self {
+            osu,
+            channel_id,
+            message: None,
+            is_action: None,
+        }
+    }
+
+    pub fn message(mut self, message: String) -> Self {
+        self.message = Some(message);
+        self
+    }
+
+    pub fn is_action(mut self, is_action: bool) -> Self {
+        self.is_action = Some(is_action);
+        self
     }
 }
 
+into_future! {
+    |self: PostChatChannelMessage<'_>| -> ChatChannelMessage {
+        let mut body = JsonBody::new();
+
+        if let Some(message) = self.message {
+            body.push_str("message", &message);
+        }
+
+        if let Some(is_action) = self.is_action {
+            body.push_bool("is_action", is_action);
+        }
+
+        Request::with_body(Route::PostChatChannelMessage { channel_id: self.channel_id}, body)
+    }
+}

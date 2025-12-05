@@ -158,3 +158,59 @@ into_future! {
         Request::with_query(Route::GetChatUpdates, Query::encode(&self))
     }
 }
+
+/// Join a public or multiplayer channel.
+#[must_use = "requests must be configured and executed"]
+#[derive(Serialize)]
+pub struct PutChatJoinChannel<'a> {
+    #[serde(skip)]
+    osu: &'a Osu,
+    #[serde(skip)]
+    channel_id: u32,
+    #[serde(skip)]
+    user_id: u32,
+}
+
+impl<'a> PutChatJoinChannel<'a> {
+    pub(crate) const fn new(osu: &'a Osu, channel_id: u32, user_id: u32) -> Self {
+        Self {
+            osu,
+            channel_id,
+            user_id,
+        }
+    }
+}
+
+into_future! {
+    |self: PutChatJoinChannel<'_>| -> ChatChannel {
+        Request::with_query(Route::PutChatJoinChannel { channel_id: self.channel_id, user_id: self.user_id }, Query::encode(&self))
+    }
+}
+
+/// Leave a public or multiplayer channel.
+#[must_use = "requests must be configured and executed"]
+#[derive(Serialize)]
+pub struct DeleteChatLeaveChannel<'a> {
+    #[serde(skip)]
+    osu: &'a Osu,
+    #[serde(skip)]
+    channel_id: u32,
+    #[serde(skip)]
+    user_id: u32,
+}
+
+impl<'a> DeleteChatLeaveChannel<'a> {
+    pub(crate) const fn new(osu: &'a Osu, channel_id: u32, user_id: u32) -> Self {
+        Self {
+            osu,
+            channel_id,
+            user_id,
+        }
+    }
+}
+
+into_future! {
+    |self: DeleteChatLeaveChannel<'_>| -> () {
+        Request::with_query(Route::DeleteChatLeaveChannel { channel_id: self.channel_id, user_id: self.user_id }, Query::encode(&self))
+    }
+}

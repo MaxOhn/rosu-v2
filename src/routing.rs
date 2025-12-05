@@ -38,7 +38,15 @@ pub(crate) enum Route {
         channel_id: u32,
     },
     GetChatUpdates,
+    DeleteChatLeaveChannel {
+        channel_id: u32,
+        user_id: u32,
+    },
     PostChatKeepalive,
+    PutChatJoinChannel {
+        channel_id: u32,
+        user_id: u32,
+    },
     GetComments,
     GetEvents,
     GetForumPosts {
@@ -144,7 +152,21 @@ impl Route {
                 format!("chat/channels/{channel_id}/messages").into(),
             ),
             Self::GetChatUpdates => (Method::Get, "chat/updates".into()),
+            Self::DeleteChatLeaveChannel {
+                channel_id: channel,
+                user_id: user,
+            } => (
+                Method::Delete,
+                format!("chat/channels/{channel}/users/{user}").into(),
+            ),
             Self::PostChatKeepalive => (Method::Post, "chat/ack".into()),
+            Self::PutChatJoinChannel {
+                channel_id: channel,
+                user_id: user,
+            } => (
+                Method::Put,
+                format!("chat/channels/{channel}/users/{user}").into(),
+            ),
             Self::GetComments => (Method::Get, "comments".into()),
             Self::GetEvents => (Method::Get, "events".into()),
             Self::GetForumPosts { topic_id } => {

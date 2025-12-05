@@ -225,6 +225,23 @@ impl Osu {
         GetChatChannel::new(self, channel_id)
     }
 
+    /// Join a public or multiplayer channel and read its details in form of a
+    /// [`ChatChannel`](crate::model::chat::ChatChannel).
+    #[inline]
+    pub const fn chat_join_channel(&self, channel_id: u32, user_id: u32) -> PutChatJoinChannel<'_> {
+        PutChatJoinChannel::new(self, channel_id, user_id)
+    }
+
+    /// Leave a public or multiplayer channel.
+    #[inline]
+    pub const fn chat_leave_channel(
+        &self,
+        channel_id: u32,
+        user_id: u32,
+    ) -> DeleteChatLeaveChannel<'_> {
+        DeleteChatLeaveChannel::new(self, channel_id, user_id)
+    }
+
     /// Read recent messages from a chat channel in form of a
     /// [`Vec<ChatChannelMessage>`](crate::model::chat::ChatChannelMessage), sorted by their IDs.
     #[inline]

@@ -250,3 +250,7 @@ impl<K, T: ContainedUsers, S> ContainedUsers for HashMap<K, T, S> {
         }
     }
 }
+
+impl ContainedUsers for () {
+    fn apply_to_users(&self, _: impl CacheUserFn) {}
+}

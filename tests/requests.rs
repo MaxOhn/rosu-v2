@@ -4,15 +4,11 @@ use std::{env, time::Duration};
 
 use dotenvy::dotenv;
 use eyre::{Result, WrapErr};
+
 use rosu_v2::{
-    model::{
-        beatmap::{BeatmapsetSearchSort, RankStatus},
-        event::EventSort,
-        GameMode,
-    },
-    prelude::{PlaylistScoresSort, RoomCategory, RoomTypeGroup, UserBeatmapsetsKind},
-    request::{RoomsFilter, RoomsTypeGroup},
-    Osu,
+    Osu, model::{
+        GameMode, beatmap::{BeatmapsetSearchSort, RankStatus}, event::EventSort
+    }, prelude::{PlaylistScoresSort, RoomCategory, RoomTypeGroup, UserBeatmapsetsKind}, request::{RoomsFilter, RoomsTypeGroup}
 };
 use serial_test::serial;
 use tokio::time::sleep;

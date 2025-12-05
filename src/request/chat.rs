@@ -1,5 +1,5 @@
 use crate::{
-    Osu, future::FromBytes, model::chat::{
+    Osu, model::chat::{
         ChannelType, ChatChannel, ChatChannelInfo, ChatChannelMessage, ChatNewPrivateChannel,
         ChatSilenceHistory, ChatUpdate, SilenceHistoryFilter,
     }, request::{JsonBody, Query, Request}, routing::Route

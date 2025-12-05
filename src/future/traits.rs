@@ -38,6 +38,20 @@ impl FromBytes for BytesWrap {
     }
 }
 
+/// Unit wrapper to implement [`FromBytes`] for empty responses.
+#[doc(hidden)]
+pub struct EmptyWrap;
+
+impl FromBytes for EmptyWrap {
+    fn from_bytes(bytes: Bytes) -> OsuResult<Self> {
+        if bytes.is_empty() {
+            Ok(EmptyWrap)
+        } else {
+            Err(OsuError::ResponseNotEmpty { bytes })
+        }
+    }
+}
+
 impl<T: DeserializeOwned> FromBytes for T {
     fn from_bytes(bytes: Bytes) -> OsuResult<Self> {
         serde_json::from_slice(&bytes).map_err(|source| OsuError::Parsing { bytes, source })

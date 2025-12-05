@@ -3,6 +3,36 @@
 /// [`OsuFutureData`]: crate::future::OsuFutureData
 /// [`IntoFuture`]: std::future::IntoFuture
 macro_rules! into_future {
+    // Special case for () return type (empty API response) to avoid complicating helper rules.
+    (
+        |$self:ident: $ty:ty| -> () { $( $req_body:tt )+ }
+    ) => {
+        impl crate::future::OsuFutureData for $ty {
+            type FromBytes = crate::future::EmptyWrap;
+            type OsuOutput = ();
+            type FromUserData = ();
+            type PostProcessData = ();
+        }
+
+        impl std::future::IntoFuture for $ty {
+            type Output = crate::OsuResult<()>;
+            type IntoFuture = crate::future::OsuFuture<Self>;
+
+            fn into_future($self) -> Self::IntoFuture {
+                let res = { $( $req_body )* };
+                let (req, data) =
+                    crate::future::IntoPostProcessData::into_data(res);
+
+                crate::future::OsuFuture::new(
+                    $self.osu,
+                    req,
+                    data,
+                    crate::future::empty_post_process,
+                )
+            }
+        }
+    };
+
     // New OsuFuture with optional post processing
     (
         |$self:ident: $ty:ty| -> $from_bytes:ty { $( $req_body:tt )+ }
@@ -14,7 +44,7 @@ macro_rules! into_future {
         )?
     ) => {
         impl crate::future::OsuFutureData for $ty {
-            type FromBytes = $from_bytes;
+            type FromBytes = into_future!(FROM_BYTES_TY $from_bytes);
             type OsuOutput = into_future!(OUTPUT_TY $from_bytes $( | $output )?);
             type FromUserData = ();
             type PostProcessData = into_future!(POST_PROCESS_DATA $( $( $post_process_data )? )?);
@@ -29,7 +59,7 @@ macro_rules! into_future {
                 let (req, data) =
                     crate::future::IntoPostProcessData::into_data(res);
 
-                let post_process_fn = into_future!(POST_PROCESS_FN $(
+                let post_process_fn = into_future!(POST_PROCESS_FN $from_bytes $(
                     |
                         $from_bytes_arg: $from_bytes,
                         $post_process_data_arg $(: $post_process_data )?
@@ -64,7 +94,7 @@ macro_rules! into_future {
         }
 
         impl crate::future::OsuFutureData for $ty {
-            type FromBytes = $from_bytes;
+            type FromBytes = into_future!(FROM_BYTES_TY $from_bytes);
             type OsuOutput = into_future!(OUTPUT_TY $from_bytes $( | $output )?);
             type FromUserData = $from_user_data;
             type PostProcessData = into_future!(POST_PROCESS_DATA $( $( $post_process_data )? )?);
@@ -83,7 +113,7 @@ macro_rules! into_future {
                     $( $req_body )*
                 };
 
-                let post_process_fn = into_future!(POST_PROCESS_FN $(
+                let post_process_fn = into_future!(POST_PROCESS_FN $from_bytes $(
                     |
                         $from_bytes_arg: $from_bytes,
                         $post_process_data_arg $(: $post_process_data )?
@@ -104,6 +134,9 @@ macro_rules! into_future {
 
     // Helper rules
 
+    ( FROM_BYTES_TY $ty:ty ) => {
+        $ty
+    };
     ( OUTPUT_TY $output:ty ) => {
         $output
     };
@@ -116,16 +149,16 @@ macro_rules! into_future {
     ( POST_PROCESS_DATA $data:ty ) => {
         $data
     };
-    ( POST_PROCESS_FN ) => {
+    ( POST_PROCESS_FN $from_bytes:ty ) => {
         crate::future::noop_post_process
     };
-    ( POST_PROCESS_FN
-        |$from_bytes_arg:tt: $from_bytes:ty, $data_arg:tt $(: $data:ty )?|
+    ( POST_PROCESS_FN $from_bytes:ty
+        |$from_bytes_arg:tt: $from_bytes2:ty, $data_arg:tt $(: $data:ty )?|
             { $( $post_process_body:tt )* }
     ) => {
         |
             #[allow(unused_mut)]
-            mut $from_bytes_arg: $from_bytes,
+            mut $from_bytes_arg: $from_bytes2,
             $data_arg: into_future!(POST_PROCESS_DATA $( $data )?),
         | { $( $post_process_body )* }
     };

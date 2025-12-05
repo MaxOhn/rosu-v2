@@ -1,8 +1,9 @@
 use serde::Deserialize;
+use time::OffsetDateTime;
 
 use crate::prelude::{User, UserSilence};
 
-use super::{CacheUserFn, ContainedUsers};
+use super::{serde_util, CacheUserFn, ContainedUsers};
 
 /// Available filters for silence history received through the chat keepalive response
 #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
@@ -101,4 +102,41 @@ pub struct ChatChannel {
 
 impl ContainedUsers for ChatChannel {
     fn apply_to_users(&self, _: impl CacheUserFn) {}
+}
+
+#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
+pub enum ChannelMessageType {
+    #[serde(rename = "action")]
+    Action,
+    #[serde(rename = "markdown")]
+    Markdown,
+    #[serde(rename = "plain")]
+    Plain,
+}
+
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
+pub struct ChatChannelMessage {
+    #[serde(rename = "message_id")]
+    pub id: u32,
+    pub channel_id: u32,
+    pub sender_id: u32,
+    pub content: String,
+    pub is_action: bool,
+    #[serde(with = "serde_util::datetime")]
+    pub timestamp: OffsetDateTime,
+    #[serde(rename = "type")]
+    pub message_type: ChannelMessageType,
+    /// Message identifier originally sent by client.
+    pub uuid: Option<String>,
+    pub sender: Option<User>,
+}
+
+impl ContainedUsers for ChatChannelMessage {
+    fn apply_to_users(&self, f: impl CacheUserFn) {
+        if let Some(user) = &self.sender {
+            f(user.user_id, &user.username);
+        }
+    }
 }

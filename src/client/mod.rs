@@ -225,6 +225,13 @@ impl Osu {
         GetChatChannel::new(self, channel_id)
     }
 
+    /// Read recent messages from a chat channel in form of a
+    /// [`Vec<ChatChannelMessage>`](crate::model::chat::ChatChannelMessage), sorted by their IDs.
+    #[inline]
+    pub const fn chat_channel_messages(&self, channel_id: u32) -> GetChatChannelMessages<'_> {
+        GetChatChannelMessages::new(self, channel_id)
+    }
+
     /// Get a list of comments and their replies up to two levels deep
     /// in form of a [`CommentBundle`](crate::model::comments::CommentBundle) .
     #[inline]

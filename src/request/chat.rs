@@ -1,5 +1,7 @@
 use crate::{
-    model::chat::{ChatChannel, ChatChannelInfo, ChatSilenceHistory, SilenceHistoryFilter},
+    model::chat::{
+        ChatChannel, ChatChannelInfo, ChatChannelMessage, ChatSilenceHistory, SilenceHistoryFilter,
+    },
     request::{Query, Request},
     routing::Route,
     Osu,
@@ -81,5 +83,56 @@ impl<'a> GetChatChannelList<'a> {
 into_future! {
     |self: GetChatChannelList<'_>| -> Vec<ChatChannel> {
         Request::with_query(Route::GetChatChannelList, Query::encode(&self))
+    }
+}
+
+/// Read recent messages from a chat channel.
+#[must_use = "requests must be configured and executed"]
+#[derive(Serialize)]
+pub struct GetChatChannelMessages<'a> {
+    #[serde(skip)]
+    osu: &'a Osu,
+    #[serde(skip)]
+    channel_id: u32,
+    limit: Option<u32>,
+    since: Option<u32>,
+    until: Option<u32>,
+}
+
+impl<'a> GetChatChannelMessages<'a> {
+    pub(crate) const fn new(osu: &'a Osu, channel_id: u32) -> Self {
+        Self {
+            osu,
+            channel_id,
+            limit: None,
+            since: None,
+            until: None,
+        }
+    }
+
+    #[inline]
+    pub const fn limit(mut self, limit: u32) -> Self {
+        self.limit = Some(limit);
+        self
+    }
+
+    /// The message after which to return results (non-inclusive).
+    #[inline]
+    pub const fn since_message_id(mut self, message_id: u32) -> Self {
+        self.since = Some(message_id);
+        self
+    }
+
+    /// The message up to which to return results (inclusive).
+    #[inline]
+    pub const fn until_message_id(mut self, message_id: u32) -> Self {
+        self.until = Some(message_id);
+        self
+    }
+}
+
+into_future! {
+    |self: GetChatChannelMessages<'_>| -> Vec<ChatChannelMessage> {
+        Request::with_query(Route::GetChatChannelMessages { channel_id: self.channel_id }, Query::encode(&self))
     }
 }

@@ -33,6 +33,7 @@ pub(crate) enum Route {
     GetChatChannel {
         channel_id: u32,
     },
+    GetChatChannelList,
     PostChatKeepalive,
     GetComments,
     GetEvents,
@@ -133,6 +134,7 @@ impl Route {
             Self::GetChatChannel { channel_id } => {
                 (Method::Get, format!("chat/channels/{channel_id}").into())
             }
+            Self::GetChatChannelList => (Method::Get, "chat/channels".into()),
             Self::PostChatKeepalive => (Method::Post, "chat/ack".into()),
             Self::GetComments => (Method::Get, "comments".into()),
             Self::GetEvents => (Method::Get, "events".into()),

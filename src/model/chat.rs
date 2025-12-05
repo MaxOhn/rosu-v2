@@ -98,3 +98,7 @@ pub struct ChatChannel {
     #[serde(rename = "users", skip_serializing_if = "Option::is_none")]
     pub user_ids: Option<Vec<u32>>,
 }
+
+impl ContainedUsers for ChatChannel {
+    fn apply_to_users(&self, _: impl CacheUserFn) {}
+}

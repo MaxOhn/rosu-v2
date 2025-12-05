@@ -1,5 +1,5 @@
 use crate::{
-    model::chat::{ChatChannelInfo, ChatSilenceHistory, SilenceHistoryFilter},
+    model::chat::{ChatChannel, ChatChannelInfo, ChatSilenceHistory, SilenceHistoryFilter},
     request::{Query, Request},
     routing::Route,
     Osu,
@@ -61,5 +61,25 @@ impl<'a> GetChatChannel<'a> {
 into_future! {
     |self: GetChatChannel<'_>| -> ChatChannelInfo {
         Request::with_query(Route::GetChatChannel { channel_id: self.channel_id }, Query::encode(&self))
+    }
+}
+
+/// List all public channels that can be joined.
+#[must_use = "requests must be configured and executed"]
+#[derive(Serialize)]
+pub struct GetChatChannelList<'a> {
+    #[serde(skip)]
+    osu: &'a Osu,
+}
+
+impl<'a> GetChatChannelList<'a> {
+    pub(crate) const fn new(osu: &'a Osu) -> Self {
+        Self { osu }
+    }
+}
+
+into_future! {
+    |self: GetChatChannelList<'_>| -> Vec<ChatChannel> {
+        Request::with_query(Route::GetChatChannelList, Query::encode(&self))
     }
 }

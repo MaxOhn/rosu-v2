@@ -210,6 +210,13 @@ impl Osu {
         PostChatKeepalive::new(self)
     }
 
+    /// List all public channels that can be joined in form of a
+    /// [`Vec<ChatChannel>`](crate::model::chat::ChatChannel).
+    #[inline]
+    pub const fn chat_channels(&self) -> GetChatChannelList<'_> {
+        GetChatChannelList::new(self)
+    }
+
     /// Get information about a chat channel in form of a
     /// [`ChatChannelInfo`](crate::model::chat::ChatChannelInfo). The list of online users is
     /// empty for all [`ChannelType`]s except PM.

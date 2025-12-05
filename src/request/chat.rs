@@ -1,11 +1,8 @@
 use crate::{
-    model::chat::{
+    Osu, future::FromBytes, model::chat::{
         ChannelType, ChatChannel, ChatChannelInfo, ChatChannelMessage, ChatNewPrivateChannel,
         ChatSilenceHistory, ChatUpdate, SilenceHistoryFilter,
-    },
-    request::{JsonBody, Query, Request},
-    routing::Route,
-    Osu,
+    }, request::{JsonBody, Query, Request}, routing::Route
 };
 
 use serde::Serialize;
@@ -211,7 +208,7 @@ pub struct PostChatCreateAnnouncement<'a> {
     osu: &'a Osu,
     channel: PostChannelCreateAnnouncementChannelBody,
     message: Option<String>,
-    target_ids: Option<Vec<u32>>,
+    target_ids: Option<&'a [u32]>,
 }
 
 impl<'a> PostChatCreateAnnouncement<'a> {
@@ -242,7 +239,7 @@ impl<'a> PostChatCreateAnnouncement<'a> {
         self
     }
 
-    pub fn user_ids(mut self, user_ids: Vec<u32>) -> Self {
+    pub const fn user_ids(mut self, user_ids: &'a [u32]) -> Self {
         self.target_ids = Some(user_ids);
         self
     }
@@ -250,26 +247,25 @@ impl<'a> PostChatCreateAnnouncement<'a> {
 
 into_future! {
     |self: PostChatCreateAnnouncement<'_>| -> ChatChannel {
-        let mut body = JsonBody::new();
-
-        body.push_key(b"channel");
-        body.push_prefix();
+        let mut channel_obj = JsonBody::new();
         if let Some(name) = &self.channel.name {
-            body.push_str("name", name);
+            channel_obj.push_str("name", name);
         }
         if let Some(description) = &self.channel.description {
-            body.push_str("description", description);
+            channel_obj.push_str("description", description);
         }
-        body.push_prefix();
+
+        let mut body = JsonBody::new();
+        body.push_object("channel", channel_obj);
+
+        body.push_str("type", Into::<&str>::into(ChannelType::Announce));
 
         if let Some(message) = self.message {
             body.push_str("message", &message);
         }
 
-        body.push_str("type", Into::<&str>::into(ChannelType::Announce));
-
         if let Some(target_ids) = self.target_ids {
-            body.push_array("target_ids", &target_ids);
+            body.push_array("target_ids", target_ids);
         }
 
         Request::with_body(Route::PostChatCreateAnnouncement, body)
@@ -297,7 +293,7 @@ impl<'a> PostChatCreatePM<'a> {
         }
     }
 
-    pub fn target_id(mut self, target_id: u32) -> Self {
+    pub const fn target_id(mut self, target_id: u32) -> Self {
         self.target_id = Some(target_id);
         self
     }
@@ -307,7 +303,7 @@ impl<'a> PostChatCreatePM<'a> {
         self
     }
 
-    pub fn is_action(mut self, is_action: bool) -> Self {
+    pub const fn is_action(mut self, is_action: bool) -> Self {
         self.is_action = Some(is_action);
         self
     }
@@ -316,7 +312,6 @@ impl<'a> PostChatCreatePM<'a> {
         self.uuid = Some(uuid);
         self
     }
-
 }
 
 into_future! {
@@ -391,7 +386,7 @@ impl<'a> PostChatChannelMessage<'a> {
         self
     }
 
-    pub fn is_action(mut self, is_action: bool) -> Self {
+    pub const fn is_action(mut self, is_action: bool) -> Self {
         self.is_action = Some(is_action);
         self
     }

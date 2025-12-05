@@ -310,6 +310,11 @@ impl JsonBody {
         self.push_value(int.as_bytes());
     }
 
+    pub(crate) fn push_object(&mut self, key: &str, obj: JsonBody) {
+        self.push_key(key.as_bytes());
+        self.inner.extend_from_slice(&obj.into_bytes());
+    }
+
     pub(crate) fn into_bytes(mut self) -> Vec<u8> {
         if !self.inner.is_empty() {
             self.push_suffix();

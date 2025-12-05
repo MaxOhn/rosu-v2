@@ -364,3 +364,31 @@ into_future! {
     }
 }
 
+/// Mark a channel as read, up to a specific message.
+#[must_use = "requests must be configured and executed"]
+#[derive(Serialize)]
+pub struct PutChatMarkChannelAsRead<'a> {
+    #[serde(skip)]
+    osu: &'a Osu,
+    #[serde(skip)]
+    channel_id: u32,
+    #[serde(skip)]
+    message_id: u32,
+}
+
+impl<'a> PutChatMarkChannelAsRead<'a> {
+    pub(crate) const fn new(osu: &'a Osu, channel_id: u32, message_id: u32) -> Self {
+        Self {
+            osu,
+            channel_id,
+            message_id,
+        }
+    }
+}
+
+into_future! {
+    |self: PutChatMarkChannelAsRead<'_>| -> () {
+        Request::with_query(Route::PutChatMarkChannelAsRead { channel_id: self.channel_id, message_id: self.message_id }, Query::encode(&self))
+    }
+}
+

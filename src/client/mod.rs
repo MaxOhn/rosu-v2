@@ -240,6 +240,16 @@ impl Osu {
         PostChatCreatePM::new(self)
     }
 
+    /// Mark a channel as read, up to a specific message.
+    #[inline]
+    pub const fn chat_mark_as_read(
+        &self,
+        channel_id: u32,
+        message_id: u32,
+    ) -> PutChatMarkChannelAsRead<'_> {
+        PutChatMarkChannelAsRead::new(self, channel_id, message_id)
+    }
+
     /// Join a public or multiplayer channel and read its details in form of a
     /// [`ChatChannel`](crate::model::chat::ChatChannel).
     #[inline]

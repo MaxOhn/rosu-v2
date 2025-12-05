@@ -49,6 +49,10 @@ pub(crate) enum Route {
         channel_id: u32,
         user_id: u32,
     },
+    PutChatMarkChannelAsRead {
+        channel_id: u32,
+        message_id: u32,
+    },
     GetComments,
     GetEvents,
     GetForumPosts {
@@ -170,6 +174,13 @@ impl Route {
             } => (
                 Method::Put,
                 format!("chat/channels/{channel}/users/{user}").into(),
+            ),
+            Self::PutChatMarkChannelAsRead {
+                channel_id,
+                message_id,
+            } => (
+                Method::Put,
+                format!("chat/channels/{channel_id}/mark-as-read/{message_id}").into(),
             ),
             Self::GetComments => (Method::Get, "comments".into()),
             Self::GetEvents => (Method::Get, "events".into()),

@@ -1,5 +1,9 @@
 use crate::{
-    model::{ranking::RankingType, GameMode},
+    model::{
+        chat::{ChatChannelId, ChatMessageId},
+        ranking::RankingType,
+        GameMode,
+    },
     request::{Method, ScoreType, UserId},
 };
 
@@ -30,6 +34,32 @@ pub(crate) enum Route {
     GetBeatmapsetFromMapId,
     GetBeatmapsetEvents,
     GetBeatmapsetSearch,
+    GetChatChannel {
+        channel_id: ChatChannelId,
+    },
+    GetChatChannelList,
+    GetChatChannelMessages {
+        channel_id: ChatChannelId,
+    },
+    GetChatUpdates,
+    DeleteChatLeaveChannel {
+        channel_id: ChatChannelId,
+        user_id: u32,
+    },
+    PostChatCreateAnnouncement,
+    PostChatCreatePM,
+    PostChatChannelMessage {
+        channel_id: ChatChannelId,
+    },
+    PostChatKeepalive,
+    PutChatJoinChannel {
+        channel_id: ChatChannelId,
+        user_id: u32,
+    },
+    PutChatMarkChannelAsRead {
+        channel_id: ChatChannelId,
+        message_id: ChatMessageId,
+    },
     GetComments,
     GetEvents,
     GetForumPosts {
@@ -126,6 +156,43 @@ impl Route {
             Self::GetBeatmapsetFromMapId => (Method::Get, "beatmapsets/lookup".into()),
             Self::GetBeatmapsetEvents => (Method::Get, "beatmapsets/events".into()),
             Self::GetBeatmapsetSearch => (Method::Get, "beatmapsets/search".into()),
+            Self::GetChatChannel { channel_id } => {
+                (Method::Get, format!("chat/channels/{channel_id}").into())
+            }
+            Self::GetChatChannelList => (Method::Get, "chat/channels".into()),
+            Self::GetChatChannelMessages { channel_id } => (
+                Method::Get,
+                format!("chat/channels/{channel_id}/messages").into(),
+            ),
+            Self::GetChatUpdates => (Method::Get, "chat/updates".into()),
+            Self::DeleteChatLeaveChannel {
+                channel_id: channel,
+                user_id: user,
+            } => (
+                Method::Delete,
+                format!("chat/channels/{channel}/users/{user}").into(),
+            ),
+            Self::PostChatCreateAnnouncement => (Method::Post, "chat/channels".into()),
+            Self::PostChatCreatePM => (Method::Post, "chat/new".into()),
+            Self::PostChatChannelMessage { channel_id } => (
+                Method::Post,
+                format!("chat/channels/{channel_id}/messages").into(),
+            ),
+            Self::PostChatKeepalive => (Method::Post, "chat/ack".into()),
+            Self::PutChatJoinChannel {
+                channel_id: channel,
+                user_id: user,
+            } => (
+                Method::Put,
+                format!("chat/channels/{channel}/users/{user}").into(),
+            ),
+            Self::PutChatMarkChannelAsRead {
+                channel_id,
+                message_id,
+            } => (
+                Method::Put,
+                format!("chat/channels/{channel_id}/mark-as-read/{message_id}").into(),
+            ),
             Self::GetComments => (Method::Get, "comments".into()),
             Self::GetEvents => (Method::Get, "events".into()),
             Self::GetForumPosts { topic_id } => {
@@ -245,6 +312,17 @@ impl Route {
             Self::GetBeatmapsetFromMapId => "GetBeatmapsetFromMapId",
             Self::GetBeatmapsetEvents => "GetBeatmapsetEvents",
             Self::GetBeatmapsetSearch => "GetBeatmapsetSearch",
+            Self::GetChatChannel { .. } => "GetChatChannel",
+            Self::GetChatChannelList { .. } => "GetChatChannelList",
+            Self::GetChatChannelMessages { .. } => "GetChatChannelMessages",
+            Self::GetChatUpdates => "GetChatUpdates",
+            Self::DeleteChatLeaveChannel { .. } => "DeleteChatLeaveChannel",
+            Self::PostChatCreateAnnouncement => "PostChatCreateAnnouncement",
+            Self::PostChatCreatePM => "PostChatCreatePM",
+            Self::PostChatChannelMessage { .. } => "PostChatChannelMessage",
+            Self::PostChatKeepalive => "PostChatKeepalive",
+            Self::PutChatJoinChannel { .. } => "PutChatJoinChannel",
+            Self::PutChatMarkChannelAsRead { .. } => "PutChatMarkChannelAsRead",
             Self::GetComments => "GetComments",
             Self::GetEvents => "GetEvents",
             Self::GetForumPosts { .. } => "GetForumPosts",

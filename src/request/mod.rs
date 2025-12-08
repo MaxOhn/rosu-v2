@@ -139,11 +139,12 @@ use crate::routing::Route;
 pub use crate::future::OsuFuture;
 
 pub use self::{
-    beatmap::*, comments::*, event::*, forum::*, matches::*, multiplayer::*, news::*, ranking::*,
-    replay::*, score::*, seasonal_backgrounds::*, user::*, wiki::*,
+    beatmap::*, chat::*, comments::*, event::*, forum::*, matches::*, multiplayer::*, news::*,
+    ranking::*, replay::*, score::*, seasonal_backgrounds::*, user::*, wiki::*,
 };
 
 mod beatmap;
+mod chat;
 mod comments;
 mod event;
 mod forum;
@@ -158,17 +159,21 @@ mod serialize;
 mod user;
 mod wiki;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub(crate) enum Method {
     Get,
+    Delete,
     Post,
+    Put,
 }
 
 impl Method {
     pub const fn into_hyper(self) -> hyper::Method {
         match self {
             Method::Get => hyper::Method::GET,
+            Method::Delete => hyper::Method::DELETE,
             Method::Post => hyper::Method::POST,
+            Method::Put => hyper::Method::PUT,
         }
     }
 }
@@ -229,6 +234,10 @@ impl JsonBody {
         self.inner.push(prefix);
     }
 
+    fn push_suffix(&mut self) {
+        self.inner.push(b'}');
+    }
+
     fn push_key(&mut self, key: &[u8]) {
         self.push_prefix();
         self.inner.push(b'\"');
@@ -249,6 +258,15 @@ impl JsonBody {
         self.push_value(value.as_bytes());
     }
 
+    pub(crate) fn push_bool(&mut self, key: &str, value: bool) {
+        self.push_key(key.as_bytes());
+        if value {
+            self.inner.extend_from_slice("true".as_bytes());
+        } else {
+            self.inner.extend_from_slice("false".as_bytes());
+        }
+    }
+
     pub(crate) fn push_int(&mut self, key: &str, int: impl Integer) {
         let mut buf = Buffer::new();
         let int = buf.format(int);
@@ -259,12 +277,50 @@ impl JsonBody {
         self.push_value(int.as_bytes());
     }
 
+    pub(crate) fn push_object(&mut self, key: &str, obj: JsonBody) {
+        self.push_key(key.as_bytes());
+        self.inner.extend_from_slice(&obj.into_bytes());
+    }
+
     pub(crate) fn into_bytes(mut self) -> Vec<u8> {
         if !self.inner.is_empty() {
-            self.inner.push(b'}');
+            self.push_suffix();
         }
 
         self.inner
+    }
+}
+
+pub(crate) trait JsonArrayValue {
+    fn write_to(&self, buf: &mut Vec<u8>);
+}
+
+impl JsonArrayValue for u32 {
+    fn write_to(&self, buf: &mut Vec<u8>) {
+        let mut itoa_buf = Buffer::new();
+        buf.extend_from_slice(itoa_buf.format(*self).as_bytes());
+    }
+}
+
+impl JsonArrayValue for &str {
+    fn write_to(&self, buf: &mut Vec<u8>) {
+        buf.push(b'\"');
+        buf.extend_from_slice(self.as_bytes());
+        buf.push(b'\"');
+    }
+}
+
+impl JsonBody {
+    pub(crate) fn push_array<T: JsonArrayValue>(&mut self, key: &str, arr: &[T]) {
+        self.push_key(key.as_bytes());
+        self.inner.push(b'[');
+        for (idx, value) in arr.iter().enumerate() {
+            value.write_to(&mut self.inner);
+            if idx + 1 != arr.len() {
+                self.inner.push(b',');
+            }
+        }
+        self.inner.push(b']');
     }
 }
 

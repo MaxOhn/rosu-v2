@@ -4,6 +4,7 @@ use std::{env, time::Duration};
 
 use dotenvy::dotenv;
 use eyre::{Result, WrapErr};
+
 use rosu_v2::{
     model::{
         beatmap::{BeatmapsetSearchSort, RankStatus},

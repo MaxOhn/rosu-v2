@@ -1095,10 +1095,10 @@ mod serde_tests {
         T: DeserializeOwned + Serialize + PartialEq + std::fmt::Debug,
     {
         let serialized =
-            serde_json::to_string(val).unwrap_or_else(|e| panic!("Failed to serialize: {}", e));
+            serde_json::to_string(val).unwrap_or_else(|e| panic!("Failed to serialize: {e}"));
 
         let deserialized: T = serde_json::from_str(&serialized)
-            .unwrap_or_else(|e| panic!("Failed to deserialize: {}\n{serialized}", e));
+            .unwrap_or_else(|e| panic!("Failed to deserialize: {e}\n{serialized}"));
 
         assert_eq!(val, &deserialized);
     }

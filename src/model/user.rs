@@ -1,3 +1,5 @@
+use crate::model::chat::ChatSilenceId;
+
 use super::{serde_util, CacheUserFn, ContainedUsers, GameMode};
 
 use serde::{
@@ -950,4 +952,13 @@ impl<'de> Visitor<'de> for RankHistoryVisitor {
     fn visit_unit<E: Error>(self) -> Result<Self::Value, E> {
         Ok(None)
     }
+}
+
+/// A record indicating a [`User`] was silenced.
+#[derive(Clone, Debug, Eq, Deserialize, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
+pub struct UserSilence {
+    #[serde(rename = "id")]
+    pub silence_id: ChatSilenceId,
+    pub user_id: u32,
 }

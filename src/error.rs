@@ -131,6 +131,9 @@ pub enum OsuError {
         source: ApiError,
         status: StatusCode,
     },
+    /// API returned a non-empty response, while the empty one was expected.
+    #[error("response error: expected empty body, found content instead: {:?}", .bytes)]
+    ResponseNotEmpty { bytes: Bytes },
     /// Temporal (?) downtime of the osu API
     #[error("osu!api may be temporarily unavailable (received 503)")]
     ServiceUnavailable { body: hyper::body::Incoming },

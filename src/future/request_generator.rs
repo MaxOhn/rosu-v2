@@ -57,7 +57,7 @@ impl FutureRequestGenerator {
         }
 
         let url = Url::parse(&url).map_err(|source| OsuError::Url { source, url })?;
-        debug!(%url, "Performing request...");
+        debug!(%url, ?method, "Performing request...");
 
         let token_res = osu.token.get(|token| match token.access {
             Some(ref access) => match HeaderValue::from_str(access) {

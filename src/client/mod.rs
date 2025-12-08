@@ -12,6 +12,7 @@ pub(crate) use self::token::{Authorization, TokenResponse};
 
 use self::token::{AuthorizationKind, CurrentToken};
 
+use crate::model::chat::{ChatChannelId, ChatMessageId};
 #[allow(clippy::wildcard_imports)]
 use crate::{
     model::{user::UserBeatmapsetsKind, GameMode},
@@ -196,6 +197,105 @@ impl Osu {
     #[inline]
     pub const fn beatmapset_search(&self) -> GetBeatmapsetSearch<'_> {
         GetBeatmapsetSearch::new(self)
+    }
+
+    /// Refresh chat activity status, and optionally get a history of recent silences in form of
+    /// [`ChatSilenceHistory`](crate::model::chat::ChatSilenceHistory).
+    ///
+    /// Frequent keepalive signals are necessary for using websocket chat API: the client must send
+    /// them roughly every 30 seconds to remain active and keep receiving public messages. See also:
+    /// [osu!web Documentation § Using Chat](https://osu.ppy.sh/docs/index.html#using-chat).
+    ///
+    #[inline]
+    pub const fn chat_keepalive(&self) -> PostChatKeepalive<'_> {
+        PostChatKeepalive::new(self)
+    }
+
+    /// List all public channels that can be joined in form of a
+    /// [`Vec<ChatChannel>`](crate::model::chat::ChatChannel).
+    #[inline]
+    pub const fn chat_channels(&self) -> GetChatChannelList<'_> {
+        GetChatChannelList::new(self)
+    }
+
+    /// Get information about a chat channel in form of a
+    /// [`ChatChannelInfo`](crate::model::chat::ChatChannelInfo). The list of online users is
+    /// empty for all [`ChannelType`](crate::model::chat::ChannelType)s except PM.
+    #[inline]
+    pub const fn chat_channel(&self, channel_id: ChatChannelId) -> GetChatChannel<'_> {
+        GetChatChannel::new(self, channel_id)
+    }
+
+    /// Create an announcement channel, where everyone can read messages, but only moderators and
+    /// announcement creators can send them. Returns information about a created channel in form of
+    /// [`ChatChannel`](crate::model::chat::ChatChannel).
+    #[inline]
+    pub const fn chat_create_announcement(&self) -> PostChatCreateAnnouncement<'_> {
+        PostChatCreateAnnouncement::new(self)
+    }
+
+    /// Create a private channel with another user (PM), and receive its details as
+    /// [`ChatNewPrivateChannel`](crate::model::chat::ChatNewPrivateChannel).
+    #[inline]
+    pub const fn chat_create_private_channel(&self) -> PostChatCreatePM<'_> {
+        PostChatCreatePM::new(self)
+    }
+
+    /// Mark a channel as read, up to a specific message.
+    #[inline]
+    pub const fn chat_mark_as_read(
+        &self,
+        channel_id: ChatChannelId,
+        message_id: ChatMessageId,
+    ) -> PutChatMarkChannelAsRead<'_> {
+        PutChatMarkChannelAsRead::new(self, channel_id, message_id)
+    }
+
+    /// Join a public or multiplayer channel and read its details in form of a
+    /// [`ChatChannel`](crate::model::chat::ChatChannel).
+    #[inline]
+    pub const fn chat_join_channel(
+        &self,
+        channel_id: ChatChannelId,
+        user_id: u32,
+    ) -> PutChatJoinChannel<'_> {
+        PutChatJoinChannel::new(self, channel_id, user_id)
+    }
+
+    /// Leave a public or multiplayer channel.
+    #[inline]
+    pub const fn chat_leave_channel(
+        &self,
+        channel_id: ChatChannelId,
+        user_id: u32,
+    ) -> DeleteChatLeaveChannel<'_> {
+        DeleteChatLeaveChannel::new(self, channel_id, user_id)
+    }
+
+    /// Read recent messages from a chat channel in form of a
+    /// [`Vec<ChatChannelMessage>`](crate::model::chat::ChatChannelMessage), sorted by their IDs.
+    #[inline]
+    pub const fn chat_channel_messages(
+        &self,
+        channel_id: ChatChannelId,
+    ) -> GetChatChannelMessages<'_> {
+        GetChatChannelMessages::new(self, channel_id)
+    }
+
+    /// Send a message to a chat channel. The message is returned in form of a
+    /// [`ChannelChatMessage`](crate::model::chat::ChatChannelMessage).
+    #[inline]
+    pub const fn chat_send_message(&self, channel_id: ChatChannelId) -> PostChatChannelMessage<'_> {
+        PostChatChannelMessage::new(self, channel_id)
+    }
+
+    /// NOTE: This method is not public and requires `lazer` OAuth access scope (2025-12-05).
+    ///
+    /// Read the list of channels the current user is in, as well as the list of silences that
+    /// were recently issued there, in form of [`ChatUpdate`](crate::model::chat::ChatUpdate).
+    #[inline]
+    pub const fn chat_updates(&self) -> GetChatUpdates<'_> {
+        GetChatUpdates::new(self)
     }
 
     /// Get a list of comments and their replies up to two levels deep

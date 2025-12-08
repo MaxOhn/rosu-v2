@@ -138,6 +138,9 @@ mod serde_util;
 /// Beatmap(set) related types
 pub mod beatmap;
 
+/// Chat-related types
+pub mod chat;
+
 /// Comment related types
 pub mod comments;
 
@@ -246,4 +249,8 @@ impl<K, T: ContainedUsers, S> ContainedUsers for HashMap<K, T, S> {
             value.apply_to_users(f);
         }
     }
+}
+
+impl ContainedUsers for () {
+    fn apply_to_users(&self, _: impl CacheUserFn) {}
 }

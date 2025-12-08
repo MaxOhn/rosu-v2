@@ -139,7 +139,7 @@ jobs:
           --all-features
           --no-fail-fast
           --failure-output "immediate-final"
-          --filter-expr 'not binary(requests)'
+          --filter-expr 'not binary(requests) and not binary(user_requests)'
 
       - name: Run doctests
         run: cargo test --doc --all-features

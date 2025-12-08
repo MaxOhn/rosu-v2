@@ -6,7 +6,12 @@ use dotenvy::dotenv;
 use eyre::{Result, WrapErr};
 
 use hyper::StatusCode;
-use rosu_v2::{error::OsuError, model::chat::ChatChannelId, prelude::Token, Osu};
+use rosu_v2::{
+    error::OsuError,
+    model::chat::{ChatChannelId, ChatChannelMessage},
+    prelude::Token,
+    Osu,
+};
 
 #[cfg(feature = "local_oauth")]
 use rosu_v2::prelude::Scopes;
@@ -163,18 +168,32 @@ async fn chat_post_messages() -> Result<()> {
         .target_id(BANCHOBOT_USER_ID)
         .await?;
 
-    osu.chat_send_message(channel.channel.channel_id)
-        .is_action(true)
-        .message("waves".into())
-        .await?;
+    let now = std::time::Instant::now();
+    let banchobot_reply_id = loop {
+        assert!(
+            now.elapsed().as_secs() < 5,
+            "Chat: Failed to get BanchoBot's response in 5 s"
+        );
+        if let Ok(messages) = osu
+            .chat_channel_messages(channel.channel.channel_id)
+            .limit(1)
+            .await
+        {
+            if let Some(ChatChannelMessage {
+                sender_id: BANCHOBOT_USER_ID,
+                ..
+            }) = messages.last()
+            {
+                break messages.last().unwrap().message_id;
+            }
+        }
+        tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+    };
 
     // Avoid the "New osu! notifications" email triggered by an unread message from BanchoBot.
     // (At the same time, test the API method.)
-    osu.chat_mark_as_read(
-        channel.channel.channel_id,
-        channel.message.message_id + 10000,
-    )
-    .await?;
+    osu.chat_mark_as_read(channel.channel.channel_id, banchobot_reply_id)
+        .await?;
 
     Ok(())
 }

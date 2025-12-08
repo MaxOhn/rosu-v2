@@ -97,19 +97,19 @@ async fn chat() -> Result<()> {
                 "Chat: Read 3 messages from #osu: {:?}",
                 osu_messages
                     .iter()
-                    .map(|m| m.id.to_string())
+                    .map(|m| m.message_id.to_string())
                     .collect::<Vec<_>>()
                     .join(", ")
             );
             let filtered_messages = osu
                 .chat_channel_messages(OSU_CHANNEL_ID)
-                .since_message_id(first.id)
-                .until_message_id(last.id)
+                .since_message_id(first.message_id)
+                .until_message_id(last.message_id)
                 .await?;
 
             match filtered_messages.as_slice() {
                 [another_middle, _] => {
-                    assert_eq!(another_middle.id, middle.id)
+                    assert_eq!(another_middle.message_id, middle.message_id)
                 }
                 _ => panic!("Chat: Expected to re-read two messages, got: {filtered_messages:?}"),
             };
@@ -163,15 +163,18 @@ async fn chat_post_messages() -> Result<()> {
         .target_id(BANCHOBOT_USER_ID)
         .await?;
 
-    osu.chat_send_message(channel.channel.id)
+    osu.chat_send_message(channel.channel.channel_id)
         .is_action(true)
         .message("waves".into())
         .await?;
 
     // Avoid the "New osu! notifications" email triggered by an unread message from BanchoBot.
     // (At the same time, test the API method.)
-    osu.chat_mark_as_read(channel.channel.id, channel.message.id + 10000)
-        .await?;
+    osu.chat_mark_as_read(
+        channel.channel.channel_id,
+        channel.message.message_id + 10000,
+    )
+    .await?;
 
     Ok(())
 }

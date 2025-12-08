@@ -94,8 +94,7 @@ pub struct ChatChannelUserAttributes {
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub struct ChatChannel {
-    #[serde(rename = "channel_id")]
-    pub id: ChatChannelId,
+    pub channel_id: ChatChannelId,
     pub name: String,
     pub description: Option<String>,
     /// Path to the chat icon, relative to the website domain.
@@ -136,8 +135,7 @@ pub enum ChannelMessageType {
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub struct ChatChannelMessage {
-    #[serde(rename = "message_id")]
-    pub id: ChatMessageId,
+    pub message_id: ChatMessageId,
     pub channel_id: ChatChannelId,
     pub sender_id: u32,
     pub content: String,

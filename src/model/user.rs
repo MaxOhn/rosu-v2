@@ -958,6 +958,7 @@ impl<'de> Visitor<'de> for RankHistoryVisitor {
 #[derive(Clone, Debug, Eq, Deserialize, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub struct UserSilence {
-    pub id: ChatSilenceId,
+    #[serde(rename = "id")]
+    pub silence_id: ChatSilenceId,
     pub user_id: u32,
 }

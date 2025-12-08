@@ -111,9 +111,7 @@ async fn chat() -> Result<()> {
                 [another_middle, _] => {
                     assert_eq!(another_middle.id, middle.id)
                 }
-                _ => panic!(
-                    "Chat: Expected to re-read two messages, got: {filtered_messages:?}"
-                ),
+                _ => panic!("Chat: Expected to re-read two messages, got: {filtered_messages:?}"),
             };
         }
         _ => println!(
@@ -193,9 +191,7 @@ async fn chat_create_announcement() -> Result<()> {
 
     match channel {
         Ok(announcement) => {
-            println!(
-                "Chat: Created announcement with yourself and BanchoBot: {announcement:?}"
-            );
+            println!("Chat: Created announcement with yourself and BanchoBot: {announcement:?}");
         }
         Err(OsuError::Response {
             source,

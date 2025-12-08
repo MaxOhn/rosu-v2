@@ -6,7 +6,7 @@ use time::OffsetDateTime;
 use crate::{
     error::OsuError,
     model::{serde_util, CacheUserFn, ContainedUsers},
-    prelude::{Beatmap, Score, User},
+    prelude::{Beatmap, CurrentUserScore, Score, User},
     request::{GetRoomEvents, GetRoomLeaderboard},
     Osu, OsuResult,
 };
@@ -200,6 +200,7 @@ pub struct Room {
     #[serde(default)]
     pub pinned: bool,
     pub current_playlist_item: Option<PlaylistItem>,
+    pub current_user_score: Option<CurrentUserScore>,
     pub host: User,
     pub recent_participants: Vec<User>,
     pub playlist_item_stats: Option<PlaylistItemStats>,

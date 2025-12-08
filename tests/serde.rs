@@ -609,6 +609,15 @@ mod types {
             auto_skip: false,
             pinned: true,
             current_playlist_item: Some(get_playlist_item()),
+            current_user_score: Some(CurrentUserScore {
+                accuracy: 123.4,
+                attempts: 123,
+                completed: 123,
+                pp: 123.4,
+                room_id: 123,
+                total_score: 123,
+                user_id: 123,
+            }),
             host: get_user(),
             recent_participants: vec![get_user()],
             playlist_item_stats: Some(PlaylistItemStats {

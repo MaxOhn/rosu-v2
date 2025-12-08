@@ -40,6 +40,18 @@ impl ContainedUsers for BeatmapUserScore {
     }
 }
 
+#[derive(Clone, Debug, PartialEq, Deserialize)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
+pub struct CurrentUserScore {
+    pub accuracy: f32,
+    pub attempts: u32,
+    pub completed: u32,
+    pub pp: f32,
+    pub room_id: u64,
+    pub total_score: u64,
+    pub user_id: u32,
+}
+
 #[derive(Clone, Debug, Deserialize)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub struct ProcessedScores {

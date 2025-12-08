@@ -6,12 +6,7 @@ use dotenvy::dotenv;
 use eyre::{Result, WrapErr};
 
 use hyper::StatusCode;
-use rosu_v2::{
-    error::OsuError,
-    model::chat::{ChatChannelId, ChatChannelMessage},
-    prelude::Token,
-    Osu,
-};
+use rosu_v2::{error::OsuError, model::chat::ChatChannelId, prelude::Token, Osu};
 
 #[cfg(feature = "local_oauth")]
 use rosu_v2::prelude::Scopes;
@@ -168,31 +163,24 @@ async fn chat_post_messages() -> Result<()> {
         .target_id(BANCHOBOT_USER_ID)
         .await?;
 
-    let now = std::time::Instant::now();
-    let banchobot_reply_id = loop {
-        assert!(
-            now.elapsed().as_secs() < 5,
-            "Chat: Failed to get BanchoBot's response in 5 s"
-        );
-        if let Ok(messages) = osu
-            .chat_channel_messages(channel.channel.channel_id)
-            .limit(1)
-            .await
-        {
-            if let Some(ChatChannelMessage {
-                sender_id: BANCHOBOT_USER_ID,
-                ..
-            }) = messages.last()
-            {
-                break messages.last().unwrap().message_id;
-            }
-        }
-        tokio::time::sleep(std::time::Duration::from_millis(500)).await;
-    };
+    // Awaiting reply
+    sleep(Duration::from_secs(3)).await;
+
+    let reply = osu
+        .chat_channel_messages(channel.channel.channel_id)
+        .limit(1)
+        .await?
+        .pop()
+        .unwrap();
+
+    assert_eq!(
+        reply.sender_id, BANCHOBOT_USER_ID,
+        "Missing BanchoBot reply"
+    );
 
     // Avoid the "New osu! notifications" email triggered by an unread message from BanchoBot.
     // (At the same time, test the API method.)
-    osu.chat_mark_as_read(channel.channel.channel_id, banchobot_reply_id)
+    osu.chat_mark_as_read(channel.channel.channel_id, reply.message_id)
         .await?;
 
     Ok(())

@@ -220,7 +220,7 @@ impl Osu {
 
     /// Get information about a chat channel in form of a
     /// [`ChatChannelInfo`](crate::model::chat::ChatChannelInfo). The list of online users is
-    /// empty for all [`ChannelType`]s except PM.
+    /// empty for all [`ChannelType`](crate::model::chat::ChannelType)s except PM.
     #[inline]
     pub const fn chat_channel(&self, channel_id: ChatChannelId) -> GetChatChannel<'_> {
         GetChatChannel::new(self, channel_id)

@@ -101,6 +101,7 @@ async fn chat() -> Result<()> {
                     .collect::<Vec<_>>()
                     .join(", ")
             );
+
             let filtered_messages = osu
                 .chat_channel_messages(OSU_CHANNEL_ID)
                 .since_message_id(first.message_id)
@@ -119,6 +120,7 @@ async fn chat() -> Result<()> {
             osu_messages.len()
         ),
     }
+
     Ok(())
 }
 
@@ -127,6 +129,7 @@ async fn chat() -> Result<()> {
 #[ignore = "chat/updates requires `lazer` OAuth scope"]
 async fn chat_updates() -> Result<()> {
     let chat_updates = osu().await.unwrap().chat_updates().await.unwrap();
+
     println!(
         "Chat: Currently in {} channel(s), {} user silence(s) since last read",
         chat_updates.presence.len(),
@@ -203,23 +206,16 @@ async fn chat_create_announcement() -> Result<()> {
         Ok(announcement) => {
             println!("Chat: Created announcement with yourself and BanchoBot: {announcement:?}");
         }
-        Err(OsuError::Response {
-            source,
-            status,
-            bytes,
-        }) => {
+        Err(OsuError::Response { source, status, .. }) => {
             assert_eq!(
                 status,
                 StatusCode::FORBIDDEN,
                 "Unexpected error -- expected failure due to lack of announcement rights: {source}"
             );
-            println!(
-                "Chat: EXPECTED failure during announcement creation: {source:?} {status} {bytes:?}"
-            );
+
+            println!("Chat: EXPECTED failure during announcement creation: {source:?} {status}");
         }
-        Err(e) => {
-            panic!("Unexpected error: {e}");
-        }
+        Err(e) => panic!("Unexpected error: {e}"),
     }
 
     Ok(())

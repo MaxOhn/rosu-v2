@@ -1,4 +1,5 @@
 use crate::{
+    future::EmptyWrap,
     model::chat::{
         ChannelType, ChatChannel, ChatChannelId, ChatChannelInfo, ChatChannelMessage,
         ChatMessageId, ChatNewPrivateChannel, ChatSilenceHistory, ChatSilenceId, ChatUpdate,
@@ -196,8 +197,10 @@ impl<'a> DeleteChatLeaveChannel<'a> {
 }
 
 into_future! {
-    |self: DeleteChatLeaveChannel<'_>| -> () {
+    |self: DeleteChatLeaveChannel<'_>| -> EmptyWrap {
         Request::new(Route::DeleteChatLeaveChannel { channel_id: self.channel_id, user_id: self.user_id })
+    } => |_empty, _| -> () {
+        Ok(())
     }
 }
 
@@ -367,6 +370,8 @@ impl<'a> PutChatMarkChannelAsRead<'a> {
 into_future! {
     |self: PutChatMarkChannelAsRead<'_>| -> () {
         Request::new(Route::PutChatMarkChannelAsRead { channel_id: self.channel_id, message_id: self.message_id })
+    } => |_empty, _| -> () {
+        Ok(())
     }
 }
 

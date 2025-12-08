@@ -207,8 +207,3 @@ impl<T: OsuFutureData> Future for OsuFuture<T> {
 pub(crate) const fn noop_post_process<T>(value: T, _: ()) -> OsuResult<T> {
     Ok(value)
 }
-
-#[allow(clippy::unnecessary_wraps)]
-pub(crate) const fn empty_post_process(_: EmptyWrap, _: ()) -> OsuResult<()> {
-    Ok(())
-}

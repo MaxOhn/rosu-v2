@@ -153,9 +153,7 @@ pub struct ChatChannelMessage {
 
 impl ContainedUsers for ChatChannelMessage {
     fn apply_to_users(&self, f: impl CacheUserFn) {
-        if let Some(user) = &self.sender {
-            f(user.user_id, &user.username);
-        }
+        self.sender.apply_to_users(f);
     }
 }
 
@@ -179,8 +177,6 @@ pub struct ChatNewPrivateChannel {
 
 impl ContainedUsers for ChatNewPrivateChannel {
     fn apply_to_users(&self, f: impl CacheUserFn) {
-        if let Some(user) = &self.message.sender {
-            f(user.user_id, &user.username);
-        }
+        self.message.sender.apply_to_users(f);
     }
 }

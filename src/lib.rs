@@ -150,6 +150,7 @@ pub mod prelude {
         error::OsuError,
         model::{
             beatmap::*,
+            chat::*,
             comments::*,
             event::*,
             forum::*,

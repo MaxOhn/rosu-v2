@@ -29,43 +29,7 @@ when creating the client in order to make requests on behalf of the authenticate
 
 ### Endpoints
 
-The following endpoints are currently supported:
-
-- `beatmaps/lookup`: A specific beatmap including its beatmapset
-- `beatmaps`: Up to 50 beatmaps at once including their beatmapsets
-- `beatmaps/{map_id}/attributes`: The difficulty attributes of a beatmap
-- `beatmaps/{map_id}/scores`: The global score leaderboard for a beatmap
-- `beatmaps/{map_id}/scores/users/{user_id}[/all]`: Get (all) top score(s) of a user on a beatmap. Defaults to the play with the __max score__, not pp
-- `beatmapsets/{mapset_id}`: The beatmapset including all of its difficulty beatmaps
-- `beatmapsets/events`: Various events around a beatmapset such as status, genre, or language updates, kudosu transfers, or new issues
-- `beatmapsets/search`: Search for beatmapsets; the same search as on the osu! website
-- `comments`: Most recent comments and their replies up to two levels deep
-- `events`: Collection of events in order of creation time
-- `forums/topics/{topic_id}`: A forum topic and its posts
-- `friends`: List of authenticated user's friends
-- `matches`: List of currently open multiplayer lobbies
-- `matches/{match_id}`: More specific data about a specific multiplayer lobby including participating players and occured events
-- `me[/{mode}]`: Detailed info about the authenticated user [in the specified mode] (requires OAuth)
-- `news`: Recent news
-- `rankings/{mode}/{ranking_type}`: The global leaderboard of either performance points, ranked score, countries, or a spotlight
-- `rooms`: Multiplayer rooms
-- `rooms/{room_id}`: A specific multiplayer room
-- `rooms/{room_id}/events`: Events for a multiplayer room
-- `rooms/{room_id}/leaderboard`: The leaderboard for a multiplayer room
-- `rooms/{room_id}/playlist/{playlist_id}/scores`: Scores of a room's playlist
-- `users/{user_id}/{recent_activity}`: List of a user's recent events like achieved medals, ranks on a beatmaps, username changes, supporter status updates, beatmapset status updates, ...
-- `scores/{mode}/{score_id}`: A specific score including its beatmap, beatmapset, and user
-- `scores`: Up to 1000 most recently processed scores (passes)
-- `seasonal-backgrounds`: List of seasonal backgrounds i.e. their URL and artists
-- `spotlights`: List of overviews of all spotlights
-- `users/{user_id}[/{mode}]`: Detailed info about a user [in the specified mode]
-- `users/{user_id}/{beatmapsets/{map_type}`: List of beatmapsets either created, favourited, or most played by the user
-- `users/{user_id}/kudosu`: A user's recent kudosu transfers
-- `users/{user_id}/scores/{score_type}`: Either top, recent, pinned, or global #1 scores of a user
-- `users`: Up to 50 users at once including statistics for all modes
-- `wiki/{locale}[/{path}]`: The general wiki page or a specific topic if the path is specified
-
-The api itself provides a bunch more endpoints which are not yet implemented because they're either niche and/or missing any documentation.
+rosu-v2 wraps most of the api's endpoints - but not all.
 
 If you find an endpoint on the [api page](https://osu.ppy.sh/docs/index.html) that you want to use but is missing in rosu-v2, feel free to open an issue.
 
@@ -115,7 +79,7 @@ async fn main() {
 
 | Flag          | Description                              | Dependencies
 | ------------- | ---------------------------------------- | ------------
-| `default`     | Enable the `cache` and `macros` features |
+| `default`     | Enables the `cache` and `macros` features |
 | `cache`       | Cache username-userid pairs so that fetching data by username does one instead of two requests | [`dashmap`]
 | `macros`      | Re-exports `rosu-mods`'s `mods!` macro to easily create mods for a given mode | [`paste`]
 | `serialize`   | Implement `serde::Serialize` for most types, allowing for manual serialization |

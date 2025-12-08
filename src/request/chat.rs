@@ -368,7 +368,7 @@ impl<'a> PutChatMarkChannelAsRead<'a> {
 }
 
 into_future! {
-    |self: PutChatMarkChannelAsRead<'_>| -> () {
+    |self: PutChatMarkChannelAsRead<'_>| -> EmptyWrap {
         Request::new(Route::PutChatMarkChannelAsRead { channel_id: self.channel_id, message_id: self.message_id })
     } => |_empty, _| -> () {
         Ok(())

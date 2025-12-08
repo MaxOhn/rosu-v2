@@ -8,6 +8,7 @@ use std::{
 #[cfg(feature = "metrics")]
 use std::time::Instant;
 
+use bytes::{BufMut, BytesMut};
 use http_body_util::Full;
 use hyper::{
     body::Bytes,
@@ -16,12 +17,12 @@ use hyper::{
 };
 use hyper_util::client::legacy::ResponseFuture as HyperResponseFuture;
 use pin_project::pin_project;
+use serde::Serialize;
 use tokio::time::Timeout;
 
 use crate::{
     client::{Authorization, OsuInner, Scopes, TokenResponse},
     error::OsuError,
-    request::JsonBody,
     OsuResult,
 };
 
@@ -31,29 +32,17 @@ use super::{
 };
 
 struct TokenRequestGenerator {
-    body: Vec<u8>,
+    body: Bytes,
 }
 
 impl TokenRequestGenerator {
-    fn new(osu: &OsuInner, mut body: JsonBody) -> Result<Self, OsuError> {
-        match osu.client_id {
-            Some(client_id) => body.push_int("client_id", client_id),
-            None => return Err(OsuError::BuilderMissingId),
-        }
-
-        match &osu.client_secret {
-            Some(client_secret) => body.push_str("client_secret", client_secret),
-            None => return Err(OsuError::BuilderMissingSecret),
-        }
-
-        Ok(Self {
-            body: body.into_bytes(),
-        })
+    const fn new(body: Bytes) -> Self {
+        Self { body }
     }
 
     fn generate(self) -> OsuResult<HyperRequest<Full<Bytes>>> {
         let len = self.body.len();
-        let body = Full::new(Bytes::from(self.body));
+        let body = Full::new(self.body);
         let url = "https://osu.ppy.sh/oauth/token";
 
         HyperRequest::post(url)
@@ -141,45 +130,91 @@ pub(crate) struct TokenFuture {
 
 impl TokenFuture {
     pub(crate) fn new_client(osu: Arc<OsuInner>) -> Result<Self, OsuError> {
-        let mut body = JsonBody::new();
+        #[derive(Serialize)]
+        struct CodeGrant<'a> {
+            client_id: u64,
+            client_secret: &'a str,
+            scope: &'a str,
+            grant_type: &'static str,
+        }
 
-        body.push_str("grant_type", "client_credentials");
         let mut scopes = String::new();
         Scopes::Public.format(&mut scopes, ' ');
-        body.push_str("scope", &scopes);
 
-        Self::new(osu, body)
+        let (client_id, client_secret) = credentials(&osu)?;
+
+        let body = CodeGrant {
+            client_id,
+            client_secret,
+            scope: &scopes,
+            grant_type: "client_credentials",
+        };
+
+        let body = serialize_body(&body)?;
+
+        Ok(Self::new(osu, body))
     }
 
     pub(crate) fn new_user(osu: Arc<OsuInner>, auth: &Authorization) -> Result<Self, OsuError> {
-        let mut body = JsonBody::new();
+        #[derive(Serialize)]
+        struct CodeGrant<'a> {
+            client_id: u64,
+            client_secret: &'a str,
+            scope: &'a str,
+            grant_type: &'static str,
+            code: &'a str,
+            redirect_uri: &'a str,
+        }
 
-        body.push_str("grant_type", "authorization_code");
-        body.push_str("redirect_uri", &auth.redirect_uri);
-        body.push_str("code", &auth.code);
         let mut scopes = String::new();
         auth.scopes.format(&mut scopes, ' ');
-        body.push_str("scope", &scopes);
 
-        Self::new(osu, body)
+        let (client_id, client_secret) = credentials(&osu)?;
+
+        let body = CodeGrant {
+            client_id,
+            client_secret,
+            scope: &scopes,
+            grant_type: "authorization_code",
+            code: &auth.code,
+            redirect_uri: &auth.redirect_uri,
+        };
+
+        let body = serialize_body(&body)?;
+
+        Ok(Self::new(osu, body))
     }
 
     pub(crate) fn new_refresh(osu: Arc<OsuInner>, refresh: &str) -> Result<Self, OsuError> {
-        let mut body = JsonBody::new();
+        #[derive(Serialize)]
+        struct CodeGrant<'a> {
+            client_id: u64,
+            client_secret: &'a str,
+            grant_type: &'static str,
+            refresh_token: &'a str,
+        }
 
-        body.push_str("grant_type", "refresh_token");
-        body.push_str("refresh_token", refresh);
+        let (client_id, client_secret) = credentials(&osu)?;
 
-        Self::new(osu, body)
+        let body = CodeGrant {
+            client_id,
+            client_secret,
+            grant_type: "refresh_token",
+            refresh_token: refresh,
+        };
+
+        let body = serialize_body(&body)?;
+
+        Ok(Self::new(osu, body))
     }
 
-    fn new(osu: Arc<OsuInner>, body: JsonBody) -> Result<Self, OsuError> {
-        let inner = match TokenRequestGenerator::new(&osu, body)?.generate() {
+    fn new(osu: Arc<OsuInner>, body: Bytes) -> Self {
+        let inner = match TokenRequestGenerator::new(body).generate() {
             Ok(req) => TokenFutureInner::InFlight(TokenInFlight::new(osu.http.request(req), osu)),
             Err(err) => TokenFutureInner::Completed(Some(err)),
         };
 
-        Ok(Self { inner })
+        Self { inner }
     }
 }
 
@@ -216,4 +251,25 @@ impl Future for TokenFuture {
             },
         }
     }
+}
+
+fn credentials(osu: &OsuInner) -> OsuResult<(u64, &str)> {
+    let client_id = osu.client_id.ok_or(OsuError::BuilderMissingId)?;
+
+    let client_secret = osu
+        .client_secret
+        .as_deref()
+        .ok_or(OsuError::BuilderMissingSecret)?;
+
+    Ok((client_id, client_secret))
+}
+
+fn serialize_body<T: Serialize>(body: &T) -> OsuResult<Bytes> {
+    let mut bytes = BytesMut::new();
+
+    if let Err(err) = serde_json::to_writer((&mut bytes).writer(), body) {
+        return Err(OsuError::Serialize(err));
+    }
+
+    Ok(bytes.freeze())
 }

@@ -1,6 +1,6 @@
 extern crate rosu_v2;
 
-use std::{env, time::Duration};
+use std::env;
 
 use dotenvy::dotenv;
 use eyre::{Result, WrapErr};
@@ -11,19 +11,17 @@ use rosu_v2::{
         event::EventSort,
         GameMode,
     },
-    prelude::{PlaylistScoresSort, RoomCategory, RoomTypeGroup, UserBeatmapsetsKind},
+    prelude::{PlaylistScoresSort, RoomCategory, RoomTypeGroup, Token, UserBeatmapsetsKind},
     request::{RoomsFilter, RoomsTypeGroup},
     Osu,
 };
 use serial_test::serial;
 use tokio::time::sleep;
-use tracing_subscriber::{fmt::TestWriter, EnvFilter};
+
+mod common;
 
 async fn osu() -> Result<Osu> {
-    let _ = tracing_subscriber::fmt()
-        .with_writer(TestWriter::new())
-        .with_env_filter(EnvFilter::builder().parse("rosu_v2=trace,info").unwrap())
-        .try_init();
+    common::init_tracing();
 
     dotenv().ok();
 
@@ -35,11 +33,18 @@ async fn osu() -> Result<Osu> {
     let client_secret = env::var("CLIENT_SECRET").wrap_err("missing CLIENT_SECRET")?;
 
     // Preventing 429s
-    sleep(Duration::from_secs(1)).await;
+    sleep(common::jitter()).await;
 
-    Osu::builder()
+    let mut builder = Osu::builder()
         .client_id(client_id)
         .client_secret(client_secret)
+        .ratelimit(1);
+
+    if let Ok(access) = env::var("ACCESS_TOKEN") {
+        builder = builder.with_token(Token::new(&access, None), None);
+    }
+
+    builder
         .build()
         .await
         .wrap_err("Failed to build osu! client")

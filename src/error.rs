@@ -134,6 +134,8 @@ pub enum OsuError {
     /// API returned a non-empty response, while the empty one was expected.
     #[error("response error: expected empty body, found content instead: {:?}", .bytes)]
     ResponseNotEmpty { bytes: Bytes },
+    #[error("failed to serialize value")]
+    Serialize(#[source] serde_json::Error),
     /// Temporal (?) downtime of the osu API
     #[error("osu!api may be temporarily unavailable (received 503)")]
     ServiceUnavailable { body: hyper::body::Incoming },

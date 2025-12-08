@@ -230,15 +230,32 @@ impl Osu {
     /// announcement creators can send them. Returns information about a created channel in form of
     /// [`ChatChannel`](crate::model::chat::ChatChannel).
     #[inline]
-    pub const fn chat_create_announcement(&self) -> PostChatCreateAnnouncement<'_> {
-        PostChatCreateAnnouncement::new(self)
+    pub fn chat_create_announcement(
+        &self,
+        name: impl Into<String>,
+        description: impl Into<String>,
+        message: impl Into<String>,
+        user_ids: Vec<u32>,
+    ) -> PostChatCreateAnnouncement<'_> {
+        PostChatCreateAnnouncement::new(
+            self,
+            name.into(),
+            description.into(),
+            message.into(),
+            user_ids,
+        )
     }
 
     /// Create a private channel with another user (PM), and receive its details as
     /// [`ChatNewPrivateChannel`](crate::model::chat::ChatNewPrivateChannel).
     #[inline]
-    pub const fn chat_create_private_channel(&self) -> PostChatCreatePM<'_> {
-        PostChatCreatePM::new(self)
+    pub fn chat_create_private_channel(
+        &self,
+        user_id: u32,
+        message: impl Into<String>,
+        is_action: bool,
+    ) -> PostChatCreatePM<'_> {
+        PostChatCreatePM::new(self, user_id, message, is_action)
     }
 
     /// Mark a channel as read, up to a specific message.
@@ -285,8 +302,13 @@ impl Osu {
     /// Send a message to a chat channel. The message is returned in form of a
     /// [`ChannelChatMessage`](crate::model::chat::ChatChannelMessage).
     #[inline]
-    pub const fn chat_send_message(&self, channel_id: ChatChannelId) -> PostChatChannelMessage<'_> {
-        PostChatChannelMessage::new(self, channel_id)
+    pub fn chat_send_message(
+        &self,
+        channel_id: ChatChannelId,
+        message: impl Into<String>,
+        is_action: bool,
+    ) -> PostChatChannelMessage<'_> {
+        PostChatChannelMessage::new(self, channel_id, message.into(), is_action)
     }
 
     /// NOTE: This method is not public and requires `lazer` OAuth access scope (2025-12-05).

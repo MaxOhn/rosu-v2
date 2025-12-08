@@ -12,13 +12,11 @@ use rosu_v2::{error::OsuError, model::chat::ChatChannelId, prelude::Token, Osu};
 use rosu_v2::prelude::Scopes;
 use serial_test::serial;
 use tokio::time::sleep;
-use tracing_subscriber::{fmt::TestWriter, EnvFilter};
+
+mod common;
 
 async fn osu() -> Result<Osu> {
-    let _ = tracing_subscriber::fmt()
-        .with_writer(TestWriter::new())
-        .with_env_filter(EnvFilter::builder().parse("rosu_v2=trace,info").unwrap())
-        .try_init();
+    common::init_tracing();
 
     dotenv().ok();
 
@@ -30,11 +28,12 @@ async fn osu() -> Result<Osu> {
     let client_secret = env::var("CLIENT_SECRET").wrap_err("missing CLIENT_SECRET")?;
 
     // Preventing 429s
-    sleep(Duration::from_secs(1)).await;
+    sleep(common::jitter()).await;
 
     let mut builder = Osu::builder()
         .client_id(client_id)
-        .client_secret(client_secret);
+        .client_secret(client_secret)
+        .ratelimit(1);
 
     #[cfg(feature = "local_oauth")]
     {
@@ -160,10 +159,7 @@ async fn chat_post_messages() -> Result<()> {
     let osu = osu().await?;
 
     let channel = osu
-        .chat_create_private_channel()
-        .is_action(false)
-        .message("!faq ping".into())
-        .target_id(BANCHOBOT_USER_ID)
+        .chat_create_private_channel(BANCHOBOT_USER_ID, "!faq ping", false)
         .await?;
 
     // Awaiting reply
@@ -195,11 +191,12 @@ async fn chat_create_announcement() -> Result<()> {
     let osu = osu().await?;
 
     let channel = osu
-        .chat_create_announcement()
-        .description("Test announcement".into())
-        .message("test message".into())
-        .name("rosu-v2".into())
-        .user_ids(&[BANCHOBOT_USER_ID])
+        .chat_create_announcement(
+            "rosu-v2",
+            "Test announcement",
+            "test message",
+            vec![BANCHOBOT_USER_ID],
+        )
         .await;
 
     match channel {

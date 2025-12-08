@@ -9,6 +9,7 @@ use std::{
 use pin_project::pin_project;
 
 use crate::{
+    error::OsuError,
     request::{GetUser, Request, UserId},
     Osu, OsuResult,
 };
@@ -74,6 +75,14 @@ impl<T: OsuFutureData> OsuFuture<T> {
                 data: post_process_data,
                 f: post_process_fn,
             }),
+        }
+    }
+
+    pub(crate) const fn from_error(err: OsuError) -> Self {
+        Self {
+            stage: OsuFutureStage::Failed(err),
+            from_user: None,
+            post_process: None,
         }
     }
 

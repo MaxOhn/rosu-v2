@@ -131,7 +131,7 @@ macro_rules! into_future {
     };
 }
 
-use itoa::{Buffer, Integer};
+use bytes::Bytes;
 use serde::Serialize;
 
 use crate::routing::Route;
@@ -181,7 +181,7 @@ impl Method {
 pub(crate) struct Request {
     pub query: Option<String>,
     pub route: Route,
-    pub body: JsonBody,
+    pub body: Bytes,
     pub api_version: u32,
 }
 
@@ -190,10 +190,10 @@ impl Request {
     const API_VERSION: u32 = 20220705;
 
     const fn new(route: Route) -> Self {
-        Self::with_body(route, JsonBody::new())
+        Self::with_body(route, Bytes::new())
     }
 
-    const fn with_body(route: Route, body: JsonBody) -> Self {
+    const fn with_body(route: Route, body: Bytes) -> Self {
         Self {
             query: None,
             route,
@@ -203,10 +203,10 @@ impl Request {
     }
 
     const fn with_query(route: Route, query: String) -> Self {
-        Self::with_query_and_body(route, query, JsonBody::new())
+        Self::with_query_and_body(route, query, Bytes::new())
     }
 
-    const fn with_query_and_body(route: Route, query: String, body: JsonBody) -> Self {
+    const fn with_query_and_body(route: Route, query: String, body: Bytes) -> Self {
         Self {
             query: Some(query),
             route,
@@ -217,110 +217,6 @@ impl Request {
 
     const fn api_version(&mut self, api_version: u32) {
         self.api_version = api_version;
-    }
-}
-
-pub(crate) struct JsonBody {
-    inner: Vec<u8>,
-}
-
-impl JsonBody {
-    pub(crate) const fn new() -> Self {
-        Self { inner: Vec::new() }
-    }
-
-    fn push_prefix(&mut self) {
-        let prefix = if self.inner.is_empty() { b'{' } else { b',' };
-        self.inner.push(prefix);
-    }
-
-    fn push_suffix(&mut self) {
-        self.inner.push(b'}');
-    }
-
-    fn push_key(&mut self, key: &[u8]) {
-        self.push_prefix();
-        self.inner.push(b'\"');
-        self.inner.extend_from_slice(key);
-        self.inner.extend_from_slice(b"\":");
-    }
-
-    fn push_value(&mut self, value: &[u8]) {
-        self.inner.push(b'\"');
-        self.inner.extend_from_slice(value);
-        self.inner.push(b'\"');
-    }
-
-    pub(crate) fn push_str(&mut self, key: &str, value: &str) {
-        self.inner.reserve(4 + key.len() + 2 + value.len());
-
-        self.push_key(key.as_bytes());
-        self.push_value(value.as_bytes());
-    }
-
-    pub(crate) fn push_bool(&mut self, key: &str, value: bool) {
-        self.push_key(key.as_bytes());
-        if value {
-            self.inner.extend_from_slice("true".as_bytes());
-        } else {
-            self.inner.extend_from_slice("false".as_bytes());
-        }
-    }
-
-    pub(crate) fn push_int(&mut self, key: &str, int: impl Integer) {
-        let mut buf = Buffer::new();
-        let int = buf.format(int);
-
-        self.inner.reserve(4 + key.len() + int.len());
-
-        self.push_key(key.as_bytes());
-        self.push_value(int.as_bytes());
-    }
-
-    pub(crate) fn push_object(&mut self, key: &str, obj: JsonBody) {
-        self.push_key(key.as_bytes());
-        self.inner.extend_from_slice(&obj.into_bytes());
-    }
-
-    pub(crate) fn into_bytes(mut self) -> Vec<u8> {
-        if !self.inner.is_empty() {
-            self.push_suffix();
-        }
-
-        self.inner
-    }
-}
-
-pub(crate) trait JsonArrayValue {
-    fn write_to(&self, buf: &mut Vec<u8>);
-}
-
-impl JsonArrayValue for u32 {
-    fn write_to(&self, buf: &mut Vec<u8>) {
-        let mut itoa_buf = Buffer::new();
-        buf.extend_from_slice(itoa_buf.format(*self).as_bytes());
-    }
-}
-
-impl JsonArrayValue for &str {
-    fn write_to(&self, buf: &mut Vec<u8>) {
-        buf.push(b'\"');
-        buf.extend_from_slice(self.as_bytes());
-        buf.push(b'\"');
-    }
-}
-
-impl JsonBody {
-    pub(crate) fn push_array<T: JsonArrayValue>(&mut self, key: &str, arr: &[T]) {
-        self.push_key(key.as_bytes());
-        self.inner.push(b'[');
-        for (idx, value) in arr.iter().enumerate() {
-            value.write_to(&mut self.inner);
-            if idx + 1 != arr.len() {
-                self.inner.push(b',');
-            }
-        }
-        self.inner.push(b']');
     }
 }
 

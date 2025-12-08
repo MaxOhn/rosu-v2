@@ -1,4 +1,6 @@
 use crate::{
+    error::OsuError,
+    future::OsuFuture,
     model::{
         beatmap::{
             Beatmap, BeatmapDifficultyAttributes, BeatmapDifficultyAttributesWrapper,
@@ -18,12 +20,13 @@ use crate::{
     Osu,
 };
 
+use bytes::{BufMut, BytesMut};
 use itoa::Buffer;
 use serde::ser::SerializeMap;
 use serde::{Serialize, Serializer};
 use std::fmt::Write;
 
-use super::{JsonBody, UserId};
+use super::UserId;
 
 /// Get a [`BeatmapExtended`].
 #[must_use = "requests must be configured and executed"]
@@ -120,11 +123,15 @@ into_future! {
 
 /// Get [`BeatmapDifficultyAttributes`] of a map.
 #[must_use = "requests must be configured and executed"]
-#[derive(Clone)]
+#[derive(Clone, Serialize)]
 pub struct GetBeatmapDifficultyAttributes<'a> {
+    #[serde(skip)]
     osu: &'a Osu,
+    #[serde(skip)]
     map_id: u32,
+    #[serde(rename = "ruleset_id", skip_serializing_if = "Option::is_none")]
     mode: Option<GameMode>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     mods: Option<u32>,
 }
 
@@ -164,15 +171,13 @@ into_future! {
             map_id: self.map_id,
         };
 
-        let mut body = JsonBody::new();
+        let mut bytes = BytesMut::new();
 
-        if let Some(mods) = self.mods {
-            body.push_int("mods", mods);
+        if let Err(err) = serde_json::to_writer((&mut bytes).writer(), &self) {
+            return OsuFuture::from_error(OsuError::Serialize(err));
         }
 
-        if let Some(mode) = self.mode {
-            body.push_int("ruleset_id", mode as u32);
-        }
+        let body = bytes.freeze();
 
         Request::with_body(route, body)
     } => |attrs, _| -> BeatmapDifficultyAttributes {

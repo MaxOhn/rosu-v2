@@ -1,15 +1,17 @@
 use crate::{
-    future::EmptyWrap,
+    error::OsuError,
+    future::{EmptyWrap, OsuFuture},
     model::chat::{
         ChannelType, ChatChannel, ChatChannelId, ChatChannelInfo, ChatChannelMessage,
         ChatMessageId, ChatNewPrivateChannel, ChatSilenceHistory, ChatSilenceId, ChatUpdate,
         SilenceHistoryFilter,
     },
-    request::{JsonBody, Query, Request},
+    request::{Query, Request},
     routing::Route,
     Osu,
 };
 
+use bytes::{BufMut, BytesMut};
 use serde::Serialize;
 
 /// Indicate that you are online, and get a list of recent silences.
@@ -204,142 +206,104 @@ into_future! {
     }
 }
 
+#[derive(Serialize)]
 struct PostChannelCreateAnnouncementChannelBody {
-    pub name: Option<String>,
-    pub description: Option<String>,
+    name: String,
+    description: String,
 }
 
-/// Leave a public or multiplayer channel.
+/// Creates a new announcement channel.
+#[derive(Serialize)]
 #[must_use = "requests must be configured and executed"]
 pub struct PostChatCreateAnnouncement<'a> {
+    #[serde(skip)]
     osu: &'a Osu,
     channel: PostChannelCreateAnnouncementChannelBody,
-    message: Option<String>,
-    target_ids: Option<&'a [u32]>,
+    message: String,
+    #[serde(rename = "target_ids")]
+    user_ids: Vec<u32>,
+    #[serde(rename = "type")]
+    kind: &'static str,
 }
 
 impl<'a> PostChatCreateAnnouncement<'a> {
-    pub(crate) const fn new(osu: &'a Osu) -> Self {
+    pub(crate) const fn new(
+        osu: &'a Osu,
+        name: String,
+        description: String,
+        message: String,
+        user_ids: Vec<u32>,
+    ) -> Self {
         Self {
             osu,
-            channel: PostChannelCreateAnnouncementChannelBody {
-                name: None,
-                description: None,
-            },
-            message: None,
-            target_ids: None,
+            channel: PostChannelCreateAnnouncementChannelBody { name, description },
+            message,
+            user_ids,
+            kind: ChannelType::Announce.as_str(),
         }
-    }
-
-    pub fn name(mut self, name: String) -> Self {
-        self.channel.name = Some(name);
-        self
-    }
-
-    pub fn description(mut self, description: String) -> Self {
-        self.channel.description = Some(description);
-        self
-    }
-
-    pub fn message(mut self, message: String) -> Self {
-        self.message = Some(message);
-        self
-    }
-
-    pub const fn user_ids(mut self, user_ids: &'a [u32]) -> Self {
-        self.target_ids = Some(user_ids);
-        self
     }
 }
 
 into_future! {
     |self: PostChatCreateAnnouncement<'_>| -> ChatChannel {
-        let mut channel_obj = JsonBody::new();
-        if let Some(name) = &self.channel.name {
-            channel_obj.push_str("name", name);
-        }
-        if let Some(description) = &self.channel.description {
-            channel_obj.push_str("description", description);
+        let mut bytes = BytesMut::new();
+
+        if let Err(err) = serde_json::to_writer((&mut bytes).writer(), &self) {
+            return OsuFuture::from_error(OsuError::Serialize(err));
         }
 
-        let mut body = JsonBody::new();
-        body.push_object("channel", channel_obj);
-
-        body.push_str("type", Into::<&str>::into(ChannelType::Announce));
-
-        if let Some(message) = self.message {
-            body.push_str("message", &message);
-        }
-
-        if let Some(target_ids) = self.target_ids {
-            body.push_array("target_ids", target_ids);
-        }
+        let body = bytes.freeze();
 
         Request::with_body(Route::PostChatCreateAnnouncement, body)
     }
 }
 
 /// Create a private channel with another user (PM).
+#[derive(Serialize)]
 #[must_use = "requests must be configured and executed"]
 pub struct PostChatCreatePM<'a> {
+    #[serde(skip)]
     osu: &'a Osu,
-    target_id: Option<u32>,
-    message: Option<String>,
-    is_action: Option<bool>,
+    #[serde(rename = "target_id")]
+    user_id: u32,
+    message: String,
+    is_action: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
     uuid: Option<String>,
 }
 
 impl<'a> PostChatCreatePM<'a> {
-    pub(crate) const fn new(osu: &'a Osu) -> Self {
+    pub(crate) fn new(
+        osu: &'a Osu,
+        user_id: u32,
+        message: impl Into<String>,
+        is_action: bool,
+    ) -> Self {
         Self {
             osu,
-            target_id: None,
-            message: None,
-            is_action: None,
+            user_id,
+            message: message.into(),
+            is_action,
             uuid: None,
         }
     }
 
-    pub const fn target_id(mut self, target_id: u32) -> Self {
-        self.target_id = Some(target_id);
-        self
-    }
+    pub fn uuid(mut self, uuid: impl Into<String>) -> Self {
+        self.uuid = Some(uuid.into());
 
-    pub fn message(mut self, message: String) -> Self {
-        self.message = Some(message);
-        self
-    }
-
-    pub const fn is_action(mut self, is_action: bool) -> Self {
-        self.is_action = Some(is_action);
-        self
-    }
-
-    pub fn uuid(mut self, uuid: String) -> Self {
-        self.uuid = Some(uuid);
         self
     }
 }
 
 into_future! {
     |self: PostChatCreatePM<'_>| -> ChatNewPrivateChannel {
-        let mut body = JsonBody::new();
+        let mut bytes = BytesMut::new();
 
-        if let Some(target_id) = self.target_id {
-            body.push_int("target_id", target_id);
+        if let Err(err) = serde_json::to_writer((&mut bytes).writer(), &self) {
+            return OsuFuture::from_error(OsuError::Serialize(err));
         }
 
-        if let Some(message) = self.message {
-            body.push_str("message", &message);
-        }
-
-        if let Some(is_action) = self.is_action {
-            body.push_bool("is_action", is_action);
-        }
-
-        if let Some(uuid) = self.uuid {
-            body.push_str("uuid", &uuid);
-        }
+        let body = bytes.freeze();
 
         Request::with_body(Route::PostChatCreatePM, body)
     }
@@ -376,46 +340,42 @@ into_future! {
 }
 
 /// Send a message to a chat channel.
+#[derive(Serialize)]
 #[must_use = "requests must be configured and executed"]
 pub struct PostChatChannelMessage<'a> {
+    #[serde(skip)]
     osu: &'a Osu,
+    #[serde(skip)]
     channel_id: ChatChannelId,
-    message: Option<String>,
-    is_action: Option<bool>,
+    message: String,
+    is_action: bool,
 }
 
 impl<'a> PostChatChannelMessage<'a> {
-    pub(crate) const fn new(osu: &'a Osu, channel_id: ChatChannelId) -> Self {
+    pub(crate) fn new(
+        osu: &'a Osu,
+        channel_id: ChatChannelId,
+        message: impl Into<String>,
+        is_action: bool,
+    ) -> Self {
         Self {
             osu,
             channel_id,
-            message: None,
-            is_action: None,
+            message: message.into(),
+            is_action,
         }
-    }
-
-    pub fn message(mut self, message: String) -> Self {
-        self.message = Some(message);
-        self
-    }
-
-    pub const fn is_action(mut self, is_action: bool) -> Self {
-        self.is_action = Some(is_action);
-        self
     }
 }
 
 into_future! {
     |self: PostChatChannelMessage<'_>| -> ChatChannelMessage {
-        let mut body = JsonBody::new();
+        let mut bytes = BytesMut::new();
 
-        if let Some(message) = self.message {
-            body.push_str("message", &message);
+        if let Err(err) = serde_json::to_writer((&mut bytes).writer(), &self) {
+            return OsuFuture::from_error(OsuError::Serialize(err));
         }
 
-        if let Some(is_action) = self.is_action {
-            body.push_bool("is_action", is_action);
-        }
+        let body = bytes.freeze();
 
         Request::with_body(Route::PostChatChannelMessage { channel_id: self.channel_id}, body)
     }

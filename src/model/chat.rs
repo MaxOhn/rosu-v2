@@ -42,37 +42,44 @@ impl ContainedUsers for ChatChannelInfo {
     }
 }
 
-/// Chat channel type. For permission checks for joining, see
-/// [osu!web Documentation § ChannelType](https://osu.ppy.sh/docs/index.html#channeltype).
-#[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
-#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
-pub enum ChannelType {
-    #[serde(rename = "ANNOUNCE")]
-    Announce,
-    #[serde(rename = "GROUP")]
-    Group,
-    #[serde(rename = "MULTIPLAYER")]
-    Multiplayer,
-    PM,
-    #[serde(rename = "PRIVATE")]
-    Private,
-    #[serde(rename = "PUBLIC")]
-    Public,
-    #[serde(rename = "SPECTATOR")]
-    Spectator,
+macro_rules! define_channel_type {
+    (
+        $( #[ $meta:meta ] )*
+        $vis:vis enum $name:ident {
+            $( $variant:ident = $variant_name:literal, )*
+        }
+    ) => {
+        $( #[$meta] )*
+        $vis enum $name {
+            $(
+                #[serde(rename = $variant_name)]
+                $variant,
+            )*
+        }
+
+        impl $name {
+            pub(crate) const fn as_str(self) -> &'static str {
+                match self {
+                    $( Self::$variant => $variant_name, )*
+                }
+            }
+        }
+    }
 }
 
-impl From<ChannelType> for &str {
-    fn from(value: ChannelType) -> Self {
-        match value {
-            ChannelType::Announce => "ANNOUNCE",
-            ChannelType::Group => "GROUP",
-            ChannelType::Multiplayer => "MULTIPLAYER",
-            ChannelType::PM => "PM",
-            ChannelType::Private => "PRIVATE",
-            ChannelType::Public => "PUBLIC",
-            ChannelType::Spectator => "SPECTATOR",
-        }
+define_channel_type! {
+    /// Chat channel type. For permission checks for joining, see
+    /// [osu!web Documentation § ChannelType](https://osu.ppy.sh/docs/index.html#channeltype).
+    #[derive(Copy, Clone, Debug, Deserialize, Eq, PartialEq)]
+    #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
+    pub enum ChannelType {
+        Announce = "ANNOUNCE",
+        Group = "GROUP",
+        Multiplayer = "MULTIPLAYER",
+        PrivateMessage = "PM",
+        Private = "PRIVATE",
+        Public = "PUBLIC",
+        Spectator = "SPECTATOR",
     }
 }
 

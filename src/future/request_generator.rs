@@ -21,7 +21,7 @@ pub(super) struct FutureRequestGenerator {
     uri: Box<str>,
     token: HeaderValue,
     api_version: u32,
-    body: Vec<u8>,
+    body: Bytes,
     pub(super) attempt: u8,
     #[cfg(feature = "metrics")]
     pub(super) route: &'static str,
@@ -80,7 +80,7 @@ impl FutureRequestGenerator {
             uri,
             token,
             api_version,
-            body: body.into_bytes(),
+            body,
             attempt: 0,
             #[cfg(feature = "metrics")]
             route: route.name(),
@@ -103,7 +103,7 @@ impl FutureRequestGenerator {
             req = req.header(CONTENT_TYPE, APPLICATION_JSON);
         }
 
-        let body = Full::new(Bytes::copy_from_slice(&self.body));
+        let body = Full::new(Bytes::clone(&self.body));
 
         req.body(body).map_err(OsuError::from)
     }

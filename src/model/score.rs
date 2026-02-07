@@ -716,8 +716,8 @@ fn osu_grade_legacy(score: &Score) -> Grade {
     let stats = &score.statistics;
     let passed_objects = stats.total_hits(GameMode::Osu);
 
-    let ratio300 = stats.great as f32 / passed_objects as f32;
-    let ratio50 = stats.meh as f32 / passed_objects as f32;
+    let ratio300 = f64::from(stats.great as f32 / passed_objects as f32);
+    let ratio50 = f64::from(stats.meh as f32 / passed_objects as f32);
 
     if ratio300 > 0.9 && ratio50 < 0.01 && stats.miss == 0 {
         if score.mods.contains_any(hdfl()) {
@@ -747,7 +747,7 @@ fn taiko_grade_legacy(score: &Score) -> Grade {
 
     let stats = &score.statistics;
     let passed_objects = stats.total_hits(GameMode::Taiko);
-    let ratio300 = stats.great as f32 / passed_objects as f32;
+    let ratio300 = f64::from(stats.great as f32 / passed_objects as f32);
 
     if ratio300 > 0.9 && stats.miss == 0 {
         if score.mods.contains_any(hdfl()) {
@@ -767,25 +767,25 @@ fn taiko_grade_legacy(score: &Score) -> Grade {
 }
 
 fn catch_grade_legacy(score: &Score, accuracy: Result<f32, fn(&Score) -> f32>) -> Grade {
-    let accuracy = accuracy.unwrap_or_else(|f| f(score));
+    let accuracy = f64::from(accuracy.unwrap_or_else(|f| f(score)));
 
-    if (100.0 - accuracy).abs() < f32::EPSILON {
+    if (100.0 - accuracy).abs() < f64::EPSILON {
         if score.mods.contains_any(hdfl()) {
             Grade::XH
         } else {
             Grade::X
         }
-    } else if accuracy >= 98.0 {
+    } else if accuracy > 98.0 {
         if score.mods.contains_any(hdfl()) {
             Grade::SH
         } else {
             Grade::S
         }
-    } else if accuracy >= 94.0 {
+    } else if accuracy > 94.0 {
         Grade::A
-    } else if accuracy >= 90.0 {
+    } else if accuracy > 90.0 {
         Grade::B
-    } else if accuracy >= 85.0 {
+    } else if accuracy > 85.0 {
         Grade::C
     } else {
         Grade::D
@@ -801,19 +801,19 @@ fn mania_grade_legacy(score: &Score, accuracy: Result<f32, fn(&Score) -> f32>) -
         };
     }
 
-    let accuracy = accuracy.unwrap_or_else(|f| f(score));
+    let accuracy = f64::from(accuracy.unwrap_or_else(|f| f(score)));
 
-    if accuracy >= 95.0 {
+    if accuracy > 95.0 {
         if score.mods.contains_any(hdflfi()) {
             Grade::SH
         } else {
             Grade::S
         }
-    } else if accuracy >= 90.0 {
+    } else if accuracy > 90.0 {
         Grade::A
-    } else if accuracy >= 80.0 {
+    } else if accuracy > 80.0 {
         Grade::B
-    } else if accuracy >= 70.0 {
+    } else if accuracy > 70.0 {
         Grade::C
     } else {
         Grade::D

@@ -71,6 +71,7 @@ const LAZER_CHANNEL_ID: ChatChannelId = 14599138;
 
 #[tokio::test]
 #[serial]
+#[ignore = "requires specific scopes"]
 async fn chat() -> Result<()> {
     let osu = osu().await?;
 
@@ -140,6 +141,7 @@ async fn chat_updates() -> Result<()> {
 
 #[tokio::test]
 #[serial]
+#[ignore = "requires specific scopes"]
 async fn chat_join_leave() -> Result<()> {
     let osu = osu().await?;
     let me = osu.own_data().await?;
@@ -155,6 +157,7 @@ const BANCHOBOT_USER_ID: u32 = 3;
 
 #[tokio::test]
 #[serial]
+#[ignore = "requires specific scopes"]
 async fn chat_post_messages() -> Result<()> {
     let osu = osu().await?;
 
@@ -187,6 +190,7 @@ async fn chat_post_messages() -> Result<()> {
 
 #[tokio::test]
 #[serial]
+#[ignore = "requires specific scopes"]
 async fn chat_create_announcement() -> Result<()> {
     let osu = osu().await?;
 

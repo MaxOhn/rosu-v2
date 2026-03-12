@@ -1,4 +1,7 @@
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::{
+    cmp,
+    time::{Duration, SystemTime, UNIX_EPOCH},
+};
 
 use tracing_subscriber::{fmt::TestWriter, EnvFilter};
 
@@ -10,7 +13,8 @@ pub fn init_tracing() {
 }
 
 pub fn jitter() -> Duration {
-    const MAX_JITTER_MS: u64 = 5000;
+    const MIN_JITTER_MS: u64 = 500;
+    const MAX_JITTER_MS: u64 = 4000;
     const RANDOM_PRIME: u64 = 1_442_695_040_888_963_407;
     const MS_PER_NS: u128 = 100_000;
 
@@ -21,5 +25,5 @@ pub fn jitter() -> Duration {
 
     let jitter = ((ns / MS_PER_NS) as u64).wrapping_mul(RANDOM_PRIME) % MAX_JITTER_MS;
 
-    Duration::from_millis(500 + jitter)
+    Duration::from_millis(cmp::max(jitter, MIN_JITTER_MS))
 }

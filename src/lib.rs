@@ -181,6 +181,7 @@ pub mod prelude {
         error::OsuError,
         model::{
             beatmap::*,
+            changelog::*,
             comments::*,
             event::*,
             forum::*,

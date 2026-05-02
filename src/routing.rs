@@ -30,6 +30,11 @@ pub(crate) enum Route {
     GetBeatmapsetFromMapId,
     GetBeatmapsetEvents,
     GetBeatmapsetSearch,
+    GetChangelogBuild {
+        stream: String,
+        build: String,
+    },
+    GetChangelogListing,
     GetComments,
     GetEvents,
     GetForumPosts {
@@ -112,6 +117,10 @@ impl Route {
             Self::GetBeatmapsetFromMapId => (Method::Get, "beatmapsets/lookup".into()),
             Self::GetBeatmapsetEvents => (Method::Get, "beatmapsets/events".into()),
             Self::GetBeatmapsetSearch => (Method::Get, "beatmapsets/search".into()),
+            Self::GetChangelogBuild { stream, build } => {
+                (Method::Get, format!("changelog/{stream}/{build}").into())
+            }
+            Self::GetChangelogListing => (Method::Get, "changelog".into()),
             Self::GetComments => (Method::Get, "comments".into()),
             Self::GetEvents => (Method::Get, "events".into()),
             Self::GetForumPosts { topic_id } => {
@@ -216,6 +225,8 @@ impl Route {
             Self::GetBeatmapsetFromMapId => "GetBeatmapsetFromMapId",
             Self::GetBeatmapsetEvents => "GetBeatmapsetEvents",
             Self::GetBeatmapsetSearch => "GetBeatmapsetSearch",
+            Self::GetChangelogBuild { .. } => "GetChangelogBuild",
+            Self::GetChangelogListing => "GetChangelogListing",
             Self::GetComments => "GetComments",
             Self::GetEvents => "GetEvents",
             Self::GetForumPosts { .. } => "GetForumPosts",

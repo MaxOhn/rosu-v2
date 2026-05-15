@@ -135,6 +135,7 @@ pub struct Score {
     pub weight: Option<ScoreWeight>,
     pub playlist_item_id: Option<u32>,
     pub room_id: Option<u64>,
+    pub replay_views: Option<u32>,
 }
 
 impl ContainedUsers for Score {
@@ -212,6 +213,7 @@ impl<'de> Deserialize<'de> for Score {
                 reason = "should be the same as `score_id`; only available for playlist scores"
             )]
             solo_score_id: Option<u64>,
+            replay_views: Option<u32>,
         }
 
         #[derive(Deserialize)]
@@ -287,6 +289,7 @@ impl<'de> Deserialize<'de> for Score {
             }),
             playlist_item_id: score_raw.playlist_item_id,
             room_id: score_raw.room_id,
+            replay_views: score_raw.replay_views,
         })
     }
 }

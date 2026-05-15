@@ -755,6 +755,7 @@ mod types {
             current_user_attributes: UserAttributes { pin: None },
             playlist_item_id: Some(999),
             room_id: Some(888),
+            replay_views: Some(123),
         }
     }
 

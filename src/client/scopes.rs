@@ -76,6 +76,8 @@ define_scopes! {
     Identify: 6, "identify";
     /// Allows reading of publicly available data on behalf of the user.
     Public: 7, "public";
+    /// Allows creating and managing multiplayer rooms on a user's behalf.
+    MultiplayerWriteManage: 8, "multiplayer.write_manage";
 }
 
 impl Default for Scopes {

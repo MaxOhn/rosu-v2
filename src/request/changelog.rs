@@ -54,7 +54,7 @@ impl<'a> GetChangelogListing<'a> {
             to: None,
             max_id: None,
             // There are only two supported formats, it should be fine
-            message_formats: Vec::with_capacity(2).into(),
+            message_formats: Vec::new(),
             stream: None,
         }
     }

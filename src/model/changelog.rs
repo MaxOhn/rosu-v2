@@ -6,6 +6,7 @@ use crate::model::ContainedUsers;
 
 /// Changelog listing entry
 #[derive(Clone, Debug, Deserialize)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub struct ChangelogListing {
     /// List of all game update streams (stable, lazer, etc)
     pub streams: Vec<Stream>,
@@ -20,6 +21,7 @@ impl ContainedUsers for ChangelogListing {
 }
 
 #[derive(Clone, Debug, Deserialize)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub struct Stream {
     /// Build stream ID
     pub id: i64,
@@ -38,6 +40,7 @@ pub struct Stream {
 }
 
 #[derive(Clone, Debug, Deserialize)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub struct Build {
     /// Release build ID
     pub id: i64,
@@ -62,12 +65,14 @@ impl ContainedUsers for Build {
 }
 
 #[derive(Clone, Debug, Deserialize)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub struct Versions {
     pub next: Option<Box<Build>>,
     pub previous: Option<Box<Build>>,
 }
 
 #[derive(Clone, Debug, Deserialize)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub struct ChangelogEntry {
     pub id: Option<i64>,
     pub repository: Option<String>,
@@ -101,6 +106,7 @@ pub struct ChangelogEntry {
 
 /// Github user behind the specific change
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub struct GithubUser {
     /// Display name of the user, may differ from github
     pub display_name: String,
@@ -115,6 +121,7 @@ pub struct GithubUser {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub struct Search {
     pub stream: Option<String>,
     pub from: Option<String>,

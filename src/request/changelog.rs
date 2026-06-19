@@ -61,21 +61,21 @@ impl<'a> GetChangelogListing<'a> {
 
     /// Specify minimum build version
     #[inline]
-    pub fn from(mut self, from: &'a str) -> Self {
+    pub const fn from(mut self, from: &'a str) -> Self {
         self.from = Some(from);
 
         self
     }
 
     /// Specify maximum build version
-    pub fn to(mut self, to: &'a str) -> Self {
+    pub const fn to(mut self, to: &'a str) -> Self {
         self.to = Some(to);
 
         self
     }
 
     /// Specify the release stream
-    pub fn stream(mut self, stream: &'a str) -> Self {
+    pub const fn stream(mut self, stream: &'a str) -> Self {
         self.stream = Some(stream);
 
         self

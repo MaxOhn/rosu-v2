@@ -134,7 +134,7 @@ impl CommentBundle {
     /// this method returns `None`.
     #[inline]
     pub async fn get_next(&self, osu: &Osu) -> Option<OsuResult<CommentBundle>> {
-        debug_assert!(self.has_more == self.cursor.is_some());
+        debug_assert_eq!(self.has_more, self.cursor.is_some());
 
         Some(osu.comments().cursor(self.cursor.as_deref()?).await)
     }

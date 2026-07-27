@@ -1,6 +1,6 @@
 use super::{
     token::{AuthorizationBuilder, CurrentToken},
-    Authorization, AuthorizationKind, Osu, OsuInner, Scopes, Token,
+    Authorization, AuthorizationKind, Osu, OsuInner, Scopes, Token, DEFAULT_BASE_URL,
 };
 use crate::{error::OsuError, OsuResult};
 
@@ -23,6 +23,7 @@ pub struct OsuBuilder {
     retries: u8,
     timeout: Duration,
     per_second: u32,
+    base_url: Option<String>,
 }
 
 impl Default for OsuBuilder {
@@ -34,6 +35,7 @@ impl Default for OsuBuilder {
             retries: 2,
             timeout: Duration::from_secs(10),
             per_second: 15,
+            base_url: Some(DEFAULT_BASE_URL.to_string()),
         }
     }
 }
@@ -84,6 +86,8 @@ impl OsuBuilder {
             self.timeout,
             Arc::new(ratelimiter),
             self.retries,
+            self.base_url
+                .map_or_else(|| super::DEFAULT_BASE_URL.into(), String::into_boxed_str),
         ));
 
         #[cfg(feature = "metrics")]
@@ -97,10 +101,14 @@ impl OsuBuilder {
                 scopes,
             }) => {
                 let client_id = self.client_id.ok_or(OsuError::BuilderMissingId)?;
-                let auth_kind =
-                    AuthorizationBuilder::perform_local_oauth(redirect_uri, client_id, scopes)
-                        .await
-                        .map(AuthorizationKind::User)?;
+                let auth_kind = AuthorizationBuilder::perform_local_oauth(
+                    redirect_uri,
+                    client_id,
+                    scopes,
+                    inner.base_url.clone(),
+                )
+                .await
+                .map(AuthorizationKind::User)?;
 
                 build_with_refresh(inner, auth_kind).await
             }
@@ -245,6 +253,20 @@ impl OsuBuilder {
     /// [terms of use]: https://osu.ppy.sh/docs/index.html#terms-of-use
     pub fn ratelimit(mut self, reqs_per_sec: u32) -> Self {
         self.per_second = reqs_per_sec.clamp(1, 20);
+
+        self
+    }
+
+    /// Set the base URL for the osu! API.
+    ///
+    /// Defaults to `https://osu.ppy.sh`. Use this to point the client at a
+    /// different host, such as a proxy, mirror, or self-hosted instance.
+    ///
+    /// The URL must not contain a path component - only the scheme and host
+    /// (optionally with a port), e.g. `https://osu.example.com` or
+    /// `http://localhost:8080`.
+    pub fn base_url(mut self, url: impl Into<String>) -> Self {
+        self.base_url = Some(url.into());
 
         self
     }

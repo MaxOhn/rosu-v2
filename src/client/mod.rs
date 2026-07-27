@@ -614,6 +614,8 @@ impl Drop for Osu {
     }
 }
 
+pub(crate) const DEFAULT_BASE_URL: &str = "https://osu.ppy.sh";
+
 pub(crate) struct OsuInner {
     pub(crate) client_id: Option<u64>,
     pub(crate) client_secret: Option<Box<str>>,
@@ -622,6 +624,7 @@ pub(crate) struct OsuInner {
     pub(crate) ratelimiter: Arc<RateLimiter>,
     pub(crate) token: CurrentToken,
     pub(crate) retries: u8,
+    pub(crate) base_url: Box<str>,
     #[cfg(feature = "cache")]
     pub(crate) cache: dashmap::DashMap<crate::prelude::Username, u32>,
 }
@@ -634,6 +637,7 @@ impl OsuInner {
         timeout: Duration,
         ratelimiter: Arc<RateLimiter>,
         retries: u8,
+        base_url: Box<str>,
     ) -> Self {
         Self {
             client_id,
@@ -643,6 +647,7 @@ impl OsuInner {
             ratelimiter,
             token: CurrentToken::new(),
             retries,
+            base_url,
             #[cfg(feature = "cache")]
             cache: dashmap::DashMap::new(),
         }

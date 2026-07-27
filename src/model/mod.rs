@@ -177,6 +177,9 @@ pub mod seasonal_backgrounds;
 /// User related types
 pub mod user;
 
+/// Changelog related types
+pub mod changelog;
+
 /// Wiki related types
 pub mod wiki;
 

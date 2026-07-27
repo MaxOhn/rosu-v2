@@ -766,3 +766,12 @@ async fn wiki() -> Result<()> {
 
     Ok(())
 }
+
+#[tokio::test]
+async fn changelogs() -> Result<()> {
+    let changelog = OSU.get().await?.changelog_listing().await?;
+
+    println!("Received {} changelog listings", changelog.builds.len());
+
+    Ok(())
+}

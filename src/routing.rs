@@ -60,6 +60,11 @@ pub(crate) enum Route {
         channel_id: ChatChannelId,
         message_id: ChatMessageId,
     },
+    GetChangelogBuild {
+        stream: String,
+        build: String,
+    },
+    GetChangelogListing,
     GetComments,
     GetEvents,
     GetForumPosts {
@@ -156,6 +161,10 @@ impl Route {
             Self::GetBeatmapsetFromMapId => (Method::Get, "beatmapsets/lookup".into()),
             Self::GetBeatmapsetEvents => (Method::Get, "beatmapsets/events".into()),
             Self::GetBeatmapsetSearch => (Method::Get, "beatmapsets/search".into()),
+            Self::GetChangelogBuild { stream, build } => {
+                (Method::Get, format!("changelog/{stream}/{build}").into())
+            }
+            Self::GetChangelogListing => (Method::Get, "changelog".into()),
             Self::GetChatChannel { channel_id } => {
                 (Method::Get, format!("chat/channels/{channel_id}").into())
             }
@@ -312,6 +321,8 @@ impl Route {
             Self::GetBeatmapsetFromMapId => "GetBeatmapsetFromMapId",
             Self::GetBeatmapsetEvents => "GetBeatmapsetEvents",
             Self::GetBeatmapsetSearch => "GetBeatmapsetSearch",
+            Self::GetChangelogBuild { .. } => "GetChangelogBuild",
+            Self::GetChangelogListing => "GetChangelogListing",
             Self::GetChatChannel { .. } => "GetChatChannel",
             Self::GetChatChannelList { .. } => "GetChatChannelList",
             Self::GetChatChannelMessages { .. } => "GetChatChannelMessages",

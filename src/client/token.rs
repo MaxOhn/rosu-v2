@@ -277,11 +277,10 @@ impl AuthorizationBuilder {
             .map_err(OAuthError::Listener)?;
 
         let mut url = format!(
-            "{}/oauth/authorize?\
+            "{base_url}/oauth/authorize?\
                 client_id={client_id}\
                 &redirect_uri={redirect_uri}\
                 &response_type=code",
-            base_url,
         );
 
         url.push_str("&scope=");

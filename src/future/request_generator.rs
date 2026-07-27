@@ -49,7 +49,7 @@ impl FutureRequestGenerator {
 
         let (method, path) = route.as_parts();
 
-        let mut url = format!("https://osu.ppy.sh/api/v2/{path}");
+        let mut url = format!("{}/api/v2/{}", osu.base_url, path);
 
         if let Some(ref query) = query {
             url.push('?');

@@ -247,6 +247,7 @@ impl AuthorizationBuilder {
         redirect_uri: String,
         client_id: u64,
         scopes: Scopes,
+        base_url: Box<str>,
     ) -> Result<Authorization, crate::error::OAuthError> {
         use std::{
             io::{Error as IoError, ErrorKind},
@@ -276,7 +277,7 @@ impl AuthorizationBuilder {
             .map_err(OAuthError::Listener)?;
 
         let mut url = format!(
-            "https://osu.ppy.sh/oauth/authorize?\
+            "{base_url}/oauth/authorize?\
                 client_id={client_id}\
                 &redirect_uri={redirect_uri}\
                 &response_type=code",

@@ -31,19 +31,20 @@ use super::{
     stage::Chunking,
 };
 
-struct TokenRequestGenerator {
+struct TokenRequestGenerator<'a> {
     body: Bytes,
+    base_url: &'a str,
 }
 
-impl TokenRequestGenerator {
-    const fn new(body: Bytes) -> Self {
-        Self { body }
+impl<'a> TokenRequestGenerator<'a> {
+    const fn new(body: Bytes, base_url: &'a str) -> Self {
+        Self { body, base_url }
     }
 
     fn generate(self) -> OsuResult<HyperRequest<Full<Bytes>>> {
         let len = self.body.len();
         let body = Full::new(self.body);
-        let url = "https://osu.ppy.sh/oauth/token";
+        let url = format!("{}/oauth/token", self.base_url);
 
         HyperRequest::post(url)
             .header(USER_AGENT, MY_USER_AGENT)
@@ -209,7 +210,7 @@ impl TokenFuture {
     }
 
     fn new(osu: Arc<OsuInner>, body: Bytes) -> Self {
-        let inner = match TokenRequestGenerator::new(body).generate() {
+        let inner = match TokenRequestGenerator::new(body, &osu.base_url).generate() {
             Ok(req) => TokenFutureInner::InFlight(TokenInFlight::new(osu.http.request(req), osu)),
             Err(err) => TokenFutureInner::Completed(Some(err)),
         };

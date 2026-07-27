@@ -327,6 +327,16 @@ impl Osu {
         GetComments::new(self)
     }
 
+    #[inline]
+    pub const fn changelog_build(&self, stream: String, build: String) -> GetChangelogBuild<'_> {
+        GetChangelogBuild::new(self, stream, build)
+    }
+
+    #[inline]
+    pub fn changelog_listing(&self) -> GetChangelogListing<'_> {
+        GetChangelogListing::new(self)
+    }
+
     /// Get a [`ChartRankings`](crate::model::ranking::ChartRankings) struct
     /// containing a [`Spotlight`](crate::model::ranking::Spotlight), its
     /// [`BeatmapsetExtended`](crate::model::beatmap::BeatmapsetExtended)s, and participating

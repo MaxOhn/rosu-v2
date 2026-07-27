@@ -248,6 +248,15 @@ async fn beatmapset_search() -> Result<()> {
 }
 
 #[tokio::test]
+async fn changelogs() -> Result<()> {
+    let changelog = osu().await?.changelog_listing().await?;
+
+    println!("Received {} changelog listings", changelog.builds.len());
+
+    Ok(())
+}
+
+#[tokio::test]
 #[serial]
 async fn comments() -> Result<()> {
     let bundle = osu().await?.comments().sort_new().await?;
@@ -763,15 +772,6 @@ async fn wiki() -> Result<()> {
         "Received page {}/{}: {}",
         page.locale, page.path, page.title
     );
-
-    Ok(())
-}
-
-#[tokio::test]
-async fn changelogs() -> Result<()> {
-    let changelog = OSU.get().await?.changelog_listing().await?;
-
-    println!("Received {} changelog listings", changelog.builds.len());
 
     Ok(())
 }

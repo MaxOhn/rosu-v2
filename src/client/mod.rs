@@ -333,7 +333,7 @@ impl Osu {
     }
 
     #[inline]
-    pub fn changelog_listing(&self) -> GetChangelogListing<'_> {
+    pub const fn changelog_listing(&self) -> GetChangelogListing<'_> {
         GetChangelogListing::new(self)
     }
 

@@ -1,4 +1,4 @@
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use time::OffsetDateTime;
 
 use super::serde_util;
@@ -105,7 +105,7 @@ pub struct ChangelogEntry {
 }
 
 /// Github user behind the specific change
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub struct GithubUser {
     /// Display name of the user, may differ from github
@@ -120,7 +120,7 @@ pub struct GithubUser {
     pub user_url: Option<String>,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
 pub struct Search {
     pub stream: Option<String>,

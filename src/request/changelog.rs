@@ -47,13 +47,12 @@ pub struct GetChangelogListing<'a> {
 }
 
 impl<'a> GetChangelogListing<'a> {
-    pub(crate) fn new(osu: &'a Osu) -> Self {
+    pub(crate) const fn new(osu: &'a Osu) -> Self {
         Self {
             osu,
             from: None,
             to: None,
             max_id: None,
-            // There are only two supported formats, it should be fine
             message_formats: Vec::new(),
             stream: None,
         }

@@ -139,11 +139,12 @@ use crate::routing::Route;
 pub use crate::future::OsuFuture;
 
 pub use self::{
-    beatmap::*, comments::*, event::*, forum::*, matches::*, news::*, ranking::*, replay::*,
-    score::*, seasonal_backgrounds::*, user::*, wiki::*,
+    beatmap::*, changelog::*, comments::*, event::*, forum::*, matches::*, news::*, ranking::*,
+    replay::*, score::*, seasonal_backgrounds::*, user::*, wiki::*,
 };
 
 mod beatmap;
+mod changelog;
 mod comments;
 mod event;
 mod forum;

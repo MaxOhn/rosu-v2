@@ -8,13 +8,13 @@ use serde::{
     Deserialize, Deserializer,
 };
 use time::format_description::{
-    modifier::{Day, IsoYearFullStandardRange, MonthNumerical},
+    modifier::{CalendarYearFullStandardRange, Day, MonthNumerical},
     Component, FormatItem,
 };
 
 const DATE_FORMAT: &[FormatItem<'_>] = &[
-    FormatItem::Component(Component::IsoYearFullStandardRange(
-        IsoYearFullStandardRange::default(),
+    FormatItem::Component(Component::CalendarYearFullStandardRange(
+        CalendarYearFullStandardRange::default(),
     )),
     FormatItem::StringLiteral("-"),
     FormatItem::Component(Component::MonthNumerical(MonthNumerical::default())),
@@ -172,5 +172,39 @@ impl<'de, T: Deserialize<'de>> Deserialize<'de> for DeserializedList<T> {
         }
 
         d.deserialize_map(ListVisitor(PhantomData)).map(Self)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use time::Month;
+
+    use crate::model::user::MonthlyCount;
+
+    fn parse(date: &str) -> MonthlyCount {
+        let json = format!(r#"{{"start_date":"{date}","count":42}}"#);
+
+        serde_json::from_str(&json)
+            .unwrap_or_else(|error| panic!("failed to parse {date}: {error}"))
+    }
+
+    #[test]
+    fn deserializes_api_date_string() {
+        let count = parse("2015-09-01");
+
+        assert_eq!(count.start_date.year(), 2015);
+        assert_eq!(count.start_date.month(), Month::September);
+        assert_eq!(count.start_date.day(), 1);
+        assert_eq!(count.count, 42);
+    }
+
+    #[test]
+    fn deserializes_date_whose_iso_year_differs() {
+        // 2017-01-01 falls in ISO week 52 of 2016
+        let count = parse("2017-01-01");
+
+        assert_eq!(count.start_date.year(), 2017);
+        assert_eq!(count.start_date.month(), Month::January);
+        assert_eq!(count.start_date.day(), 1);
     }
 }

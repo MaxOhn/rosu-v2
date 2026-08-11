@@ -8,13 +8,13 @@ use serde::{
     Deserialize, Deserializer,
 };
 use time::format_description::{
-    modifier::{Day, IsoYearFullStandardRange, MonthNumerical},
+    modifier::{CalendarYearFullStandardRange, Day, MonthNumerical},
     Component, FormatItem,
 };
 
 const DATE_FORMAT: &[FormatItem<'_>] = &[
-    FormatItem::Component(Component::IsoYearFullStandardRange(
-        IsoYearFullStandardRange::default(),
+    FormatItem::Component(Component::CalendarYearFullStandardRange(
+        CalendarYearFullStandardRange::default(),
     )),
     FormatItem::StringLiteral("-"),
     FormatItem::Component(Component::MonthNumerical(MonthNumerical::default())),

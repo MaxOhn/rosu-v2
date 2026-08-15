@@ -13,8 +13,14 @@ fn deserialize_monthly_playcounts() {
     let counts: Vec<MonthlyCount> = serde_json::from_str(json).unwrap();
 
     assert_eq!(counts.len(), 3);
-    assert_eq!(counts[0].start_date, Date::from_calendar_date(2007, time::Month::October, 1).unwrap());
+    assert_eq!(
+        counts[0].start_date,
+        Date::from_calendar_date(2007, time::Month::October, 1).unwrap()
+    );
     assert_eq!(counts[0].count, 483);
-    assert_eq!(counts[2].start_date, Date::from_calendar_date(2007, time::Month::December, 1).unwrap());
+    assert_eq!(
+        counts[2].start_date,
+        Date::from_calendar_date(2007, time::Month::December, 1).unwrap()
+    );
     assert_eq!(counts[2].count, 94);
 }

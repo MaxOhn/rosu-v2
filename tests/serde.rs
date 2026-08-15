@@ -601,6 +601,7 @@ mod types {
             starts_at: get_date(),
             ends_at: Some(get_date()),
             max_attempts: Some(2),
+            max_participants: None,
             participant_count: 9001,
             channel_id: Some(1234),
             active: true,

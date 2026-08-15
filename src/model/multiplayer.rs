@@ -191,6 +191,7 @@ pub struct Room {
     #[serde(default, with = "serde_util::option_datetime")]
     pub ends_at: Option<OffsetDateTime>,
     pub max_attempts: Option<usize>,
+    pub max_participants: Option<usize>,
     pub participant_count: usize,
     pub channel_id: Option<u64>,
     pub active: bool,

@@ -23,7 +23,6 @@ const DATE_FORMAT: &[FormatItem<'_>] = &[
 ];
 
 pub(super) mod datetime {
-
     use serde::Deserializer;
     use time::{serde::rfc3339, OffsetDateTime};
 
@@ -41,7 +40,6 @@ pub(super) mod datetime {
 }
 
 pub(super) mod option_datetime {
-
     use serde::Deserializer;
     use time::{serde::rfc3339, OffsetDateTime};
 
@@ -79,7 +77,6 @@ pub(super) mod adjust_acc {
 }
 
 pub(super) mod from_option {
-
     use serde::{Deserialize, Deserializer};
 
     pub fn deserialize<'de, D: Deserializer<'de>, T>(d: D) -> Result<T, D::Error>

@@ -488,6 +488,7 @@ impl ScoreStatistics {
     /// Calculate the accuracy rounded to two decimal points i.e. `0 <= accuracy <= 100`.
     ///
     /// Slider hits and such will not be considered.
+    #[expect(clippy::needless_late_init, reason = "arguably cleaner")]
     pub fn legacy_accuracy(&self, mode: GameMode) -> f32 {
         let numerator;
         let denominator;

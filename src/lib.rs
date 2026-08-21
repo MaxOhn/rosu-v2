@@ -171,8 +171,8 @@ pub mod prelude {
         Osu, OsuBuilder, OsuResult,
     };
 
+    pub use compact_str::CompactString;
     pub use hyper::StatusCode;
-    pub use smallstr::SmallString;
 
     #[cfg(feature = "macros")]
     #[cfg_attr(docsrs, doc(cfg(feature = "macros")))]

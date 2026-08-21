@@ -2,7 +2,6 @@ use std::fmt;
 
 use itoa::Buffer;
 use serde::Serialize;
-use smallstr::SmallString;
 
 use crate::{
     model::{
@@ -51,21 +50,21 @@ impl From<u32> for UserId {
 impl From<&str> for UserId {
     #[inline]
     fn from(name: &str) -> Self {
-        Self::Name(SmallString::from_str(name))
+        Self::Name(Username::new(name))
     }
 }
 
 impl From<&String> for UserId {
     #[inline]
     fn from(name: &String) -> Self {
-        Self::Name(SmallString::from_str(name))
+        Self::Name(Username::new(name))
     }
 }
 
 impl From<String> for UserId {
     #[inline]
     fn from(name: String) -> Self {
-        Self::Name(SmallString::from_string(name))
+        Self::Name(Username::new(name))
     }
 }
 

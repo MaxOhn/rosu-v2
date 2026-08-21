@@ -1,14 +1,15 @@
-use crate::model::chat::ChatSilenceId;
+use std::fmt;
 
-use super::{serde_util, CacheUserFn, ContainedUsers, GameMode};
-
+use compact_str::CompactString;
 use serde::{
     de::{Error, IgnoredAny, MapAccess, SeqAccess, Visitor},
     Deserialize, Deserializer,
 };
-use smallstr::SmallString;
-use std::fmt;
 use time::{Date, OffsetDateTime};
+
+use crate::model::chat::ChatSilenceId;
+
+use super::{serde_util, CacheUserFn, ContainedUsers, GameMode};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]
@@ -36,7 +37,7 @@ pub struct Badge {
 }
 
 /// Country codes are at most 2 ASCII characters long
-pub type CountryCode = SmallString<[u8; 2]>;
+pub type CountryCode = CompactString;
 
 struct CountryVisitor;
 
@@ -815,8 +816,8 @@ impl UserLevel {
     }
 }
 
-/// osu! usernames are at most 15 ASCII characters long
-pub type Username = SmallString<[u8; 15]>;
+/// osu! usernames are generally no longer than 15 ASCII characters.
+pub type Username = CompactString;
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize))]

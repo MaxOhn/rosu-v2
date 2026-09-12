@@ -392,4 +392,5 @@ pub enum RoomTypeGroup {
     TeamVersus,
     TagCoop,
     TagTeamVersus,
+    RankedPlay,
 }

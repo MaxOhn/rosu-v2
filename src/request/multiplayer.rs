@@ -209,11 +209,12 @@ pub enum RoomsSort {
 
 /// The "type group" for [`GetRooms`].
 #[derive(Copy, Clone, Debug, Default, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "snake_case")]
+#[serde(rename_all = "kebab-case")]
 #[non_exhaustive]
 pub enum RoomsTypeGroup {
     #[default]
     Playlists,
+    RankedPlay,
     Realtime,
 }
 

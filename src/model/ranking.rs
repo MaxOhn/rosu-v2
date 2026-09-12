@@ -495,6 +495,7 @@ impl<'u> UserWithoutStats<'u> {
             scores_recent_count,
             statistics: _,
             statistics_modes: _,
+            matchmaking_stats: _,
             support_level,
             pending_mapset_count,
             team,

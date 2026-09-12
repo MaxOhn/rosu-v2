@@ -469,6 +469,7 @@ fn deser_mapset_user<'de, D: Deserializer<'de>>(d: D) -> Result<Option<Box<User>
                 is_nat: None,
                 is_silenced: None,
                 loved_mapset_count: None,
+                matchmaking_stats: None,
                 medals: None,
                 monthly_playcounts: None,
                 page: None,

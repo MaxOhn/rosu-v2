@@ -8,6 +8,7 @@ use serde::{
 use time::{Date, OffsetDateTime};
 
 use crate::model::chat::ChatSilenceId;
+use crate::model::matchmaking::MatchmakingUserStats;
 
 use super::{serde_util, CacheUserFn, ContainedUsers, GameMode};
 
@@ -453,6 +454,8 @@ pub struct UserExtended {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub mapping_follower_count: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub matchmaking_stats: Option<Vec<MatchmakingUserStats>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub monthly_playcounts: Option<Vec<MonthlyCount>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub page: Option<UserPage>,
@@ -618,6 +621,8 @@ pub struct User {
         skip_serializing_if = "Option::is_none"
     )]
     pub loved_mapset_count: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub matchmaking_stats: Option<Vec<MatchmakingUserStats>>,
     #[serde(
         default,
         rename = "user_achievements",
@@ -713,6 +718,7 @@ impl From<UserExtended> for User {
             is_nat: user.is_nat,
             is_silenced: user.is_silenced,
             loved_mapset_count: user.loved_mapset_count,
+            matchmaking_stats: user.matchmaking_stats,
             medals: user.medals,
             monthly_playcounts: user.monthly_playcounts,
             page: user.page,

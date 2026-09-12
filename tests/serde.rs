@@ -18,6 +18,7 @@ mod types {
                     catch: None,
                     mania: None,
                 },
+                matchmaking_stats: None,
                 ..get_user()
             }],
             spotlight: get_spotlight(),
@@ -104,7 +105,10 @@ mod types {
             can_be_hyped: true,
             converts: Some(vec![]),
             covers: get_mapset_covers(),
-            creator: Some(Box::new(get_user())),
+            creator: Some(Box::new(User {
+                matchmaking_stats: None,
+                ..get_user()
+            })),
             creator_name: "god".into(),
             creator_id: 2,
             description: Some("description".to_owned()),
@@ -791,6 +795,52 @@ mod types {
         }
     }
 
+    pub(super) fn get_matchmaking_pool() -> MatchmakingPool {
+        MatchmakingPool {
+            active: true,
+            pool_id: 1,
+            name: "ranked play".to_owned(),
+            mode: GameMode::Osu,
+            kind: MatchmakingPoolType::RankedPlay,
+            variant_id: 0,
+        }
+    }
+
+    pub(super) fn get_matchmaking_user_stats() -> MatchmakingUserStats {
+        MatchmakingUserStats {
+            first_placements: 12,
+            is_rating_provisional: true,
+            plays: 123,
+            pool_id: 1,
+            rank: 42,
+            rank_percent: 0.95,
+            rating: 1500,
+            total_points: 4567,
+            user_id: 12345,
+            pool: Some(get_matchmaking_pool()),
+            recent_history: Some(vec![
+                MatchmakingUserEloHistory {
+                    elo_after: 1500,
+                    entry_id: 1,
+                    created_at: Some(get_date()),
+                    result: MatchmakingResult::Win,
+                },
+                MatchmakingUserEloHistory {
+                    elo_after: 1450,
+                    entry_id: 2,
+                    created_at: Some(get_date()),
+                    result: MatchmakingResult::Loss,
+                },
+                MatchmakingUserEloHistory {
+                    elo_after: 1450,
+                    entry_id: 3,
+                    created_at: Some(get_date()),
+                    result: MatchmakingResult::Draw,
+                },
+            ]),
+        }
+    }
+
     pub(super) fn get_user_extended() -> UserExtended {
         UserExtended {
             avatar_url: String::new(),
@@ -886,6 +936,7 @@ mod types {
             is_nat: Some(true),
             is_silenced: Some(true),
             loved_mapset_count: Some(3),
+            matchmaking_stats: Some(vec![get_matchmaking_user_stats()]),
             mapping_follower_count: Some(5),
             monthly_playcounts: Some(vec![MonthlyCount {
                 start_date: Date::from_ordinal_date(2017, 1).unwrap(),
@@ -982,6 +1033,7 @@ mod types {
             is_nat: Some(false),
             is_silenced: Some(false),
             loved_mapset_count: Some(34),
+            matchmaking_stats: Some(vec![get_matchmaking_user_stats()]),
             medals: Some(vec![MedalCompact {
                 achieved_at: get_date(),
                 medal_id: 1,

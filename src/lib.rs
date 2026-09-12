@@ -157,6 +157,7 @@ pub mod prelude {
             forum::*,
             kudosu::*,
             matches::*,
+            matchmaking::*,
             mods::{generated_mods::*, Acronym, GameMods, GameModsIntermode, GameModsLegacy},
             multiplayer::*,
             news::*,

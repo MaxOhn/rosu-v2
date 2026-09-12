@@ -156,6 +156,9 @@ pub mod kudosu;
 /// Multiplayer match related types
 pub mod matches;
 
+/// Matchmaking related types
+pub mod matchmaking;
+
 /// Re-exports of `rosu-mods`
 pub mod mods;
 

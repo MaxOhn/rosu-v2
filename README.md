@@ -79,13 +79,15 @@ async fn main() {
 
 | Flag          | Description                              | Dependencies
 | ------------- | ---------------------------------------- | ------------
-| `default`     | Enables the `cache` and `macros` features |
+| `default`     | Enables the `cache`, `macros`, and `ring` features |
 | `cache`       | Cache username-userid pairs so that fetching data by username does one instead of two requests | [`dashmap`]
 | `macros`      | Re-exports `rosu-mods`'s `mods!` macro to easily create mods for a given mode | [`paste`]
 | `serialize`   | Implement `serde::Serialize` for most types, allowing for manual serialization |
 | `metrics`     | Uses the global metrics registry to store response time for each endpoint | [`metrics`]
 | `replay`      | Enables the method `Osu::replay` to parse a replay. Note that `Osu::replay_raw` is available without this feature but provides raw bytes instead of a parsed replay | [`osu-db`]
 | `local_oauth` | Enables the method `OsuBuilder::with_local_authorization` to perform the full OAuth procedure | `tokio/net` feature
+| `ring`        | Use `ring` as the `rustls` crypto provider (default). Mutually exclusive with `aws-lc-rs`. |
+| `aws-lc-rs`   | Use `aws-lc-rs` as the `rustls` crypto provider instead. Mutually exclusive with `ring`. |
 
 [osu!api v2]: https://osu.ppy.sh/docs/index.html
 [`rosu`]: https://github.com/MaxOhn/rosu

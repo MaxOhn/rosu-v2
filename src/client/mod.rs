@@ -234,20 +234,29 @@ impl Osu {
         &self,
         name: impl Into<String>,
         description: impl Into<String>,
-        message: impl Into<String>,
         user_ids: Vec<u32>,
     ) -> PostChatCreateAnnouncement<'_> {
-        PostChatCreateAnnouncement::new(
-            self,
-            name.into(),
-            description.into(),
-            message.into(),
-            user_ids,
-        )
+        PostChatCreateAnnouncement::new(self, name.into(), description.into(), user_ids)
+    }
+
+    /// Creates a private channel with another user (PM) **without sending a
+    /// message**, and receive its details as
+    /// [`ChatChannel`](crate::model::chat::ChatChannel).
+    ///
+    /// This is the equivalent of `/query` on IRC. To send a message while
+    /// creating the private channel, use
+    /// [`chat_create_private_channel`](Self::chat_create_private_channel).
+    #[inline]
+    pub const fn chat_create_conversation(&self, user_id: u32) -> PostChatCreatePMChannel<'_> {
+        PostChatCreatePMChannel::new(self, user_id)
     }
 
     /// Create a private channel with another user (PM), and receive its details as
     /// [`ChatNewPrivateChannel`](crate::model::chat::ChatNewPrivateChannel).
+    ///
+    /// This is the equivalent of `/msg` on IRC. To create the private channel
+    /// **without sending a message**, use
+    /// [`chat_create_conversation`](Self::chat_create_conversation).
     #[inline]
     pub fn chat_create_private_channel(
         &self,

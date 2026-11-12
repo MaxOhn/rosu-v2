@@ -219,7 +219,8 @@ pub struct PostChatCreateAnnouncement<'a> {
     #[serde(skip)]
     osu: &'a Osu,
     channel: PostChannelCreateAnnouncementChannelBody,
-    message: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    message: Option<String>,
     #[serde(rename = "target_ids")]
     user_ids: Vec<u32>,
     #[serde(rename = "type")]
@@ -227,20 +228,27 @@ pub struct PostChatCreateAnnouncement<'a> {
 }
 
 impl<'a> PostChatCreateAnnouncement<'a> {
+    #[inline]
     pub(crate) const fn new(
         osu: &'a Osu,
         name: String,
         description: String,
-        message: String,
         user_ids: Vec<u32>,
     ) -> Self {
         Self {
             osu,
             channel: PostChannelCreateAnnouncementChannelBody { name, description },
-            message,
+            message: None,
             user_ids,
             kind: ChannelType::Announce.as_str(),
         }
+    }
+
+    #[inline]
+    pub fn message(mut self, message: impl Into<String>) -> Self {
+        self.message = Some(message.into());
+
+        self
     }
 }
 
@@ -254,11 +262,54 @@ into_future! {
 
         let body = bytes.freeze();
 
-        Request::with_body(Route::PostChatCreateAnnouncement, body)
+        Request::with_body(Route::PostChatCreateChannel, body)
+    }
+}
+
+/// Creates a private channel with a user (PM) without sending a message.
+///
+/// This is the equivalent of `/query` on IRC. To create a message with your
+/// private channel, see [`PostChatCreatePM`].
+#[derive(Serialize)]
+#[must_use = "requests must be configured and executed"]
+pub struct PostChatCreatePMChannel<'a> {
+    #[serde(skip)]
+    osu: &'a Osu,
+    #[serde(rename = "target_id")]
+    user_id: u32,
+    #[serde(rename = "type")]
+    kind: &'static str,
+}
+
+impl<'a> PostChatCreatePMChannel<'a> {
+    #[inline]
+    pub(crate) const fn new(osu: &'a Osu, user_id: u32) -> Self {
+        Self {
+            osu,
+            user_id,
+            kind: ChannelType::PrivateMessage.as_str(),
+        }
+    }
+}
+
+into_future! {
+    |self: PostChatCreatePMChannel<'_>| -> ChatChannel {
+        let mut bytes = BytesMut::new();
+
+        if let Err(err) = serde_json::to_writer((&mut bytes).writer(), &self) {
+            return OsuFuture::from_error(OsuError::Serialize(err));
+        }
+
+        let body = bytes.freeze();
+
+        Request::with_body(Route::PostChatCreateChannel, body)
     }
 }
 
 /// Create a private channel with another user (PM).
+///
+/// This is the equivalent of `/msg` on IRC. To create the private channel
+/// without sending a message, see [`PostChatCreatePMChannel`].
 #[derive(Serialize)]
 #[must_use = "requests must be configured and executed"]
 pub struct PostChatCreatePM<'a> {

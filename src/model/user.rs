@@ -7,8 +7,12 @@ use serde::{
 };
 use time::{Date, OffsetDateTime};
 
-use crate::model::chat::ChatSilenceId;
 use crate::model::matchmaking::MatchmakingUserStats;
+use crate::{
+    model::chat::ChatSilenceId,
+    request::{PostChatCreatePM, PostChatCreatePMChannel},
+    Osu,
+};
 
 use super::{serde_util, CacheUserFn, ContainedUsers, GameMode};
 
@@ -506,6 +510,34 @@ pub struct UserExtended {
     pub medals: Option<Vec<MedalCompact>>,
 }
 
+impl UserExtended {
+    /// Create a private channel with this user (PM) **without sending a
+    /// message**.
+    ///
+    /// This is the equivalent of `/query` on IRC. To send a message while
+    /// creating the private channel, use
+    /// [`private_message`](Self::private_message).
+    #[inline]
+    pub fn create_conversation<'a>(&self, osu: &'a Osu) -> PostChatCreatePMChannel<'a> {
+        osu.chat_create_conversation(self.user_id)
+    }
+
+    /// Create a private channel with this user (PM).
+    ///
+    /// This is the equivalent of `/msg` on IRC. To create the private channel
+    /// **without sending a message**, use
+    /// [`private_message`](Self::private_message).
+    #[inline]
+    pub fn private_message<'a>(
+        &self,
+        osu: &'a Osu,
+        message: impl Into<String>,
+        is_action: bool,
+    ) -> PostChatCreatePM<'a> {
+        osu.chat_create_private_channel(self.user_id, message, is_action)
+    }
+}
+
 impl ContainedUsers for UserExtended {
     fn apply_to_users(&self, f: impl CacheUserFn) {
         f(self.user_id, &self.username);
@@ -674,6 +706,34 @@ pub struct User {
     pub pending_mapset_count: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub team: Option<Team>,
+}
+
+impl User {
+    /// Create a private channel with this user (PM) **without sending a
+    /// message**.
+    ///
+    /// This is the equivalent of `/query` on IRC. To send a message while
+    /// creating the private channel, use
+    /// [`private_message`](Self::private_message).
+    #[inline]
+    pub fn create_conversation<'a>(&self, osu: &'a Osu) -> PostChatCreatePMChannel<'a> {
+        osu.chat_create_conversation(self.user_id)
+    }
+
+    /// Create a private channel with this user (PM).
+    ///
+    /// This is the equivalent of `/msg` on IRC. To create the private channel
+    /// **without sending a message**, use
+    /// [`private_message`](Self::private_message).
+    #[inline]
+    pub fn private_message<'a>(
+        &self,
+        osu: &'a Osu,
+        message: impl Into<String>,
+        is_action: bool,
+    ) -> PostChatCreatePM<'a> {
+        osu.chat_create_private_channel(self.user_id, message, is_action)
+    }
 }
 
 impl ContainedUsers for User {

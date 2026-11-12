@@ -46,7 +46,7 @@ pub(crate) enum Route {
         channel_id: ChatChannelId,
         user_id: u32,
     },
-    PostChatCreateAnnouncement,
+    PostChatCreateChannel,
     PostChatCreatePM,
     PostChatChannelMessage {
         channel_id: ChatChannelId,
@@ -181,7 +181,7 @@ impl Route {
                 Method::Delete,
                 format!("chat/channels/{channel}/users/{user}").into(),
             ),
-            Self::PostChatCreateAnnouncement => (Method::Post, "chat/channels".into()),
+            Self::PostChatCreateChannel => (Method::Post, "chat/channels".into()),
             Self::PostChatCreatePM => (Method::Post, "chat/new".into()),
             Self::PostChatChannelMessage { channel_id } => (
                 Method::Post,
@@ -328,7 +328,7 @@ impl Route {
             Self::GetChatChannelMessages { .. } => "GetChatChannelMessages",
             Self::GetChatUpdates => "GetChatUpdates",
             Self::DeleteChatLeaveChannel { .. } => "DeleteChatLeaveChannel",
-            Self::PostChatCreateAnnouncement => "PostChatCreateAnnouncement",
+            Self::PostChatCreateChannel => "PostCHatCreateChannel",
             Self::PostChatCreatePM => "PostChatCreatePM",
             Self::PostChatChannelMessage { .. } => "PostChatChannelMessage",
             Self::PostChatKeepalive => "PostChatKeepalive",

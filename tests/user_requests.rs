@@ -195,12 +195,8 @@ async fn chat_create_announcement() -> Result<()> {
     let osu = osu().await?;
 
     let channel = osu
-        .chat_create_announcement(
-            "rosu-v2",
-            "Test announcement",
-            "test message",
-            vec![BANCHOBOT_USER_ID],
-        )
+        .chat_create_announcement("rosu-v2", "Test announcement", vec![BANCHOBOT_USER_ID])
+        .message("test message")
         .await;
 
     match channel {
@@ -215,6 +211,26 @@ async fn chat_create_announcement() -> Result<()> {
             );
 
             println!("Chat: EXPECTED failure during announcement creation: {source:?} {status}");
+        }
+        Err(e) => panic!("Unexpected error: {e}"),
+    }
+
+    Ok(())
+}
+
+#[tokio::test]
+#[serial]
+#[ignore = "requires specific scopes"]
+async fn chat_create_conversation() -> Result<()> {
+    let osu = osu().await?;
+
+    let channel = osu.chat_create_conversation(BANCHOBOT_USER_ID).await;
+
+    match channel {
+        Ok(announcement) => {
+            println!(
+                "Chat: Created private conversation with yourslef and BanchoBot: {announcement:?}"
+            );
         }
         Err(e) => panic!("Unexpected error: {e}"),
     }

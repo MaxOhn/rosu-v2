@@ -1,7 +1,11 @@
 use serde::Deserialize;
 use time::OffsetDateTime;
 
-use crate::prelude::{User, UserSilence};
+use crate::{
+    prelude::{User, UserSilence},
+    request::{DeleteChatLeaveChannel, PostChatChannelMessage, PutChatJoinChannel},
+    Osu,
+};
 
 use super::{serde_util, CacheUserFn, ContainedUsers};
 
@@ -122,6 +126,31 @@ pub struct ChatChannel {
     /// Array of `user_id`s that are in the channel (not included for [`ChannelType::Public`] channels)
     #[serde(rename = "users", skip_serializing_if = "Option::is_none")]
     pub user_ids: Option<Vec<u32>>,
+}
+
+impl ChatChannel {
+    /// Join this channel.
+    #[inline]
+    pub const fn join<'a>(&self, osu: &'a Osu, user_id: u32) -> PutChatJoinChannel<'a> {
+        osu.chat_join_channel(self.channel_id, user_id)
+    }
+
+    /// Leave this channel.
+    #[inline]
+    pub const fn leave<'a>(&self, osu: &'a Osu, user_id: u32) -> DeleteChatLeaveChannel<'a> {
+        osu.chat_leave_channel(self.channel_id, user_id)
+    }
+
+    /// Send a message to this channel.
+    #[inline]
+    pub fn send_message<'a>(
+        &self,
+        osu: &'a Osu,
+        message: impl Into<String>,
+        is_action: bool,
+    ) -> PostChatChannelMessage<'a> {
+        osu.chat_send_message(self.channel_id, message, is_action)
+    }
 }
 
 impl ContainedUsers for ChatChannel {

@@ -772,7 +772,8 @@ impl UserBeatmapsetsKind {
 pub struct UserCover {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub custom_url: Option<String>,
-    pub url: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub url: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
 }
